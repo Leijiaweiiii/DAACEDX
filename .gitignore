@@ -1,1 +1,8 @@
 /dist/default/
+*.o
+*.p1
+*.S
+*.d
+*.hex
+*.pre
+/build/default/
