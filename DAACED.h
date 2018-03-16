@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include "DAACEDbitmap.h"
 #include "DAACEDfont.h"
+#include "rtc.h"
 
 // </editor-fold> 
 
@@ -279,7 +280,7 @@ uint8_t find_set_bit_position(uint8_t n);
 #define SYS_MODE_NORMAL (0)
 #define SYS_MODE_SLEEP  (1)
 
-volatile uint32_t rtc_time;
+volatile uint32_t rtc_time_sec;
 volatile uint32_t button_down_time, button_up_time;
 volatile uint8_t system_operation_mode = SYS_MODE_NORMAL;
 void initialize_rtc_timer();

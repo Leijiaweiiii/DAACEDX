@@ -82,6 +82,7 @@
 // <editor-fold defaultstate="collapsed" desc="Includes">
 #include <xc.h>
 #include "DAACED.h"
+#include "measurements.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
@@ -3012,8 +3013,8 @@ uint8_t MainDisplay(uint8_t battery,uint8_t ShootNumber, uint8_t par, TBool Aux)
 
     lcd_clear_block(0,0,LCD_WIDTH,LCD_HEIGHT);
     //Top Line
-    //sprintf(message,"%02d:%02d",hour,minute);
-    sprintf(message,"%d",rtc_time);
+    sprintf(message,"%02d:%02d",hour,minute);
+    sprintf(message,"%d",rtc_time_sec);
     lcd_write_string(message,0,line,MediumFont,BLACK_OVER_WHITE);
     if (Aux) lcd_write_string("Aux:On ",45,line,SmallFont,BLACK_OVER_WHITE);
     else     lcd_write_string("Aux:Off",45,line,SmallFont,BLACK_OVER_WHITE);
@@ -3106,7 +3107,7 @@ void DoMain(void)
     }
     lcd_write_string("  0.00",0,pos,BigFont,BLACK_OVER_WHITE);
     generate_sinus(BuzzerLevel,BuzzerFrequency,BuzzerStartDuration);
-    __delay_ms(150);
+    delay_rtc(150);
     t=0;
     while (!Done)
     {
@@ -3155,6 +3156,49 @@ void DoMain(void)
 // </editor-fold>
 // </editor-fold>
 
+
+// <editor-fold defaultstate="collapsed" desc="RTC functions">
+
+static void interrupt isr(void) {
+    if (RTC_TIMER_IF) {
+        RTC_TIMER_IF = 0;   // Clear Interrupt flag.
+        handle_preceise_time();
+    }
+    if (SHOOT_IF){
+        SHOOT_IF = 0;       //Clear interrupt        
+        save_shoot_time();
+    }
+    if (ACCELEROMETR_IF){
+        ACCELEROMETR_IF = 0;
+        if(orientation_changed()){
+            mark_to_flip_screen();
+        }
+    }
+//    if(IOCBFbits.IOCBF1) {
+//        if(PORTBbits.RB1 == 1) {
+//            button_up_time = get_rtc_time();
+//            button_down_time = 0;
+//        } else {
+//            button_down_time = get_rtc_time();
+//            if((button_down_time - button_up_time) >= 3) {
+//                if(system_operation_mode == SYS_MODE_SLEEP) {
+//                    system_operation_mode = SYS_MODE_NORMAL;
+//                    init_10ms_timer0();
+//                } else {
+//                    system_operation_mode = SYS_MODE_SLEEP;
+//                    T0CON0bits.T0EN = 0;        // Stop timer.
+//                }
+//            }
+//        }
+//        IOCBFbits.IOCBF1 = 0;
+//    }
+    if(PIR0bits.TMR0IF) {
+        PIR0bits.TMR0IF = 0;
+        precise_time++;
+        init_10ms_timer0();
+    }
+}
+// </editor-fold>
 void main(void) {
 // <editor-fold defaultstate="collapsed" desc="Initialization">
     PIC_init();
@@ -3171,7 +3215,7 @@ void main(void) {
     SmallFont_height = tahoma_8ptFontInfo.height;
     MediumFont_height = timesNewRoman_11ptFontInfo.height;
     BigFont_height = microsoftSansSerif_42ptFontInfo.height;
-
+    initialize_rtc_timer();
  // Initialization End
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main">

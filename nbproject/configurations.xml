@@ -7,6 +7,8 @@
       <itemPath>DAACED.h</itemPath>
       <itemPath>DAACEDbitmap.h</itemPath>
       <itemPath>DAACEDfont.h</itemPath>
+      <itemPath>rtc.h</itemPath>
+      <itemPath>measurements.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -18,6 +20,7 @@
       <itemPath>DAACED.c</itemPath>
       <itemPath>DAACEDfont.c</itemPath>
       <itemPath>DAACEDbitmap.c</itemPath>
+      <itemPath>rtc.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
