@@ -28,7 +28,7 @@
 
 int16_t cursor_x, cursor_y;
 uint8_t lcd_buffer[LCD_HEIGHT*LCD_MAX_PAGES];
-static uint8_t x_update_min, x_update_max, y_update_min, y_update_max;
+uint8_t x_update_min, x_update_max, y_update_min, y_update_max;
 
 #define topSpace     20
 #define botSpace     10

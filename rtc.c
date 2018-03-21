@@ -16,7 +16,7 @@ void initialize_rtc_timer() {
     TMR1L = 0x00;           // preset for timer1 LSB register (1 second delay)
     T1CONbits.ON = 1;       //TIMER1 start.
     ei();
-    INTCONbits.PEIE = 1;    // Enable Peripheral interrupt.
+//    INTCONbits.PEIE = 1;    // Enable Peripheral interrupt.
     RTC_TIMER_IE = 1;       // Enable timer interrupt.
     
 }
@@ -44,6 +44,11 @@ uint8_t get_minute(){
     time_t const_time = rtc_time_sec;
     return gmtime(&const_time)->tm_min;
 }
+uint8_t get_second(){
+    time_t const_time = rtc_time_sec;
+    return gmtime(&const_time)->tm_sec;
+}
+
 
 void set_time(uint8_t h,uint8_t m,uint8_t s){
     time_t const_time = rtc_time_sec;

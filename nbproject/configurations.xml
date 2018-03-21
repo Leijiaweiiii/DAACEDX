@@ -10,6 +10,7 @@
       <itemPath>rtc.h</itemPath>
       <itemPath>lcd.h</itemPath>
       <itemPath>DAACEDcommon.h</itemPath>
+      <itemPath>ui.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,6 +24,7 @@
       <itemPath>DAACEDbitmap.c</itemPath>
       <itemPath>rtc.c</itemPath>
       <itemPath>lcd.c</itemPath>
+      <itemPath>ui.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

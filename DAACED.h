@@ -22,6 +22,7 @@
 #include "DAACEDfont.h"
 #include "rtc.h"
 #include "lcd.h"
+#include "ui.h"
 // </editor-fold> 
 
 
@@ -123,6 +124,7 @@ uint8_t find_set_bit_position(uint8_t n);
 #define KeyInUp               0x30  //Enter+^
 
 #define Keypressed           (Key>0)
+TBool   KeyReleasedBefore   = true;
 #define Exit                 (Key==KeyBk)
 #define Select               (Key==KeyIn)
 #define Start                (Key==KeySt)
@@ -212,7 +214,7 @@ uint8_t Filter=1;
 #define MAXPAR 10
 uint8_t TotPar;
 uint24_t ParTime[MAXPAR]; //in 10mS unit
-uint8_t CurPar; //The par value active
+uint8_t CurPar_idx; //The par index
 
 
 #define ShootStringStartAddress     1000
@@ -233,6 +235,12 @@ struct MenuTy
 }SettingsMenu;
 SetMenuTy Menu;
 uint8_t  battery_level;
+
+void DoSettings();
+void DoMain();
+void DoReview();
+void DoPowerOff();
+void DoPowerOn();
 // </editor-fold> 
 
 #endif /*  _DAACED_H_ */
