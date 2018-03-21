@@ -21,12 +21,12 @@ void initialize_rtc_timer() {
     
 }
 
-void init_1ms_timer0() {
+void init_10ms_timer0() {
     T0CON0bits.T0EN = 0;        // Stop timer.
     T0CON0bits.T016BIT = 1;     // Enable 16-bit mode.
     T0CON1bits.T0CS = 0b010;    // Fosc/4 Clock Source.
     T0CON1bits.T0PS = 0b0001;    // 1:2 prescalar
-    uint16_t preset = 80000+dt_correction*100;
+    uint16_t preset = 79999;
     TMR0H = MSB(preset);               // preset for Timer0 MSB register
     TMR0L = LSB(preset);               // preset for Timer0 LSB register
     T0CON0bits.T0EN = 1;        // Start timer.
@@ -34,26 +34,6 @@ void init_1ms_timer0() {
     INTCONbits.PEIE = 1;
 }
 
-
-void handle_preceise_time(){
-        rtc_time_sec++;
-        T1CONbits.ON = 0;
-        TMR1CLKbits.CS= 0b0110; // TIMER1 clock source = 32.768KHz Secondary Oscillator.
-        T1CONbits.CKPS = 0b11;  // Prescale = 8.
-        T1CONbits.NOT_SYNC =1;  // asynchronous counter mode to operate during sleep
-        TMR1H = 0xF0;           // preset for timer1 MSB register (1 second delay)
-        TMR1L = 0x00;           // preset for timer1 LSB register (1 second delay)
-        T1CONbits.ON = 1;       //TIMER1 start.
-        if(rtc_time_msec < 100){
-            dt_correction--;
-        } else if (rtc_time_msec > 100){
-            dt_correction++;
-        }
-        timers_diff = 100 - rtc_time_msec;
-        
-        rtc_time_msec = 0;
-//        init_10ms_timer0();     // Reset timer for hight accuracy.
-}
 // </editor-fold>
 
 uint8_t get_hour(){

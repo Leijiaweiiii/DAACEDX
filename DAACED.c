@@ -1,11 +1,11 @@
 /* ===========================================================================
     Project : DAACED
     Version 1.0
- 
+
  *  File:   DAACED.c
  *  Author: Eli
  *  Created on Sept 15, 2017
- 
+
     Global R&D ltd. 04_9592201    ;  www.global_rd.com
     Eli Jacob 054_8010330         ;  eli@global_rd.com
    ===========================================================================*/
@@ -90,14 +90,14 @@ void PIC_init(void)
 {
     // 0 = OUTPUT, 1 = INPUT
     // 0 = DIGITAL, 1 = ANALOG
-    
+
     OSCFRQ = 0b00001000;        // 64 MHz Fosc.
-    
+
     TRISA  = 0b11111111;        // ADC inputs 0..3
     ANSELA = 0b00001111;
     OSCENbits.ADOEN = 1;        // Enable ADC oscillator;
-    
-    TRISB  = 0b11111111;        // 
+
+    TRISB  = 0b11111111;        //
     ANSELB = 0b00000000;
 
     TRISC  = 0b11100101;        // C6 = TX, C7 RX
@@ -119,43 +119,13 @@ void PIC_init(void)
 }
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="SPI">
-void spi_init() {
-    RC4PPS = 0x1A;                          // data-output
-    SSP1DATPPS = 0x1D;                      // PPS to unused PIN.
-    RC3PPS = 0x19;                          // clock output
-
-    SSP1STAT &= 0x3F;                       // Power on state
-    SSP1STATbits.CKE = 1;                   // Data transmission on rising edge
-    SSP1STATbits.SMP = 0;                   // Data sampled/latched at middle of clock.
-    SSP1CON1 = 0x21;                        // Enable synchronous serial port , CKL ,FOSC_DIV_16 page 394
-//    SSP1CON1bits.SSPM = 0x01;               // SPI Clock FOSC_DIV_16
-//    SSP1CON1bits.SSPEN = 1;                 // Enable synchronous serial port
-    PIE3bits.SSP1IE = 0;                    // Disable interrupt.
-}
-
-uint8_t spi_write(uint8_t data) {
-    LCD_CS_SELECT();
-    unsigned char temp_var = SSP1BUF;        // Clear buffer.
-    PIR3bits.SSP1IF = 0;                    // clear interrupt flag bit
-    SSP1CON1bits.WCOL = 0;                  // clear write collision bit if any collision occurs
-
-    SSP1BUF = data;                         // transmit data
-    while(!PIR3bits.SSP1IF);                 // waiting for the process to complete
-    PIR3bits.SSP1IF = 0;                    // clear interrupt flag bit
-    LCD_CS_DESELECT();
-    return(SSP1BUF);                        // return receive data
-}
-//SPI End
-// </editor-fold>
-
 // <editor-fold defaultstate="collapsed" desc="Backlight PWM Function">
 void initialize_backlight() {
     uint8_t PRvalue, prescalar;
     TRISEbits.TRISE6 = 0;       // Disable output.
     PWM6CON = 0;                // Clear register.
     find_optimal_PWM_settings(1000, &PRvalue, &prescalar);
-    
+
     // Initialize Timer2.
     PIR5bits.TMR2IF = 0;        // Clear timer interrupt flag.
     T2CLKCON = 0b001;           // Timer2 clock source = Fosc/4;
@@ -227,429 +197,21 @@ uint8_t find_set_bit_position(uint8_t n) {
 }
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="LCD helper functions">
-void lcd_reset(void) {
-    __delay_ms(5);
-    LCD_RESET_EN();
-    __delay_ms(10);
-    LCD_RESET_DIS();
-    __delay_ms(100);
-}
-
-void lcd_send_command(uint8_t command) {
-    LCD_MODE_COMMAND();
-    spi_write(command);
-}
-void lcd_send_data(uint8_t data) {
-    LCD_MODE_DATA();
-    spi_write(data);
-}
-
-void lcd_send_command_data(uint8_t command, uint8_t data) {
-    LCD_MODE_COMMAND();
-    spi_write(command);
-    LCD_MODE_DATA();
-    spi_write(data);
-}
-
-void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_bytes) {
-    LCD_MODE_COMMAND();
-    spi_write(command);
-    LCD_MODE_DATA();
-    for(uint8_t index = 0; index < no_of_bytes; index++) {
-        spi_write(data[index]);
-    }
-}
-
-void lcd_update_boundingbox(uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
-    if(x_min < x_update_min) x_update_min = x_min;
-    if(x_max > x_update_max) x_update_max = x_max;
-    if(y_min < y_update_min) y_update_min = y_min;
-    if(y_max > y_update_max) y_update_max = y_max;
-}
-
-void lcd_draw_pixel_b(uint8_t x_pos, uint8_t y_pos, uint8_t polarity) {
-    if((x_pos >= LCD_WIDTH) || (y_pos >= LCD_HEIGHT)) {
-        return;
-    }
-    y_pos += Y_OFFSET;
-    if(polarity == BLACK_OVER_WHITE) lcd_buffer[x_pos + ((y_pos)/8)*LCD_WIDTH] |= (BIT(7-(y_pos%8)));
-    else lcd_buffer[x_pos + ((y_pos)/8)*LCD_WIDTH] &= ~(BIT(7-(y_pos%8)));
-    lcd_update_boundingbox(x_pos, y_pos, x_pos, y_pos);
-}
-
-void lcd_set_pixel_b(uint8_t x_pos, uint8_t y_pos) {
-    lcd_draw_pixel_b(x_pos, y_pos, BLACK_OVER_WHITE);
-}
-
-void lcd_clear_pixel_b(uint8_t x_pos, uint8_t y_pos) {
-    lcd_draw_pixel_b(x_pos, y_pos, WHITE_OVER_BLACK);
-}
-
-void lcd_draw_line_b(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity) {
-    uint8_t steep = abs(y1_pos - y0_pos) > abs(x1_pos - x0_pos);
-    if(steep) {
-        SWAP(x0_pos, y0_pos);
-        SWAP(x1_pos, y1_pos);
-    }
-
-    if(x0_pos > x1_pos) {
-        SWAP(x0_pos, x1_pos);
-        SWAP(y0_pos, y1_pos);
-    }
-
-    lcd_update_boundingbox(x0_pos, y0_pos, x1_pos, y1_pos);
-
-    uint8_t dx, dy;
-    dx = x1_pos - x0_pos;
-    dy = abs(y1_pos - y0_pos);
-
-    int8_t error = dx/2;
-    int8_t y_step;
-
-    if(y0_pos < y1_pos) y_step = 1;
-    else y_step = -1;
-
-    for( ; x0_pos <= x1_pos; x0_pos++) {
-        if(steep) {
-            lcd_draw_pixel_b(y0_pos, x0_pos, polarity);
-        }
-        else {
-            lcd_draw_pixel_b(x0_pos, y0_pos, polarity);
-        }
-
-        error -= dy;
-
-        if(error < 0) {
-            y0_pos += y_step;
-            error += dx;
-        }
-    }
-}
-
-void lcd_draw_vline_b(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polarity) {
-    lcd_draw_line_b(x_pos, y0_pos, x_pos, y1_pos, polarity);
-}
-
-void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
-    lcd_draw_line_b(x0_pos, y_pos, x1_pos, y_pos, polarity);
-}
-
-void lcd_clear_data_ram() {
-    lcd_send_command(CMD_EXTENSION_1);
-    lcd_send_command(CMD_PAGE_ADD);                             // Row address.
-    lcd_send_data(0x00);                                        // Start row address.
-    lcd_send_data(20);                                          // End row address.
-
-    lcd_send_command(CMD_COL_ADD);                              // Column address.
-    lcd_send_data(0x00);                                        // Start column address.
-    lcd_send_data(240);                                         // End column address.
-
-    lcd_send_command(CMD_WRITE_DATA);
-
-    for(uint16_t index = 0; index < 240*160; index++){
-        lcd_send_data(0x00);
-    }
-}
-
-void lcd_refresh() {
-    uint8_t column, max_column, page;
-    if(!refresh_lcd) return;
-    refresh_lcd = false;
-    
-    for(page = 0; page < LCD_MAX_PAGES; page++){
-        if(y_update_min >= ((page+1)*8)) continue;
-        if(y_update_max < page*8) break;
-
-        lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
-        lcd_send_command(CMD_PAGE_ADD);                         // Row address.
-        lcd_send_data(page+6);                                  // Start row address.
-        lcd_send_data(page+6);                                  // End row address.
-
-        column = x_update_min;
-        max_column = x_update_max;
-
-        lcd_send_command(CMD_COL_ADD);                          // Column address.
-        lcd_send_data(column);                                  // Start column address.
-        lcd_send_data(max_column);                              // End column address.
-
-        lcd_send_command(CMD_WRITE_DATA);                       // Write data.
-
-        for( ; column <= max_column; column++) {
-            lcd_send_data(lcd_buffer[(LCD_WIDTH*page)+column]); // Sending data from buffer.
-        }
-    }
-
-    x_update_min = LCD_WIDTH-1;
-    x_update_max = 0;
-    y_update_min = LCD_HEIGHT-1;
-    y_update_max = 0;
-}
-
-uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    uint8_t i, j, line;
-    const uint8_t *bitmap;
-
-    if ((c < font->char_start) || (c > font->char_end)) return 0;
-
-    c = c - font->char_start;       // 'c' now become index to tables.
-    bitmap = font->bitmap + font->char_descriptors[c].offset;
-
-    for (j = 0; j < font->height; ++j) {
-        for (i = 0; i < font->char_descriptors[c].width; ++i) {
-            if (i % 8 == 0) {
-                line = bitmap[(font->char_descriptors[c].width + 7) / 8 * j + i / 8]; // line data
-            }
-            if (line & 0x80) {
-                lcd_draw_pixel_b(x_pos+i, y_pos+j, polarity);
-            } else {
-                lcd_draw_pixel_b(x_pos+i, y_pos+j, !polarity);
-            }
-            line = line << 1;
-        }
-        
-    }
-    return(font->char_descriptors[c].width);
-}
-
-void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    if(x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
-    if(y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
-    for(uint8_t x = x1_pos; x < x2_pos; x++) {
-        for(uint8_t y = y1_pos; y < y2_pos; y++) {
-            lcd_set_pixel_b(x, y);
-        }
-    }
-}
-
-void lcd_clear_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    if(x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
-    if(y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
-    for(uint8_t x = x1_pos; x < x2_pos; x++) {
-        for(uint8_t y = y1_pos; y < y2_pos; y++) {
-            lcd_clear_pixel_b(x, y);
-        }
-    }
-}
-
-uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font)
-{
-    uint8_t strlng=0;
-    if(str_ptr == NULL) return 0;
-	while(*str_ptr) 
-    {   
-        strlng += font->char_descriptors[*str_ptr].width;
-        strlng += font->character_spacing;
-        ++str_ptr;
-    }    
-    return strlng;
-}
-void lcd_write_string_b(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    if(str_ptr == NULL) return;
-    
-	while(*str_ptr) {
-		x_pos += lcd_write_char_b(*str_ptr, x_pos, y_pos, font, polarity);
-		++str_ptr;
-        if(*str_ptr) {
-			if(polarity == WHITE_OVER_BLACK) {
-				lcd_fill_block_b(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-			} else {
-				lcd_clear_block_b(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-			}
-            x_pos += font->character_spacing;
-        }
-        if(x_pos >= LCD_WIDTH) {
-            y_pos += (font->height + 1);
-            x_pos %= LCD_WIDTH;
-            y_pos %= LCD_HEIGHT;
-        }
-	}
-}
-void lcd_draw_bitmap_b(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    for(uint8_t y = 0; y < bitmap_data->image_height; y++) {
-        for(uint8_t x = 0; x < (bitmap_data->image_width+7)/8; x++) {
-            uint8_t data = *(bitmap_data->image_data+((y*((bitmap_data->image_width+7)/8)+x)));
-            for(int8_t bit_index = 7; bit_index >= 0; bit_index--) {
-                if(data & BIT(bit_index)) {
-                    lcd_set_pixel_b((x*8) + (7-bit_index) + x_pos, y + y_pos);
-                }else {
-                    lcd_clear_pixel_b((x*8) + (7-bit_index) + x_pos, y + y_pos);
-                }
-            }
-        }
-    }
-}
-void lcd_battery_info_b(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
-    battery_percentage %= 100;
-    lcd_draw_bitmap_b(x_pos, y_pos, &battery_bitmap_data);
-    uint8_t no_of_bars = battery_percentage/16;
-    for(uint8_t bar = 0; bar <= no_of_bars; bar++){
-        lcd_draw_vline_b(x_pos+(bar*2), y_pos+2, y_pos+3+2, BLACK_OVER_WHITE);
-    }
-}
-
-// </editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="LCD functions implementations">
-void lcd_init() {
-    memset(lcd_buffer, 0, sizeof(lcd_buffer));              // Clear LCD Buffer.
-    lcd_update_boundingbox(0,0,LCD_WIDTH-1, LCD_HEIGHT-1);  // Reset refresh window.
-
-    LCD_CS_DESELECT();
-
-    __delay_ms(10);
-    lcd_reset();                                            // Reset LCD.
-    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
-    lcd_send_command(CMD_SET_MODE_MASTER);                  // Enable master mode.
-
-    lcd_send_command(CMD_EXTENSION_2);                      // Extension2 command.
-    lcd_send_command(CMD_AUTO_READ);                        // Disable auto read.
-    lcd_send_data(0x9F);
-
-    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
-    lcd_send_command(CMD_SLEEP_OUT);                        // Sleep out.
-    lcd_send_command(CMD_DISPLAY_OFF);                      // Display OFF.
-    lcd_send_command(CMD_INT_OSC_ON);                       // Internal oscillator ON.
-
-    lcd_send_command(CMD_POWER_CON);                        // Power control.
-    lcd_send_data(0x0B);                                    // Regulator, Follower and Booster ON.
-    lcd_send_command(CMD_SET_VOP);                          // Set Vop.
-    lcd_send_data(0x35);                                    // 16 Volts.
-    lcd_send_data(0x04);
-
-    lcd_send_command(CMD_EXTENSION_2);                      // Extension2 commands.
-    lcd_send_command(CMD_ANALOG_CKT);                       // Analog Circuit set.
-    lcd_send_data(0x00);
-    lcd_send_data(0x01);                                    // Booster efficiency 1.
-    lcd_send_data(0x02);                                    // LCD bias 1/12
-
-    lcd_send_command(CMD_BOOSTER_LVL);                      // Booster level.
-    lcd_send_data(0xFB);                                    // x10.
-
-    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 commands.
-    lcd_send_command(CMD_DISPLAY_MODE);                     // Display mode.
-    lcd_send_data(0x10);                                    // Monochrome mode.
-    lcd_send_command(CMD_DISPLAY_CONTROL);                  // Display control.
-    lcd_send_data(0x00);                                    // No clock division.
-    lcd_send_data(0x7F);                                    // 1/128 duty.
-    lcd_send_data(0x00);                                    // ??
-
-    lcd_send_command(CMD_DATASCAN_DIR);                     // data scan directon.
-    lcd_send_data(0x01);
-    lcd_send_command(0xA6);
-
-    lcd_send_command(CMD_DATA_FORMAT_LSB);                  // LSB First.
-
-    lcd_send_command(CMD_INVERSION_OFF);                    // Pixel inversion OFF.
-
-    lcd_send_command(CMD_EXTENSION_2);                      // Extension2 command.
-    lcd_send_command(CMD_PWR_SRC_INT);                      // Use internel oscillator.
-
-    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
-    lcd_send_command(CMD_ICON_DISABLE);                     // Disable ICON RAM.
-
-    lcd_clear_data_ram();                                   // Clearing data RAM.
-
-    lcd_send_command(CMD_DISPLAY_ON);                       // Turn ON display.
-}
-
-void lcd_clear() {
-    memset(lcd_buffer,0, sizeof(lcd_buffer));
-    lcd_update_boundingbox(0,0,LCD_WIDTH-1, LCD_HEIGHT-1);
-    lcd_refresh();
-}
-void lcd_increase_contrast() {
-    lcd_send_command(CMD_EXTENSION_1);
-    lcd_send_command(CMD_DISPLAY_ON);
-    lcd_send_command(CMD_VOP_CON_INC_VOP);
-}
-void lcd_decrease_contrast() {
-    lcd_send_command(CMD_EXTENSION_1);
-    lcd_send_command(CMD_DISPLAY_ON);
-    lcd_send_command(CMD_VOP_CON_DEC_VOP);
-}
-
-void lcd_set_pixel(uint8_t x_pos, uint8_t y_pos) {
-    lcd_set_pixel_b(x_pos, y_pos);
-    lcd_refresh();
-}
-
-void lcd_clear_pixel(uint8_t x_pos, uint8_t y_pos) {
-    lcd_clear_pixel_b(x_pos, y_pos);
-    lcd_refresh();
-}
-
-void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity) {
-    lcd_draw_line_b(x0_pos, y0_pos, x1_pos, y1_pos, polarity);
-    lcd_refresh();
-}
-
-void lcd_draw_vline(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polarity) {
-    lcd_draw_vline_b(x_pos, y0_pos, y1_pos, polarity);
-    lcd_refresh();
-}
-
-void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
-    lcd_draw_hline_b(x0_pos, x1_pos, y_pos, polarity);
-    lcd_refresh();
-}
-
-void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_char_b(c, x_pos, y_pos, font, polarity);
-    lcd_refresh();
-}
-
-void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_string_b(str_ptr, x_pos, y_pos, font, polarity);
-    lcd_refresh();
-}
-
-void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    char msg[10];
-    sprintf(msg,"%d",Int);
-    lcd_write_string_b("       ", x_pos, y_pos, font, polarity);
-    lcd_write_string_b(msg, x_pos, y_pos, font, polarity);
-    lcd_refresh();
-}
-
-
-void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    lcd_draw_bitmap_b(x_pos, y_pos, bitmap_data);
-    lcd_refresh();
-}
-
-void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
-    if (battery_percentage>100) battery_percentage=100;
-    lcd_battery_info_b(x_pos, y_pos, battery_percentage);
-    lcd_refresh();
-}
-
-void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_fill_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
-    lcd_refresh();
-}
-
-void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_clear_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
-    lcd_refresh();
-}
-// </editor-fold>
-
 // <editor-fold defaultstate="collapsed" desc="EEPROM Functions">
 // Helper functions.
 void eeprom_spi_init() {
     EEPROM_CS_INIT();
     EEPROM_HOLD_INIT();
     EEPROM_WP_INIT();
-    
+
     EEPROM_CS_DESELECT();
     EEPROM_HOLD_DIS();
     EEPROM_WP_DIS();
-    
+
     RD7PPS = 0x1C;          // SPI2 dataout (RD7)
     SSP2DATPPS = 0x1D;      // SPI2 datain.
     RD6PPS = 0x1B;          // SPI2 clock.
-    
+
     SSP2STAT &= 0x3F;
     SSP2CON1 = 0x00;        // power on state.
     SSP2CON1bits.SSPM = 0b0010;
@@ -678,7 +240,7 @@ void eeprom_init() {
 
 void eeprom_write_data(uint16_t address, uint8_t data) {
     eeprom_busy_wait();
-    
+
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_WRSR);
     eeprom_spi_write(0x02);     // Enable Write Latch.
@@ -687,13 +249,13 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_WREN);
     EEPROM_CS_DESELECT();
-    
+
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_WRITE);
     eeprom_spi_write(address >> 8);
     eeprom_spi_write(address & 0xFF);
     eeprom_spi_write(data);
-    EEPROM_CS_DESELECT();    
+    EEPROM_CS_DESELECT();
 }
 void eeprom_write_wdata(uint16_t address, uint16_t data) {
     eeprom_write_data(address,data & 0xFF);
@@ -719,10 +281,10 @@ uint8_t eeprom_read_data(uint16_t address) {
 
 uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes){
     uint16_t index;
-    
+
     if(address > EEPROM_MAX_SIZE) return 0;
     eeprom_busy_wait();
-    
+
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_READ);
     eeprom_spi_write(address >> 8);
@@ -739,7 +301,7 @@ uint16_t eeprom_read_wdata(uint16_t address) {
     uint8_t read_least,read_most;
     if(address+1 > EEPROM_MAX_SIZE) return 0;
     eeprom_busy_wait();
-    
+
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_READ);
     eeprom_spi_write(address >> 8);
@@ -754,7 +316,7 @@ uint24_t eeprom_read_tdata(uint16_t address) {
     uint8_t read_least,read_mid,read_most;
     if(address+1 > EEPROM_MAX_SIZE) return 0;
     eeprom_busy_wait();
-    
+
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_READ);
     eeprom_spi_write(address >> 8);
@@ -826,7 +388,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     float sinus_time_period_us = (1000000UL/(frequency*2));
     uint32_t sinus_sample_update_period_us = (uint32_t)(sinus_time_period_us/57.0);///32.0)+0.5f);
     int32_t no_of_cycles = ((int32_t)duration*580)/sinus_time_period_us; //1000
-    
+
     sinus_dac_init();
 
     while(no_of_cycles--) {
@@ -860,14 +422,14 @@ void ADC_init()
     TRISA  = 0b11111111;        // ADC inputs 0..3
     ANSELA = 0b00001111;
 //  ADCON0 = 0b10000000;        // Enable ADC	 - single byte mode	   return ADRESH;
-    ADCON0 = 0b10000100;        // Enable ADC	 - single 10 bit mode	return (ADRESH<<8)|ADRESL;   
+    ADCON0 = 0b10000100;        // Enable ADC	 - single 10 bit mode	return (ADRESH<<8)|ADRESL;
     ADCON1 = 0b00000001;        // Select ADC Double Sample
     ADCON2 = 0b00001000;        // Normal ADC operation
     ADCON3 = 0b00001000;        // Normal ADC operation
     ADCLK  = 0b00100000;        // ADC CLK = OSC/64
     ADREF  = 0b00000011;        // ADC connected to FVR
     FVRCON = 0b11000010;        // FVR set to 2048mV
-}   
+}
 
 uint16_t ADC_Read(char selectedADC)
 {
@@ -899,7 +461,7 @@ uint8_t SettingsTitle(void)
     lcd_write_string(SettingsMenu.MenuTitle,0,0,MediumFont,BLACK_OVER_WHITE);
     if (BT) lcd_write_string("BT",123,0,SmallFont,BLACK_OVER_WHITE);
     lcd_battery_info(LCD_WIDTH-20,0,battery_level);
-    top +=(MediumFont_height+1);
+    top +=(MediumFont->height+1);
     lcd_draw_hline(0,LCD_WIDTH,top,BLACK_OVER_WHITE);
     top +=2;
     return top;
@@ -909,7 +471,7 @@ void SettingsDisplay(void)
     uint8_t i,color,p,lineh,height,mpos;
     char msg[10];
     p=Menu.top;
-    lineh=MediumFont_height+1; 
+    lineh=MediumFont->height+1;
     height=LCD_HEIGHT-lineh;
     Menu.PageSize=6;
 
@@ -957,7 +519,7 @@ void MenuSelection(void)
     {
         if (Keypressed)
         {
-            
+
             switch (Key)
             {
                 case KeyUp:if (Menu.menu>1) {
@@ -970,7 +532,7 @@ void MenuSelection(void)
                     break;
                 case KeyDw:if (Menu.menu<(SettingsMenu.TotMenuItems)) {
                                Menu.prev=Menu.menu;
-                               Menu.menu++; 
+                               Menu.menu++;
                                Menu.refresh=False;
                                SettingsDisplay();
                           }
@@ -991,7 +553,7 @@ void MenuSelection(void)
 uint8_t PopMsg(const char* msg, uint16_t wait)
 {
     uint16_t t=0;
-    uint8_t Yo1=PopY1+((PopY2-(PopY1+MediumFont_height))>>1);
+    uint8_t Yo1=PopY1+((PopY2-(PopY1+MediumFont->height))>>1);
     uint8_t Xo1=PopX1+((PopX2-(PopX1+lcd_string_lenght(msg,MediumFont)))>>1);
     lcd_fill_block(PopX1,PopY1,PopX2,PopY2);
     lcd_write_string(msg,Xo1,Yo1,MediumFont,WHITE_OVER_BLACK);
@@ -1025,11 +587,11 @@ void lcd_demo() {
     lcd_fill_block(0, 0, 160, 114);
     display_message("lcd_fill_block()");
     __delay_ms(1000);
-    
+
     lcd_clear_block(158, 112, 2, 2);
     display_message("lcd_clear_block()");
     __delay_ms(1000);
-    
+
     for(uint8_t battery = 0; battery <= 100; battery+=10) {
         lcd_battery_info(4,4,battery);
         sprintf(message, "Battery : %d%%", battery);
@@ -1050,19 +612,19 @@ void lcd_demo() {
     lcd_write_string("Hello..!!", 3, 3, MediumFont, BLACK_OVER_WHITE);
     display_message("Black On White");
     __delay_ms(1000);
-    
+
     lcd_fill_block(2, 2, 158, 98);
     __delay_ms(1000);
     lcd_clear_block(2, 2, 158, 98);
     lcd_write_string(" Hello..!! ", 3, 3, MediumFont, WHITE_OVER_BLACK);
     display_message("White On Black");
     __delay_ms(1000);
-    
+
     lcd_clear_block(2, 2, 158, 98);
     lcd_write_string("1234", 3, 3, BigFont, BLACK_OVER_WHITE);
     display_message("I am Big");
     __delay_ms(1000);
-    
+
 }
 //LCD demo functions End
 // </editor-fold>
@@ -1075,27 +637,27 @@ void Diag_Keypad(void)
         lcd_clear_block(20, 30, 80,110);
         switch (Key)
         {
-            case KeySt: 
+            case KeySt:
                 lcd_write_char('1', 20, 30, BigFont, BLACK_OVER_WHITE);
                 Delay(100);
             break;
-            case KeyRw: 
+            case KeyRw:
                 lcd_write_char('2', 20, 30, BigFont, BLACK_OVER_WHITE);
                 Delay(100);
             break;
-            case KeyBk: 
+            case KeyBk:
                 lcd_write_char('3', 20, 30, BigFont, BLACK_OVER_WHITE);
                 Delay(100);
             break;
-            case KeyDw: 
+            case KeyDw:
                 lcd_write_char('4', 20, 30, BigFont, BLACK_OVER_WHITE);
                 Delay(100);
             break;
-            case KeyUp: 
+            case KeyUp:
                 lcd_write_char('5', 20, 30, BigFont, BLACK_OVER_WHITE);
                 Delay(100);
             break;
-            case KeyIn: 
+            case KeyIn:
                 lcd_write_char('6', 20, 30, BigFont, BLACK_OVER_WHITE);
                 Delay(100);
             break;
@@ -1172,7 +734,7 @@ void Diag_Buzzer()
     menu=1;
     prevmenu=0;
     while (!Exit)
-    {    
+    {
         if (prevmenu!=menu)
         {
             Diag_Buzzer_display(prevmenu,false);    //if prevmenu=0 Display All
@@ -1188,7 +750,7 @@ void Diag_Buzzer()
                 case KeyUp:if (menu>1) menu--;
                           lcd_write_char('5' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                     break;
-                case KeyDw:if (menu<6) menu++; 
+                case KeyDw:if (menu<6) menu++;
                           lcd_write_char('4' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                    break;
                 case KeyIn: //select
@@ -1199,11 +761,11 @@ void Diag_Buzzer()
                 case KeyBk: //escape
                           lcd_write_char('3' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                           prevmenu=0;//Redraw menu
-                    break;  
-                case KeySt:  
+                    break;
+                case KeySt:
                           lcd_write_char('1' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                     break;
-                case KeyRw:  
+                case KeyRw:
                           lcd_write_char('2' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                     break;
             }
@@ -1264,7 +826,7 @@ void Diag_ADC_display(uint8_t m, TBool selected)
             lcd_write_string(" Envelope ", 3, 57, MediumFont, color);
             break;
     }
-    
+
 }
 
 void displayGraph(const char* title, const char*  x_axis, const char*  y_axis)
@@ -1284,7 +846,7 @@ void DoADC(uint8_t mode)
     uint16_t ADCvalue,Bias;
     char ADCstr[30];
     xValue=3;
-   
+
     ADC_init();
     switch (mode)
     {
@@ -1392,7 +954,7 @@ void Diag_ADC(void)
     menu=1;
     prevmenu=0;
     while (!Exit)
-    {    
+    {
         if (prevmenu!=menu)
         {
             Diag_ADC_display(prevmenu,false);    //if prevmenu=0 Display All
@@ -1408,7 +970,7 @@ void Diag_ADC(void)
                 case KeyUp:if (menu>1) menu--;
                           lcd_write_char('5' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                     break;
-                case KeyDw:if (menu<4) menu++; 
+                case KeyDw:if (menu<4) menu++;
                           lcd_write_char('4' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                    break;
                 case KeyIn: //select
@@ -1419,11 +981,11 @@ void Diag_ADC(void)
                 case KeyBk: //escape
                           lcd_write_char('3' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                           prevmenu=0;//Redraw menu
-                    break;  
-                case KeySt:  
+                    break;
+                case KeySt:
                           lcd_write_char('1' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                     break;
-                case KeyRw:  
+                case KeyRw:
                           lcd_write_char('2' ,140,3 ,&tahoma_8ptFontInfo,BLACK_OVER_WHITE);
                     break;
             }
@@ -1435,14 +997,14 @@ void Diag_ADC(void)
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="EEPROM test">
-void eeprom_test() 
+void eeprom_test()
 {
     char EE_data[4];
     lcd_write_string(" EEPROM diagnostics ", 3, 1, MediumFont, BLACK_OVER_WHITE);
     lcd_write_string(" Writing ", 3, 20, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
     uint8_t temp_data[8] = {1,2,4,8,16,32,64,128};//,0xAA,0xCE,0x55,0x31,0xFF,0x45,0xEC};
     uint8_t x=37;
-    
+
     while (!Exit)
     {
         for(uint8_t i = 0; i < sizeof(temp_data); i++) {
@@ -1478,7 +1040,7 @@ void ReadBackEEPROMdata()
     uint16_t add,data;
     uint8_t s,i,j,h;
     char msg[20];
-    
+
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     for (s=0;s<30;s++)
     {
@@ -1486,7 +1048,7 @@ void ReadBackEEPROMdata()
         h=eeprom_read_data(add+1);
         sprintf(msg,"String %1d, Sh=%2d",eeprom_read_data(add),h);
         lcd_write_string(msg, 3, 0, SmallFont, WHITE_OVER_BLACK);
-        j=SmallFont_height;
+        j=SmallFont->height;
         add +=2;
         for (i=0;i<h;i++)
         {
@@ -1494,25 +1056,25 @@ void ReadBackEEPROMdata()
             sprintf(msg,"Shoot %2d:%5.2f   ",i,(float)data/100);
             add +=2;
             lcd_write_string(msg, 3,j , SmallFont, BLACK_OVER_WHITE);
-            j+=SmallFont_height;
-            if (j>LCD_HEIGHT-SmallFont_height)
+            j+=SmallFont->height;
+            if (j>LCD_HEIGHT-SmallFont->height)
             {
                 while (Keypressed);
                 while (!Keypressed);
-                if (Exit) 
+                if (Exit)
                 {
                    lcd_clear();
                    PopMsg("Exit",200);
                    return;
                 }
                 __delay_ms(30);
-                j=SmallFont_height;
-                lcd_clear_block(0,SmallFont_height,LCD_WIDTH-1,LCD_HEIGHT-1);
+                j=SmallFont->height;
+                lcd_clear_block(0,SmallFont->height,LCD_WIDTH-1,LCD_HEIGHT-1);
             }
         }
         while (Keypressed);
         while (!Keypressed);
-        if (Exit) 
+        if (Exit)
         {
            lcd_clear();
            PopMsg("Exit",200);
@@ -1527,7 +1089,7 @@ void PseudoData()
     uint8_t s,i,j;
     uint16_t add=ShootStringStartAddress;
     uint16_t data=60;//0.6sec
-    
+
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     lcd_write_string("Sure to overwrite?", 3, 40, MediumFont, WHITE_OVER_BLACK);
     while (Keypressed);
@@ -1570,7 +1132,7 @@ void PseudoData()
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Diagnostic Menu">
-void Diagnose()  
+void Diagnose()
 {
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     switch (Menu.menu)
@@ -1611,14 +1173,14 @@ void Diagnostics(void)
     strcpy(SettingsMenu.MenuItem[7]," Pseudo Data ");
     //SettingsMenu.MenuItem={" Backlight "," Display "," Keypad "," Buzzer "," Battery "," ADC "," EEPROM "," Auxiliary "," Pseudo Data "};
 
-    Menu.lineh=MediumFont_height+1; 
+    Menu.lineh=MediumFont->height+1;
     //Top Line
     Menu.top = SettingsTitle();
     Menu.height=LCD_HEIGHT-(Menu.lineh+Menu.top);
     //Main Screen
     Menu.refresh=True;
     Menu.page=0;//Force refresh
-    
+
     do {
       SettingsDisplay();
       MenuSelection();
@@ -1679,7 +1241,7 @@ void getPar()
 
 uint16_t findCurrStringAddress()
 {
-    uint16_t add=ShootStringStartAddress; 
+    uint16_t add=ShootStringStartAddress;
     CurrStringStartAddress=0;
     uint8_t data;
     do {
@@ -1695,7 +1257,7 @@ void saveShootString(void)
 {
     uint16_t Address;
     // current string is overwritten over the older string
-    
+
     findCurrStringAddress(); // the address of stored shoot string 0
     if (ShootStringStartAddress==CurrStringStartAddress)
          Address= ShootStringStartAddress+(29*Size_of_ShootString);
@@ -1715,13 +1277,13 @@ void saveShootString(void)
 TBool getShootString(uint8_t ShootStrNum)
 {
     uint16_t Address;
-    
+
     findCurrStringAddress(); // the address of shoot string 0
     uint16_t StrBeforeCurr= ((CurrStringStartAddress-ShootStringStartAddress)/Size_of_ShootString);
     if ((30-StrBeforeCurr)>ShootStrNum) Address=CurrStringStartAddress+ (ShootStrNum*Size_of_ShootString);
     else                                Address=ShootStringStartAddress+ (((ShootStrNum+StrBeforeCurr)-30)*Size_of_ShootString);
     uint8_t mark= eeprom_read_data(Address);
-    Address++; 
+    Address++;
     ShootString.TotShoots= eeprom_read_data(Address);
     Address++;
     for (uint8_t i=0; i<ShootString.TotShoots; i++)
@@ -1730,7 +1292,7 @@ TBool getShootString(uint8_t ShootStrNum)
         Address+=3;
     }
     return (((ShootStrNum==0) && (mark==1)) || ((ShootStrNum>0) && ((mark==0))));
-}        
+}
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings">
 
@@ -1739,7 +1301,7 @@ void SetCustomDelay(uint8_t top)
 {
     TBool Done;
     char msg[20];
-    
+
     if (DelayTime<10) DelayTime=10;
     strcpy(SettingsMenu.MenuTitle,"Settings: ");
     top = SettingsTitle();
@@ -1749,34 +1311,34 @@ void SetCustomDelay(uint8_t top)
     top+=topSpace;
     sprintf(msg,"%3.1f",(float)DelayTime/10);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((DelayTime+i)<99)     DelayTime+=i;
                             else DelayTime=99;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 case KeyDw: if ((DelayTime-i)>10)      DelayTime-=i;
                             else DelayTime=10;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 default:   Done=True;
             }
             sprintf(msg,"%3.1f",(float)DelayTime/10);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<11)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                 //if key not pressed go slow (again))
     }
@@ -1792,7 +1354,7 @@ void SetDelay()
     strcpy(SettingsMenu.MenuItem[1]," Fixed 3sec. ");
     strcpy(SettingsMenu.MenuItem[2]," Random");
     strcpy(SettingsMenu.MenuItem[3]," Custom ");
-    
+
     switch (DelayMode)
     {
         case Instant: Menu.menu=1; break;
@@ -1802,7 +1364,7 @@ void SetDelay()
         default     : Menu.menu=2; break;
     }
 
-    Menu.lineh=MediumFont_height+1; 
+    Menu.lineh=MediumFont->height+1;
     //Top Line
     Menu.top = SettingsTitle();
     Menu.height=LCD_HEIGHT-(Menu.lineh+Menu.top);
@@ -1810,13 +1372,13 @@ void SetDelay()
     //Main Screen
     SettingsDisplay();
     MenuSelection();
-   
+
     switch (Menu.menu)
     {
         case 1: DelayMode=Instant; SaveToEEPROM=True; break;
         case 2: DelayMode=Fixed; DelayTime=30; SaveToEEPROM=True; break;
         case 3: DelayMode=Random; SaveToEEPROM=True; break;
-        case 4: DelayMode=Custom; 
+        case 4: DelayMode=Custom;
                 SetCustomDelay(Menu.top);
                 break;
     }
@@ -1853,8 +1415,8 @@ void SetPar()
     TBool changed;
     uint8_t redraw;
     uint8_t i,j,k;
-     
-    Menu.lineh=MediumFont_height+1; 
+
+    Menu.lineh=MediumFont->height+1;
     Menu.pos=0;
     //Main Screen
     Menu.menu=1;
@@ -1867,12 +1429,12 @@ void SetPar()
             Mtop=0;
             i=0;
             TotPar=0;
-            do 
+            do
             {
                 if ((ParTime[i]>0) && (ParTime[i]<100000))
                 {
                     sprintf(msg," Par %d: %5.1f",i+1,(float)ParTime[i]/100);//unit is 10mS
-                    strcpy(SettingsMenu.MenuItem[i],msg); 
+                    strcpy(SettingsMenu.MenuItem[i],msg);
                     TotPar++;
                 }
                 i++;
@@ -1886,7 +1448,7 @@ void SetPar()
             Mtop = SettingsTitle();
             Menu.height=LCD_HEIGHT-(Menu.lineh+Mtop);
             redraw=0;
-        } 
+        }
         Menu.top=Mtop;
         Menu.refresh=True;
         SettingsDisplay();
@@ -1918,14 +1480,14 @@ void SetPar()
             Menu.top+=topSpace;
             sprintf(msg,"%5.1f",(float)ParTime[Menu.menu-1]/100);//unit is 10mS
             lcd_write_string(msg, 30, Menu.top, BigFont, BLACK_OVER_WHITE);
-            lcd_write_char('_',0,Menu.top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+            lcd_write_char('_',0,Menu.top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
             Done=False;
             i=10;
             j=0;
             k=0;
             while (!Done)
             {
-                if (Keypressed) 
+                if (Keypressed)
                 {
                     switch (Key)
                     {
@@ -1934,35 +1496,35 @@ void SetPar()
                                         ParTime[Menu.menu-1]+=i;
                                         changed=True;
                                     }
-                                    else 
+                                    else
                                     {
                                         redraw=2;
                                         DeletePar(Menu.menu-1); //DeletePar will save if needed no need change
                                         Done=True;
                                     }
                             break;
-                        case KeyDw: if (TotPar>1) 
+                        case KeyDw: if (TotPar>1)
                                     {
-                                        if ((ParTime[Menu.menu-1]-i)>=((ParTime[Menu.menu-2])+(BuzzerParDuration/10)+10))     
+                                        if ((ParTime[Menu.menu-1]-i)>=((ParTime[Menu.menu-2])+(BuzzerParDuration/10)+10))
                                         {
                                             ParTime[Menu.menu-1]-=i;
                                             changed=True;
                                         }
-                                        else 
+                                        else
                                         {
                                             redraw=2;
                                             DeletePar(Menu.menu-1);
                                             Done=True;
                                         }
                                     }
-                                    else if (TotPar==1) 
+                                    else if (TotPar==1)
                                     {
                                         if (ParTime[0]>=(((BuzzerStartDuration/10)+10)+i))
                                         {
                                             ParTime[0] -=i;
                                             changed=True;
                                         }
-                                        else 
+                                        else
                                         {
                                             redraw=2;
                                             DeletePar(0);
@@ -1971,27 +1533,27 @@ void SetPar()
                                     }
                             break;
                         default:    Done=True;
-                                   
+
                     }
                     if (redraw<2) //do not draw for delate
                     {
                         sprintf(msg,"%5.1f",(float)ParTime[Menu.menu-1]/100);//unit is 10mS
                         lcd_write_string(msg, 30, Menu.top, BigFont, BLACK_OVER_WHITE);
                         sprintf(msg," Par %d: %5.1f",Menu.menu,(float)ParTime[Menu.menu-1]/100);//unit is 10mS
-                        strcpy(SettingsMenu.MenuItem[Menu.menu-1],msg);        
+                        strcpy(SettingsMenu.MenuItem[Menu.menu-1],msg);
                     }
                 }
                 while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-                if (Keypressed)   j++;   
+                if (Keypressed)   j++;
                 if (j>1)         { if (i*2<255)   i=i*2; else i=255;   j=0;   } //if after 500mS still pressed go faster
                 if (!Keypressed) { i=10;j=0;}                  //if key not pressed go slow (again))
             }
-        }    
+        }
     }
     if (changed)
     {
         saveTotPar();
-        for (i=0;i<TotPar;i++) 
+        for (i=0;i<TotPar;i++)
             savePar(i);
         PopMsg("Par Saved",200);
     }
@@ -2003,7 +1565,7 @@ void SetBacklight()
     uint8_t top;
     TBool Done;
     char msg[20];
-    
+
     if (BackLightLevel>99) BackLightLevel=50;
     strcpy(SettingsMenu.MenuTitle,"Settings: ");
     top = SettingsTitle();
@@ -2013,25 +1575,25 @@ void SetBacklight()
     top+=topSpace;
     sprintf(msg,"%2d",BackLightLevel);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((BackLightLevel+i)<99)     BackLightLevel+=i;
                             else BackLightLevel=99;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 case KeyDw: if ((BackLightLevel-i)>1)      BackLightLevel-=i;
                             else BackLightLevel=1;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 default:   Done=True;
             }
@@ -2039,9 +1601,9 @@ void SetBacklight()
             sprintf(msg,"%2d",BackLightLevel);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<40)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                 //if key not pressed go slow (again))
     }
@@ -2052,7 +1614,7 @@ void SetBeepFreq(uint8_t top)
 {
     TBool Done;
     char msg[20];
-    
+
     if (BuzzerFrequency<800) BuzzerFrequency=800;
     if (BuzzerFrequency>3000) BuzzerFrequency=3000;
     strcpy(SettingsMenu.MenuTitle,"Settings: Beep");
@@ -2063,34 +1625,34 @@ void SetBeepFreq(uint8_t top)
     top+=topSpace;
     sprintf(msg,"%3.1f",(float)BuzzerFrequency/1000);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint16_t i=100;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((BuzzerFrequency+i)<3000)     BuzzerFrequency+=i;
                             else BuzzerFrequency=3000;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 case KeyDw: if ((BuzzerFrequency-i)>800)      BuzzerFrequency-=i;
                             else BuzzerFrequency=800;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 default:   Done=True;
             }
             sprintf(msg,"%3.1f",(float)BuzzerFrequency/1000);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<1000)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=100;j=0;}                    //if key not pressed go slow (again))
     }
@@ -2099,7 +1661,7 @@ void SetBeepLevel(uint8_t top)
 {
     TBool Done;
     char msg[20];
-    
+
     strcpy(SettingsMenu.MenuTitle,"Settings: Beep");
     top = SettingsTitle();
     top+=3;
@@ -2108,31 +1670,31 @@ void SetBeepLevel(uint8_t top)
     top+=topSpace;
     sprintf(msg,"%2d",BuzzerLevel);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((BuzzerLevel+i)<10)     BuzzerLevel+=i;
                             else BuzzerLevel=10;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                             generate_sinus(BuzzerLevel,BuzzerFrequency,100);
                 break;
                 case KeyDw: if ((BuzzerLevel-i)>0)      BuzzerLevel-=i;
                             else BuzzerLevel=0;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                             generate_sinus(BuzzerLevel,BuzzerFrequency,100);
                 break;
                 default:   Done=True;
             }
             sprintf(msg,"%2d",BuzzerLevel);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }        
+        }
         while (Keypressed);
     }
 }
@@ -2141,7 +1703,7 @@ void SetBeepTime(uint8_t top,TBool Par)
     TBool Done;
     char msg[20];
     uint16_t duration;
-    
+
     if (Par) duration=BuzzerParDuration;
     else     duration=BuzzerStartDuration;
     if (duration<50) duration=50;
@@ -2155,34 +1717,34 @@ void SetBeepTime(uint8_t top,TBool Par)
     top+=topSpace;
     sprintf(msg,"%3.1fsec",(float)duration/1000);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=50;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((duration+i)<1000)     duration+=i;
                             else duration=1000;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 case KeyDw: if ((duration-i)>50)      duration-=i;
                             else duration=50;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 default:   Done=True;
             }
             sprintf(msg,"%3.1fsec",(float)duration/1000);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i*2<255)   i=i*2; else i=255; j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=50;j=0;}                   //if key not pressed go slow (again))
     }
@@ -2192,7 +1754,7 @@ void SetBeepTime(uint8_t top,TBool Par)
 void SetBeep()
 {
     TBool Done;
-     
+
     Menu.menu=1;
     Menu.top=0;
     Menu.pos=0;
@@ -2204,15 +1766,15 @@ void SetBeep()
     strcpy(SettingsMenu.MenuItem[2]," Par Duration ");
     strcpy(SettingsMenu.MenuItem[3]," Start Duration ");
     strcpy(SettingsMenu.MenuItem[4]," Test Beep ");
-    
-    Menu.lineh=MediumFont_height+1; 
+
+    Menu.lineh=MediumFont->height+1;
     //Top Line
     Menu.top = SettingsTitle();
     Menu.height=LCD_HEIGHT-(Menu.lineh+Menu.top);
     //Main Screen
     Menu.refresh=True;
     SettingsDisplay();
-    
+
     while (!Done)
     {
         if (Keypressed)
@@ -2230,7 +1792,7 @@ void SetBeep()
                 case KeyDw: if (Menu.menu<(SettingsMenu.TotMenuItems)) {
                                 Menu.prev=Menu.menu;
                                 Menu.refresh=False;
-                                Menu.menu++; 
+                                Menu.menu++;
                                 SettingsDisplay();
                             }
                             else Beep();
@@ -2262,7 +1824,7 @@ void SetSens()
     TBool Done;
     char msg[20];
     uint8_t top;
-    
+
     if (Sensitivity>10) Sensitivity=10;
     strcpy(SettingsMenu.MenuTitle,"Settings: ");
     top = SettingsTitle();
@@ -2272,34 +1834,34 @@ void SetSens()
     top+=topSpace;
     sprintf(msg,"%2d",Sensitivity);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((Sensitivity+i)<10)     Sensitivity+=i;
                             else Sensitivity=10;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 case KeyDw: if ((Sensitivity-i)>1)      Sensitivity-=i;
                             else Sensitivity=1;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 default:   Done=True;
             }
             sprintf(msg,"%2d",Sensitivity);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<4)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                 //if key not pressed go slow (again))
     }
@@ -2312,7 +1874,7 @@ void SetFilter()
     TBool Done;
     char msg[20];
     uint8_t top;
-    
+
     if (Filter>10) Filter=10;
     strcpy(SettingsMenu.MenuTitle,"Settings: ");
     top = SettingsTitle();
@@ -2322,34 +1884,34 @@ void SetFilter()
     top+=topSpace;
     sprintf(msg,"%2d",Filter);
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if ((Filter+i)<10)     Filter+=i;
                             else Filter=10;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 case KeyDw: if ((Filter-i)>1)      Filter-=i;
                             else Filter=1;
-                            SaveToEEPROM=True; 
+                            SaveToEEPROM=True;
                 break;
                 default:   Done=True;
             }
             sprintf(msg,"%2d",Filter);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<4)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                 //if key not pressed go slow (again))
     }
@@ -2358,7 +1920,7 @@ void SetFilter()
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
 void SetAutoStart()
 {
-    TBool orgset; 
+    TBool orgset;
     TBool Done=False;
     Menu.top=0;
     Menu.pos=0;
@@ -2367,11 +1929,11 @@ void SetAutoStart()
     strcpy(SettingsMenu.MenuTitle,"Settings: Tilt");
     if (AutoStart)   strcpy(SettingsMenu.MenuItem[0]," Auto Start ON ");
     else             strcpy(SettingsMenu.MenuItem[0]," Auto Start OFF ");
-    
+
     Menu.top = SettingsTitle();
     Menu.refresh=True;
 
-    SettingsDisplay();    
+    SettingsDisplay();
     orgset= AutoStart;
     while (!Done)
     {
@@ -2379,7 +1941,7 @@ void SetAutoStart()
         {
             switch (Key)
             {
-                case KeyIn: AutoStart = !AutoStart ; 
+                case KeyIn: AutoStart = !AutoStart ;
                             SettingsTitle();
                             Menu.refresh=True;
                             if (AutoStart)   strcpy(SettingsMenu.MenuItem[0]," Auto Start ON ");
@@ -2392,15 +1954,15 @@ void SetAutoStart()
             while (Keypressed); // wait here till key is released
         }
     }
-    
-    SaveToEEPROM= (AutoStart!=orgset); 
+
+    SaveToEEPROM= (AutoStart!=orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="TimerMode">
 void SetMode()
 {
-    TBool orgset; 
-     
+    TBool orgset;
+
     Menu.menu=1;
     Menu.top=0;
     Menu.pos=0;
@@ -2415,13 +1977,13 @@ void SetMode()
     strcpy(SettingsMenu.MenuItem[6]," NRA-PPC C ");
     strcpy(SettingsMenu.MenuItem[7]," NRA-PPC D ");
 
-    Menu.lineh=MediumFont_height+1; 
+    Menu.lineh=MediumFont->height+1;
     Menu.top = SettingsTitle();
     Menu.height=LCD_HEIGHT-(Menu.lineh+Menu.top);
     Menu.refresh=True;
     //Main Screen
     SettingsDisplay();
-    
+
     MenuSelection();
     switch (Menu.menu)
     {
@@ -2439,7 +2001,7 @@ void SetClock()
     uint8_t hour = get_hour();
     uint8_t minute = get_minute();
     TBool Done;
-     
+
     menu=1;
     top=0;
     pos=0;
@@ -2448,10 +2010,10 @@ void SetClock()
     strcpy(SettingsMenu.MenuTitle,"Settings: Clock");
     top = SettingsTitle();
     //Main Screen
-    
+
     TBool Done;
     char msg[20];
-    
+
     if (hour>23) hour=23;
     if (minute>59) minute=59;
 
@@ -2460,22 +2022,22 @@ void SetClock()
     sprintf(msg,"%02d:%02d",hour,minute);
     top+=topSpace;
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0, top+BigFont_height+botSpace ,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0, top+BigFont->height+botSpace ,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
                 case KeyUp: if (minute+i<59)     minute+=i;
                             else {
                                 minute=0;
-                                if (hour<23)  hour++; 
+                                if (hour<23)  hour++;
                                 else (hour=0);
                             }
                             SaveToEEPROM=True;
@@ -2483,7 +2045,7 @@ void SetClock()
                 case KeyDw: if (minute-i>0)     minute-=i;
                             else {
                                 minute=60-i;
-                                if   (hour>0)  hour--; 
+                                if   (hour>0)  hour--;
                                 else (hour=23);
                             }
                             SaveToEEPROM=True;
@@ -2496,7 +2058,7 @@ void SetClock()
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<60)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                  //if key not pressed go slow (again))
     }
@@ -2510,7 +2072,7 @@ void CountDownMode(uint8_t cdt)
     uint16_t cdtime;
     TBool Run;
     char msg[20];
-    
+
     prev_cdtime=0;
     strcpy(SettingsMenu.MenuTitle,"Cntdwn");
     top = SettingsTitle();
@@ -2534,7 +2096,7 @@ void CountDownMode(uint8_t cdt)
                 case KeyBk: Run=False; cdtime=0; break; //Exit no sound
                 case KeyIn: Run=True; cdtime=0; break;  //Exit with sound
             }
-            if (Run && (tcount>98)) 
+            if (Run && (tcount>98))
             {
                 tcount=0;
                 cdtime--;
@@ -2542,7 +2104,7 @@ void CountDownMode(uint8_t cdt)
             __delay_ms(10);
             if (Run) tcount++;
         }
-        if (Run) 
+        if (Run)
         {
             for (char i=0;i<5;i++)
             {
@@ -2568,7 +2130,7 @@ void SetCustomCountDown(uint8_t top)
 {
     TBool Done;
     char msg[20];
-    
+
     strcpy(SettingsMenu.MenuTitle,"Settings: ");
     top = SettingsTitle();
     top +=3;
@@ -2577,15 +2139,15 @@ void SetCustomCountDown(uint8_t top)
     sprintf(msg,"%02d:%02d",(CustomCDtime*10)/60,(CustomCDtime*10)%60);
     top +=topSpace;
     lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_',0,top+BigFont_height+botSpace,MediumFont,BLACK_OVER_WHITE);
+    lcd_write_char('_',0,top+BigFont->height+botSpace,MediumFont,BLACK_OVER_WHITE);
     Done=False;
     uint8_t i=1;
     uint8_t j=0;
     uint8_t k=0;
-    
+
     while (!Done)
     {
-        if (Keypressed) 
+        if (Keypressed)
         {
             switch (Key)
             {
@@ -2602,9 +2164,9 @@ void SetCustomCountDown(uint8_t top)
             sprintf(msg,"%02d:%02d",(CustomCDtime*10)/60,(CustomCDtime*10)%60);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
-        
+
         while ((Keypressed) && (k<250)) { __delay_ms(1); k++; } k=0;
-        if (Keypressed)   j++;   
+        if (Keypressed)   j++;
         if (j>1)         { if (i<11)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                 //if key not pressed go slow (again))
     }
@@ -2612,7 +2174,7 @@ void SetCustomCountDown(uint8_t top)
 void SetCountDown()
 {
     TBool Done;
-     
+
     Menu.menu=1;
     Menu.top=0;
     Menu.pos=0;
@@ -2623,15 +2185,15 @@ void SetCountDown()
     strcpy(SettingsMenu.MenuItem[1]," 3 minutes ");
     strcpy(SettingsMenu.MenuItem[2]," 5 minutes ");
     strcpy(SettingsMenu.MenuItem[3]," Custom ");
-    
-    Menu.lineh=MediumFont_height+1; 
+
+    Menu.lineh=MediumFont->height+1;
     //Top Line
     Menu.top = SettingsTitle();
     Menu.height=LCD_HEIGHT-(Menu.lineh+Menu.top);
     Menu.refresh=True;
     //Main Screen
     SettingsDisplay();
-    
+
     MenuSelection();
     switch (Menu.menu)
     {
@@ -2644,9 +2206,9 @@ void SetCountDown()
 // <editor-fold defaultstate="collapsed" desc="Tilt">
 void SetTilt()
 {
-    uint8_t orgset; 
+    uint8_t orgset;
     TBool Done=False;
-     
+
     Menu.top=0;
     Menu.pos=0;
     Menu.menu=1;
@@ -2654,11 +2216,11 @@ void SetTilt()
     strcpy(SettingsMenu.MenuTitle,"Settings: Tilt");
     if ((AR_IS&1)==1)   strcpy(SettingsMenu.MenuItem[0]," Auto Rotate ON ");
     else                strcpy(SettingsMenu.MenuItem[0]," Auto Rotate OFF ");
-    
+
     Menu.top = SettingsTitle();
     Menu.refresh=True;
 
-    SettingsDisplay();    
+    SettingsDisplay();
     orgset= AR_IS;
 
     while (!Done)
@@ -2667,7 +2229,7 @@ void SetTilt()
         {
             switch (Key)
             {
-                case KeyIn: AR_IS = AR_IS ^ 1 ; 
+                case KeyIn: AR_IS = AR_IS ^ 1 ;
                             SettingsTitle();
                             Menu.refresh=True;
                             if ((AR_IS&1)==1)   strcpy(SettingsMenu.MenuItem[0]," Auto Rotate ON ");
@@ -2680,7 +2242,7 @@ void SetTilt()
             while (Keypressed); // wait here till key is released
         }
     }
-    SaveToEEPROM= (AR_IS!=orgset); 
+    SaveToEEPROM= (AR_IS!=orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
@@ -2696,9 +2258,9 @@ void UpdateIS(void)
 
 void SetInput()
 {
-    uint8_t orgset; 
+    uint8_t orgset;
     TBool Done=False;
-     
+
     Menu.top=0;
     Menu.pos=0;
     Menu.menu=1;
@@ -2707,9 +2269,9 @@ void SetInput()
     Menu.top = SettingsTitle();
     Menu.refresh=True;
     UpdateIS();
-    SettingsDisplay();    
+    SettingsDisplay();
     orgset= AR_IS;
-    
+
     while (!Done)
     {
         if (Keypressed)
@@ -2727,7 +2289,7 @@ void SetInput()
                 case KeyDw: if (Menu.menu<(SettingsMenu.TotMenuItems)) {
                                 Menu.prev=Menu.menu;
                                 Menu.refresh=False;
-                                Menu.menu++; 
+                                Menu.menu++;
                                 SettingsDisplay();
                             }
                             else Beep();
@@ -2749,8 +2311,8 @@ void SetInput()
             while (Keypressed); // wait here till key is released
         }
     }
- 
-    SaveToEEPROM= (AR_IS!=orgset); 
+
+    SaveToEEPROM= (AR_IS!=orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
@@ -2762,7 +2324,7 @@ void BlueTooth()
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
-void DoSet(void)  
+void DoSet(void)
 {
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     switch (Menu.menu)
@@ -2828,8 +2390,8 @@ void Settings(void)
     Menu.menu=1;
     Menu.pos=0;
     Menu.top=0;
-    
-    Menu.lineh=MediumFont_height+1; 
+
+    Menu.lineh=MediumFont->height+1;
     SetSettingsMenu();
     //Top Line
     Menu.top = SettingsTitle();
@@ -2838,7 +2400,7 @@ void Settings(void)
     SaveToEEPROM=False;
     Menu.refresh=True;
     Menu.page=0;//Force refresh
-    
+
     do {
         SetSettingsMenu();
         SettingsTitle();
@@ -2856,13 +2418,13 @@ void Settings(void)
 // </editor-fold>
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ReviewMenu">
-void ReviewDisplay(uint8_t battery,uint8_t CurShoot, uint8_t CurShootStringDisp, TBool FullRedraw) 
+void ReviewDisplay(uint8_t battery,uint8_t CurShoot, uint8_t CurShootStringDisp, TBool FullRedraw)
 {
    char message[60];
    uint8_t line=0;
-   uint8_t halfline=((MediumFont_height/2)+1);
-           
-   if (!FullRedraw)  line =((MediumFont_height*3)+16);
+   uint8_t halfline=((MediumFont->height/2)+1);
+
+   if (!FullRedraw)  line =((MediumFont->height*3)+16);
    lcd_clear_block(0,line,LCD_WIDTH,LCD_HEIGHT);
    if (FullRedraw)
    {
@@ -2870,17 +2432,17 @@ void ReviewDisplay(uint8_t battery,uint8_t CurShoot, uint8_t CurShootStringDisp,
         lcd_write_string("REVIEW",0,line,MediumFont,BLACK_OVER_WHITE);
         if (BT) lcd_write_string("BT",123,line,SmallFont,BLACK_OVER_WHITE);
         lcd_battery_info(LCD_WIDTH-20,line,battery);
-        line +=MediumFont_height;
+        line +=MediumFont->height;
         lcd_draw_hline(0,LCD_WIDTH,line,BLACK_OVER_WHITE);
         line ++;
-        //String line 
+        //String line
         lcd_write_char('^',0,line,MediumFont,BLACK_OVER_WHITE);
         line +=halfline;
         sprintf(message, " Str:%2d/%2d %6.2f ", CurShootStringDisp,ShootString.TotShoots,(float)ShootString.ShootTime[ShootString.TotShoots]/100);
         lcd_write_string(message,12,line,MediumFont,WHITE_OVER_BLACK);
         line +=halfline;
         lcd_write_char('_',0,line,MediumFont,BLACK_OVER_WHITE);
-        line +=MediumFont_height;
+        line +=MediumFont->height;
         lcd_draw_hline(0,LCD_WIDTH,line,BLACK_OVER_WHITE);
         line +=15;
    }
@@ -2896,7 +2458,7 @@ void ReviewDisplay(uint8_t battery,uint8_t CurShoot, uint8_t CurShootStringDisp,
         lcd_write_string(message,89,line,MediumFont,BLACK_OVER_WHITE);
         line +=halfline;
    }
-   
+
    if (ShootString.ShootTime[CurShoot]>0)
    {
         sprintf(message, " %2d:%6.2f ", CurShoot,(float)ShootString.ShootTime[CurShoot]/100);
@@ -2934,7 +2496,7 @@ void DoReview()
             switch (Key)
             {
                 case KeySt:   return;
-           
+
                 case KeyUp:   if (CurShoot>1) {
                                   CurShoot--;
                                   ReviewDisplay(battery_level,CurShoot,CurShootString+1,False);
@@ -2965,7 +2527,7 @@ void DoReview()
                               else Beep();
                               while (Key==KeyInUp);
                               break;
-            }           
+            }
         }
     }
 }
@@ -2997,7 +2559,7 @@ void DetectInit(void)
         case  3 :   DetectThreshold=Mean+104;break;
         case  2 :   DetectThreshold=Mean+124;break;
         case  1 :   DetectThreshold=Mean+148;break;
-    }    
+    }
 }
 TBool Detect(void)
 {
@@ -3012,17 +2574,16 @@ TBool Detect(void)
 
 uint8_t print_time(uint8_t line,uint8_t pos){
     char message[10];
-    lcd_clear_block(pos,line,45,MediumFont->height);
-    //Top Line
     sprintf(message,"%02d%s%02d",get_hour(),(rtc_time_sec%2)?":":".",get_minute());
- //   sprintf(message,"%d",timers_diff);    
+    uint8_t width = lcd_string_lenght(message,MediumFont);
+    lcd_clear_block(pos,line,width,MediumFont->height);
     lcd_write_string(message,pos,line,MediumFont,BLACK_OVER_WHITE);
 }
 uint8_t print_header_line(){
     uint8_t line = 0;
     TBool Aux = false;
     char message[10];
-    lcd_clear_block(line,0,LCD_WIDTH,MediumFont->height+6);
+    lcd_clear_block(line,0,LCD_WIDTH,MediumFont->height);
     print_time(line,0);
     if (Aux) lcd_write_string("Aux:On ",45,line,SmallFont,BLACK_OVER_WHITE);
     else     lcd_write_string("Aux:Off",45,line,SmallFont,BLACK_OVER_WHITE);
@@ -3031,10 +2592,10 @@ uint8_t print_header_line(){
     if (BT) lcd_write_string("BT",123,line,SmallFont,BLACK_OVER_WHITE);
     else lcd_write_char(' ',20,line,MediumFont,WHITE_OVER_BLACK);
     lcd_battery_info(LCD_WIDTH-20,line,battery_level);
-    lcd_draw_hline(0,LCD_WIDTH,MediumFont->height+1,BLACK_OVER_WHITE);
-    return MediumFont->height + 7;
+    lcd_draw_hline(0,LCD_WIDTH,MediumFont->height,BLACK_OVER_WHITE);
+    return MediumFont->height + 6;
 }
-uint8_t MainDisplay(uint8_t ShootNumber, uint8_t par, uint8_t voffset) 
+uint8_t MainDisplay(uint8_t ShootNumber, uint8_t par, uint8_t voffset)
                     //percentage, 10mS, 10mS, num, 10mS, TdelTy, TBool
 {
     char message[60];
@@ -3043,16 +2604,16 @@ uint8_t MainDisplay(uint8_t ShootNumber, uint8_t par, uint8_t voffset)
 
     lcd_clear_block(voffset,0,LCD_WIDTH,LCD_HEIGHT);
     pos=line;
-    //Main line 
+    //Main line
     sprintf(message, "%6.2f", (float)ShootString.ShootTime[ShootNumber]/100);
     lcd_write_string(message,0,line,BigFont,BLACK_OVER_WHITE);
-    line +=BigFont_height;
+    line +=BigFont->height;
     line +=5;
     sprintf(message, "%6.2f",(float)ShootString.ShootTime[0]/100);
     lcd_write_string(message,0,line,MediumFont,BLACK_OVER_WHITE);
     sprintf(message, "Shoot:%2d",ShootNumber);
     lcd_write_string(message,LCD_WIDTH-62,line,MediumFont,BLACK_OVER_WHITE);
-    line +=MediumFont_height;
+    line +=MediumFont->height;
     line++;
     lcd_draw_hline(0,LCD_WIDTH,line,BLACK_OVER_WHITE);
     line +=3;
@@ -3060,19 +2621,19 @@ uint8_t MainDisplay(uint8_t ShootNumber, uint8_t par, uint8_t voffset)
     switch (DelayMode)
     {
         case Instant:sprintf(message,"Delay:None");
-        break;        
+        break;
         case Fixed:  sprintf(message,"Delay:Fixed");
-        break;        
+        break;
         case Random: sprintf(message,"Delay:Random");
-        break;        
+        break;
         case Custom: sprintf(message,"Delay:Custom");
-        break;        
+        break;
     }
     lcd_write_string(message,0,line,SmallFont,BLACK_OVER_WHITE);
     if ((AR_IS&2)==2) sprintf(message, "Mic:%d",Sensitivity);
     else             sprintf(message, "Mic:%d",0);
     lcd_write_string(message,LCD_WIDTH-32,line,SmallFont,BLACK_OVER_WHITE);
-    line +=SmallFont_height;
+    line +=SmallFont->height;
     line++;
     if (ParTime[par]>0)
     {
@@ -3095,18 +2656,18 @@ void DoMain(void)
     uint8_t Par=0;
     TBool Done=False;
     pos=MainDisplay(Shoot,Par,print_header_line());
-    
+
     switch (DelayMode)
     {
         case Instant:DelayTime=0;
-        break;        
+        break;
         case Fixed:  DelayTime=30;
-        break;        
+        break;
         case Random: DelayTime=(5*DelayTime)%99;
-        break;        
+        break;
         case Custom: DelayTime=eeprom_read_wdata(DelayTime_Address);
              //Read again in case was changed from other mode
-        break;        
+        break;
     }
     uint16_t t=DelayTime;
     DetectMode=Mic;
@@ -3114,7 +2675,7 @@ void DoMain(void)
     t=DelayTime*10;
     while (t>8)
     {
-        if (t%2==0) 
+        if (t%2==0)
         {
             sprintf(message, "%6.2f",(float)t/100);
             lcd_write_string(message,0,pos,BigFont,BLACK_OVER_WHITE);
@@ -3128,24 +2689,24 @@ void DoMain(void)
     while (!Done)
     {
         TestBattery();
-        if (Detect()) 
+        if (Detect())
         {
             Shoot++;
             ShootString.TotShoots=Shoot;
-            ShootString.ShootTime[Shoot]=t; 
+            ShootString.ShootTime[Shoot]=t;
             if (Shoot==1) FirstTime=t;
             MainDisplay(Shoot,Par,print_header_line());
         }
         __delay_ms(10);
         t++;
-        if ((t>ParTime[Par]) && (Par<TotPar)) 
-        { 
+        if ((t>ParTime[Par]) && (Par<TotPar))
+        {
             Par++;
             MainDisplay(Shoot,Par,print_header_line());
-            generate_sinus(BuzzerLevel,BuzzerFrequency,BuzzerParDuration); 
+            generate_sinus(BuzzerLevel,BuzzerFrequency,BuzzerParDuration);
             __delay_ms(150);
-        } 
-        if (t>99900) 
+        }
+        if (t>99900)
         {
             if (Shoot>0) saveShootString();
             DoReview();
@@ -3172,16 +2733,24 @@ void DoMain(void)
 // </editor-fold>
 // </editor-fold>
 
-
 // <editor-fold defaultstate="collapsed" desc="RTC functions">
 
 static void interrupt isr(void) {
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0;   // Clear Interrupt flag.
-        handle_preceise_time();
+        rtc_time_sec++;
+        time_changed=true;
+        T1CONbits.ON = 0;
+        TMR1CLKbits.CS= 0b0110; // TIMER1 clock source = 32.768KHz Secondary Oscillator.
+        T1CONbits.CKPS = 0b11;  // Prescale = 8.
+        T1CONbits.NOT_SYNC =1;  // asynchronous counter mode to operate during sleep
+        TMR1H = 0xF0;           // preset for timer1 MSB register (1 second delay)
+        TMR1L = 0x00;           // preset for timer1 LSB register (1 second delay)
+        T1CONbits.ON = 1;       //TIMER1 start.
+        rtc_time_msec = 0;
     }
 //    if (SHOOT_IF){
-//        SHOOT_IF = 0;       //Clear interrupt        
+//        SHOOT_IF = 0;       //Clear interrupt
 //        save_shoot_time();
 //    }
 //    if (ACCELEROMETR_IF){
@@ -3211,8 +2780,7 @@ static void interrupt isr(void) {
     if(PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         rtc_time_msec++;
-        refresh_lcd = (rtc_time_msec%25==0);
-        init_1ms_timer0();
+        init_10ms_timer0();
     }
 }
 // </editor-fold>
@@ -3230,11 +2798,8 @@ void main(void) {
     getSettings();
     getPar();
     set_backlight(BackLightLevel);
-    SmallFont_height = tahoma_8ptFontInfo.height;
-    MediumFont_height = timesNewRoman_11ptFontInfo.height;
-    BigFont_height = microsoftSansSerif_42ptFontInfo.height;
     initialize_rtc_timer();
-    init_1ms_timer0();
+    init_10ms_timer0();
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
@@ -3244,7 +2809,8 @@ void main(void) {
     while (True) {
         if (Powered) {
             TestBattery();
-            print_header_line();
+//            print_header_line();
+            if(time_changed){time_changed = false;print_time(0,0);}
             if (Keypressed) {
 
                 switch (Key) {
@@ -3270,7 +2836,7 @@ void main(void) {
                 }
                 if (Powered) {
                     MainDisplay( 0, 0, print_header_line());
-                   
+
                 }
             }
         } else {

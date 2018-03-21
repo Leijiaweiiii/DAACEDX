@@ -1,0 +1,47 @@
+
+#ifndef DAACED_COMMON_H
+#define	DAACED_COMMON_H
+
+#include <xc.h> // include processor files - each processor file is guarded.  
+#include <stdint.h>
+#include "DAACEDfont.h"
+#include "__size_t.h"
+#include "__null.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+
+
+// <editor-fold defaultstate="collapsed" desc="General">
+#ifndef _XTAL_FREQ
+#define _XTAL_FREQ            (64000000UL) //64MHz
+#endif
+
+#define MSB(x)              ((x & 0xFF00)>>8)
+#define LSB(x)              (x & 0x00FF)
+
+#define	True 1
+#define	False 0
+#define	On 1
+#define	Off 0
+#define	Pos 1
+#define	Neg 0
+typedef enum {
+    false=0, true=1
+} TBool;
+
+#define HEX2DEC(x)            (x > '9') ? (x - 'a')+10 : x-'0'
+#define DEC(x)                (x-'0')
+#define Delay(t)           {for (int w=0 ; w<t ; w++)  __delay_ms(1);}
+
+#define IO_AS_OUTPUT            (0)
+#define IO_AS_INPUT             (1)
+#define BIT(bit_position)       (1<<bit_position)
+#define SWAP(x,y)               { x = x + y; y = x - y; x = x - y;}
+#define UNUSED(x)               (void)(x)
+
+#define LCD_CS_SELECT()         (LATFbits.LF3 = 0)
+#define LCD_CS_DESELECT()       (LATFbits.LF3 = 1)
+// </editor-fold> 
+#endif	/* DAACED_COMMON_H */
+
