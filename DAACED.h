@@ -92,6 +92,7 @@ uint8_t MediumFont_height;
 const FONT_INFO *BigFont = &microsoftSansSerif_42ptFontInfo;
 uint8_t BigFont_height;
 
+TBool refresh_lcd = True;
 // </editor-fold> 
 
 // <editor-fold defaultstate="collapsed" desc="ST75256 COMMANDS">
@@ -273,21 +274,6 @@ uint8_t find_set_bit_position(uint8_t n);
 
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="RTC timer functions">
-#define RTC_TIMER_IE    (PIE5bits.TMR1IE)
-#define RTC_TIMER_IF    (PIR5bits.TMR1IF)
-
-#define SYS_MODE_NORMAL (0)
-#define SYS_MODE_SLEEP  (1)
-
-volatile uint32_t rtc_time_sec;
-volatile uint32_t button_down_time, button_up_time;
-volatile uint8_t system_operation_mode = SYS_MODE_NORMAL;
-void initialize_rtc_timer();
-void set_rtc_time(uint32_t time);
-uint32_t get_rtc_time();
-// </editor-fold>
-
 // <editor-fold defaultstate="collapsed" desc="Wakeup and Sleep button.">
 #define SLEEP_BUTTON_TRIS       (TRISEbits.TRISE1)
 
@@ -342,8 +328,7 @@ uint8_t BuzzerLevel=2;
 #define BuzzerLevel_Address          108
 uint8_t CustomCDtime=18;
 #define CustomCDtime_Address         110
-uint8_t hour=12;
-uint8_t minute=32;
+
 TBool   BT=False;
 TBool   SaveToEEPROM;
 #define BT_Address                   112

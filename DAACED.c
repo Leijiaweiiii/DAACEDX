@@ -354,7 +354,9 @@ void lcd_clear_data_ram() {
 
 void lcd_refresh() {
     uint8_t column, max_column, page;
-
+    if(!refresh_lcd) return;
+    refresh_lcd = false;
+    
     for(page = 0; page < LCD_MAX_PAGES; page++){
         if(y_update_min >= ((page+1)*8)) continue;
         if(y_update_max < page*8) break;
@@ -2434,6 +2436,8 @@ void SetMode()
 void SetClock()
 {
     uint8_t menu,top,pos,height;
+    uint8_t hour = get_hour();
+    uint8_t minute = get_minute();
     TBool Done;
      
     menu=1;
@@ -2496,6 +2500,7 @@ void SetClock()
         if (j>1)         { if (i<60)   i=i*2;  j=0;   }//if after 500mS still pressed go faster
         if (!Keypressed) { i=1;j=0;}                  //if key not pressed go slow (again))
     }
+    set_time(hour,minute,0);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
@@ -3004,28 +3009,39 @@ TBool Detect(void)
         default: return False;
     }
 }
-uint8_t MainDisplay(uint8_t battery,uint8_t ShootNumber, uint8_t par, TBool Aux) 
-                    //percentage, 10mS, 10mS, num, 10mS, TdelTy, TBool
-{
-    char message[60];
-    uint8_t line=0;
-    uint8_t pos=0;
 
-    lcd_clear_block(0,0,LCD_WIDTH,LCD_HEIGHT);
+uint8_t print_time(uint8_t line,uint8_t pos){
+    char message[10];
+    lcd_clear_block(pos,line,45,MediumFont->height);
     //Top Line
-    sprintf(message,"%02d:%02d",hour,minute);
-    sprintf(message,"%d",rtc_time_sec);
-    lcd_write_string(message,0,line,MediumFont,BLACK_OVER_WHITE);
+    sprintf(message,"%02d%s%02d",get_hour(),(rtc_time_sec%2)?":":".",get_minute());
+ //   sprintf(message,"%d",timers_diff);    
+    lcd_write_string(message,pos,line,MediumFont,BLACK_OVER_WHITE);
+}
+uint8_t print_header_line(){
+    uint8_t line = 0;
+    TBool Aux = false;
+    char message[10];
+    lcd_clear_block(line,0,LCD_WIDTH,MediumFont->height+6);
+    print_time(line,0);
     if (Aux) lcd_write_string("Aux:On ",45,line,SmallFont,BLACK_OVER_WHITE);
     else     lcd_write_string("Aux:Off",45,line,SmallFont,BLACK_OVER_WHITE);
     if ((AR_IS&4)==4) lcd_write_string("A",95,line,SmallFont,BLACK_OVER_WHITE);
     if ((AR_IS&8)==8)  lcd_write_string("B",110,line,SmallFont,BLACK_OVER_WHITE);
     if (BT) lcd_write_string("BT",123,line,SmallFont,BLACK_OVER_WHITE);
-    lcd_battery_info(LCD_WIDTH-20,line,battery);
-    line +=MediumFont_height;
-    line++;
-    lcd_draw_hline(0,LCD_WIDTH,line,BLACK_OVER_WHITE);
-    line +=5;
+    else lcd_write_char(' ',20,line,MediumFont,WHITE_OVER_BLACK);
+    lcd_battery_info(LCD_WIDTH-20,line,battery_level);
+    lcd_draw_hline(0,LCD_WIDTH,MediumFont->height+1,BLACK_OVER_WHITE);
+    return MediumFont->height + 7;
+}
+uint8_t MainDisplay(uint8_t ShootNumber, uint8_t par, uint8_t voffset) 
+                    //percentage, 10mS, 10mS, num, 10mS, TdelTy, TBool
+{
+    char message[60];
+    uint8_t line=voffset;
+    uint8_t pos=0;
+
+    lcd_clear_block(voffset,0,LCD_WIDTH,LCD_HEIGHT);
     pos=line;
     //Main line 
     sprintf(message, "%6.2f", (float)ShootString.ShootTime[ShootNumber]/100);
@@ -3078,7 +3094,7 @@ void DoMain(void)
     getPar();
     uint8_t Par=0;
     TBool Done=False;
-    pos=MainDisplay(battery_level,Shoot,Par,False);
+    pos=MainDisplay(Shoot,Par,print_header_line());
     
     switch (DelayMode)
     {
@@ -3118,14 +3134,14 @@ void DoMain(void)
             ShootString.TotShoots=Shoot;
             ShootString.ShootTime[Shoot]=t; 
             if (Shoot==1) FirstTime=t;
-            MainDisplay(battery_level,Shoot,Par,False);
+            MainDisplay(Shoot,Par,print_header_line());
         }
         __delay_ms(10);
         t++;
         if ((t>ParTime[Par]) && (Par<TotPar)) 
         { 
             Par++;
-            MainDisplay(battery_level,Shoot,Par,False);
+            MainDisplay(Shoot,Par,print_header_line());
             generate_sinus(BuzzerLevel,BuzzerFrequency,BuzzerParDuration); 
             __delay_ms(150);
         } 
@@ -3164,16 +3180,16 @@ static void interrupt isr(void) {
         RTC_TIMER_IF = 0;   // Clear Interrupt flag.
         handle_preceise_time();
     }
-    if (SHOOT_IF){
-        SHOOT_IF = 0;       //Clear interrupt        
-        save_shoot_time();
-    }
-    if (ACCELEROMETR_IF){
-        ACCELEROMETR_IF = 0;
-        if(orientation_changed()){
-            mark_to_flip_screen();
-        }
-    }
+//    if (SHOOT_IF){
+//        SHOOT_IF = 0;       //Clear interrupt        
+//        save_shoot_time();
+//    }
+//    if (ACCELEROMETR_IF){
+//        ACCELEROMETR_IF = 0;
+//        if(orientation_changed()){
+//            mark_to_flip_screen();
+//        }
+//    }
 //    if(IOCBFbits.IOCBF1) {
 //        if(PORTBbits.RB1 == 1) {
 //            button_up_time = get_rtc_time();
@@ -3194,13 +3210,15 @@ static void interrupt isr(void) {
 //    }
     if(PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
-        precise_time++;
-        init_10ms_timer0();
+        rtc_time_msec++;
+        refresh_lcd = (rtc_time_msec%25==0);
+        init_1ms_timer0();
     }
 }
 // </editor-fold>
+
 void main(void) {
-// <editor-fold defaultstate="collapsed" desc="Initialization">
+    // <editor-fold defaultstate="collapsed" desc="Initialization">
     PIC_init();
     PowerON
     initialize_backlight();
@@ -3216,64 +3234,61 @@ void main(void) {
     MediumFont_height = timesNewRoman_11ptFontInfo.height;
     BigFont_height = microsoftSansSerif_42ptFontInfo.height;
     initialize_rtc_timer();
- // Initialization End
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Main">
-    uint8_t to=0;
+    init_1ms_timer0();
+    // Initialization End
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Main">
+    uint8_t to = 0;
     TestBattery();
-    MainDisplay(battery_level,0,0,False);
-    while(True) 
-    {
-        if (Powered)
-        {
+    MainDisplay( 0, 0, print_header_line());
+    while (True) {
+        if (Powered) {
             TestBattery();
-            if (Keypressed)
-            {
-                switch (Key)
-                {
+            print_header_line();
+            if (Keypressed) {
+
+                switch (Key) {
                     case KeyUp:
                     case KeyDw:Settings();
-                    break;
-                    case KeyRw:DoReview();// ReviewDisplay(battery_level,7, 3,True);
-                    break;
+                        break;
+                    case KeyRw:DoReview(); // ReviewDisplay(battery_level,7, 3,True);
+                        break;
                     case KeySt:
-                        to=0;
-                        while (Keypressed)
-                        {
-                             __delay_ms(20);
-                             to++;
-                             if (to>Timeoff) 
-                             {
-                                 PowerOFF;  
-                                 set_backlight(0);
-                                 lcd_clear();
-//                                 OSCFRQ = 0b00000000;        // 1 MHz Fosc.
-                             }
+                        to = 0;
+                        while (Keypressed) {
+                            __delay_ms(20);
+                            to++;
+                            if (to > Timeoff) {
+                                PowerOFF;
+                                set_backlight(0);
+                                lcd_clear();
+                                //                                 OSCFRQ = 0b00000000;        // 1 MHz Fosc.
+                            }
                         }
-                        if (Powered) DoMain();//MainTimer display
-                    break;
+                        if (Powered) DoMain(); //MainTimer display
+                        break;
                 }
-            if (Powered) MainDisplay(battery_level,0,0,False);
+                if (Powered) {
+                    MainDisplay( 0, 0, print_header_line());
+                   
+                }
             }
-        }
-        else 
-        {
-            to=0;
-            while (Keypressed)
-            {
+        } else {
+            to = 0;
+            while (Keypressed) {
                 __delay_ms(20);
                 to++;
-                if (to>Timeoff)
-                {
-//                    OSCFRQ = 0b00001000;        // 64 MHz Fosc.
-    
+                if (to > Timeoff) {
+                    //                    OSCFRQ = 0b00001000;        // 64 MHz Fosc.
+
                     PowerON;
                     set_backlight(BackLightLevel);
-                    MainDisplay(battery_level, 0, 0, False);
+                    MainDisplay(0, 0, print_header_line());
                 }
             }
         }
         while (Keypressed); //Wait till key is released
+        lcd_refresh();
     }
-// </editor-fold>
+    // </editor-fold>
 }
