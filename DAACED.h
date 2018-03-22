@@ -215,8 +215,10 @@ uint8_t Filter=1;
 #define ParAddress                   200
 #define MAXPAR 10
 uint8_t TotPar;
-uint24_t ParTime[MAXPAR]; //in 10mS unit
-uint8_t CurPar_idx; //The par index
+uint24_t ParTime[MAXPAR]; //in 1mS unit
+uint8_t CurPar_idx = 0; //The par index
+TBool ParNowCounting = false;
+time_t parStartTime_ms;
 
 
 #define ShootStringStartAddress     1000
@@ -243,7 +245,9 @@ void DoMain();
 void DoReview();
 void DoPowerOff();
 void DoPowerOn();
-void handle_shooting_events();
+void update_shot_time_on_screen();
+void PlayParSound();
+void StartParTimer();
 // </editor-fold> 
 
 #endif /*  _DAACED_H_ */

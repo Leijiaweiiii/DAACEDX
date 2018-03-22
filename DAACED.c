@@ -430,14 +430,14 @@ void ADC_init() {
     ANSELA = 0b00001111;
     //  ADCON0 = 0b10000000;        // Enable ADC	 - single byte mode	   return ADRESH;
     ADCON0 = 0b10000100; // Enable ADC	 - single 10 bit mode	return (ADRESH<<8)|ADRESL;
-    
+
     ADCON1 = 0b00000001; // Select ADC Double Sample
     ADCON2 = 0b00001000; // Normal ADC operation
     ADCON3 = 0b00001000; // Normal ADC operation
     ADCLK = 0b00100000; // ADC CLK = OSC/64
     ADREF = 0b00000011; // ADC connected to FVR
     FVRCON = 0b11000010; // FVR set to 2048mV
-    
+
 }
 
 uint16_t ADC_Read(char selectedADC) {
@@ -1418,7 +1418,7 @@ void SetPar() {
             TotPar = 0;
             do {
                 if ((ParTime[i] > 0) && (ParTime[i] < 100000)) {
-                    sprintf(msg, " Par %d: %5.1f", i + 1, (float) ParTime[i] / 100); //unit is 10mS
+                    sprintf(msg, " Par %d: %5.1f", i + 1, (float) ParTime[i] / 1000); //unit is 1mS
                     strcpy(SettingsMenu.MenuItem[i], msg);
                     TotPar++;
                 }
@@ -1441,12 +1441,12 @@ void SetPar() {
         if (Menu.menu > 0) {
             if (Menu.menu == TotPar + 1) {
                 if (TotPar > 0) {
-                    ParTime[Menu.menu - 1] = ParTime[Menu.menu - 2]+(BuzzerParDuration / 10) + 10;
+                    ParTime[Menu.menu - 1] = ParTime[Menu.menu - 2]+BuzzerParDuration;
                     TotPar++;
                     changed = True;
                     redraw = 1;
                 } else {
-                    ParTime[0] = (BuzzerStartDuration / 10) + 10;
+                    ParTime[0] = BuzzerStartDuration;
                     TotPar = 1;
                     changed = True;
                     redraw = 1;
@@ -1468,7 +1468,7 @@ void SetPar() {
             while (!Done) {
                 if (Keypressed) {
                     switch (Key) {
-                        case KeyUp: if ((ParTime[Menu.menu - 1] + i) <= ((ParTime[Menu.menu])-((BuzzerParDuration / 10) + 10))) {
+                        case KeyUp: if ((ParTime[Menu.menu - 1] + i) <= ((ParTime[Menu.menu])-(BuzzerParDuration))) {
                                 ParTime[Menu.menu - 1] += i;
                                 changed = True;
                             } else {
@@ -1478,7 +1478,7 @@ void SetPar() {
                             }
                             break;
                         case KeyDw: if (TotPar > 1) {
-                                if ((ParTime[Menu.menu - 1] - i) >= ((ParTime[Menu.menu - 2])+(BuzzerParDuration / 10) + 10)) {
+                                if ((ParTime[Menu.menu - 1] - i) >= ((ParTime[Menu.menu - 2])+BuzzerParDuration)) {
                                     ParTime[Menu.menu - 1] -= i;
                                     changed = True;
                                 } else {
@@ -1487,7 +1487,7 @@ void SetPar() {
                                     Done = True;
                                 }
                             } else if (TotPar == 1) {
-                                if (ParTime[0] >= (((BuzzerStartDuration / 10) + 10) + i)) {
+                                if (ParTime[0] >= ((BuzzerStartDuration) + i)) {
                                     ParTime[0] -= i;
                                     changed = True;
                                 } else {
@@ -1502,9 +1502,9 @@ void SetPar() {
                     }
                     if (redraw < 2) //do not draw for delate
                     {
-                        sprintf(msg, "%5.1f", (float) ParTime[Menu.menu - 1] / 100); //unit is 10mS
+                        sprintf(msg, "%5.1f", (float) ParTime[Menu.menu - 1] / 1000); //unit is 1mS
                         lcd_write_string(msg, 30, Menu.top, BigFont, BLACK_OVER_WHITE);
-                        sprintf(msg, " Par %d: %5.1f", Menu.menu, (float) ParTime[Menu.menu - 1] / 100); //unit is 10mS
+                        sprintf(msg, " Par %d: %5.1f", Menu.menu, (float) ParTime[Menu.menu - 1] / 1000); //unit is 1mS
                         strcpy(SettingsMenu.MenuItem[Menu.menu - 1], msg);
                     }
                 }
@@ -2612,7 +2612,7 @@ uint8_t print_footer(uint8_t par, uint8_t voffset) {
     line += SmallFont->height;
     line++;
     if (ParTime[par] > 0) {
-        sprintf(message, "Par%2d:%5.1f", par + 1, (float) ParTime[par] / 100);
+        sprintf(message, "Par%2d:%5.1f", par + 1, (float) ParTime[par] / 1000);
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
     }
     sprintf(message, "Buz:%d", BuzzerLevel);
@@ -2730,15 +2730,16 @@ void DoOldMain(void) {
             }
     }
 }
+
 void DoMain(void) {
     uint8_t line = 0;
     char time_str[10];
-    sprintf(time_str,"%2d#%5.2f",ShootString.TotShoots,(float)(ShootString.ShootTime[ShootString.TotShoots-1]/1000));
-//    line += print_header();
-    line+=Y_OFFSET;
-    lcd_write_string(time_str,8,line,MediumFont,BLACK_OVER_WHITE);
-    
-//    DoOldMain();
+    sprintf(time_str, "%2d#%5.2f", ShootString.TotShoots, (float) (ShootString.ShootTime[ShootString.TotShoots - 1] / 1000));
+    //    line += print_header();
+    line += Y_OFFSET;
+    lcd_write_string(time_str, 8, line, MediumFont, BLACK_OVER_WHITE);
+
+    //    DoOldMain();
 }
 // </editor-fold>
 
@@ -2752,9 +2753,26 @@ void DoPowerOff() {
 void DoPowerOn() {
     PowerON;
     set_backlight(BackLightLevel);
-//    MainDisplay(0, 0, print_header());
+    //    MainDisplay(0, 0, print_header());
 
 }
+
+void update_shot_time_on_screen() {
+    print_big_time_label(ShootString.ShootTime[ShootString.TotShoots - 1]);
+}
+
+void PlayParSound(){
+    generate_sinus(BuzzerLevel,BuzzerFrequency,BuzzerParDuration);
+}
+
+void StartParTimer() {
+    if (CurPar_idx < MAXPAR) {
+        CurPar_idx++;
+        ParNowCounting = true;
+        parStartTime_ms = rtc_time_msec;
+    }
+}
+
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 static void interrupt isr(void) {
@@ -2812,6 +2830,12 @@ static void interrupt isr(void) {
         init_10ms_timer0();
         if (!Keypressed) //Assignment will not work because of not native boolean
             KeyReleasedBefore = true;
+        if(ParNowCounting){ // If into if because IDK how XC8 optimises conditions
+            // Software "interrupt" emulation
+            if(rtc_time_msec - parStartTime_ms >= ParTime[CurPar_idx]){
+                ParNowCounting = false;
+            }
+        }
     }
 }
 // </editor-fold>

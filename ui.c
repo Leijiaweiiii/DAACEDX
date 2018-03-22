@@ -1,6 +1,13 @@
 #include "ui.h"
 #include "DAACED.h"
 
+void print_big_time_label(time_t t) {    
+    char message[7];
+    newShot = false;
+    sprintf(message, "%6.2f", (float) t / 100);
+    lcd_write_string(message, 0, UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
+}
+
 void set_screen_title(char * value){
     strcpy(ScreenTitle,value);
 }
@@ -8,13 +15,10 @@ void PowerOffTimer() {
     set_screen_title("Power Off");
     DoPowerOff();
 }
-
-void handle_shooting_events(){
-    
-}
-
 void StartTimer() {
     set_screen_title("Timer Run");
+    CurPar_idx=0;
+    StartParTimer();
     DoMain();
 }
 
@@ -74,7 +78,19 @@ void handle_timer_idle() {
 }
 
 
-
+void HandleTimerEvents(){
+    switch (timerEventToHandle){
+        case TimerTimeout:
+            StopTimer();
+            ui_state = TimerIdle;
+            break;
+        case ParEvent:
+            StartParTimer();
+            break;
+        // By default do nothing
+    }
+    timerEventToHandle = NoEvent;
+}
 void handle_timer_counting() {
     switch (comandToHandle) {
         case StartLong:
@@ -82,7 +98,7 @@ void handle_timer_counting() {
             ui_state = PowerOff;
             break;
         case StartShort:
-            if (Autostart) {
+            if (AutoStart) {
                 StartTimer();
                 ui_state = TimerCounting;
             }
@@ -94,7 +110,8 @@ void handle_timer_counting() {
         default:
             // All the rest keys handled inside the next handler.
             // As well as shoot events
-            handle_shooting_events();
+            HandleTimerEvents();
+            update_shot_time_on_screen();
             break;
     }
 }
