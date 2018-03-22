@@ -82,7 +82,6 @@
 // <editor-fold defaultstate="collapsed" desc="Includes">
 #include <xc.h>
 #include "DAACED.h"
-#include "measurements.h"
 #include "ui.h"
 // </editor-fold>
 
@@ -431,12 +430,14 @@ void ADC_init() {
     ANSELA = 0b00001111;
     //  ADCON0 = 0b10000000;        // Enable ADC	 - single byte mode	   return ADRESH;
     ADCON0 = 0b10000100; // Enable ADC	 - single 10 bit mode	return (ADRESH<<8)|ADRESL;
+    
     ADCON1 = 0b00000001; // Select ADC Double Sample
     ADCON2 = 0b00001000; // Normal ADC operation
     ADCON3 = 0b00001000; // Normal ADC operation
     ADCLK = 0b00100000; // ADC CLK = OSC/64
     ADREF = 0b00000011; // ADC connected to FVR
     FVRCON = 0b11000010; // FVR set to 2048mV
+    
 }
 
 uint16_t ADC_Read(char selectedADC) {
@@ -444,6 +445,31 @@ uint16_t ADC_Read(char selectedADC) {
     ADCON0bits.ADGO = 1; // Start conversion
     while (GO_nDONE);
     return (ADRESH << 8) | ADRESL;
+}
+
+#define ADC_INT_ENABLE     {ADCON0bits.ADCONT = 1;PIR1bits.ADIF=0;INTCONbits.PEIE=1;PIE1bits.ADIE=1;}
+#define ADC_INT_DISABLE     {ADCON0bits.ADCONT = 0;}
+
+void initialize_shot_interrupt() {
+
+    /*
+     ?
+ EN and POL bits
+ CxIE bit of the PIE2 register
+ INTP bit (for a rising edge detection)
+ INTN bit (for a falling edge detection)
+ PEIE and GIE bits of the INTCON register     
+     */
+    //    CM1CON0bits.EN = 1;         //Enable comparator
+    //    CM1CON0bits.POL = 0;        // Do't invert polarity - OUT=1 iff VC1P > VC1N
+    //    CM1CON0bits.SYNC = 1;       // Output synchronized to Timer1 clock (10ms timer in our case)
+    //    CM1CON1bits.INTP = 1;       // Interrupt on positive edge
+    //    CM1CON1bits.INTN = 0;       // Disable negative edge interrupt
+    //    CM1PCHbits.PCH = 0b001;     // Positive edge - input pin 22 - ANA2
+    //    CM1NCHbits.NCH = 0b110;     // Voltage reference - FVR Buffer
+    //    FVRCONbits.FVREN = 1;       // Enable FVR
+    //    FVRCONbits.CDAFVR = 0b01;   // Reference is 1.024V
+    ADC_INT_ENABLE;
 }
 
 // </editor-fold>
@@ -2626,7 +2652,7 @@ uint8_t MainDisplay(uint8_t CurrentShotNumber, uint8_t par, uint8_t voffset) {
     return line - voffset;
 }
 
-void DoMain(void) {
+void DoOldMain(void) {
     char message[10];
     TestBattery();
     uint24_t FirstTime = 0;
@@ -2704,6 +2730,16 @@ void DoMain(void) {
             }
     }
 }
+void DoMain(void) {
+    uint8_t line = 0;
+    char time_str[10];
+    sprintf(time_str,"%2d#%5.2f",ShootString.TotShoots,(float)(ShootString.ShootTime[ShootString.TotShoots-1]/1000));
+//    line += print_header();
+    line+=Y_OFFSET;
+    lcd_write_string(time_str,8,line,MediumFont,BLACK_OVER_WHITE);
+    
+//    DoOldMain();
+}
 // </editor-fold>
 
 void DoPowerOff() {
@@ -2716,7 +2752,7 @@ void DoPowerOff() {
 void DoPowerOn() {
     PowerON;
     set_backlight(BackLightLevel);
-    MainDisplay(0, 0, print_header_line());
+//    MainDisplay(0, 0, print_header());
 
 }
 // <editor-fold defaultstate="collapsed" desc="ISR function">
@@ -2735,10 +2771,17 @@ static void interrupt isr(void) {
         rtc_time_msec = rtc_time_sec * 1000;
 
     }
-    //    if (SHOOT_IF){
-    //        SHOOT_IF = 0;       //Clear interrupt
-    //        save_shoot_time();
-    //    }
+    if (SHOOT_IF) {
+        SHOOT_IF = 0; //Clear interrupt
+        ShootString.ShootTime[ShootString.TotShoots] = measurement_start_time_msec - rtc_time_msec;
+        ShootString.TotShoots++;
+        newShot = true;
+        if (ShootString.TotShoots < MAXSHOOT) {
+            ADC_INT_ENABLE;
+        } else {
+            ADC_INT_DISABLE;
+        }
+    }
     //    if (ACCELEROMETR_IF){
     //        ACCELEROMETR_IF = 0;
     //        if(orientation_changed()){
@@ -2788,6 +2831,7 @@ void main(void) {
     set_backlight(BackLightLevel);
     initialize_rtc_timer();
     init_10ms_timer0();
+    initialize_shot_interrupt();
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">

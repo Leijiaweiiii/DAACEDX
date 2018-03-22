@@ -11,9 +11,11 @@
 #define SYS_MODE_SLEEP  (1)
 #define delay_rtc(x)    {uint32_t __st= rtc_time_sec;while(rtc_time_sec-__st<x);}
 
+#define SHOOT_IF            (PIR1bits.ADIF)
+#define SHOOT_IE            (PIE1bits.ADIE)
+
 volatile time_t rtc_time_sec = 12345;
 volatile time_t rtc_time_msec = 12345000;//rtc_time_sec*1000
-TBool time_changed = true;
 
 #define delay_rtc_ms(x)    {time_t __st = rtc_time_msec;while((rtc_time_msec-__st)<x);}
 

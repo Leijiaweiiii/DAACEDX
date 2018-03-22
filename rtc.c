@@ -16,10 +16,10 @@ void initialize_rtc_timer() {
     TMR1L = 0x00;           // preset for timer1 LSB register (1 second delay)
     T1CONbits.ON = 1;       //TIMER1 start.
     ei();
-//    INTCONbits.PEIE = 1;    // Enable Peripheral interrupt.
     RTC_TIMER_IE = 1;       // Enable timer interrupt.
-    
 }
+
+
 
 void init_10ms_timer0() {
     T0CON0bits.T0EN = 0;        // Stop timer.
@@ -31,7 +31,6 @@ void init_10ms_timer0() {
     TMR0L = LSB(preset);               // preset for Timer0 LSB register
     T0CON0bits.T0EN = 1;        // Start timer.
     PIE0bits.TMR0IE = 1;        // Enabled Interrupt
-    INTCONbits.PEIE = 1;
 }
 
 // </editor-fold>

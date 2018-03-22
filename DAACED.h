@@ -169,16 +169,18 @@ TBool   SaveToEEPROM;
 #define MAXSHOOT    50//100
 struct tShoot 
 {
-    uint24_t ShootTime[MAXSHOOT]; //in 10mS unit
+    uint24_t ShootTime[MAXSHOOT]; //in 1mS unit
     uint8_t  ShootStringMark;     //The first ShootString is marked 1 , other are 0 
                                   //the order is from the one matked 1 up till last address 
                                   //then the next will be at starting address (cyclic)
-    uint8_t TotShoots;            //Total shoots in current string 
+    uint8_t TotShoots;            //Total shoots in current string
+    
 } ShootString;
 //ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
-
+time_t  measurement_start_time_msec;        // Reference time for counting shppt.
+                                    // Should be set to RTC before beep starts
 uint8_t  CurShoot;                //The current shoot of the displayed string
-                
+TBool newShot = true;                
 uint16_t CurShootString,          //Currently displayed string number 0..29
          CurrStringStartAddress; 
 #define  Size_of_ShootString        302  // sizeof(ShootString)  did not work
@@ -241,6 +243,7 @@ void DoMain();
 void DoReview();
 void DoPowerOff();
 void DoPowerOn();
+void handle_shooting_events();
 // </editor-fold> 
 
 #endif /*  _DAACED_H_ */

@@ -9,6 +9,10 @@ void PowerOffTimer() {
     DoPowerOff();
 }
 
+void handle_shooting_events(){
+    
+}
+
 void StartTimer() {
     set_screen_title("Timer Run");
     DoMain();
@@ -69,6 +73,8 @@ void handle_timer_idle() {
     }
 }
 
+
+
 void handle_timer_counting() {
     switch (comandToHandle) {
         case StartLong:
@@ -86,7 +92,9 @@ void handle_timer_counting() {
             ui_state = TimerIdle;
             break;
         default:
-            //All the rest ignoring
+            // All the rest keys handled inside the next handler.
+            // As well as shoot events
+            handle_shooting_events();
             break;
     }
 }
