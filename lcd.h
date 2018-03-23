@@ -10,10 +10,12 @@
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
-#define LCD_MAX_PAGES           (0x0F)
+#define PAGE_HEIGTH              (8)
+#define LCD_MAX_PAGES           (LCD_HEIGHT/PAGE_HEIGTH)
+#define PAGE(x)                 x/PAGE_HEIGTH
 #define Y_OFFSET                (6)
-#define BLACK_OVER_WHITE        (0x00)
-#define WHITE_OVER_BLACK        (0x01)
+#define BLACK_OVER_WHITE        (0x01)
+#define WHITE_OVER_BLACK        (0x00)
 
 
 
@@ -27,7 +29,21 @@
 #define LCD_BACKLIGHT_OFF()     (LATEbits.LE6 = 1)
 
 int16_t cursor_x, cursor_y;
-uint8_t lcd_buffer[LCD_HEIGHT*LCD_MAX_PAGES];
+
+typedef union {
+    uint8_t PAGE : 8;
+    struct {
+        unsigned p0 : 1;
+        unsigned p1 : 1;
+        unsigned p2 : 1;
+        unsigned p3 : 1;
+        unsigned p4 : 1;
+        unsigned p5 : 1;
+        unsigned p6 : 1;
+        unsigned p7 : 1;
+    };
+} LCDPage;
+LCDPage lcd_buffer[LCD_MAX_PAGES][LCD_WIDTH];
 uint8_t x_update_min, x_update_max, y_update_min, y_update_max;
 
 #define topSpace     20
@@ -42,6 +58,8 @@ const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
 const FONT_INFO *MediumFont = &timesNewRoman_11ptFontInfo;
 const FONT_INFO *BigFont = &microsoftSansSerif_42ptFontInfo;
 
+
+volatile uint8_t frames_count = 0;
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="ST75256 COMMANDS">

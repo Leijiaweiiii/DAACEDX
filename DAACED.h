@@ -251,6 +251,7 @@ struct MenuTy
 SetMenuTy Menu;
 uint8_t  battery_level;
 
+
 void DoSettings();
 void DoMain();
 void DoReview();
@@ -261,6 +262,8 @@ void PlayParSound();
 void StartParTimer();
 void PlayStartSound();
 void StartCountdownTimer();
+uint8_t print_header();
+uint8_t print_time(uint8_t line, uint8_t pos);
 // </editor-fold>
 
 #endif /*  _DAACED_H_ */

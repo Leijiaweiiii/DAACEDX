@@ -2600,7 +2600,7 @@ uint8_t print_time(uint8_t line, uint8_t pos) {
 }
 
 uint8_t print_header() {
-    uint8_t line = 0;
+    uint8_t line = 2;
     TBool Aux = false;
     char message[10];
     lcd_clear_block(line, 0, LCD_WIDTH, MediumFont->height);
@@ -2608,7 +2608,16 @@ uint8_t print_header() {
 
     lcd_battery_info(LCD_WIDTH - 20, line, battery_level);
     lcd_draw_hline(0, LCD_WIDTH, MediumFont->height, BLACK_OVER_WHITE);
-    return MediumFont->height + Y_OFFSET + 1;
+    return MediumFont->height + line +1;
+}
+void print_stats(){
+     char message[20];
+     uint8_t pos = 8;
+     sprintf(message, "FPS: %d",frames_count);
+     lcd_write_string(message, pos, LCD_HEIGHT - SmallFont->height-8, SmallFont, BLACK_OVER_WHITE);
+     pos += lcd_string_lenght(message,SmallFont);
+     sprintf(message, "RTC: %d",rtc_time_sec);
+     lcd_write_string(message, pos, LCD_HEIGHT - SmallFont->height-8, SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_footer(uint8_t par, uint8_t voffset) {
@@ -2868,7 +2877,7 @@ static void interrupt isr(void) {
         TMR1L = 0x00; // preset for timer1 LSB register (1 second delay)
         T1CONbits.ON = 1; //TIMER1 start.
         rtc_time_msec = rtc_time_sec * 1000;
-
+        frames_count=0;
     }
     //    if (SHOOT_IF) {
     //        SHOOT_IF = 0; //Clear interrupt
@@ -2941,8 +2950,10 @@ void main(void) {
     time_t last_refresh = rtc_time_msec;
     while (True) {
         handle_ui();
-        if (Powered && rtc_time_msec - last_refresh > 200) {
+//        if (Powered && rtc_time_msec - last_refresh > 200) 
+        {
             print_header();
+            print_stats();
             lcd_refresh();
             last_refresh = rtc_time_msec;
         }
