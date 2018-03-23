@@ -220,7 +220,7 @@ TBool   AutoStart=False;
 
 uint8_t BackLightLevel=10;
 #define BackLightLevel_Address       126
-uint8_t Filter=1;
+uint8_t Filter=30;
 #define Filter_Address               128
 
 #define ParAddress                   200

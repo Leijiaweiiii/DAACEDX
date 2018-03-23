@@ -1209,12 +1209,12 @@ void getSettings() {
 void getDefaultSettings() {
     Sensitivity = 1;
     Filter = 30;
-    AutoStart = false;
+    AutoStart = true;
     AR_IS = 2;
     BuzzerFrequency = 1500;
     BuzzerParDuration = 200;
     BuzzerStartDuration = 300;
-    BuzzerLevel = 1;
+    BuzzerLevel = 0;
     CustomCDtime = 18;
     BT = false;
     DelayMode = Fixed;
@@ -2456,7 +2456,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
         //String line
         lcd_write_char('^', 0, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
-        sprintf(message, " Str:%2d/%2d %6.2f ", CurShootStringDisp, ShootString.TotShoots, (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
+        sprintf(message, " Str:%2d/%2d %3.2f ", CurShootStringDisp, ShootString.TotShoots, (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
         lcd_write_string(message, 12, line, MediumFont, WHITE_OVER_BLACK);
         line += halfline;
         lcd_write_char('_', 0, line, MediumFont, BLACK_OVER_WHITE);
@@ -2467,28 +2467,28 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     if (ShootString.ShootTime[CurShoot - 1] > 0) {
-        sprintf(message, " %2d:%6.2f ", CurShoot - 1, (float) ShootString.ShootTime[CurShoot - 1] / 1000);
+        sprintf(message, " %2d:%3.2f ", CurShoot - 1, (float) ShootString.ShootTime[CurShoot - 1] / 1000);
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
-        sprintf(message, "}%6.2f", (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
+        sprintf(message, "}%3.2f", (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
         lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
     }
 
     if (ShootString.ShootTime[CurShoot] > 0) {
-        sprintf(message, " %2d:%6.2f ", CurShoot, (float) ShootString.ShootTime[CurShoot] / 1000);
+        sprintf(message, " %2d:%3.2f ", CurShoot, (float) ShootString.ShootTime[CurShoot] / 1000);
         lcd_write_string(message, 0, line, MediumFont, WHITE_OVER_BLACK);
         line += halfline;
         if (CurShoot < ShootString.TotShoots) {
-            sprintf(message, "}%6.2f", (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000);
+            sprintf(message, "}%3.2f", (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000);
             lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
     }
     if (CurShoot < ShootString.TotShoots) {
         if (ShootString.ShootTime[CurShoot + 1] > 0) {
-            sprintf(message, " %2d:%6.2f ", CurShoot + 1, (float) ShootString.ShootTime[CurShoot + 1] / 1000);
+            sprintf(message, " %2d:%3.2f ", CurShoot + 1, (float) ShootString.ShootTime[CurShoot + 1] / 1000);
             lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         }
     }
@@ -2659,8 +2659,8 @@ uint8_t MainDisplay(uint8_t CurrentShotNumber, uint8_t par, uint8_t voffset) {
     char shot_time[10], shot_number[10], first_split[16];
     uint8_t line = voffset, current_offset = 0;
 
-    sprintf(shot_time, "%6.2f", (float) ShootString.ShootTime[CurrentShotNumber] / 1000);
-    sprintf(first_split, "1st:%6.2f", (float) ShootString.ShootTime[0] / 1000);
+    sprintf(shot_time, "%3.2f", (float) ShootString.ShootTime[CurrentShotNumber] / 1000);
+    sprintf(first_split, "1st:%3.2f", (float) ShootString.ShootTime[0] / 1000);
     sprintf(shot_number, "Shot#%2d", CurrentShotNumber);
     lcd_clear_block(line, 0, LCD_WIDTH, LCD_HEIGHT - line);
     lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
@@ -2710,7 +2710,7 @@ void DoOldMain(void) {
     t = DelayTime * 10;
     while (t > 8) {
         if (t % 2 == 0) {
-            sprintf(message, "%6.2f", (float) t / 1000);
+            sprintf(message, "%3.2f", (float) t / 1000);
             lcd_write_string(message, 0, pos, BigFont, BLACK_OVER_WHITE);
         }
         t -= 9;
