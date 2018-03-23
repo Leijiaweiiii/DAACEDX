@@ -1,24 +1,33 @@
 #include "ui.h"
 #include "DAACED.h"
 
-void print_big_time_label(time_t t) {    
+
+
+void print_big_time_label(time_t t) {
     char message[7];
-    newShot = false;
-    sprintf(message, "%6.2f", (float) t / 100);
+    sprintf(message, "%.2f", ((float) t)/ 1000);
     lcd_write_string(message, 0, UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
-void set_screen_title(char * value){
-    strcpy(ScreenTitle,value);
+void update_countdown_time_on_screen() {
+    print_big_time_label(DelayTime);
 }
+
+void set_screen_title(char * value) {
+    strcpy(ScreenTitle, value);
+}
+
 void PowerOffTimer() {
     set_screen_title("Power Off");
     DoPowerOff();
 }
+
 void StartTimer() {
+    lcd_clear_data_ram();
     set_screen_title("Timer Run");
-    CurPar_idx=0;
+    CurPar_idx = 0;
     StartParTimer();
+    StartCountdownTimer();
     DoMain();
 }
 
@@ -34,7 +43,7 @@ void StartSettingsMenuScreen() {
 
 void StopTimer() {
     set_screen_title("Timer Idle");
-    DoPowerOn();
+    update_shot_time_on_screen();
 }
 
 void NextReviewItem() {
@@ -44,6 +53,7 @@ void NextReviewItem() {
 void handle_power_off() {
     switch (comandToHandle) {
         case StartLong:
+            DoPowerOn();
             StopTimer();
             ui_state = TimerIdle;
             break;
@@ -61,7 +71,7 @@ void handle_timer_idle() {
             break;
         case StartShort:
             StartTimer();
-            ui_state = TimerCounting;
+            ui_state = TimerCountdown;
             break;
         case ReviewShort:
             StartReviewScreen();
@@ -77,9 +87,8 @@ void handle_timer_idle() {
     }
 }
 
-
-void HandleTimerEvents(){
-    switch (timerEventToHandle){
+void HandleTimerEvents() {
+    switch (timerEventToHandle) {
         case TimerTimeout:
             StopTimer();
             ui_state = TimerIdle;
@@ -87,11 +96,12 @@ void HandleTimerEvents(){
         case ParEvent:
             StartParTimer();
             break;
-        // By default do nothing
+            // By default do nothing
     }
     timerEventToHandle = NoEvent;
 }
-void handle_timer_counting() {
+
+void handle_timer_listening() {
     switch (comandToHandle) {
         case StartLong:
             PowerOffTimer();
@@ -100,7 +110,7 @@ void handle_timer_counting() {
         case StartShort:
             if (AutoStart) {
                 StartTimer();
-                ui_state = TimerCounting;
+                ui_state = TimerListening;
             }
             break;
         case ReviewShort:
@@ -159,17 +169,46 @@ void handle_settings_screen() {
             break;
     }
 }
-TBool is_long_press(){
+
+void handle_countdown() {
+    switch (comandToHandle) {
+        case StartLong:
+            PowerOffTimer();
+            ui_state = PowerOff;
+            break;
+        case StartShort:
+            if (AutoStart) {
+                StartTimer();
+                ui_state = TimerListening;
+            }
+            break;
+        case ReviewShort:
+            StopTimer();
+            ui_state = TimerIdle;
+            break;
+        case CountdownExpired:
+            PlayStartSound();
+            ui_state = TimerListening;
+            break;
+        default:
+            // All the rest keys handled inside the next handler.
+            // As well as shoot events
+            update_countdown_time_on_screen();
+            break;
+    }
+}
+
+TBool is_long_press() {
     //taking lower byte to save memory...
     uint8_t press_time = LSB(rtc_time_sec);
-    uint8_t duration = press_time;
+    uint8_t duration = 0;
     do {
-        duration = rtc_time_sec-press_time;
-        delay_rtc_ms(100);
-        if(duration > STICKY_THRESHOLD_SEC)
+        duration = rtc_time_sec - press_time;
+        //        delay_rtc_ms(100);
+        if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
-    KeyReleasedBefore = true;
+    KeyReleasedBefore = true; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
@@ -189,17 +228,17 @@ void define_input_action() {
                 else
                     comandToHandle = StartShort;
                 break;
-            case  KeyBk:
+            case KeyBk:
                 break;
-            case  KeyDw:
+            case KeyDw:
                 break;
-            case  KeyUp:
+            case KeyUp:
                 break;
-            case  KeyIn:
+            case KeyIn:
                 break;
-            case  KeyInDw:
+            case KeyInDw:
                 break;
-            case  KeyInUp:
+            case KeyInUp:
                 break;
             default:
                 //user can press anything, but we can handle only specific gestures
@@ -217,8 +256,11 @@ void handle_ui() {
         case TimerIdle:
             handle_timer_idle();
             break;
-        case TimerCounting:
-            handle_timer_counting();
+        case TimerCountdown:
+            handle_countdown();
+            break;
+        case TimerListening:
+            handle_timer_listening();
             break;
         case ReviewScreen:
             handle_review_screen();

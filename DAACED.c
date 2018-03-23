@@ -83,6 +83,7 @@
 #include <xc.h>
 #include "DAACED.h"
 #include "ui.h"
+#include "uart.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
@@ -413,7 +414,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
 }
 
 void stop_sinus() {
-    T0CON0bits.T0EN = 0; // Timer OFF
+    //    T0CON0bits.T0EN = 0; // Timer OFF
     DAC1CON0bits.EN = 0; // DAC Off
     LATEbits.LATE2 = 0; // Driver OFF
 }
@@ -458,7 +459,7 @@ void initialize_shot_interrupt() {
  CxIE bit of the PIE2 register
  INTP bit (for a rising edge detection)
  INTN bit (for a falling edge detection)
- PEIE and GIE bits of the INTCON register     
+ PEIE and GIE bits of the INTCON register
      */
     //    CM1CON0bits.EN = 1;         //Enable comparator
     //    CM1CON0bits.POL = 0;        // Do't invert polarity - OUT=1 iff VC1P > VC1N
@@ -1041,7 +1042,7 @@ void ReadBackEEPROMdata() {
         add += 2;
         for (i = 0; i < h; i++) {
             data = eeprom_read_wdata(add);
-            sprintf(msg, "Shoot %2d:%5.2f   ", i, (float) data / 100);
+            sprintf(msg, "Shoot %2d:%5.2f   ", i, (float) data / 1000);
             add += 2;
             lcd_write_string(msg, 3, j, SmallFont, BLACK_OVER_WHITE);
             j += SmallFont->height;
@@ -1206,18 +1207,18 @@ void getSettings() {
 }
 
 void getDefaultSettings() {
-    Sensitivity = 2;
-    Filter = 1;
+    Sensitivity = 1;
+    Filter = 30;
     AutoStart = false;
     AR_IS = 2;
-    BuzzerFrequency = 2000;
+    BuzzerFrequency = 1500;
     BuzzerParDuration = 200;
-    BuzzerStartDuration = 200;
-    BuzzerLevel = 2;
+    BuzzerStartDuration = 300;
+    BuzzerLevel = 1;
     CustomCDtime = 18;
     BT = false;
     DelayMode = Fixed;
-    DelayTime = 30;
+    DelayTime = 3000;
     BackLightLevel = 10;
 }
 
@@ -1457,7 +1458,7 @@ void SetPar() {
         if (Menu.menu > 0) {
             if (Menu.menu == TotPar + 1) {
                 if (TotPar > 0) {
-                    ParTime[Menu.menu - 1] = ParTime[Menu.menu - 2]+BuzzerParDuration;
+                    ParTime[Menu.menu - 1] = ParTime[Menu.menu - 2] + BuzzerParDuration;
                     TotPar++;
                     changed = True;
                     redraw = 1;
@@ -1474,7 +1475,7 @@ void SetPar() {
             lcd_write_string(msg, 30, Menu.top, MediumFont, BLACK_OVER_WHITE);
             lcd_write_char('^', 0, Menu.top, MediumFont, BLACK_OVER_WHITE);
             Menu.top += topSpace;
-            sprintf(msg, "%5.1f", (float) ParTime[Menu.menu - 1] / 100); //unit is 10mS
+            sprintf(msg, "%5.1f", (float) ParTime[Menu.menu - 1] / 1000); //unit is 10mS
             lcd_write_string(msg, 30, Menu.top, BigFont, BLACK_OVER_WHITE);
             lcd_write_char('_', 0, Menu.top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
             Done = False;
@@ -1494,7 +1495,7 @@ void SetPar() {
                             }
                             break;
                         case KeyDw: if (TotPar > 1) {
-                                if ((ParTime[Menu.menu - 1] - i) >= ((ParTime[Menu.menu - 2])+BuzzerParDuration)) {
+                                if ((ParTime[Menu.menu - 1] - i) >= ((ParTime[Menu.menu - 2]) + BuzzerParDuration)) {
                                     ParTime[Menu.menu - 1] -= i;
                                     changed = True;
                                 } else {
@@ -1891,7 +1892,7 @@ void SetFilter() {//Filter
     char msg[20];
     uint8_t top;
 
-    if (Filter > 10) Filter = 10;
+    if (Filter > 100) Filter = 100;
     strcpy(SettingsMenu.MenuTitle, "Settings: ");
     top = SettingsTitle();
     top += 3;
@@ -1909,17 +1910,17 @@ void SetFilter() {//Filter
     while (!Done) {
         if (Keypressed) {
             switch (Key) {
-                case KeyUp: if ((Filter + i) < 10) Filter += i;
-                    else Filter = 10;
+                case KeyUp: if ((Filter + i) < 100) Filter += i;
+                    else Filter = 100;
                     SaveToEEPROM = True;
                     break;
-                case KeyDw: if ((Filter - i) > 1) Filter -= i;
-                    else Filter = 1;
+                case KeyDw: if ((Filter - i) > 10) Filter -= i;
+                    else Filter = 10;
                     SaveToEEPROM = True;
                     break;
                 default: Done = True;
             }
-            sprintf(msg, "%2d", Filter);
+            sprintf(msg, "%3d", Filter);
             lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
         }
 
@@ -2451,16 +2452,11 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     lcd_clear_block(0, line, LCD_WIDTH, LCD_HEIGHT);
     if (FullRedraw) {
         //Top Line
-        lcd_write_string("REVIEW", 0, line, MediumFont, BLACK_OVER_WHITE);
-        if (BT) lcd_write_string("BT", 123, line, SmallFont, BLACK_OVER_WHITE);
-        lcd_battery_info(LCD_WIDTH - 20, line, battery);
-        line += MediumFont->height;
-        lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
-        line++;
+        line += print_header();
         //String line
         lcd_write_char('^', 0, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
-        sprintf(message, " Str:%2d/%2d %6.2f ", CurShootStringDisp, ShootString.TotShoots, (float) ShootString.ShootTime[ShootString.TotShoots] / 100);
+        sprintf(message, " Str:%2d/%2d %6.2f ", CurShootStringDisp, ShootString.TotShoots, (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
         lcd_write_string(message, 12, line, MediumFont, WHITE_OVER_BLACK);
         line += halfline;
         lcd_write_char('_', 0, line, MediumFont, BLACK_OVER_WHITE);
@@ -2471,28 +2467,28 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     if (ShootString.ShootTime[CurShoot - 1] > 0) {
-        sprintf(message, " %2d:%6.2f ", CurShoot - 1, (float) ShootString.ShootTime[CurShoot - 1] / 100);
+        sprintf(message, " %2d:%6.2f ", CurShoot - 1, (float) ShootString.ShootTime[CurShoot - 1] / 1000);
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
-        sprintf(message, "}%6.2f", (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 100);
+        sprintf(message, "}%6.2f", (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
         lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
     }
 
     if (ShootString.ShootTime[CurShoot] > 0) {
-        sprintf(message, " %2d:%6.2f ", CurShoot, (float) ShootString.ShootTime[CurShoot] / 100);
+        sprintf(message, " %2d:%6.2f ", CurShoot, (float) ShootString.ShootTime[CurShoot] / 1000);
         lcd_write_string(message, 0, line, MediumFont, WHITE_OVER_BLACK);
         line += halfline;
         if (CurShoot < ShootString.TotShoots) {
-            sprintf(message, "}%6.2f", (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 100);
+            sprintf(message, "}%6.2f", (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000);
             lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
     }
     if (CurShoot < ShootString.TotShoots) {
         if (ShootString.ShootTime[CurShoot + 1] > 0) {
-            sprintf(message, " %2d:%6.2f ", CurShoot + 1, (float) ShootString.ShootTime[CurShoot + 1] / 100);
+            sprintf(message, " %2d:%6.2f ", CurShoot + 1, (float) ShootString.ShootTime[CurShoot + 1] / 1000);
             lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         }
     }
@@ -2582,18 +2578,25 @@ void DetectInit(void) {
 TBool Detect(void) {
     switch (DetectMode) {
         case Mic: return ADC_Read(ENVELOPE) > DetectThreshold;
-        case AuxA: return False; //TBC
-        case AuxB: return False; //TBC
+        case AuxA: return AUX_A;
+        case AuxB: return AUX_B;
         default: return False;
     }
 }
 
 uint8_t print_time(uint8_t line, uint8_t pos) {
     char message[20];
-    sprintf(message, "%02d%s%02d %s", get_hour(), (rtc_time_sec % 2) ? ":" : ".", get_minute(), ScreenTitle);
+    sprintf(message,
+            "%02d%s%02d%s%s",
+            get_hour(),
+            (rtc_time_sec % 2) ? ":" : ".",
+            get_minute(),
+            PIE0bits.INT1IE ? " " : ".",
+            ScreenTitle);
     uint8_t width = lcd_string_lenght(message, MediumFont);
     lcd_clear_block(pos, line, width, MediumFont->height);
     lcd_write_string(message, pos, line, MediumFont, BLACK_OVER_WHITE);
+    return MediumFont->height;
 }
 
 uint8_t print_header() {
@@ -2647,8 +2650,8 @@ uint8_t MainDisplay(uint8_t CurrentShotNumber, uint8_t par, uint8_t voffset) {
     char shot_time[10], shot_number[10], first_split[16];
     uint8_t line = voffset, current_offset = 0;
 
-    sprintf(shot_time, "%6.2f", (float) ShootString.ShootTime[CurrentShotNumber] / 100);
-    sprintf(first_split, "1st:%6.2f", (float) ShootString.ShootTime[0] / 100);
+    sprintf(shot_time, "%6.2f", (float) ShootString.ShootTime[CurrentShotNumber] / 1000);
+    sprintf(first_split, "1st:%6.2f", (float) ShootString.ShootTime[0] / 1000);
     sprintf(shot_number, "Shot#%2d", CurrentShotNumber);
     lcd_clear_block(line, 0, LCD_WIDTH, LCD_HEIGHT - line);
     lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
@@ -2698,7 +2701,7 @@ void DoOldMain(void) {
     t = DelayTime * 10;
     while (t > 8) {
         if (t % 2 == 0) {
-            sprintf(message, "%6.2f", (float) t / 100);
+            sprintf(message, "%6.2f", (float) t / 1000);
             lcd_write_string(message, 0, pos, BigFont, BLACK_OVER_WHITE);
         }
         t -= 9;
@@ -2748,13 +2751,11 @@ void DoOldMain(void) {
 }
 
 void DoMain(void) {
-    uint8_t line = 0;
-    char time_str[10];
-    sprintf(time_str, "%2d#%5.2f", ShootString.TotShoots, (float) (ShootString.ShootTime[ShootString.TotShoots - 1] / 1000));
-    //    line += print_header();
-    line += Y_OFFSET;
-    lcd_write_string(time_str, 8, line, MediumFont, BLACK_OVER_WHITE);
-
+    measurement_start_time_msec = rtc_time_msec;
+    ShootString.ShootStringMark = 1;
+    ShootString.TotShoots = 0;
+    memset(ShootString.ShootTime, 0, sizeof (uint24_t) * MAXSHOOT);
+    DetectInit();
     //    DoOldMain();
 }
 // </editor-fold>
@@ -2762,23 +2763,34 @@ void DoMain(void) {
 void DoPowerOff() {
     PowerOFF;
     set_backlight(0);
-    lcd_clear();
+    lcd_clear_data_ram();
 
 }
 
 void DoPowerOn() {
     PowerON;
     set_backlight(BackLightLevel);
-    //    MainDisplay(0, 0, print_header());
+}
 
+void clear_timer_area() {
+    lcd_clear_block(0, UI_COUNTER_START_LINE, 0, BigFont->height);
 }
 
 void update_shot_time_on_screen() {
-    print_big_time_label(ShootString.ShootTime[ShootString.TotShoots - 1]);
+    clear_timer_area();
+    if (ShootString.TotShoots > 0) {
+        print_big_time_label(ShootString.ShootTime[ShootString.TotShoots - 1]);
+    } else {
+        print_big_time_label(0L);
+    }
 }
 
-void PlayParSound(){
-    generate_sinus(BuzzerLevel,BuzzerFrequency,BuzzerParDuration);
+void PlayParSound() {
+    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
+}
+
+void PlayStartSound() {
+    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerStartDuration);
 }
 
 void StartParTimer() {
@@ -2789,9 +2801,62 @@ void StartParTimer() {
     }
 }
 
+void StartCountdownTimer() {
+    switch (DelayMode) {
+        case Instant:DelayTime = 0;
+            break;
+        case Fixed: DelayTime = 3000;
+            break;
+        case Random: DelayTime = (5 * DelayTime) % 4999;
+            break;
+        case Custom: DelayTime = eeprom_read_wdata(DelayTime_Address); //TODO: read model once at the power on
+            //Read again in case was changed from other mode
+            break;
+    }
+}
+
+void UpdateShootNow() {
+    //Don't count shoots less than Filter
+    if (rtc_time_msec - ShootString.ShootTime[ShootString.TotShoots] > Filter) {
+        ShootString.ShootTime[ShootString.TotShoots] = rtc_time_msec - measurement_start_time_msec;
+        ShootString.TotShoots++;
+        if (ShootString.TotShoots == MAXSHOOT)
+            timerEventToHandle = TimerTimeout;
+    }
+}
+
+void update_screen_model() {
+    switch (ui_state) {
+        case TimerListening:
+            if (ParNowCounting) { // If into if because IDK how XC8 optimises conditions
+                // Software "interrupt" emulation
+                if (rtc_time_msec - parStartTime_ms >= ParTime[CurPar_idx]) {
+                    ParNowCounting = false;
+                }
+            }
+            if (Detect()) {
+                if (!shoot_detected) {
+                    UpdateShootNow();
+                }
+            } else {
+                shoot_detected = false;
+            }
+            break;
+        case TimerCountdown:
+            DelayTime -= 10;
+            if (DelayTime <= 0) {
+                comandToHandle = CountdownExpired;
+            }
+            break;
+        default:
+            //do nothing, we're stimm in ISR
+            break;
+    }
+}
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 static void interrupt isr(void) {
+    di();
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         rtc_time_sec++;
@@ -2805,17 +2870,15 @@ static void interrupt isr(void) {
         rtc_time_msec = rtc_time_sec * 1000;
 
     }
-    if (SHOOT_IF) {
-        SHOOT_IF = 0; //Clear interrupt
-        ShootString.ShootTime[ShootString.TotShoots] = measurement_start_time_msec - rtc_time_msec;
-        ShootString.TotShoots++;
-        newShot = true;
-        if (ShootString.TotShoots < MAXSHOOT) {
-            ADC_INT_ENABLE;
-        } else {
-            ADC_INT_DISABLE;
-        }
-    }
+    //    if (SHOOT_IF) {
+    //        SHOOT_IF = 0; //Clear interrupt
+    //        UpdateShootNow();
+    //        if (ShootString.TotShoots < MAXSHOOT) {
+    //            ADC_INT_ENABLE;
+    //        } else {
+    //            ADC_INT_DISABLE;
+    //        }
+    //    }
     //    if (ACCELEROMETR_IF){
     //        ACCELEROMETR_IF = 0;
     //        if(orientation_changed()){
@@ -2846,13 +2909,9 @@ static void interrupt isr(void) {
         init_10ms_timer0();
         if (!Keypressed) //Assignment will not work because of not native boolean
             KeyReleasedBefore = true;
-        if(ParNowCounting){ // If into if because IDK how XC8 optimises conditions
-            // Software "interrupt" emulation
-            if(rtc_time_msec - parStartTime_ms >= ParTime[CurPar_idx]){
-                ParNowCounting = false;
-            }
-        }
+        update_screen_model();
     }
+    ei();
 }
 // </editor-fold>
 
@@ -2866,12 +2925,14 @@ void main(void) {
     lcd_init();
     ADC_init();
     eeprom_init();
-    getSettings();
+    //    getSettings();
+    getDefaultSettings();
     getPar();
     set_backlight(BackLightLevel);
     initialize_rtc_timer();
     init_10ms_timer0();
-    initialize_shot_interrupt();
+    init_uart();
+    //    initialize_shot_interrupt();
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
@@ -2880,12 +2941,12 @@ void main(void) {
     time_t last_refresh = rtc_time_msec;
     while (True) {
         handle_ui();
-        if (rtc_time_msec - last_refresh > 500) {
+        if (Powered && rtc_time_msec - last_refresh > 200) {
             print_header();
             lcd_refresh();
             last_refresh = rtc_time_msec;
         }
-
+        //        lcd_demo();
     }
     // </editor-fold>
 }

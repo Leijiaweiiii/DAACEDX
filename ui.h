@@ -22,7 +22,8 @@ extern "C" {
     typedef enum {
         PowerOff = 0,
         TimerIdle,
-        TimerCounting,
+        TimerListening,
+        TimerCountdown,
         ReviewScreen,
         SettingsScreen
     } UiState;
@@ -34,6 +35,7 @@ extern "C" {
         StartLong,
         ReviewShort,
         ReviewLong,
+        CountdownExpired,
         UpShort,
         UpLong,
         DownShort,
@@ -41,7 +43,7 @@ extern "C" {
         BackShort,
         BackLong
     } ButtonCommand;
-    ButtonCommand comandToHandle = None;
+    volatile ButtonCommand comandToHandle = None;
     
     typedef enum TimerEvent{
         NoEvent = 0,TimerTimeout,ParEvent
@@ -52,8 +54,8 @@ extern "C" {
     void set_screen_title(char * value);
     void print_big_time_label(time_t t);
     
-#define UI_COUNTER_START_LINE   8
-#define UI_COUNTER_START_PIXEL  16
+#define UI_COUNTER_START_LINE   22
+#define UI_COUNTER_START_PIXEL  0
     
 #ifdef	__cplusplus
 }

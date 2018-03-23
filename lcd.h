@@ -159,6 +159,7 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage);
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
+void lcd_clear_data_ram();
 
 // </editor-fold>
 #endif	/* LCD_H */

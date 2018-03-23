@@ -1,11 +1,11 @@
 /* ===========================================================================
     Project : DAACED
     Version 1.0
- 
+
  *  File:   DAACED.h
  *  Author: Eli
  *  Created on Sept 15, 2017
- 
+
     Global R&D ltd. 04_9592201    ;  www.global_rd.com
     Eli Jacob 054_8010330         ;  eli@global_rd.com
    ===========================================================================*/
@@ -23,7 +23,7 @@
 #include "rtc.h"
 #include "lcd.h"
 #include "ui.h"
-// </editor-fold> 
+// </editor-fold>
 
 
 // <editor-fold defaultstate="collapsed" desc="uC-ADC Definitions">
@@ -33,7 +33,7 @@
 #define	BATTERY        0b000011          // AN3
 #define BAT_divider    4   // resistors relationship, will be changed to 4.96 (12.4K/10.0K)*4 to allow measure of 4.5V
 TBool BatteryLow = False;
-// </editor-fold> 
+// </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
 extern uint8_t sinus_table[32];
@@ -111,6 +111,14 @@ uint8_t find_set_bit_position(uint8_t n);
 
 // </editor-fold>
 
+
+// <editor-fold defaultstate="collapsed" desc="Aux.">
+#define AUX_detect          (PORTDbits.RD0)
+#define AUX_A       (PORTDbits.RD1)
+#define AUX_B       (PORTDbits.RD2)
+
+// </editor-fold>
+
 // <editor-fold defaultstate="collapsed" desc="Disp&Keys">
 #define Bot                  LCD_HEIGHT-30
 #define Key                  (PORTB & 0x3F)
@@ -129,7 +137,7 @@ TBool   KeyReleasedBefore   = true;
 #define Select               (Key==KeyIn)
 #define Start                (Key==KeySt)
 #define Stop                 (Key==KeyRw)
-// </editor-fold> 
+// </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Ports">
 unsigned char PortE_Data;
@@ -139,12 +147,13 @@ unsigned char PortE_Data;
 TBool Powered;
 #define PowerON              {LATEbits.LATE0 = 1; Powered=True;}
 #define PowerOFF             {LATEbits.LATE0 = 0; Powered=False;}
+uint8_t powered_off_sec = 0;
 
 #define BuzzerPeriod          50            //[10uSec]  = 10/Freq
 #define BuzzerCycles          300           //Cycles
 #define DACdata               DAC1CON1
 
-// </editor-fold> 
+// </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Nominal">
 #define Timeoff                      150 //150*20= 3sec
@@ -167,22 +176,23 @@ TBool   SaveToEEPROM;
 #define BT_Address                   112
 
 #define MAXSHOOT    50//100
-struct tShoot 
+struct tShoot
 {
-    uint24_t ShootTime[MAXSHOOT]; //in 1mS unit
-    uint8_t  ShootStringMark;     //The first ShootString is marked 1 , other are 0 
-                                  //the order is from the one matked 1 up till last address 
+    time_t ShootTime[MAXSHOOT]; //in 1mS unit
+    uint8_t  ShootStringMark;     //The first ShootString is marked 1 , other are 0
+                                  //the order is from the one matked 1 up till last address
                                   //then the next will be at starting address (cyclic)
     uint8_t TotShoots;            //Total shoots in current string
-    
+
 } ShootString;
+
+volatile TBool shoot_detected = 0;
 //ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
 time_t  measurement_start_time_msec;        // Reference time for counting shppt.
                                     // Should be set to RTC before beep starts
 uint8_t  CurShoot;                //The current shoot of the displayed string
-TBool newShot = true;                
 uint16_t CurShootString,          //Currently displayed string number 0..29
-         CurrStringStartAddress; 
+         CurrStringStartAddress;
 #define  Size_of_ShootString        302  // sizeof(ShootString)  did not work
 
 typedef enum {
@@ -193,12 +203,13 @@ typedef enum {
     Mic, AuxA, AuxB
 } TdetTy;
 
-TdelTy  DelayMode;
-TdetTy  DetectMode;
+TdelTy  DelayMode = Fixed;
+TdetTy  DetectMode = Mic;
 uint16_t Threshold;
 TBool   DetectAutoThreshold=True;
 uint16_t DetectThreshold;
-uint8_t DelayTime;
+time_t DelayTime = 3000;  // mS
+time_t countdown_start_time;
 #define Delay_Address                118
 #define DelayTime_Address            120
 
@@ -217,7 +228,7 @@ uint8_t Filter=1;
 uint8_t TotPar;
 uint24_t ParTime[MAXPAR]; //in 1mS unit
 uint8_t CurPar_idx = 0; //The par index
-TBool ParNowCounting = false;
+volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
 
@@ -226,12 +237,12 @@ time_t parStartTime_ms;
 #define MAXMenuItems   15
 #define MAXItemLenght  18
 
-typedef struct DispTy 
+typedef struct DispTy
 {
     uint8_t menu,pos,top,lineh,height,prev,page,PageSize;
     TBool refresh;
 }SetMenuTy;
-struct MenuTy 
+struct MenuTy
 {
     char MenuItem[MAXMenuItems][MAXItemLenght];
     uint8_t TotMenuItems;
@@ -248,6 +259,8 @@ void DoPowerOn();
 void update_shot_time_on_screen();
 void PlayParSound();
 void StartParTimer();
-// </editor-fold> 
+void PlayStartSound();
+void StartCountdownTimer();
+// </editor-fold>
 
 #endif /*  _DAACED_H_ */
