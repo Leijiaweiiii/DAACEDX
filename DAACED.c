@@ -1205,6 +1205,22 @@ void getSettings() {
     BackLightLevel = eeprom_read_wdata(BackLightLevel_Address);
 }
 
+void getDefaultSettings() {
+    Sensitivity = 2;
+    Filter = 1;
+    AutoStart = false;
+    AR_IS = 2;
+    BuzzerFrequency = 2000;
+    BuzzerParDuration = 200;
+    BuzzerStartDuration = 200;
+    BuzzerLevel = 2;
+    CustomCDtime = 18;
+    BT = false;
+    DelayMode = Fixed;
+    DelayTime = 30;
+    BackLightLevel = 10;
+}
+
 void savePar(uint8_t i) {
     eeprom_write_tdata(ParAddress + (i * 3) + 1, ParTime[i]);
 }
