@@ -14,18 +14,23 @@
 #define SHOOT_IF            (PIR1bits.ADIF)
 #define SHOOT_IE            (PIE1bits.ADIE)
 
-volatile time_t rtc_time_sec = 12345;
-volatile time_t rtc_time_msec = 12345000;//rtc_time_sec*1000
+
+// Timer3 counting output of timer1 which is 2 seconds
+#define rtc_time_sec        ((TMR3|(TMR5<<16))<<1|(TMR1>>15))
+#define set_rtc_time(x)     {time_t __ts=x/2;TMR3=0x0000FFFF & __ts; TMR5=(0xFFFF0000 & __ts)>>16;}
+
+#define rtc_time_msec       (TMR1>>6)
 
 #define delay_rtc_ms(x)    {time_t __st = rtc_time_msec;while((rtc_time_msec-__st)<x);}
 
 volatile uint32_t button_down_time, button_up_time;
 void initialize_rtc_timer();
-//void handle_preceise_time();
-void init_10ms_timer0();
+void init_ms_timer0();
 
 uint8_t get_hour();
 uint8_t get_minute();
 uint8_t get_second();
+uint16_t get_ms_corrected();
+time_t get_corrected_time_msec();
 void set_time(uint8_t h, uint8_t m, uint8_t s);
 #endif /* RTC_H */

@@ -208,13 +208,13 @@ TBool is_long_press() {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
-    KeyReleasedBefore = true; // Mark key released only here to avoid double sensing of key press
+    KeyReleased = true; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
 void define_input_action() {
-    if (KeyReleasedBefore && Keypressed) {
-        KeyReleasedBefore = false;
+    if (KeyReleased && Keypressed) {
+        KeyReleased = false;
         switch (Key) {
             case KeyRw:
                 if (is_long_press())

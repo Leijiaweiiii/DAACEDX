@@ -132,7 +132,7 @@ uint8_t find_set_bit_position(uint8_t n);
 #define KeyInUp               0x30  //Enter+^
 
 #define Keypressed           (Key>0)
-TBool   KeyReleasedBefore   = true;
+TBool   KeyReleased   = true;
 #define Exit                 (Key==KeyBk)
 #define Select               (Key==KeyIn)
 #define Start                (Key==KeySt)

@@ -2587,11 +2587,10 @@ TBool Detect(void) {
 uint8_t print_time(uint8_t line, uint8_t pos) {
     char message[20];
     sprintf(message,
-            "%02d%s%02d%s%s",
+            "%02d%s%02d %s",
             get_hour(),
-            (rtc_time_sec % 2) ? ":" : ".",
+            (rtc_time_sec % 4) ? ":" : ".",
             get_minute(),
-            PIE0bits.INT1IE ? " " : ".",
             ScreenTitle);
     uint8_t width = lcd_string_lenght(message, MediumFont);
     lcd_clear_block(pos, line, width, MediumFont->height);
@@ -2608,16 +2607,31 @@ uint8_t print_header() {
 
     lcd_battery_info(LCD_WIDTH - 20, line, battery_level);
     lcd_draw_hline(0, LCD_WIDTH, MediumFont->height, BLACK_OVER_WHITE);
-    return MediumFont->height + line +1;
+    return MediumFont->height + line + 1;
 }
-void print_stats(){
-     char message[20];
-     uint8_t pos = 8;
-     sprintf(message, "FPS: %d",frames_count);
-     lcd_write_string(message, pos, LCD_HEIGHT - SmallFont->height-8, SmallFont, BLACK_OVER_WHITE);
-     pos += lcd_string_lenght(message,SmallFont);
-     sprintf(message, "RTC: %d",rtc_time_sec);
-     lcd_write_string(message, pos, LCD_HEIGHT - SmallFont->height-8, SmallFont, BLACK_OVER_WHITE);
+
+void print_stats() {
+    char message[32];
+    uint8_t pos = 8;
+    sprintf(message, "FPS:%d", frames_count);
+    lcd_clear_block(pos, (LCD_HEIGHT - SmallFont->height), LCD_WIDTH, LCD_HEIGHT);
+    lcd_write_string(message, pos, LCD_HEIGHT - SmallFont->height, SmallFont, BLACK_OVER_WHITE);
+    sprintf(message, "RTC: %u.%03u", rtc_time_sec, get_ms_corrected());
+    lcd_write_string(message, 55, LCD_HEIGHT - SmallFont->height, SmallFont, BLACK_OVER_WHITE);
+    //
+    //    sprintf(message, "TMR3=%d", TMR3);
+    //    lcd_write_string(message, pos, (LCD_HEIGHT - 2 * SmallFont->height), SmallFont, BLACK_OVER_WHITE);
+    //    sprintf(message, "TMR5=%d", TMR5);
+    //    lcd_write_string(message, pos, (LCD_HEIGHT - 3 * SmallFont->height), SmallFont, BLACK_OVER_WHITE);
+    //    sprintf(message, "t=%u.%u",rtc_time_sec,rtc_time_msec);
+    //    lcd_clear_block(pos, (LCD_HEIGHT - 4 * SmallFont->height), LCD_WIDTH, (LCD_HEIGHT - 3 * SmallFont->height - 9));
+    //    lcd_write_string(message, pos, (LCD_HEIGHT - 4 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
+    //    sprintf(message, "c=%.3f",(float)corrected_time_msec()/1000);
+    //    lcd_clear_block(pos, (LCD_HEIGHT - 5 * SmallFont->height), LCD_WIDTH, (LCD_HEIGHT - 3 * SmallFont->height - 9));
+    //    lcd_write_string(message, pos, (LCD_HEIGHT - 5 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
+    //
+    ////    sprintf(message, "SYNC EVC=%d", ms_int);
+    ////    lcd_write_string(message, pos, (LCD_HEIGHT - 5 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_footer(uint8_t par, uint8_t voffset) {
@@ -2760,10 +2774,10 @@ void DoOldMain(void) {
 }
 
 void DoMain(void) {
-    measurement_start_time_msec = rtc_time_msec;
+    measurement_start_time_msec = get_corrected_time_msec();
     ShootString.ShootStringMark = 1;
     ShootString.TotShoots = 0;
-    memset(ShootString.ShootTime, 0, sizeof (uint24_t) * MAXSHOOT);
+    memset(ShootString.ShootTime, 0, sizeof (time_t) * MAXSHOOT);
     DetectInit();
     //    DoOldMain();
 }
@@ -2825,9 +2839,10 @@ void StartCountdownTimer() {
 }
 
 void UpdateShootNow() {
+    time_t dt = get_corrected_time_msec() - measurement_start_time_msec;
     //Don't count shoots less than Filter
-    if (rtc_time_msec - ShootString.ShootTime[ShootString.TotShoots] > Filter) {
-        ShootString.ShootTime[ShootString.TotShoots] = rtc_time_msec - measurement_start_time_msec;
+    if (labs(dt - ShootString.ShootTime[ShootString.TotShoots]) > Filter) {
+        ShootString.ShootTime[ShootString.TotShoots] = dt;
         ShootString.TotShoots++;
         if (ShootString.TotShoots == MAXSHOOT)
             timerEventToHandle = TimerTimeout;
@@ -2839,7 +2854,7 @@ void update_screen_model() {
         case TimerListening:
             if (ParNowCounting) { // If into if because IDK how XC8 optimises conditions
                 // Software "interrupt" emulation
-                if (rtc_time_msec - parStartTime_ms >= ParTime[CurPar_idx]) {
+                if (get_corrected_time_msec() - parStartTime_ms >= ParTime[CurPar_idx]) {
                     ParNowCounting = false;
                 }
             }
@@ -2852,8 +2867,7 @@ void update_screen_model() {
             }
             break;
         case TimerCountdown:
-            DelayTime -= 10;
-            if (DelayTime <= 0) {
+            if (get_corrected_time_msec() - countdown_start_time >=DelayTime) {
                 comandToHandle = CountdownExpired;
             }
             break;
@@ -2865,62 +2879,20 @@ void update_screen_model() {
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 static void interrupt isr(void) {
-    di();
+
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        rtc_time_sec++;
-        T1CONbits.ON = 0;
-        TMR1CLKbits.CS = 0b0110; // TIMER1 clock source = 32.768KHz Secondary Oscillator.
-        T1CONbits.CKPS = 0b11; // Prescale = 8.
-        T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
-        TMR1H = 0xF0; // preset for timer1 MSB register (1 second delay)
-        TMR1L = 0x00; // preset for timer1 LSB register (1 second delay)
-        T1CONbits.ON = 1; //TIMER1 start.
-        rtc_time_msec = rtc_time_sec * 1000;
-        frames_count=0;
+        PIR6bits.TMR1GIF = 0;
+        frames_count = 0;
     }
-    //    if (SHOOT_IF) {
-    //        SHOOT_IF = 0; //Clear interrupt
-    //        UpdateShootNow();
-    //        if (ShootString.TotShoots < MAXSHOOT) {
-    //            ADC_INT_ENABLE;
-    //        } else {
-    //            ADC_INT_DISABLE;
-    //        }
-    //    }
-    //    if (ACCELEROMETR_IF){
-    //        ACCELEROMETR_IF = 0;
-    //        if(orientation_changed()){
-    //            mark_to_flip_screen();
-    //        }
-    //    }
-    //    if(IOCBFbits.IOCBF1) {
-    //        if(PORTBbits.RB1 == 1) {
-    //            button_up_time = get_rtc_time();
-    //            button_down_time = 0;
-    //        } else {
-    //            button_down_time = get_rtc_time();
-    //            if((button_down_time - button_up_time) >= 3) {
-    //                if(system_operation_mode == SYS_MODE_SLEEP) {
-    //                    system_operation_mode = SYS_MODE_NORMAL;
-    //                    init_10ms_timer0();
-    //                } else {
-    //                    system_operation_mode = SYS_MODE_SLEEP;
-    //                    T0CON0bits.T0EN = 0;        // Stop timer.
-    //                }
-    //            }
-    //        }
-    //        IOCBFbits.IOCBF1 = 0;
-    //    }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
-        rtc_time_msec += 10;
-        init_10ms_timer0();
-        if (!Keypressed) //Assignment will not work because of not native boolean
-            KeyReleasedBefore = true;
+        if (!Keypressed) {//Assignment will not work because of not native boolean
+            KeyReleased = true;
+        }
         update_screen_model();
     }
-    ei();
+
 }
 // </editor-fold>
 
@@ -2938,9 +2910,9 @@ void main(void) {
     getDefaultSettings();
     getPar();
     set_backlight(BackLightLevel);
+    init_ms_timer0();
     initialize_rtc_timer();
-    init_10ms_timer0();
-    init_uart();
+    ei();
     //    initialize_shot_interrupt();
     // Initialization End
     // </editor-fold>
@@ -2950,14 +2922,9 @@ void main(void) {
     time_t last_refresh = rtc_time_msec;
     while (True) {
         handle_ui();
-//        if (Powered && rtc_time_msec - last_refresh > 200) 
-        {
-            print_header();
-            print_stats();
-            lcd_refresh();
-            last_refresh = rtc_time_msec;
-        }
-        //        lcd_demo();
+        print_header();
+        print_stats();
+        lcd_refresh();
     }
     // </editor-fold>
 }
