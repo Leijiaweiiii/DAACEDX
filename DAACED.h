@@ -23,17 +23,11 @@
 #include "rtc.h"
 #include "lcd.h"
 #include "ui.h"
+#include "adc.h"
 // </editor-fold>
 
 
-// <editor-fold defaultstate="collapsed" desc="uC-ADC Definitions">
-#define	ACCELEROMETER  0b000000          // AN0
-#define	MICROPHONE     0b000001          // AN1
-#define	ENVELOPE       0b000010          // AN2
-#define	BATTERY        0b000011          // AN3
-#define BAT_divider    4   // resistors relationship, will be changed to 4.96 (12.4K/10.0K)*4 to allow measure of 4.5V
-TBool BatteryLow = False;
-// </editor-fold>
+
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
 extern uint8_t sinus_table[32];
@@ -111,7 +105,6 @@ uint8_t find_set_bit_position(uint8_t n);
 
 // </editor-fold>
 
-
 // <editor-fold defaultstate="collapsed" desc="Aux.">
 #define AUX_detect          (PORTDbits.RD0)
 #define AUX_A       (PORTDbits.RD1)
@@ -155,7 +148,7 @@ uint8_t powered_off_sec = 0;
 
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="Nominal">
+// <editor-fold defaultstate="collapsed" desc="Data Model">
 #define Timeoff                      150 //150*20= 3sec
 
 uint8_t AR_IS=2;  // 1= AutoRotate 2=Mic 4=A 8=B
@@ -250,7 +243,7 @@ struct MenuTy
 }SettingsMenu;
 SetMenuTy Menu;
 uint8_t  battery_level;
-
+// </editor-fold>
 
 void DoSettings();
 void DoMain();
@@ -264,6 +257,6 @@ void PlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header();
 uint8_t print_time(uint8_t line, uint8_t pos);
-// </editor-fold>
+
 
 #endif /*  _DAACED_H_ */
