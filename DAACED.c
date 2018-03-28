@@ -2874,7 +2874,7 @@ void main(void) {
         handle_ui();
         print_header();
         print_stats();
-        lcd_refresh();
+        lcd_refresh(&full_screen_update_boundary);
     }
     // </editor-fold>
 }

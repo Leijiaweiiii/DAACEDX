@@ -68,11 +68,15 @@ void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_by
     }
 }
 
-void lcd_update_boundingbox(uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
-    if (x_min < x_update_min) x_update_min = x_min;
-    if (x_max > x_update_max) x_update_max = x_max;
-    if (y_min < y_update_min) y_update_min = y_min;
-    if (y_max > y_update_max) y_update_max = y_max;
+void lcd_update_boundingbox(UpdateBoundary * box, uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
+    box->changed |= box->min_x > x_min;
+    box->changed |= box->max_x < x_max;
+    box->changed |= box->min_y > y_min;
+    box->changed |= box->max_y < y_max;
+    if (x_min < box->min_x) box->min_x = x_min;
+    if (x_max > box->max_x) box->max_x = x_max;
+    if (y_min < box->min_y) box->min_y = y_min;
+    if (y_max > box->max_y) box->max_y = y_max;
 }
 
 uint8_t update_page(LCDPage * page, uint8_t position, uint8_t polarity) {
@@ -109,8 +113,8 @@ void lcd_draw_pixel_b(uint8_t x_pos, uint8_t y_pos, uint8_t polarity) {
         return;
     }
     y_pos += Y_OFFSET;
-    update_page(&lcd_buffer[PAGE(y_pos)][x_pos],y_pos,polarity);
-    lcd_update_boundingbox(x_pos, y_pos, x_pos, y_pos);
+    update_page(&lcd_buffer[PAGE(y_pos)][x_pos], y_pos, polarity);
+    lcd_update_boundingbox(&full_screen_update_boundary, x_pos, y_pos, x_pos, y_pos);
 }
 
 void lcd_set_pixel_b(uint8_t x_pos, uint8_t y_pos) {
@@ -133,7 +137,7 @@ void lcd_draw_line_b(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_
         SWAP(y0_pos, y1_pos);
     }
 
-    lcd_update_boundingbox(x0_pos, y0_pos, x1_pos, y1_pos);
+    lcd_update_boundingbox(&full_screen_update_boundary, x0_pos, y0_pos, x1_pos, y1_pos);
 
     uint8_t dx, dy;
     dx = x1_pos - x0_pos;
@@ -187,20 +191,19 @@ void lcd_clear_data_ram() {
     }
 }
 
-void lcd_refresh() {
+void lcd_refresh(UpdateBoundary * box) {
     uint8_t column, max_column, page;
+    // Don't even try to update unchanged box
+    if (!box->changed) return;
 
-    for (page = 0; page < LCD_MAX_PAGES; page++) {
-        if (y_update_min >= ((page + 1)*PAGE_HEIGTH)) continue;
-        if (y_update_max < page * PAGE_HEIGTH) break;
-
+    for (page = box->min_y / PAGE_HEIGTH; page < box->max_y / PAGE_HEIGTH; page++) {
         lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
         lcd_send_command(CMD_PAGE_ADD); // Row address.
         lcd_send_data(page + 6); // Start row address.
         lcd_send_data(page + 6); // End row address.
 
-        column = x_update_min;
-        max_column = x_update_max;
+        column = box->min_x;
+        max_column = box->max_x;
 
         lcd_send_command(CMD_COL_ADD); // Column address.
         lcd_send_data(column); // Start column address.
@@ -212,11 +215,12 @@ void lcd_refresh() {
             lcd_send_data(lcd_buffer[page][column].PAGE); // Sending data from buffer.
         }
     }
-
-    x_update_min = LCD_WIDTH - 1;
-    x_update_max = 0;
-    y_update_min = LCD_HEIGHT - 1;
-    y_update_max = 0;
+    // min set to max, max to min - for box comparison when updated
+    box->min_x = LCD_WIDTH - 1;
+    box->max_x = 0;
+    box->min_y = LCD_HEIGHT - 1;
+    box->max_y = 0;
+    box->changed = false;
     frames_count++;
 }
 
@@ -329,7 +333,7 @@ void lcd_battery_info_b(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage
 
 void lcd_init() {
     memset(lcd_buffer, 0, sizeof (lcd_buffer)); // Clear LCD Buffer.
-    lcd_update_boundingbox(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1); // Reset refresh window.
+    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1); // Reset refresh window.
 
     LCD_CS_DESELECT();
 
@@ -391,8 +395,8 @@ void lcd_init() {
 
 void lcd_clear() {
     memset(lcd_buffer, 0, sizeof (lcd_buffer));
-    lcd_update_boundingbox(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
-    lcd_refresh();
+    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+    lcd_refresh(&full_screen_update_boundary);
 }
 
 void lcd_increase_contrast() {
@@ -409,37 +413,37 @@ void lcd_decrease_contrast() {
 
 void lcd_set_pixel(uint8_t x_pos, uint8_t y_pos) {
     lcd_set_pixel_b(x_pos, y_pos);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_clear_pixel(uint8_t x_pos, uint8_t y_pos) {
     lcd_clear_pixel_b(x_pos, y_pos);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity) {
     lcd_draw_line_b(x0_pos, y0_pos, x1_pos, y1_pos, polarity);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_draw_vline(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polarity) {
     lcd_draw_vline_b(x_pos, y0_pos, y1_pos, polarity);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
     lcd_draw_hline_b(x0_pos, x1_pos, y_pos, polarity);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_char_b(c, x_pos, y_pos, font, polarity);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_string_b(str_ptr, x_pos, y_pos, font, polarity);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
@@ -447,28 +451,28 @@ void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_I
     sprintf(msg, "%d", Int);
     lcd_write_string_b("       ", x_pos, y_pos, font, polarity);
     lcd_write_string_b(msg, x_pos, y_pos, font, polarity);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
     lcd_draw_bitmap_b(x_pos, y_pos, bitmap_data);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     if (battery_percentage > 100) battery_percentage = 100;
     lcd_battery_info_b(x_pos, y_pos, battery_percentage);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_fill_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
-    lcd_refresh();
+    lcd_refresh(&full_screen_update_boundary);
 }
 
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_clear_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
-//    lcd_refresh();
+    //    lcd_refresh();
 }
 // </editor-fold>
 

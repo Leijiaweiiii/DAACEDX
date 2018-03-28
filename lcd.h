@@ -44,7 +44,12 @@ typedef union {
     };
 } LCDPage;
 LCDPage lcd_buffer[LCD_MAX_PAGES][LCD_WIDTH];
-uint8_t x_update_min, x_update_max, y_update_min, y_update_max;
+typedef struct {
+    uint8_t min_x, max_x, min_y, max_y;
+    TBool changed;
+}UpdateBoundary;
+
+UpdateBoundary full_screen_update_boundary = {0,LCD_WIDTH -1,0,LCD_HEIGHT - 1};
 
 #define topSpace     20
 #define botSpace     10
@@ -165,7 +170,7 @@ uint8_t spi_write(uint8_t data);
 void spi_init();
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="LCD functions definitions">
-void lcd_refresh();
+void lcd_refresh(UpdateBoundary * box);
 uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font);
 void lcd_init();
 void lcd_clear();
