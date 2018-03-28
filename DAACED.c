@@ -2825,6 +2825,14 @@ void update_screen_model() {
             break;
     }
 }
+
+void handle_rotation() {
+    TBool oldOrientation = orientation;
+    orientation = ADC_Read(ACCELEROMETER)>ORIENTATION_INVERSE_THRESHOLD;
+    if (oldOrientation != orientation) {
+        lcd_clear();
+    }
+}
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 static void interrupt isr(void) {
@@ -2871,9 +2879,13 @@ void main(void) {
     TestBattery();
     time_t last_refresh = rtc_time_msec;
     while (True) {
+
+        handle_rotation();
+
         handle_ui();
         print_header();
         print_stats();
+
         lcd_refresh(&full_screen_update_boundary);
     }
     // </editor-fold>

@@ -112,6 +112,11 @@ void lcd_draw_pixel_b(uint8_t x_pos, uint8_t y_pos, uint8_t polarity) {
     if ((x_pos >= LCD_WIDTH) || (y_pos >= LCD_HEIGHT)) {
         return;
     }
+
+    if (orientation == ORIENTATION_INVERTED && orientation_change_enabled) {
+        y_pos = LCD_HEIGHT - y_pos + 1;
+        x_pos = LCD_WIDTH - x_pos;
+    }
     y_pos += Y_OFFSET;
     update_page(&lcd_buffer[PAGE(y_pos)][x_pos], y_pos, polarity);
     lcd_update_boundingbox(&full_screen_update_boundary, x_pos, y_pos, x_pos, y_pos);

@@ -11,13 +11,11 @@
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
 #define PAGE_HEIGTH              (8)
-#define LCD_MAX_PAGES           (LCD_HEIGHT/PAGE_HEIGTH + 1)
+#define LCD_MAX_PAGES           (LCD_HEIGHT/PAGE_HEIGTH)
 #define PAGE(x)                 x/PAGE_HEIGTH
 #define Y_OFFSET                (6)
 #define BLACK_OVER_WHITE        (0x01)
 #define WHITE_OVER_BLACK        (0x00)
-
-
 
 #define LCD_MODE_DATA()         (LATFbits.LF4 = 1)
 #define LCD_MODE_COMMAND()      (LATFbits.LF4 = 0)
@@ -50,6 +48,12 @@ typedef struct {
 }UpdateBoundary;
 
 UpdateBoundary full_screen_update_boundary = {0,LCD_WIDTH -1,0,LCD_HEIGHT - 1};
+
+#define ORIENTATION_NORMAL              0
+#define ORIENTATION_INVERTED            1
+#define ORIENTATION_INVERSE_THRESHOLD   400
+TBool orientation = ORIENTATION_NORMAL;
+TBool orientation_change_enabled = true;
 
 #define topSpace     20
 #define botSpace     10
