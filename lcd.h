@@ -8,6 +8,7 @@
 
 
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
+#define SMALL_LCD
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
 #define PAGE_HEIGTH              (8)
@@ -30,6 +31,7 @@ int16_t cursor_x, cursor_y;
 
 typedef union {
     uint8_t PAGE : 8;
+
     struct {
         unsigned p0 : 1;
         unsigned p1 : 1;
@@ -42,12 +44,13 @@ typedef union {
     };
 } LCDPage;
 LCDPage lcd_buffer[LCD_MAX_PAGES][LCD_WIDTH];
+
 typedef struct {
     uint8_t min_x, max_x, min_y, max_y;
     TBool changed;
-}UpdateBoundary;
+} UpdateBoundary;
 
-UpdateBoundary full_screen_update_boundary = {0,LCD_WIDTH -1,0,LCD_HEIGHT - 1};
+UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 1};
 
 #define ORIENTATION_NORMAL              0
 #define ORIENTATION_INVERTED            1
@@ -168,6 +171,14 @@ volatile uint8_t frames_count = 0;
 
 /* Commands under EXTENSION4 */
 #define ENABLE_OTP              (0xD6)
+
+#define LCD_BIAS_12             (0x02)
+#define LCD_BIAS_13             (0x01)
+
+#define LCD_DUTY_CICLE_128      (0x7F)
+#define LCD_DUTY_CICLE_160      (0x0F)
+
+
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="SPI functions definitions">
 uint8_t spi_write(uint8_t data);

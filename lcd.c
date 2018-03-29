@@ -366,8 +366,11 @@ void lcd_init() {
     lcd_send_command(CMD_ANALOG_CKT); // Analog Circuit set.
     lcd_send_data(0x00);
     lcd_send_data(0x01); // Booster efficiency 1.
-    lcd_send_data(0x02); // LCD bias 1/12
-
+#ifdef SMALL_LCD
+    lcd_send_data(LCD_BIAS_12); // LCD bias 1/12
+#else
+    lcd_send_data(LCD_BIAS_12); // LCD bias 1/13
+#endif
     lcd_send_command(CMD_BOOSTER_LVL); // Booster level.
     lcd_send_data(0xFB); // x10.
 
@@ -376,13 +379,20 @@ void lcd_init() {
     lcd_send_data(0x10); // Monochrome mode.
     lcd_send_command(CMD_DISPLAY_CONTROL); // Display control.
     lcd_send_data(0x00); // No clock division.
-    lcd_send_data(0x7F); // 1/128 duty.
+#ifdef SMALL_LCD
+    lcd_send_data(LCD_DUTY_CICLE_128); // 1/128 duty.
+#else
+    lcd_send_data(LCD_DUTY_CICLE_160); // 1/160 duty.
+#endif
     lcd_send_data(0x00); // ??
 
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    lcd_send_data(0x01);
-    lcd_send_command(0xA6);
 
+#ifdef SMALL_LCD
+    lcd_send_data(0x01);
+#else
+    lcd_send_data(0x00);
+#endif
     lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
 
     lcd_send_command(CMD_INVERSION_OFF); // Pixel inversion OFF.
