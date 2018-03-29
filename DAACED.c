@@ -442,7 +442,7 @@ uint8_t SettingsTitle(void) {
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     TestBattery();
     lcd_write_string(SettingsMenu.MenuTitle, 0, 0, MediumFont, BLACK_OVER_WHITE);
-    if (BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
+    if (AR_IS.BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
     lcd_battery_info(LCD_WIDTH - 20, 0, battery_level);
     top += (MediumFont->height + 1);
     lcd_draw_hline(0, LCD_WIDTH, top, BLACK_OVER_WHITE);
@@ -1127,13 +1127,13 @@ void saveSettings() {
     eeprom_write_wdata(Sensitivity_Address, Sensitivity);
     eeprom_write_wdata(Filter_Address, Filter);
     eeprom_write_wdata(AutoStart_Address, AutoStart);
-    eeprom_write_wdata(AR_IS_Address, AR_IS);
+    eeprom_write_wdata(AR_IS_Address, AR_IS.AR_IS);
     eeprom_write_wdata(BuzzerFrequency_Address, BuzzerFrequency);
     eeprom_write_wdata(BuzzerParDuration_Address, BuzzerParDuration);
     eeprom_write_wdata(BuzzerStartDuration_Address, BuzzerStartDuration);
     eeprom_write_wdata(BuzzerLevel_Address, BuzzerLevel);
     eeprom_write_wdata(CustomCDtime_Address, CustomCDtime);
-    eeprom_write_wdata(BT_Address, BT);
+//    eeprom_write_wdata(BT_Address, BT);
     eeprom_write_wdata(Delay_Address, DelayMode);
     eeprom_write_wdata(DelayTime_Address, DelayTime);
     eeprom_write_wdata(BackLightLevel_Address, BackLightLevel);
@@ -1142,33 +1142,34 @@ void saveSettings() {
 void getSettings() {
     Sensitivity = eeprom_read_wdata(Sensitivity_Address);
     Filter = eeprom_read_wdata(Filter_Address);
-    AutoStart = eeprom_read_wdata(AutoStart_Address);
-    AR_IS = eeprom_read_wdata(AR_IS_Address);
+//    AutoStart = eeprom_read_wdata(AutoStart_Address);
+    AR_IS.AR_IS = eeprom_read_wdata(AR_IS_Address);
     BuzzerFrequency = eeprom_read_wdata(BuzzerFrequency_Address);
     BuzzerParDuration = eeprom_read_wdata(BuzzerParDuration_Address);
     BuzzerStartDuration = eeprom_read_wdata(BuzzerStartDuration_Address);
     BuzzerLevel = eeprom_read_wdata(BuzzerLevel_Address);
     CustomCDtime = eeprom_read_wdata(CustomCDtime_Address);
-    BT = eeprom_read_wdata(BT_Address);
+//    BT = eeprom_read_wdata(BT_Address);
     DelayMode = eeprom_read_wdata(Delay_Address);
     DelayTime = eeprom_read_wdata(DelayTime_Address);
     BackLightLevel = eeprom_read_wdata(BackLightLevel_Address);
 }
 
 void getDefaultSettings() {
-    Sensitivity = 1;
+    Sensitivity = 10;
     Filter = 30;
-    AutoStart = true;
-    AR_IS = 2;
+    AR_IS.Autostart = 1;
+    AR_IS.Mic = 1;
+    AR_IS.AutoRotate = 1;
     BuzzerFrequency = 1500;
     BuzzerParDuration = 200;
     BuzzerStartDuration = 300;
     BuzzerLevel = 0;
     CustomCDtime = 18;
-    BT = false;
+    AR_IS.BT = 0;
     DelayMode = Fixed;
     DelayTime = 3000;
-    BackLightLevel = 10;
+    BackLightLevel = 2;
 }
 
 void savePar(uint8_t i) {
@@ -2196,22 +2197,22 @@ void SetTilt() {
     Menu.menu = 1;
     SettingsMenu.TotMenuItems = 1;
     strcpy(SettingsMenu.MenuTitle, "Settings: Tilt");
-    if ((AR_IS & 1) == 1) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
+    if (AR_IS.AutoRotate) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
     else strcpy(SettingsMenu.MenuItem[0], " Auto Rotate OFF ");
 
     Menu.top = SettingsTitle();
     Menu.refresh = True;
 
     SettingsDisplay();
-    orgset = AR_IS;
+    orgset = AR_IS.AR_IS;
 
     while (!Done) {
         if (Keypressed) {
             switch (Key) {
-                case KeyIn: AR_IS = AR_IS ^ 1;
-                    SettingsTitle();
+                case KeyIn: 
+                    AR_IS.AutoRotate != AR_IS.AutoRotate;
                     Menu.refresh = True;
-                    if ((AR_IS & 1) == 1) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
+                    if (AR_IS.AutoRotate) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
                     else strcpy(SettingsMenu.MenuItem[0], " Auto Rotate OFF ");
                     SettingsDisplay();
                     break;
@@ -2221,17 +2222,17 @@ void SetTilt() {
             while (Keypressed); // wait here till key is released
         }
     }
-    SaveToEEPROM = (AR_IS != orgset);
+    SaveToEEPROM = (AR_IS.AR_IS != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
 
 void UpdateIS(void) {
-    if ((AR_IS & 2) == 2) strcpy(SettingsMenu.MenuItem[0], " Microphone: ON  ");
+    if (AR_IS.Mic) strcpy(SettingsMenu.MenuItem[0], " Microphone: ON  ");
     else strcpy(SettingsMenu.MenuItem[0], " Microphone: OFF ");
-    if ((AR_IS & 4) == 4) strcpy(SettingsMenu.MenuItem[1], " A: ON  ");
+    if (AR_IS.A) strcpy(SettingsMenu.MenuItem[1], " A: ON  ");
     else strcpy(SettingsMenu.MenuItem[1], " A: OFF ");
-    if ((AR_IS & 8) == 8) strcpy(SettingsMenu.MenuItem[2], " B: ON  ");
+    if (AR_IS.B) strcpy(SettingsMenu.MenuItem[2], " B: ON  ");
     else strcpy(SettingsMenu.MenuItem[2], " B: OFF ");
 }
 
@@ -2248,7 +2249,7 @@ void SetInput() {
     Menu.refresh = True;
     UpdateIS();
     SettingsDisplay();
-    orgset = AR_IS;
+    orgset = AR_IS.AR_IS;
 
     while (!Done) {
         if (Keypressed) {
@@ -2260,22 +2261,26 @@ void SetInput() {
                         SettingsDisplay();
                     } else Beep();
                     break;
-                case KeyDw: if (Menu.menu < (SettingsMenu.TotMenuItems)) {
+                case KeyDw:
+                    if (Menu.menu < (SettingsMenu.TotMenuItems)) {
                         Menu.prev = Menu.menu;
                         Menu.refresh = False;
                         Menu.menu++;
                         SettingsDisplay();
                     } else Beep();
                     break;
-                case KeyIn: switch (Menu.menu) {
-                        case 1: AR_IS = AR_IS ^ 2;
+                case KeyIn:
+                    switch (Menu.menu) {
+                        case 1:
+                            AR_IS.Mic ^= AR_IS.Mic;
                             break;
-                        case 2: AR_IS = AR_IS ^ 4;
+                        case 2:
+                            AR_IS.A ^= AR_IS.A;
                             break;
-                        case 3: AR_IS = AR_IS ^ 8;
+                        case 3:
+                            AR_IS.B ^= AR_IS.B;
                             break;
                     }
-                    SettingsTitle();
                     Menu.refresh = True;
                     UpdateIS();
                     SettingsDisplay();
@@ -2287,7 +2292,7 @@ void SetInput() {
         }
     }
 
-    SaveToEEPROM = (AR_IS != orgset);
+    SaveToEEPROM = (AR_IS.AR_IS != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
@@ -2597,7 +2602,7 @@ uint8_t print_footer(uint8_t par, uint8_t voffset) {
             break;
     }
     lcd_write_string(message, 0, line, SmallFont, BLACK_OVER_WHITE);
-    if ((AR_IS & 2) == 2) sprintf(message, "Mic:%d", Sensitivity);
+    if (AR_IS.Mic) sprintf(message, "Mic:%d", Sensitivity);
     else sprintf(message, "Mic:%d", 0);
     lcd_write_string(message, LCD_WIDTH - 32, line, SmallFont, BLACK_OVER_WHITE);
     line += SmallFont->height;

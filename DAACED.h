@@ -149,9 +149,22 @@ uint8_t powered_off_sec = 0;
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Data Model">
-#define Timeoff                      150 //150*20= 3sec
 
-uint8_t AR_IS=2;  // 1= AutoRotate 2=Mic 4=A 8=B
+typedef union{
+    uint8_t AR_IS;
+    struct{
+        unsigned AutoRotate :1;
+        unsigned Mic        :1;
+        unsigned A          :1;
+        unsigned B          :1;
+        unsigned Autostart  :1;
+        unsigned BT         :1;
+    };
+    
+}AR_IS_T;
+AR_IS_T AR_IS;
+
+#define AutoStart AR_IS.Autostart
 #define AR_IS_Address                100
 uint16_t BuzzerFrequency=2000;
 uint16_t BuzzerParDuration=200;
@@ -164,7 +177,7 @@ uint8_t BuzzerLevel=2;
 uint8_t CustomCDtime=18;
 #define CustomCDtime_Address         110
 
-TBool   BT=False;
+
 TBool   SaveToEEPROM;
 #define BT_Address                   112
 
@@ -198,8 +211,6 @@ typedef enum {
 
 TdelTy  DelayMode = Fixed;
 TdetTy  DetectMode = Mic;
-uint16_t Threshold;
-TBool   DetectAutoThreshold=True;
 uint16_t DetectThreshold;
 time_t DelayTime = 3000;  // mS
 time_t countdown_start_time;
@@ -208,7 +219,7 @@ time_t countdown_start_time;
 
 uint8_t Sensitivity=10;
 #define Sensitivity_Address          122
-TBool   AutoStart=False;
+
 #define AutoStart_Address            124
 
 uint8_t BackLightLevel=10;
