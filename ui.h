@@ -53,17 +53,9 @@ extern "C" {
     char ScreenTitle[16];
     void set_screen_title(char * value);
     void print_big_time_label(time_t t);
+    void print_line_with_shots_and_split(uint8_t shot_no,time_t split);
     
-#define UI_COUNTER_START_LINE   22
-#define UI_COUNTER_START_PIXEL  0
-#define UI_FOOTER_START_LINE    71
-#define UI_FOOTER_GRID_H_CELLS  3
-#define UI_FOOTER_GRID_V_CELLS  2
-    
-#define UI_FOOTER_GRID_WIDTH    (LCD_WIDTH/UI_FOOTER_GRID_H_CELLS)
-#define UI_FOOTER_GRID_HEIGH    ((LCD_HEIGHT-UI_FOOTER_START_LINE)/UI_FOOTER_GRID_V_CELLS)
-#define UI_FOOTER_GRID_X(x)     (x*(UI_FOOTER_GRID_WIDTH)+2)
-#define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*(UI_FOOTER_GRID_HEIGH)+2)
+
     
 #ifdef	__cplusplus
 }

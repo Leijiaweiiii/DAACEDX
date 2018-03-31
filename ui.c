@@ -1,11 +1,28 @@
 #include "ui.h"
 #include "DAACED.h"
 
+void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
+    char message[20];
+    double s;
+    uint8_t x_offset;
+    sprintf(message, "#%03d", shot_no);
+    lcd_write_string(message, 0, UI_COUNTER_START_LINE + BigFont->height, MediumFont, BLACK_OVER_WHITE);
 
+    x_offset = lcd_string_lenght(message, MediumFont)+7;
+    s = 0.001 * split;
+    sprintf(message, "Split %.2f", s);
+    
+    lcd_write_string(
+            message,
+            x_offset,
+            UI_COUNTER_START_LINE + BigFont->height, MediumFont,
+            BLACK_OVER_WHITE
+            );
+}
 
 void print_big_time_label(time_t t) {
     char message[7];
-    sprintf(message, "%.2f", ((float) t)/ 1000);
+    sprintf(message, "%3.2f", ((float) t)/ 1000);
     lcd_write_string(message, 0, UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
@@ -43,7 +60,7 @@ void StartSettingsMenuScreen() {
 
 void StopTimer() {
     set_screen_title("Timer Idle");
-    update_shot_time_on_screen();
+   
 }
 
 void NextReviewItem() {
@@ -85,6 +102,7 @@ void handle_timer_idle() {
             //All the rest ignoring
             break;
     }
+    update_shot_time_on_screen();
 }
 
 void HandleTimerEvents() {
@@ -121,9 +139,10 @@ void handle_timer_listening() {
             // All the rest keys handled inside the next handler.
             // As well as shoot events
             HandleTimerEvents();
-            update_shot_time_on_screen();
+            
             break;
     }
+    update_shot_time_on_screen();
 }
 
 void handle_review_screen() {

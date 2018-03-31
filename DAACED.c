@@ -1158,15 +1158,16 @@ void getSettings() {
 void getDefaultSettings() {
     Sensitivity = 5;
     Filter = 30;
-    AR_IS.Autostart = 1;
-    AR_IS.Mic = 1;
-    AR_IS.AutoRotate = 1;
+//    AR_IS.Autostart = 1;
+//    AR_IS.Mic = 1;
+//    AR_IS.AutoRotate = 1;
+//    AR_IS.BT = 1;
+    AR_IS.AR_IS=0xFF;
     BuzzerFrequency = 1500;
     BuzzerParDuration = 200;
     BuzzerStartDuration = 300;
     BuzzerLevel = 0;
     CustomCDtime = 18;
-    AR_IS.BT = 1;
     DelayMode = Fixed;
     DelayTime = 3000;
     BackLightLevel = 2;
@@ -2607,35 +2608,41 @@ uint8_t print_footer() {
     char message[20];
     print_footer_grid();
     switch (DelayMode) {
-        case Instant:sprintf(message, "Delay:I");
+        case Instant:sprintf(message, " Instant");
             break;
-        case Fixed: sprintf(message, "Delay:F");
+        case Fixed: sprintf(message, " Fixed");
             break;
-        case Random: sprintf(message, "Delay:R");
+        case Random: sprintf(message, " Random");
             break;
-        case Custom: sprintf(message, "Delay:C");
+        case Custom: sprintf(message, " Custom");
             break;
     }
     print_label_at_footer_grid(message,0,0);
-    if (AR_IS.Mic) sprintf(message, "Mic:%d", Sensitivity);
-    else sprintf(message, "Mic:Off");
-    print_label_at_footer_grid(message,0,2);
+    if (AR_IS.Mic) sprintf(message, "  Mic: %d", Sensitivity);
+    else sprintf(message, " Mic: Off");
+    print_label_at_footer_grid(message,1,0);
 
     if (ParTime[CurPar_idx] > 0) {
-        sprintf(message, "Par%2d:%5.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
-        print_label_at_footer_grid(message,1,0);
+        sprintf(message, "Par%2d:%3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+    } else {
+        sprintf(message," Par: Off");
     }
-    sprintf(message, "Buz:%d", BuzzerLevel);
-    print_label_at_footer_grid(message,1,2);
-    if (AR_IS.Aux) print_label_at_footer_grid("Aux: ON",1,1);
-    else print_label_at_footer_grid("Aux: Off",1,1);
-    
-    sprintf(message,"%s %s %s",
+    print_label_at_footer_grid(message,0,1);
+    if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON",1,1);
+    else print_label_at_footer_grid(" Aux: Off",1,1);
+        
+    sprintf(message, " Buz:%d", BuzzerLevel);
+    print_label_at_footer_grid(message,2,0);
+
+    sprintf(message," %s %s %s",
             (AR_IS.A)?"A":" ",
             (AR_IS.B)?"B":" ",
             (AR_IS.BT)?"BT":" "
             );
-    print_label_at_footer_grid(message,1,2);
+    print_label_at_footer_grid(message,2,1);
+    
+//    sprintf(message, "FPS:%d", frames_count);
+//    print_label_at_footer_grid(message,2,0);
     return line - UI_FOOTER_START_LINE;
 }
 
@@ -2765,16 +2772,28 @@ void DoPowerOn() {
 }
 
 void clear_timer_area() {
-    lcd_clear_block(0, UI_COUNTER_START_LINE, 0, BigFont->height);
+    lcd_clear_block(0, UI_COUNTER_START_LINE, 0, BigFont->height + MediumFont->height);
 }
 
 void update_shot_time_on_screen() {
     clear_timer_area();
-    if (ShootString.TotShoots > 0) {
-        print_big_time_label(ShootString.ShootTime[ShootString.TotShoots - 1]);
-    } else {
-        print_big_time_label(0L);
-    }
+    uint8_t c = ShootString.TotShoots; // Declare for code ease. TODO: Clean after
+    time_t t = 0, dt = 0;
+    switch (c) {
+        case 0:
+            t = 0;
+            break;
+        case 1:
+            t = ShootString.ShootTime[c - 1];
+            dt = t;
+            break;
+        default:
+            t = ShootString.ShootTime[c - 1];
+            dt = t - ShootString.ShootTime[c - 2];
+            break;
+     }
+    print_big_time_label(t);
+    print_line_with_shots_and_split(c, dt);
 }
 
 void PlayParSound() {

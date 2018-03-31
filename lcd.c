@@ -428,37 +428,30 @@ void lcd_decrease_contrast() {
 
 void lcd_set_pixel(uint8_t x_pos, uint8_t y_pos) {
     lcd_set_pixel_b(x_pos, y_pos);
-    //    lcd_refresh();
 }
 
 void lcd_clear_pixel(uint8_t x_pos, uint8_t y_pos) {
     lcd_clear_pixel_b(x_pos, y_pos);
-    //    lcd_refresh();
 }
 
 void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity) {
     lcd_draw_line_b(x0_pos, y0_pos, x1_pos, y1_pos, polarity);
-    //    lcd_refresh();
 }
 
 void lcd_draw_vline(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polarity) {
     lcd_draw_vline_b(x_pos, y0_pos, y1_pos, polarity);
-    //    lcd_refresh();
 }
 
 void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
     lcd_draw_hline_b(x0_pos, x1_pos, y_pos, polarity);
-    //    lcd_refresh();
 }
 
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_char_b(c, x_pos, y_pos, font, polarity);
-    //    lcd_refresh();
 }
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_string_b(str_ptr, x_pos, y_pos, font, polarity);
-    //    lcd_refresh();
 }
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
@@ -466,28 +459,23 @@ void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_I
     sprintf(msg, "%d", Int);
     lcd_write_string_b("       ", x_pos, y_pos, font, polarity);
     lcd_write_string_b(msg, x_pos, y_pos, font, polarity);
-    //    lcd_refresh();
 }
 
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
     lcd_draw_bitmap_b(x_pos, y_pos, bitmap_data);
-    //    lcd_refresh();
 }
 
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     if (battery_percentage > 100) battery_percentage = 100;
     lcd_battery_info_b(x_pos, y_pos, battery_percentage);
-    //    lcd_refresh();
 }
 
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_fill_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
-    lcd_refresh(&full_screen_update_boundary);
 }
 
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_clear_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
-    //    lcd_refresh();
 }
 // </editor-fold>
 

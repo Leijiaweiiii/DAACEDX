@@ -6,6 +6,16 @@
 #include "DAACEDcommon.h"
 #include "DAACEDbitmap.h"
 
+#define UI_COUNTER_START_LINE   18
+#define UI_COUNTER_START_PIXEL  0
+#define UI_FOOTER_START_LINE    83
+#define UI_FOOTER_GRID_H_CELLS  3
+#define UI_FOOTER_GRID_V_CELLS  2
+    
+#define UI_FOOTER_GRID_WIDTH    (LCD_WIDTH/UI_FOOTER_GRID_H_CELLS)
+#define UI_FOOTER_GRID_HEIGH    ((LCD_HEIGHT-UI_FOOTER_START_LINE)/UI_FOOTER_GRID_V_CELLS)
+#define UI_FOOTER_GRID_X(x)     (x*(UI_FOOTER_GRID_WIDTH)+2)
+#define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*(UI_FOOTER_GRID_HEIGH)+2)
 
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
 #define SMALL_LCD
