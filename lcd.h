@@ -12,7 +12,7 @@
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
 #define PAGE_HEIGTH              (8)
-#define LCD_MAX_PAGES           (LCD_HEIGHT/PAGE_HEIGTH)
+#define LCD_MAX_PAGES           (LCD_HEIGHT/PAGE_HEIGTH)+1
 #define PAGE(x)                 x/PAGE_HEIGTH
 #define Y_OFFSET                (6)
 #define BLACK_OVER_WHITE        (0x01)
