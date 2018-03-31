@@ -159,6 +159,7 @@ typedef union{
         unsigned B          :1;
         unsigned Autostart  :1;
         unsigned BT         :1;
+        unsigned Aux         :1;
     };
     
 }AR_IS_T;
@@ -217,14 +218,14 @@ time_t countdown_start_time;
 #define Delay_Address                118
 #define DelayTime_Address            120
 
-uint8_t Sensitivity=10;
+uint8_t Sensitivity;
 #define Sensitivity_Address          122
 
 #define AutoStart_Address            124
 
 uint8_t BackLightLevel=10;
 #define BackLightLevel_Address       126
-uint8_t Filter=30;
+uint8_t Filter;
 #define Filter_Address               128
 
 #define ParAddress                   200

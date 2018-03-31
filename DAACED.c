@@ -1156,7 +1156,7 @@ void getSettings() {
 }
 
 void getDefaultSettings() {
-    Sensitivity = 10;
+    Sensitivity = 5;
     Filter = 30;
     AR_IS.Autostart = 1;
     AR_IS.Mic = 1;
@@ -1166,7 +1166,7 @@ void getDefaultSettings() {
     BuzzerStartDuration = 300;
     BuzzerLevel = 0;
     CustomCDtime = 18;
-    AR_IS.BT = 0;
+    AR_IS.BT = 1;
     DelayMode = Fixed;
     DelayTime = 3000;
     BackLightLevel = 2;
@@ -2588,39 +2588,55 @@ void print_stats() {
     ////    lcd_write_string(message, pos, (LCD_HEIGHT - 5 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
 }
 
-uint8_t print_footer(uint8_t par, uint8_t voffset) {
-    uint8_t line = voffset;
+void print_footer_grid() {
+    for (uint8_t i = UI_FOOTER_START_LINE-2; i <= LCD_HEIGHT; i += UI_FOOTER_GRID_HEIGH) {
+        lcd_draw_hline(0, LCD_WIDTH, i, BLACK_OVER_WHITE);
+    }
+    for (uint8_t i = 0; i <= LCD_WIDTH ; i += UI_FOOTER_GRID_WIDTH) {
+        lcd_draw_line(i, UI_FOOTER_START_LINE, i, LCD_HEIGHT , BLACK_OVER_WHITE);
+    }
+}
+
+void print_label_at_footer_grid(const char* msg,const uint8_t grid_x, const uint8_t grid_y){
+    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y), SmallFont, BLACK_OVER_WHITE);
+}
+
+uint8_t print_footer() {
+//    print_stats();
+    uint8_t line = UI_FOOTER_START_LINE;
     char message[20];
+    print_footer_grid();
     switch (DelayMode) {
-        case Instant:sprintf(message, "Delay:None");
+        case Instant:sprintf(message, "Delay:I");
             break;
-        case Fixed: sprintf(message, "Delay:Fixed");
+        case Fixed: sprintf(message, "Delay:F");
             break;
-        case Random: sprintf(message, "Delay:Random");
+        case Random: sprintf(message, "Delay:R");
             break;
-        case Custom: sprintf(message, "Delay:Custom");
+        case Custom: sprintf(message, "Delay:C");
             break;
     }
-    lcd_write_string(message, 0, line, SmallFont, BLACK_OVER_WHITE);
+    print_label_at_footer_grid(message,0,0);
     if (AR_IS.Mic) sprintf(message, "Mic:%d", Sensitivity);
-    else sprintf(message, "Mic:%d", 0);
-    lcd_write_string(message, LCD_WIDTH - 32, line, SmallFont, BLACK_OVER_WHITE);
-    line += SmallFont->height;
-    line++;
-    if (ParTime[par] > 0) {
-        sprintf(message, "Par%2d:%5.1f", par + 1, (float) ParTime[par] / 1000);
-        lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
+    else sprintf(message, "Mic:Off");
+    print_label_at_footer_grid(message,0,2);
+
+    if (ParTime[CurPar_idx] > 0) {
+        sprintf(message, "Par%2d:%5.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+        print_label_at_footer_grid(message,1,0);
     }
     sprintf(message, "Buz:%d", BuzzerLevel);
-    //    lcd_write_string(message, LCD_WIDTH - 32, line, SmallFont, BLACK_OVER_WHITE);
-    //        if (Aux) lcd_write_string("Aux:On ",45,line,SmallFont,BLACK_OVER_WHITE);
-    //    else     lcd_write_string("Aux:Off",45,line,SmallFont,BLACK_OVER_WHITE);
-    //    if ((AR_IS&4)==4) lcd_write_string("A",95,line,SmallFont,BLACK_OVER_WHITE);
-    //    if ((AR_IS&8)==8)  lcd_write_string("B",110,line,SmallFont,BLACK_OVER_WHITE);
-    //    if (BT) lcd_write_string("BT",123,line,SmallFont,BLACK_OVER_WHITE);
-    //    else lcd_write_char(' ',20,line,MediumFont,WHITE_OVER_BLACK);
-
-    return line - voffset;
+    print_label_at_footer_grid(message,1,2);
+    if (AR_IS.Aux) print_label_at_footer_grid("Aux: ON",1,1);
+    else print_label_at_footer_grid("Aux: Off",1,1);
+    
+    sprintf(message,"%s %s %s",
+            (AR_IS.A)?"A":" ",
+            (AR_IS.B)?"B":" ",
+            (AR_IS.BT)?"BT":" "
+            );
+    print_label_at_footer_grid(message,1,2);
+    return line - UI_FOOTER_START_LINE;
 }
 
 uint8_t MainDisplay(uint8_t CurrentShotNumber, uint8_t par, uint8_t voffset) {
@@ -2741,7 +2757,6 @@ void DoPowerOff() {
     PowerOFF;
     set_backlight(0);
     lcd_clear_data_ram();
-
 }
 
 void DoPowerOn() {
@@ -2791,9 +2806,8 @@ void StartCountdownTimer() {
             break;
     }
 }
-
-void UpdateShootNow() {
-    time_t dt = get_corrected_time_msec() - measurement_start_time_msec;
+void UpdateShot(time_t now){
+    time_t dt = now - measurement_start_time_msec;
     //Don't count shoots less than Filter
     if (labs(dt - ShootString.ShootTime[ShootString.TotShoots]) > Filter) {
         ShootString.ShootTime[ShootString.TotShoots] = dt;
@@ -2802,26 +2816,30 @@ void UpdateShootNow() {
             timerEventToHandle = TimerTimeout;
     }
 }
+void UpdateShootNow() {
+    UpdateShot(get_corrected_time_msec());
+}
 
 void update_screen_model() {
+    time_t now = get_corrected_time_msec();
     switch (ui_state) {
         case TimerListening:
             if (ParNowCounting) { // If into if because IDK how XC8 optimises conditions
                 // Software "interrupt" emulation
-                if (get_corrected_time_msec() - parStartTime_ms >= ParTime[CurPar_idx]) {
+                if (now - parStartTime_ms >= ParTime[CurPar_idx]) {
                     ParNowCounting = false;
                 }
             }
             if (Detect()) {
                 if (!shoot_detected) {
-                    UpdateShootNow();
+                    UpdateShot(now);
                 }
             } else {
                 shoot_detected = false;
             }
             break;
         case TimerCountdown:
-            if (get_corrected_time_msec() - countdown_start_time >=DelayTime) {
+            if (now - countdown_start_time >=DelayTime) {
                 comandToHandle = CountdownExpired;
             }
             break;
@@ -2867,7 +2885,7 @@ void main(void) {
     spi_init();
     lcd_init();
     ADC_init();
-    init_adc_interrupt();
+//    init_adc_interrupt();
     eeprom_init();
     //    getSettings();
     getDefaultSettings();
@@ -2889,7 +2907,8 @@ void main(void) {
 
         handle_ui();
         print_header();
-        print_stats();
+        print_footer();
+        
 
         lcd_refresh(&full_screen_update_boundary);
     }
