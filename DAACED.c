@@ -2544,7 +2544,8 @@ uint8_t print_time(uint8_t line, uint8_t pos) {
     sprintf(message,
             "%02d%s%02d %s",
             get_hour(),
-            (rtc_time_sec % 4) ? ":" : ".",
+//            (rtc_time_sec % 4) ? ":" : ".",
+            ":",
             get_minute(),
             ScreenTitle);
     uint8_t width = lcd_string_lenght(message, MediumFont);
@@ -2631,7 +2632,8 @@ uint8_t print_footer() {
     if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON",1,1);
     else print_label_at_footer_grid(" Aux: Off",1,1);
         
-    sprintf(message, " Buz:%d", BuzzerLevel);
+//    sprintf(message, " Buz:%d", BuzzerLevel);
+    sprintf(message, "FPS:%d", frames_count);
     print_label_at_footer_grid(message,2,0);
 
     sprintf(message," %s %s %s",
@@ -2641,8 +2643,6 @@ uint8_t print_footer() {
             );
     print_label_at_footer_grid(message,2,1);
     
-//    sprintf(message, "FPS:%d", frames_count);
-//    print_label_at_footer_grid(message,2,0);
     return line - UI_FOOTER_START_LINE;
 }
 
@@ -2824,7 +2824,6 @@ void StartCountdownTimer() {
             //Read again in case was changed from other mode
             break;
     }
-    countdown_start_time = get_corrected_time_msec();
 }
 void UpdateShot(time_t now){
     time_t dt = now - measurement_start_time_msec;
