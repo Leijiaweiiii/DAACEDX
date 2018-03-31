@@ -2824,6 +2824,7 @@ void StartCountdownTimer() {
             //Read again in case was changed from other mode
             break;
     }
+    countdown_start_time = get_corrected_time_msec();
 }
 void UpdateShot(time_t now){
     time_t dt = now - measurement_start_time_msec;

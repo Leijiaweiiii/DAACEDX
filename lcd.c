@@ -120,6 +120,7 @@ void lcd_draw_pixel_b(uint8_t x_pos, uint8_t y_pos, uint8_t polarity) {
     y_pos += Y_OFFSET;
     update_page(&lcd_buffer[PAGE(y_pos)][x_pos], y_pos, polarity);
     lcd_update_boundingbox(&full_screen_update_boundary, x_pos, y_pos, x_pos, y_pos);
+        // TODO: Calculate this in more generic way - now this will work only for the main screen
 }
 
 void lcd_set_pixel_b(uint8_t x_pos, uint8_t y_pos) {

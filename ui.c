@@ -27,7 +27,8 @@ void print_big_time_label(time_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    print_big_time_label(DelayTime);
+    time_t reminder = DelayTime - get_corrected_time_msec() + countdown_start_time;
+    print_big_time_label(reminder /100 * 100);
 }
 
 void set_screen_title(char * value) {
@@ -40,7 +41,7 @@ void PowerOffTimer() {
 }
 
 void StartTimer() {
-    lcd_clear_data_ram();
+    lcd_clear();
     set_screen_title("Timer Run");
     CurPar_idx = 0;
     StartParTimer();
