@@ -437,24 +437,26 @@ void TestBattery(void) {
 // <editor-fold defaultstate="collapsed" desc="Settings Display">
 
 uint8_t SettingsTitle(void) {
-    uint8_t top;
-    top = 0;
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    TestBattery();
-    lcd_write_string(SettingsMenu.MenuTitle, 0, 0, MediumFont, BLACK_OVER_WHITE);
-    if (AR_IS.BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
-    lcd_battery_info(LCD_WIDTH - 20, 0, battery_level);
-    top += (MediumFont->height + 1);
-    lcd_draw_hline(0, LCD_WIDTH, top, BLACK_OVER_WHITE);
-    top += 2;
-    return top;
+//    uint8_t top;
+//    top = 0;
+//    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
+//    TestBattery();
+//    lcd_write_string(SettingsMenu.MenuTitle, 0, 0, MediumFont, BLACK_OVER_WHITE);
+//    if (AR_IS.BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
+//    lcd_battery_info(LCD_WIDTH - 20, 0, battery_level);
+//    top += (MediumFont->height + 1);
+//    lcd_draw_hline(0, LCD_WIDTH, top, BLACK_OVER_WHITE);
+//    top += 2;
+    set_screen_title(SettingsMenu.MenuTitle);
+    print_header();
+    return UI_COUNTER_START_LINE;
 }
 
 void SettingsDisplay(void) {
     uint8_t i, color, p, lineh, height, mpos;
     char msg[10];
     p = Menu.top;
-    lineh = MediumFont->height + 1;
+    lineh = MediumFont->height ;
     height = LCD_HEIGHT - lineh;
     Menu.PageSize = 6;
 
@@ -471,51 +473,56 @@ void SettingsDisplay(void) {
     if (Menu.refresh) {
         lcd_clear_block(0, Menu.top, LCD_WIDTH, LCD_HEIGHT);
         for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
-            if ((p >= (Menu.pos + Menu.top)) && (p <= (height + Menu.pos))) {
+            if (p >= Menu.top && (p <= height)) {
                 if (Menu.menu == i + 1) color = WHITE_OVER_BLACK;
                 else color = BLACK_OVER_WHITE;
-                lcd_write_string(SettingsMenu.MenuItem[i], 3, p - Menu.pos, MediumFont, color);
+                lcd_write_string(SettingsMenu.MenuItem[i], 3, p , MediumFont, color);
             }
             p += lineh;
         }
     } else {
         for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
-            if (Menu.menu == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p - Menu.pos, MediumFont, WHITE_OVER_BLACK);
-            if (Menu.prev == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p - Menu.pos, MediumFont, BLACK_OVER_WHITE);
+            if (Menu.menu == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
+            if (Menu.prev == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, BLACK_OVER_WHITE);
             p += lineh;
         }
     }
+    lcd_refresh(&full_screen_update_boundary);
+}
+
+void increment_menu_index() {
+    if (Menu.menu > 1) {
+        Menu.prev = Menu.menu;
+        Menu.menu--;
+        Menu.refresh = False;
+        SettingsDisplay();
+    } else Beep();
+}
+
+void decrement_menu_index() {
+    if (Menu.menu < (SettingsMenu.TotMenuItems)) {
+        Menu.prev = Menu.menu;
+        Menu.menu++;
+        Menu.refresh = False;
+        SettingsDisplay();
+    } else Beep();
 }
 
 void MenuSelection(void) {
-    TBool Done = False;
-    while (!Done) {
-        if (Keypressed) {
-
-            switch (Key) {
-                case KeyUp:if (Menu.menu > 1) {
-                        Menu.prev = Menu.menu;
-                        Menu.menu--;
-                        Menu.refresh = False;
-                        SettingsDisplay();
-                    } else Beep();
-                    break;
-                case KeyDw:if (Menu.menu < (SettingsMenu.TotMenuItems)) {
-                        Menu.prev = Menu.menu;
-                        Menu.menu++;
-                        Menu.refresh = False;
-                        SettingsDisplay();
-                    } else Beep();
-                    break;
-                case KeyIn:
-                    Done = True;
-                    break;
-                case KeyBk:
-                    Menu.menu = 0;
-                    Done = True;
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
+    if (Keypressed) {
+        switch (Key) {
+            case KeyUp:
+                increment_menu_index();
+                break;
+            case KeyDw:
+                decrement_menu_index();
+                break;
+            case KeyIn:
+                Menu.selected = Menu.menu;
+                break;
+            case KeyBk:
+                Menu.menu = 0;
+                break;
         }
     }
 }
@@ -2347,7 +2354,7 @@ void DoSet(void) {
 
 void SetSettingsMenu() {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
-    SettingsMenu.TotMenuItems = 15;
+    SettingsMenu.TotMenuItems = 13;
     strcpy(SettingsMenu.MenuTitle, "Settings ");
     strcpy(SettingsMenu.MenuItem[0], " Delay ");
     strcpy(SettingsMenu.MenuItem[1], " Par ");
@@ -2370,6 +2377,7 @@ void DoSettings(void) {
     Menu.menu = 1;
     Menu.pos = 0;
     Menu.top = 0;
+    Menu.selected = 0;
 
     Menu.lineh = MediumFont->height + 1;
     SetSettingsMenu();
@@ -2382,12 +2390,15 @@ void DoSettings(void) {
     Menu.page = 0; //Force refresh
 
     do {
-        SetSettingsMenu();
+        TestBattery();
+        handle_rotation();
         SettingsTitle();
+        SetSettingsMenu();
         SettingsDisplay();
         MenuSelection();
-        if (Menu.menu > 0) DoSet();
-    } while (Menu.menu > 0);
+        handle_settings_screen();
+        if (Menu.selected > 0) DoSet();
+    } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
         saveSettings();
         PopMsg("Saved", 200);
@@ -2544,8 +2555,8 @@ uint8_t print_time(uint8_t line, uint8_t pos) {
     sprintf(message,
             "%02d%s%02d %s",
             get_hour(),
-//            (rtc_time_sec % 4) ? ":" : ".",
-            ":",
+            (rtc_time_sec % 4) ? ":" : ".",
+//            ":",
             get_minute(),
             ScreenTitle);
     uint8_t width = lcd_string_lenght(message, MediumFont);
@@ -2918,16 +2929,11 @@ void main(void) {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
     uint8_t to = 0;
-    TestBattery();
-    time_t last_refresh = rtc_time_msec;
+
     while (True) {
-
+        TestBattery();
         handle_rotation();
-
         handle_ui();
-        print_header();
-        print_footer();
-        
 
         lcd_refresh(&full_screen_update_boundary);
     }

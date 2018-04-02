@@ -244,8 +244,8 @@ time_t parStartTime_ms;
 
 typedef struct DispTy
 {
-    uint8_t menu,pos,top,lineh,height,prev,page,PageSize;
-    TBool refresh;
+    uint8_t menu,selected,pos,top,lineh,height,prev,page,PageSize;
+    TBool refresh,active;
 }SetMenuTy;
 struct MenuTy
 {
@@ -268,7 +268,8 @@ void StartParTimer();
 void PlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header();
+uint8_t print_footer();
 uint8_t print_time(uint8_t line, uint8_t pos);
-
+void handle_rotation();
 
 #endif /*  _DAACED_H_ */

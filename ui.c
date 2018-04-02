@@ -61,7 +61,6 @@ void StartSettingsMenuScreen() {
 
 void StopTimer() {
     set_screen_title("Timer Idle");
-   
 }
 
 void NextReviewItem() {
@@ -71,9 +70,9 @@ void NextReviewItem() {
 void handle_power_off() {
     switch (comandToHandle) {
         case StartLong:
+            ui_state = TimerIdle;
             DoPowerOn();
             StopTimer();
-            ui_state = TimerIdle;
             break;
         default:
             //do nothing - we're sleeping;
@@ -84,33 +83,35 @@ void handle_power_off() {
 void handle_timer_idle() {
     switch (comandToHandle) {
         case StartLong:
-            PowerOffTimer();
             ui_state = PowerOff;
+            PowerOffTimer();
             break;
         case StartShort:
-            StartTimer();
             ui_state = TimerCountdown;
+            StartTimer();            
             break;
         case ReviewShort:
-            StartReviewScreen();
             ui_state = ReviewScreen;
+            StartReviewScreen();            
             break;
         case ReviewLong:
-            StartSettingsMenuScreen();
             ui_state = SettingsScreen;
+            StartSettingsMenuScreen();
             break;
         default:
             //All the rest ignoring
             break;
     }
     update_shot_time_on_screen();
+    print_header();
+    print_footer();
 }
 
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-            StopTimer();
             ui_state = TimerIdle;
+            StopTimer();            
             break;
         case ParEvent:
             StartParTimer();
@@ -123,18 +124,18 @@ void HandleTimerEvents() {
 void handle_timer_listening() {
     switch (comandToHandle) {
         case StartLong:
-            PowerOffTimer();
             ui_state = PowerOff;
+            PowerOffTimer();
             break;
         case StartShort:
             if (AutoStart) {
-                StartTimer();
                 ui_state = TimerListening;
+                StartTimer();                
             }
             break;
         case ReviewShort:
-            StopTimer();
             ui_state = TimerIdle;
+            StopTimer();
             break;
         default:
             // All the rest keys handled inside the next handler.
@@ -144,25 +145,27 @@ void handle_timer_listening() {
             break;
     }
     update_shot_time_on_screen();
+    print_header();
+    print_footer();
 }
 
 void handle_review_screen() {
     switch (comandToHandle) {
         case StartLong:
-            PowerOffTimer();
             ui_state = PowerOff;
+            PowerOffTimer();
             break;
         case StartShort:
-            StopTimer();
             ui_state = TimerIdle;
+            StopTimer();
             break;
         case ReviewShort:
-            NextReviewItem();
             ui_state = ReviewScreen;
+            NextReviewItem();
             break;
         case ReviewLong:
-            StartSettingsMenuScreen();
             ui_state = SettingsScreen;
+            StartSettingsMenuScreen();
             break;
         default:
             //All the rest ignoring
@@ -173,19 +176,20 @@ void handle_review_screen() {
 void handle_settings_screen() {
     switch (comandToHandle) {
         case StartLong:
-            PowerOffTimer();
             ui_state = PowerOff;
+            PowerOffTimer();
             break;
         case StartShort:
-            StopTimer();
             ui_state = TimerIdle;
+            StopTimer();            
             break;
         case ReviewShort:
-            StartReviewScreen();
             ui_state = ReviewScreen;
+            StartReviewScreen();            
             break;
         default:
             //All the rest ignoring
+            
             break;
     }
 }
@@ -193,22 +197,22 @@ void handle_settings_screen() {
 void handle_countdown() {
     switch (comandToHandle) {
         case StartLong:
-            PowerOffTimer();
             ui_state = PowerOff;
+            PowerOffTimer();
             break;
         case StartShort:
             if (AutoStart) {
-                StartTimer();
                 ui_state = TimerListening;
+                StartTimer();                
             }
             break;
         case ReviewShort:
-            StopTimer();
             ui_state = TimerIdle;
+            StopTimer();            
             break;
         case CountdownExpired:
-            PlayStartSound();
             ui_state = TimerListening;
+            PlayStartSound();
             break;
         default:
             // All the rest keys handled inside the next handler.
