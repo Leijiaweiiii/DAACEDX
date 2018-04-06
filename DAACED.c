@@ -2902,11 +2902,12 @@ static void interrupt isr(void) {
         }
         update_screen_model();
     }
-
 }
 // </editor-fold>
 
 void main(void) {
+    time_t start,duration;
+    char message[16];
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     PIC_init();
     PowerON
@@ -2928,14 +2929,28 @@ void main(void) {
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
-    uint8_t to = 0;
-
+    
+    lcd_clear_data_ram();
     while (True) {
         TestBattery();
-        handle_rotation();
-        handle_ui();
-
-        lcd_refresh(&full_screen_update_boundary);
+//        handle_rotation();
+//        handle_ui();
+//
+//        lcd_refresh(&full_screen_update_boundary);
+        start = get_corrected_time_msec();
+//        print_header();
+//        lcd_clear_data_ram();
+        lcd_write_string_d("It Works!!!",8,8,&robotoCondensed_20ptFontInfo,BLACK_OVER_WHITE);
+        
+        duration = get_corrected_time_msec() - start;
+        sprintf(message,"t=%05u",duration);
+        lcd_clear_block_d(
+                8,8+robotoCondensed_20ptFontInfo.height + 1,
+                robotoCondensed_20ptFontInfo.char_descriptors['0'].width*7,
+                8+robotoCondensed_20ptFontInfo.height*3);
+        lcd_write_string_d(message,8,8+robotoCondensed_20ptFontInfo.height,&robotoCondensed_20ptFontInfo,BLACK_OVER_WHITE);
+//        lcd_refresh(&full_screen_update_boundary);
+        delay_rtc_ms(200-duration);
     }
     // </editor-fold>
 }

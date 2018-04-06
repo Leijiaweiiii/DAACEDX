@@ -22,13 +22,16 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>DAACED.c</itemPath>
-      <itemPath>DAACEDfont.c</itemPath>
       <itemPath>DAACEDbitmap.c</itemPath>
       <itemPath>rtc.c</itemPath>
       <itemPath>lcd.c</itemPath>
       <itemPath>ui.c</itemPath>
       <itemPath>uart.c</itemPath>
       <itemPath>adc.c</itemPath>
+      <itemPath>TimesNewRoman12pt.c</itemPath>
+      <itemPath>robotoCondensed16pt.c</itemPath>
+      <itemPath>tahoma8pt.c</itemPath>
+      <itemPath>robotoCondensed20pt.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

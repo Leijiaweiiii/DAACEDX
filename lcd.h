@@ -6,24 +6,29 @@
 #include "DAACEDcommon.h"
 #include "DAACEDbitmap.h"
 
-#define UI_COUNTER_START_LINE   18
+#define UI_COUNTER_START_LINE   16
 #define UI_COUNTER_START_PIXEL  0
-#define UI_FOOTER_START_LINE    83
+#define UI_FOOTER_START_LINE    80
 #define UI_FOOTER_GRID_H_CELLS  3
 #define UI_FOOTER_GRID_V_CELLS  2
-    
-#define UI_FOOTER_GRID_WIDTH    (LCD_WIDTH/UI_FOOTER_GRID_H_CELLS)
-#define UI_FOOTER_GRID_HEIGH    ((LCD_HEIGHT-UI_FOOTER_START_LINE)/UI_FOOTER_GRID_V_CELLS)
-#define UI_FOOTER_GRID_X(x)     (x*(UI_FOOTER_GRID_WIDTH)+2)
-#define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*(UI_FOOTER_GRID_HEIGH)+2)
-
+    // (LCD_WIDTH/UI_FOOTER_GRID_H_CELLS)
+#define UI_FOOTER_GRID_WIDTH    (53)
+// ((LCD_HEIGHT-UI_FOOTER_START_LINE)/UI_FOOTER_GRID_V_CELLS)
+#define UI_FOOTER_GRID_HEIGH    (16)
+#define UI_FOOTER_GRID_X(x)     (x*UI_FOOTER_GRID_WIDTH)
+#define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*UI_FOOTER_GRID_HEIGH)
+#define LCD_BLACK_PAGE          0xFF
+#define LCD_WHITE_PAGE          0x00
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
 #define SMALL_LCD
+#define MSB_FIRST
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
+#define LCD_MAX_ADDRESS         (0xA1)
 #define PAGE_HEIGTH              (8)
-#define LCD_MAX_PAGES           (LCD_HEIGHT/PAGE_HEIGTH)+1
+#define LCD_MAX_PAGES           (0x0F)
 #define PAGE(x)                 x/PAGE_HEIGTH
+#define START_OF_PAGE(x)        (x%PAGE_HEIGTH == 0)
 #define Y_OFFSET                (6)
 #define BLACK_OVER_WHITE        (0x01)
 #define WHITE_OVER_BLACK        (0x00)
@@ -66,7 +71,7 @@ UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 
 #define ORIENTATION_INVERTED            1
 #define ORIENTATION_INVERSE_THRESHOLD   400
 TBool orientation = ORIENTATION_NORMAL;
-TBool orientation_change_enabled = true;
+TBool orientation_change_enabled = false;
 
 #define topSpace     20
 #define botSpace     10
@@ -77,8 +82,8 @@ TBool orientation_change_enabled = true;
 #define PopY2       LCD_HEIGHT*3/4
 
 const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
-const FONT_INFO *MediumFont = &timesNewRoman_11ptFontInfo;
-const FONT_INFO *BigFont = &microsoftSansSerif_42ptFontInfo;
+const FONT_INFO *MediumFont = &timesNewRoman_12ptFontInfo;
+const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
 
 
 volatile uint8_t frames_count = 0;
@@ -208,7 +213,8 @@ void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage);
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_clear_data_ram();
-
+void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
+void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 // </editor-fold>
 #endif	/* LCD_H */
 

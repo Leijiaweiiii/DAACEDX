@@ -4,26 +4,33 @@
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
     double s;
-    uint8_t x_offset;
+    uint8_t x_pos = 0;
+    uint8_t y_pos = UI_COUNTER_START_LINE + BigFont->height;
     sprintf(message, "#%03d", shot_no);
-    lcd_write_string(message, 0, UI_COUNTER_START_LINE + BigFont->height, MediumFont, BLACK_OVER_WHITE);
+    lcd_write_string_d(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
-    x_offset = lcd_string_lenght(message, MediumFont)+7;
+    x_pos = lcd_string_lenght(message, SmallFont) + 7;
     s = 0.001 * split;
     sprintf(message, "Split %.2f", s);
     
-    lcd_write_string(
+    lcd_write_string_d(
             message,
-            x_offset,
-            UI_COUNTER_START_LINE + BigFont->height, MediumFont,
+            x_pos,
+            y_pos, SmallFont,
             BLACK_OVER_WHITE
             );
 }
 
 void print_big_time_label(time_t t) {
-    char message[7];
-    sprintf(message, "%3.2f", ((float) t)/ 1000);
-    lcd_write_string(message, 0, UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
+    char message[16];
+    time_t sec = t/1000;
+    time_t ms = sec * 1000;
+    ms = t - ms;
+    sprintf(message, "%.02f ", 0.001 * ms + sec);
+    if(orientation == ORIENTATION_NORMAL)
+        lcd_write_string_d(message, 0, UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
+    else
+        lcd_write_string_d(message, LCD_WIDTH, LCD_HEIGHT - UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void update_countdown_time_on_screen() {
