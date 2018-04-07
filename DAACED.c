@@ -2433,21 +2433,21 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     print_header();
 
     //String line
-    lcd_write_char('^', 0, line, MediumFont, BLACK_OVER_WHITE);
+
     line += halfline;
-    sprintf(message, "%s Str# %2d/%2d %3.2f ",
-            str_selection,
+    sprintf(message, " Str# %2d/%2d %3.2f ",
             CurShootStringDisp,
             ShootString.TotShoots,
             (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
     lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
-    line += halfline;
-    lcd_write_char('_', 0, line, MediumFont, BLACK_OVER_WHITE);
     line += MediumFont->height;
-    //        lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
     for (uint8_t col = 0; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
         lcd_write_char('_', col, line, MediumFont, BLACK_OVER_WHITE);
     }
+    for (uint8_t i = PAGE(UI_HEADER_END_LINE);i<=PAGE(line);i++){
+        lcd_write_string(str_selection, 0, i*PAGE_HEIGTH, MediumFont, BLACK_OVER_WHITE);
+    }
+    
     line += MediumFont->height;
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
@@ -2459,7 +2459,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
                 (float) ShootString.ShootTime[CurShoot - 1] / 1000
                 );
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
-        lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
+//        lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
         sprintf(message, REVIEW_SPLIT_FORMAT, (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
         lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
@@ -2480,7 +2480,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
                     REVIEW_SPLIT_FORMAT,
                     (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000
                     );
-            lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
+            lcd_write_string(message, 92, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
     }
@@ -2495,7 +2495,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
             lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         }
     }
-    lcd_write_char('_', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
+//    lcd_write_char('_', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
 }
 
 void review_scroll_shot_up() {

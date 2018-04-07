@@ -829,16 +829,18 @@ const uint_8 timesNewRoman_12ptBitmaps[] =
 	0x20, 0x04, //   #          #  
 	0x40, 0x02, //  #            # 
 
-	/* @1278 '|' (1 pixels wide) */
+	/* @1278 '|' (3 pixels wide) */
+    0x00, 0x00,
 	0xFF, 0xFE, // ############### 
-
-	/* @1280 '}' (4 pixels wide) */
+    0x00, 0x00,
+    
+	/* @1284 '}' (4 pixels wide) */
 	0x40, 0x02, //  #            # 
 	0x20, 0x04, //   #          #  
 	0x1F, 0x78, //    ##### ####   
 	0x00, 0x80, //         #       
 
-	/* @1288 '~' (9 pixels wide) */
+	/* @1292 '~' (9 pixels wide) */
 	0x01, 0x00, //        #        
 	0x00, 0x80, //         #       
 	0x00, 0x80, //         #       
@@ -854,7 +856,7 @@ const uint_8 timesNewRoman_12ptBitmaps[] =
 /* { [Char width in bits], [Offset into timesNewRoman_12ptCharBitmaps in bytes] } */
 const FONT_CHAR_INFO timesNewRoman_12ptDescriptors[] = 
 {
-	{6, 0}, 		/*   */ 
+	{3, 0}, 		/*   */ 
 	{1, 12}, 		/* ! */ 
 	{3, 14}, 		/* " */ 
 	{8, 20}, 		/* # */ 
@@ -946,9 +948,9 @@ const FONT_CHAR_INFO timesNewRoman_12ptDescriptors[] =
 	{7, 1244}, 		/* y */ 
 	{6, 1258}, 		/* z */ 
 	{4, 1270}, 		/* { */ 
-	{1, 1278}, 		/* | */ 
-	{4, 1280}, 		/* } */ 
-	{9, 1288}, 		/* ~ */ 
+	{3, 1278}, 		/* | */ 
+	{4, 1284}, 		/* } */ 
+	{9, 1292}, 		/* ~ */ 
 };
 
 /* Font information for Times New Roman 12pt */
