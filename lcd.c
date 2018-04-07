@@ -67,7 +67,7 @@ void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_by
         spi_write(data[index]);
     }
 }
-
+#ifndef LCD_DIRECT_ACCESS
 void lcd_update_boundingbox(UpdateBoundary * box, uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
     box->changed |= box->min_x > x_min;
     box->changed |= box->max_x < x_max;
@@ -208,6 +208,7 @@ void lcd_draw_vline_b(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t pol
 void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
     lcd_draw_line_b(x0_pos, y_pos, x1_pos, y_pos, polarity);
 }
+#endif
 
 void lcd_clear_data_ram() {
     lcd_send_command(CMD_EXTENSION_1);
@@ -226,7 +227,7 @@ void lcd_clear_data_ram() {
         lcd_send_data(LCD_WHITE_PAGE);
     }
 }
-
+#ifndef LCD_DIRECT_ACCESS
 void lcd_refresh(UpdateBoundary * box) {
     uint8_t column, max_column, page;
     // Don't even try to update unchanged box
@@ -285,6 +286,7 @@ uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FON
     }
     return (font->char_descriptors[c].width);
 }
+#endif
 
 // write char directly to the screen
 uint8_t lcd_write_char_d(unsigned int c,
@@ -296,8 +298,8 @@ uint8_t lcd_write_char_d(unsigned int c,
     int8_t i;
     const uint8_t *bitmap,*column_start;
     heigh_in_bytes = (font->height%8==0)?font->height/8:font->height/8+1;
-//    if ((c < font->char_start) || (c > font->char_end)) return 0;
-//    if( ! START_OF_PAGE(y_pos)) return 0; // Don't drow not on the edge of the page
+    if ((c < font->char_start) || (c > font->char_end)) return 0;
+    if( ! START_OF_PAGE(y_pos)) return 0; // Don't drow not on the edge of the page
     c = c - font->char_start; // 'c' now become index to tables.
     bitmap = font->bitmap + font->char_descriptors[c].offset;
     start_page = PAGE(y_pos) + Y_OFFSET;
@@ -330,7 +332,7 @@ uint8_t lcd_write_char_d(unsigned int c,
 
     return (font->char_descriptors[c].width);
 }
-
+#ifndef LCD_DIRECT_ACCESS
 void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
@@ -340,6 +342,7 @@ void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
         }
     }
 }
+#endif
 
 // TODO: Implement lcd_get_block_d
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos,uint8_t polarity) {
@@ -374,7 +377,7 @@ void lcd_fill_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_send_block_d(x1_pos,y1_pos,x2_pos,y2_pos,WHITE_OVER_BLACK);
 }
-
+#ifndef LCD_DIRECT_ACCESS
 void lcd_clear_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
@@ -384,6 +387,7 @@ void lcd_clear_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y
         }
     }
 }
+#endif
 
 uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     uint8_t strlng = 0;
@@ -395,7 +399,28 @@ uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     }
     return strlng;
 }
+void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
+    if (str_ptr == NULL) return;
 
+    while (*str_ptr) {
+        x_pos += lcd_write_char_d(*str_ptr, x_pos, y_pos, font, polarity);
+        ++str_ptr;
+        if (*str_ptr) {
+            if (polarity == WHITE_OVER_BLACK) {
+                lcd_fill_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
+            } else {
+                lcd_clear_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
+            }
+            x_pos += font->character_spacing;
+        }
+        if (x_pos >= LCD_WIDTH) {
+            y_pos += (font->height + 1);
+            x_pos %= LCD_WIDTH;
+            y_pos %= LCD_HEIGHT;
+        }
+    }
+}
+#ifndef LCD_DIRECT_ACCESS
 void lcd_write_string_b(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     if (str_ptr == NULL) return;
 
@@ -418,27 +443,6 @@ void lcd_write_string_b(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const
     }
 }
 
-void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    if (str_ptr == NULL) return;
-
-    while (*str_ptr) {
-        x_pos += lcd_write_char_d(*str_ptr, x_pos, y_pos, font, polarity);
-        ++str_ptr;
-        if (*str_ptr) {
-            if (polarity == WHITE_OVER_BLACK) {
-                lcd_fill_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-            } else {
-                lcd_clear_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-            }
-            x_pos += font->character_spacing;
-        }
-        if (x_pos >= LCD_WIDTH) {
-            y_pos += (font->height + 1);
-            x_pos %= LCD_WIDTH;
-            y_pos %= LCD_HEIGHT;
-        }
-    }
-}
 
 void lcd_draw_bitmap_b(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
     for (uint8_t y = 0; y < bitmap_data->image_height; y++) {
@@ -481,15 +485,16 @@ void lcd_battery_info_d(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage
     }
 }
 
-
+#endif
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="LCD functions implementations">
 
 void lcd_init() {
+#ifndef LCD_DIRECT_ACCESS
     memset(lcd_buffer, 0, sizeof (lcd_buffer)); // Clear LCD Buffer.
     lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1); // Reset refresh window.
-
+#endif
     LCD_CS_DESELECT();
 
     __delay_ms(10);
@@ -537,12 +542,8 @@ void lcd_init() {
     lcd_send_data(0x00); // ??
 
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
+    lcd_send_data(LCD_ORIENTATION_NORMAL);
 
-#ifdef SMALL_LCD
-    lcd_send_data(0x01);
-#else
-    lcd_send_data(0x00);
-#endif
 #ifdef MSB_FIRST
     lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
 #else
@@ -568,9 +569,10 @@ void lcd_init() {
 }
 
 void lcd_clear() {
-    memset(lcd_buffer, 0, sizeof (lcd_buffer));
-    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
-    lcd_refresh(&full_screen_update_boundary);
+//    memset(lcd_buffer, 0, sizeof (lcd_buffer));
+//    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+//    lcd_refresh(&full_screen_update_boundary);
+    lcd_clear_data_ram();
 }
 
 void lcd_increase_contrast() {
@@ -585,6 +587,7 @@ void lcd_decrease_contrast() {
     lcd_send_command(CMD_VOP_CON_DEC_VOP);
 }
 
+#ifndef LCD_DIRECT_ACCESS
 void lcd_set_pixel(uint8_t x_pos, uint8_t y_pos) {
     lcd_set_pixel_b(x_pos, y_pos);
 }
@@ -604,9 +607,9 @@ void lcd_draw_vline(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polar
 void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
     lcd_draw_hline_b(x0_pos, x1_pos, y_pos, polarity);
 }
-
+#endif
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_char_b(c, x_pos, y_pos, font, polarity);
+    lcd_write_char_d(c, x_pos, y_pos, font, polarity);
 }
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
@@ -618,26 +621,35 @@ void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const F
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     char msg[10];
     sprintf(msg, "%d", Int);
-    lcd_write_string_b("       ", x_pos, y_pos, font, polarity);
-    lcd_write_string_b(msg, x_pos, y_pos, font, polarity);
+    lcd_write_string_d("       ", x_pos, y_pos, font, polarity);
+    lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
 }
-
+// TODO: Implement
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    lcd_draw_bitmap_b(x_pos, y_pos, bitmap_data);
+//    lcd_draw_bitmap_d(x_pos, y_pos, bitmap_data);
 }
-
+// TODO: Implement
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     if (battery_percentage > 100) battery_percentage = 100;
-    lcd_battery_info_b(x_pos, y_pos, battery_percentage);
+ //   lcd_battery_info_d(x_pos, y_pos, battery_percentage);
 //    lcd_refresh(&full_screen_update_boundary);
 }
 
+
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_fill_block_b(x1_pos, y1_pos, x2_pos, y2_pos);
+    lcd_fill_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
 }
 
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_clear_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
+}
+
+void lcd_set_orientation() {
+    lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
+    if (orientation == ORIENTATION_NORMAL)
+        lcd_send_data(LCD_ORIENTATION_NORMAL);
+    else
+        lcd_send_command(LCD_ORIENTATION_INVERTED);
 }
 // </editor-fold>
 

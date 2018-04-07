@@ -437,26 +437,26 @@ void TestBattery(void) {
 // <editor-fold defaultstate="collapsed" desc="Settings Display">
 
 uint8_t SettingsTitle(void) {
-//    uint8_t top;
-//    top = 0;
-//    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-//    TestBattery();
-//    lcd_write_string(SettingsMenu.MenuTitle, 0, 0, MediumFont, BLACK_OVER_WHITE);
-//    if (AR_IS.BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
-//    lcd_battery_info(LCD_WIDTH - 20, 0, battery_level);
-//    top += (MediumFont->height + 1);
-//    lcd_draw_hline(0, LCD_WIDTH, top, BLACK_OVER_WHITE);
-//    top += 2;
+    //    uint8_t top;
+    //    top = 0;
+    //    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
+    //    TestBattery();
+    //    lcd_write_string(SettingsMenu.MenuTitle, 0, 0, MediumFont, BLACK_OVER_WHITE);
+    //    if (AR_IS.BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
+    //    lcd_battery_info(LCD_WIDTH - 20, 0, battery_level);
+    //    top += (MediumFont->height + 1);
+    //    lcd_draw_hline(0, LCD_WIDTH, top, BLACK_OVER_WHITE);
+    //    top += 2;
     set_screen_title(SettingsMenu.MenuTitle);
     print_header();
-    return UI_COUNTER_START_LINE;
+    return UI_HEADER_END_LINE;
 }
 
 void SettingsDisplay(void) {
     uint8_t i, color, p, lineh, height, mpos;
     char msg[10];
-    p = Menu.top;
-    lineh = MediumFont->height ;
+    p = UI_HEADER_END_LINE;
+    lineh = MediumFont->height;
     height = LCD_HEIGHT - lineh;
     Menu.PageSize = 6;
 
@@ -471,15 +471,16 @@ void SettingsDisplay(void) {
     }
 
     if (Menu.refresh) {
-        lcd_clear_block(0, Menu.top, LCD_WIDTH, LCD_HEIGHT);
+        lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, LCD_HEIGHT);
         for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
             if (p >= Menu.top && (p <= height)) {
                 if (Menu.menu == i + 1) color = WHITE_OVER_BLACK;
                 else color = BLACK_OVER_WHITE;
-                lcd_write_string(SettingsMenu.MenuItem[i], 3, p , MediumFont, color);
+                lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, color);
             }
             p += lineh;
         }
+        Menu.refresh = False;
     } else {
         for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
             if (Menu.menu == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
@@ -487,7 +488,7 @@ void SettingsDisplay(void) {
             p += lineh;
         }
     }
-    lcd_refresh(&full_screen_update_boundary);
+    //    lcd_refresh(&full_screen_update_boundary);
 }
 
 void increment_menu_index() {
@@ -509,22 +510,31 @@ void decrement_menu_index() {
 }
 
 void MenuSelection(void) {
-    if (Keypressed) {
-        switch (Key) {
-            case KeyUp:
-                increment_menu_index();
-                break;
-            case KeyDw:
-                decrement_menu_index();
-                break;
-            case KeyIn:
-                Menu.selected = Menu.menu;
-                break;
-            case KeyBk:
-                Menu.menu = 0;
-                break;
-        }
+    switch (comandToHandle) {
+        case UpShort:
+            increment_menu_index();
+            break;
+        case DownShort:
+            decrement_menu_index();
+            break;
+        case OkShort:
+        case OkLong:
+            Menu.selected = Menu.menu;
+            break;
+        case BackShort:
+        case BackLong:
+            Menu.menu = 0;
+            break;
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;
+            break;
+        case ReviewShort:ui_state = ReviewScreen;
+            break;
+        default:
+            break;
     }
+    comandToHandle = None;
 }
 
 uint8_t PopMsg(const char* msg, uint16_t wait) {
@@ -829,7 +839,7 @@ void DoADC(uint8_t mode) {
                 if (yValue < 2) yValue = 2;
                 if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
                 //lcd_set_pixel(xValue,yValue);
-                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
+//                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
                 __delay_ms(10);
                 if (xValue > 155) {
                     xValue = 3;
@@ -858,7 +868,7 @@ void DoADC(uint8_t mode) {
                 if (yValue < 2) yValue = 2;
                 if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
                 //lcd_set_pixel(xValue,yValue);
-                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
+//                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
                 if (mode == 2) __delay_ms(50);
                 if (xValue > 155) {
                     xValue = 3;
@@ -887,7 +897,7 @@ void DoADC(uint8_t mode) {
                 if (yValue < 2) yValue = 2;
                 if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
                 //lcd_set_pixel(xValue,yValue);
-                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
+//                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
                 __delay_ms(50);
                 if (xValue > 155) {
                     xValue = 3;
@@ -1140,7 +1150,7 @@ void saveSettings() {
     eeprom_write_wdata(BuzzerStartDuration_Address, BuzzerStartDuration);
     eeprom_write_wdata(BuzzerLevel_Address, BuzzerLevel);
     eeprom_write_wdata(CustomCDtime_Address, CustomCDtime);
-//    eeprom_write_wdata(BT_Address, BT);
+    //    eeprom_write_wdata(BT_Address, BT);
     eeprom_write_wdata(Delay_Address, DelayMode);
     eeprom_write_wdata(DelayTime_Address, DelayTime);
     eeprom_write_wdata(BackLightLevel_Address, BackLightLevel);
@@ -1149,14 +1159,14 @@ void saveSettings() {
 void getSettings() {
     Sensitivity = eeprom_read_wdata(Sensitivity_Address);
     Filter = eeprom_read_wdata(Filter_Address);
-//    AutoStart = eeprom_read_wdata(AutoStart_Address);
+    //    AutoStart = eeprom_read_wdata(AutoStart_Address);
     AR_IS.AR_IS = eeprom_read_wdata(AR_IS_Address);
     BuzzerFrequency = eeprom_read_wdata(BuzzerFrequency_Address);
     BuzzerParDuration = eeprom_read_wdata(BuzzerParDuration_Address);
     BuzzerStartDuration = eeprom_read_wdata(BuzzerStartDuration_Address);
     BuzzerLevel = eeprom_read_wdata(BuzzerLevel_Address);
     CustomCDtime = eeprom_read_wdata(CustomCDtime_Address);
-//    BT = eeprom_read_wdata(BT_Address);
+    //    BT = eeprom_read_wdata(BT_Address);
     DelayMode = eeprom_read_wdata(Delay_Address);
     DelayTime = eeprom_read_wdata(DelayTime_Address);
     BackLightLevel = eeprom_read_wdata(BackLightLevel_Address);
@@ -1165,16 +1175,16 @@ void getSettings() {
 void getDefaultSettings() {
     Sensitivity = 5;
     Filter = 30;
-//    AR_IS.Autostart = 1;
-//    AR_IS.Mic = 1;
-//    AR_IS.AutoRotate = 1;
-//    AR_IS.BT = 1;
-    AR_IS.AR_IS=0xFF;
+    AR_IS.Autostart = 1;
+    AR_IS.Mic = 1;
+    AR_IS.AutoRotate = 0;
+    AR_IS.BT = 1;
+    //    AR_IS.AR_IS=0xFF;
     BuzzerFrequency = 1500;
     BuzzerParDuration = 200;
     BuzzerStartDuration = 300;
-    BuzzerLevel = 0;
-    CustomCDtime = 18;
+    BuzzerLevel = 1;
+    CustomCDtime = 2000;
     DelayMode = Fixed;
     DelayTime = 3000;
     BackLightLevel = 2;
@@ -2217,7 +2227,7 @@ void SetTilt() {
     while (!Done) {
         if (Keypressed) {
             switch (Key) {
-                case KeyIn: 
+                case KeyIn:
                     AR_IS.AutoRotate != AR_IS.AutoRotate;
                     Menu.refresh = True;
                     if (AR_IS.AutoRotate) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
@@ -2374,6 +2384,7 @@ void SetSettingsMenu() {
 }
 
 void DoSettings(void) {
+    set_screen_title("Settings");
     Menu.menu = 1;
     Menu.pos = 0;
     Menu.top = 0;
@@ -2395,8 +2406,9 @@ void DoSettings(void) {
         SettingsTitle();
         SetSettingsMenu();
         SettingsDisplay();
+        define_input_action();
         MenuSelection();
-        handle_settings_screen();
+
         if (Menu.selected > 0) DoSet();
     } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
@@ -2408,99 +2420,153 @@ void DoSettings(void) {
 // </editor-fold>
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ReviewMenu">
+#define REVIEW_SHOT_FORMAT      "%s # %2d: %3.2f "
+#define REVIEW_SPLIT_FORMAT     "} %3.2f"
 
-void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp, TBool FullRedraw) {
+void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp,TBool scroll_shots) {
     char message[60];
-    uint8_t line = 0;
-    uint8_t halfline = ((MediumFont->height / 2) + 1);
+    uint8_t line = UI_HEADER_END_LINE;
+    char * str_selection = scroll_shots?" ":"|";
+    char * shot_selection = scroll_shots?"|":" ";
+    // We're assuming here that Medium font has even number of bytes heigh
+    uint8_t halfline = (MediumFont->height / 2);
+    print_header();
 
-    if (!FullRedraw) line = ((MediumFont->height * 3) + 16);
-    lcd_clear_block(0, line, LCD_WIDTH, LCD_HEIGHT);
-    if (FullRedraw) {
-        //Top Line
-        line += print_header();
-        //String line
-        lcd_write_char('^', 0, line, MediumFont, BLACK_OVER_WHITE);
-        line += halfline;
-        sprintf(message, " Str:%2d/%2d %3.2f ", CurShootStringDisp, ShootString.TotShoots, (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
-        lcd_write_string(message, 12, line, MediumFont, WHITE_OVER_BLACK);
-        line += halfline;
-        lcd_write_char('_', 0, line, MediumFont, BLACK_OVER_WHITE);
-        line += MediumFont->height;
-        lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
-        line += 15;
+    //String line
+    lcd_write_char('^', 0, line, MediumFont, BLACK_OVER_WHITE);
+    line += halfline;
+    sprintf(message, "%s Str# %2d/%2d %3.2f ",
+            str_selection,
+            CurShootStringDisp,
+            ShootString.TotShoots,
+            (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
+    lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
+    line += halfline;
+    lcd_write_char('_', 0, line, MediumFont, BLACK_OVER_WHITE);
+    line += MediumFont->height;
+    //        lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
+    for (uint8_t col = 0; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
+        lcd_write_char('_', col, line, MediumFont, BLACK_OVER_WHITE);
     }
+    line += MediumFont->height;
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     if (ShootString.ShootTime[CurShoot - 1] > 0) {
-        sprintf(message, " %2d:%3.2f ", CurShoot - 1, (float) ShootString.ShootTime[CurShoot - 1] / 1000);
+        sprintf(message,
+                REVIEW_SHOT_FORMAT,
+                shot_selection,
+                CurShoot - 1,
+                (float) ShootString.ShootTime[CurShoot - 1] / 1000
+                );
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
-        sprintf(message, "}%3.2f", (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
+        sprintf(message, REVIEW_SPLIT_FORMAT, (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
         lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
     }
 
     if (ShootString.ShootTime[CurShoot] > 0) {
-        sprintf(message, " %2d:%3.2f ", CurShoot, (float) ShootString.ShootTime[CurShoot] / 1000);
-        lcd_write_string(message, 0, line, MediumFont, WHITE_OVER_BLACK);
+        sprintf(message,
+                REVIEW_SHOT_FORMAT,
+                shot_selection,
+                CurShoot, 
+                (float) ShootString.ShootTime[CurShoot] / 1000
+                );
+        lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
         if (CurShoot < ShootString.TotShoots) {
-            sprintf(message, "}%3.2f", (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000);
+            sprintf(message,
+                    REVIEW_SPLIT_FORMAT,
+                    (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000
+                    );
             lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
     }
     if (CurShoot < ShootString.TotShoots) {
         if (ShootString.ShootTime[CurShoot + 1] > 0) {
-            sprintf(message, " %2d:%3.2f ", CurShoot + 1, (float) ShootString.ShootTime[CurShoot + 1] / 1000);
+            sprintf(message, 
+                    REVIEW_SHOT_FORMAT,
+                    shot_selection,
+                    CurShoot + 1,
+                    (float) ShootString.ShootTime[CurShoot + 1] / 1000
+                    );
             lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         }
     }
     lcd_write_char('_', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
 }
 
+void review_scroll_shot_up() {
+    if (CurShoot > 1) {
+        CurShoot--;
+    } else Beep();
+}
+
+void review_scroll_shot_down() {
+    if (CurShoot < ShootString.TotShoots) {
+        CurShoot++;
+    } else Beep();
+}
+
+void review_previous_string() {
+    if (CurShootString > 0) {
+        CurShootString--;
+        getShootString(CurShootString);
+    } else Beep();
+}
+
+void review_next_string() {
+    if (CurShootString < 30) {
+        CurShootString++;
+        getShootString(CurShootString);
+    } else Beep();
+}
+
 void DoReview() {
+    TBool scroll_shots = True;
     TestBattery();
     CurShootString = 0;
     CurShoot = 2;
-    //getShootString(CurShootString);
-    ReviewDisplay(battery_level, CurShoot, CurShootString + 1, True);
-    while (!Exit) {
+    set_screen_title("Review");
+    //    getShootString(CurShootString);
+    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
+    while (ui_state == ReviewScreen) {
+        
         TestBattery();
-        if (Keypressed) {
-            switch (Key) {
-                case KeySt: return;
-
-                case KeyUp: if (CurShoot > 1) {
-                        CurShoot--;
-                        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, False);
-                    } else Beep();
-                    while (Key == KeyUp);
-                    break;
-                case KeyDw: if (CurShoot < ShootString.TotShoots) {
-                        CurShoot++;
-                        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, False);
-                    } else Beep();
-                    while (Key == KeyDw);
-                    break;
-                case KeyInDw: if (CurShootString > 0) {
-                        CurShootString--;
-                        getShootString(CurShootString);
-                        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, True);
-                    } else Beep();
-                    while (Key == KeyInDw);
-                    break;
-                case KeyInUp: if (CurShootString < 30) {
-                        CurShootString++;
-                        getShootString(CurShootString);
-                        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, True);
-                    } else Beep();
-                    while (Key == KeyInUp);
-                    break;
-            }
+        print_header();
+        define_input_action();
+        switch (comandToHandle) {
+            case UpShort:
+                if (scroll_shots)
+                    review_scroll_shot_up();
+                else
+                    review_next_string();
+                break;
+            case ReviewShort:
+            case DownShort:
+                if (scroll_shots)
+                    review_scroll_shot_down();
+                else
+                    review_previous_string();
+                break;
+            case BackShort:
+            case OkShort:
+                scroll_shots = !scroll_shots;
+                break;
+            case StartLong:STATE_HANDLE_POWER_OFF;
+                break;
+            case StartShort:STATE_HANDLE_TIMER_IDLE;
+                break;
+            case ReviewLong:ui_state = SettingsScreen;
+                break;
+                break;
+            default:
+                break;
         }
+        comandToHandle = None;
+        ReviewDisplay(battery_level, CurShoot, CurShootString + 1,scroll_shots);
     }
 }
 // </editor-fold>
@@ -2556,25 +2622,34 @@ uint8_t print_time(uint8_t line, uint8_t pos) {
             "%02d%s%02d %s",
             get_hour(),
             (rtc_time_sec % 4) ? ":" : ".",
-//            ":",
+            //            ":",
             get_minute(),
             ScreenTitle);
-    uint8_t width = lcd_string_lenght(message, MediumFont);
-    lcd_clear_block(pos, line, width, MediumFont->height);
-    lcd_write_string(message, pos, line, MediumFont, BLACK_OVER_WHITE);
-    return MediumFont->height;
+    uint8_t width = lcd_string_lenght(message, SmallFont);
+    //    lcd_clear_block(pos, line, width, SmallFont->height);
+    lcd_write_string(message, pos, line, SmallFont, BLACK_OVER_WHITE);
+    return SmallFont->height;
+}
+
+void print_batery_text_info(uint8_t line) {
+    char message[20];
+    sprintf(message,
+            "%d%%", (battery_level > 100) ? 100 : battery_level);
+    uint8_t width = lcd_string_lenght(message, SmallFont);
+    //    lcd_clear_block(LCD_WIDTH - 8 - width, line, LCD_WIDTH, SmallFont->height);
+    lcd_write_string(message, LCD_WIDTH - 8 - width, line, SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_header() {
-    uint8_t line = 2;
+    uint8_t line = 0;
     TBool Aux = false;
     char message[10];
-    lcd_clear_block(line, 0, LCD_WIDTH, MediumFont->height);
-    print_time(line, 0);
-
-    lcd_battery_info(LCD_WIDTH - 20, line, battery_level);
-    lcd_draw_hline(0, LCD_WIDTH, MediumFont->height, BLACK_OVER_WHITE);
-    return MediumFont->height + line + 1;
+    //    lcd_clear_block_d(line, line, LCD_WIDTH, MediumFont->height);
+    print_time(line, line);
+    print_batery_text_info(line);
+    //    lcd_battery_info(LCD_WIDTH - 20, line, battery_level);
+    //    lcd_draw_hline(0, LCD_WIDTH, MediumFont->height, BLACK_OVER_WHITE);
+    return SmallFont->height;
 }
 
 void print_stats() {
@@ -2601,24 +2676,31 @@ void print_stats() {
     ////    lcd_write_string(message, pos, (LCD_HEIGHT - 5 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
 }
 
-void print_footer_grid() {
-    for (uint8_t i = UI_FOOTER_START_LINE-2; i <= LCD_HEIGHT; i += UI_FOOTER_GRID_HEIGH) {
-        lcd_draw_hline(0, LCD_WIDTH, i, BLACK_OVER_WHITE);
-    }
-    for (uint8_t i = 0; i <= LCD_WIDTH ; i += UI_FOOTER_GRID_WIDTH) {
-        lcd_draw_line(i, UI_FOOTER_START_LINE, i, LCD_HEIGHT , BLACK_OVER_WHITE);
-    }
-}
+// TODO: Implement
+//void print_footer_grid() {
+//    for (uint8_t i = UI_FOOTER_START_LINE; i <= LCD_HEIGHT; i += UI_FOOTER_GRID_HEIGH) {
+//        lcd_draw_hline(0, LCD_WIDTH, i, BLACK_OVER_WHITE);
+//    }
+//    for (uint8_t i = 0; i <= LCD_WIDTH; i += UI_FOOTER_GRID_WIDTH) {
+//        lcd_draw_line(i, UI_FOOTER_START_LINE, i, LCD_HEIGHT, BLACK_OVER_WHITE);
+//    }
+//}
 
-void print_label_at_footer_grid(const char* msg,const uint8_t grid_x, const uint8_t grid_y){
+void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
+    //    lcd_clear_block_d(
+    //            UI_FOOTER_GRID_X(grid_x),
+    //            UI_FOOTER_GRID_Y(grid_y),
+    //            UI_FOOTER_GRID_X(grid_x)+UI_FOOTER_GRID_WIDTH,
+    //            UI_FOOTER_GRID_Y(grid_y)+UI_FOOTER_GRID_HEIGH
+    //            );
     lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y), SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_footer() {
-//    print_stats();
-    uint8_t line = UI_FOOTER_START_LINE;
+    //    print_stats();
+    uint8_t line = UI_FOOTER_START_LINE + 2;
     char message[20];
-    print_footer_grid();
+    //    print_footer_grid();
     switch (DelayMode) {
         case Instant:sprintf(message, " Instant");
             break;
@@ -2629,31 +2711,31 @@ uint8_t print_footer() {
         case Custom: sprintf(message, " Custom");
             break;
     }
-    print_label_at_footer_grid(message,0,0);
+    print_label_at_footer_grid(message, 0, 0);
     if (AR_IS.Mic) sprintf(message, "  Mic: %d", Sensitivity);
     else sprintf(message, " Mic: Off");
-    print_label_at_footer_grid(message,1,0);
+    print_label_at_footer_grid(message, 1, 0);
 
     if (ParTime[CurPar_idx] > 0) {
-        sprintf(message, "Par%2d:%3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+        sprintf(message, "Par%d: %3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
     } else {
-        sprintf(message," Par: Off");
+        sprintf(message, " Par: Off");
     }
-    print_label_at_footer_grid(message,0,1);
-    if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON",1,1);
-    else print_label_at_footer_grid(" Aux: Off",1,1);
-        
-//    sprintf(message, " Buz:%d", BuzzerLevel);
-    sprintf(message, "FPS:%d", frames_count);
-    print_label_at_footer_grid(message,2,0);
+    print_label_at_footer_grid(message, 0, 1);
+    if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON", 1, 1);
+    else print_label_at_footer_grid(" Aux: Off", 1, 1);
 
-    sprintf(message," %s %s %s",
-            (AR_IS.A)?"A":" ",
-            (AR_IS.B)?"B":" ",
-            (AR_IS.BT)?"BT":" "
+    //    sprintf(message, " Buz:%d", BuzzerLevel);
+    sprintf(message, "FPS:%02d ", frames_count);
+    print_label_at_footer_grid(message, 2, 0);
+
+    sprintf(message, " %s %s %s",
+            (AR_IS.A) ? "A" : " ",
+            (AR_IS.B) ? "B" : " ",
+            (AR_IS.BT) ? "BT" : " "
             );
-    print_label_at_footer_grid(message,2,1);
-    
+    print_label_at_footer_grid(message, 2, 1);
+
     return line - UI_FOOTER_START_LINE;
 }
 
@@ -2783,11 +2865,11 @@ void DoPowerOn() {
 }
 
 void clear_timer_area() {
-    lcd_clear_block(0, UI_COUNTER_START_LINE, 0, BigFont->height + MediumFont->height);
+    lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
 }
 
 void update_shot_time_on_screen() {
-    clear_timer_area();
+    //    clear_timer_area();
     uint8_t c = ShootString.TotShoots; // Declare for code ease. TODO: Clean after
     time_t t = 0, dt = 0;
     switch (c) {
@@ -2802,9 +2884,9 @@ void update_shot_time_on_screen() {
             t = ShootString.ShootTime[c - 1];
             dt = t - ShootString.ShootTime[c - 2];
             break;
-     }
-    print_big_time_label(t);
+    }
     print_line_with_shots_and_split(c, dt);
+    print_big_time_label(t);
 }
 
 void PlayParSound() {
@@ -2825,7 +2907,7 @@ void StartParTimer() {
 
 void StartCountdownTimer() {
     switch (DelayMode) {
-        case Instant:DelayTime = 0;
+        case Instant: DelayTime = 0;
             break;
         case Fixed: DelayTime = 3000;
             break;
@@ -2835,17 +2917,20 @@ void StartCountdownTimer() {
             //Read again in case was changed from other mode
             break;
     }
+    countdown_start_time = get_corrected_time_msec();
 }
-void UpdateShot(time_t now){
-    time_t dt = now - measurement_start_time_msec;
+
+void UpdateShot(time_t now) {
+    time_t dt = now - ShootString.ShootTime[ShootString.TotShoots];
     //Don't count shoots less than Filter
-    if (labs(dt - ShootString.ShootTime[ShootString.TotShoots]) > Filter) {
-        ShootString.ShootTime[ShootString.TotShoots] = dt;
+    if (dt > Filter) {
+        ShootString.ShootTime[ShootString.TotShoots] = now;
         ShootString.TotShoots++;
         if (ShootString.TotShoots == MAXSHOOT)
             timerEventToHandle = TimerTimeout;
     }
 }
+
 void UpdateShootNow() {
     UpdateShot(get_corrected_time_msec());
 }
@@ -2869,7 +2954,7 @@ void update_screen_model() {
             }
             break;
         case TimerCountdown:
-            if (now - countdown_start_time >=DelayTime) {
+            if (now - countdown_start_time >= DelayTime) {
                 comandToHandle = CountdownExpired;
             }
             break;
@@ -2880,10 +2965,13 @@ void update_screen_model() {
 }
 
 void handle_rotation() {
-    TBool oldOrientation = orientation;
-    orientation = ADC_Read(ACCELEROMETER)>ORIENTATION_INVERSE_THRESHOLD;
-    if (oldOrientation != orientation) {
-        lcd_clear();
+    if (Autorotate) {
+        TBool oldOrientation = orientation;
+        orientation = ADC_Read(ACCELEROMETER) > ORIENTATION_INVERSE_THRESHOLD;
+        if (oldOrientation != orientation) {
+            lcd_clear_data_ram();
+        }
+        lcd_set_orientation();
     }
 }
 // <editor-fold defaultstate="collapsed" desc="ISR function">
@@ -2906,7 +2994,7 @@ static void interrupt isr(void) {
 // </editor-fold>
 
 void main(void) {
-    time_t start,duration;
+    time_t start, duration;
     char message[16];
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     PIC_init();
@@ -2916,7 +3004,7 @@ void main(void) {
     spi_init();
     lcd_init();
     ADC_init();
-//    init_adc_interrupt();
+    //    init_adc_interrupt();
     eeprom_init();
     //    getSettings();
     getDefaultSettings();
@@ -2925,32 +3013,18 @@ void main(void) {
     init_ms_timer0();
     initialize_rtc_timer();
     ei();
-    //    initialize_shot_interrupt();
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
-    
+
     lcd_clear_data_ram();
     while (True) {
-        TestBattery();
-//        handle_rotation();
-//        handle_ui();
-//
-//        lcd_refresh(&full_screen_update_boundary);
         start = get_corrected_time_msec();
-//        print_header();
-//        lcd_clear_data_ram();
-        lcd_write_string_d("It Works!!!",8,8,&robotoCondensed_20ptFontInfo,BLACK_OVER_WHITE);
-        
-        duration = get_corrected_time_msec() - start;
-        sprintf(message,"t=%05u",duration);
-        lcd_clear_block_d(
-                8,8+robotoCondensed_20ptFontInfo.height + 1,
-                robotoCondensed_20ptFontInfo.char_descriptors['0'].width*7,
-                8+robotoCondensed_20ptFontInfo.height*3);
-        lcd_write_string_d(message,8,8+robotoCondensed_20ptFontInfo.height,&robotoCondensed_20ptFontInfo,BLACK_OVER_WHITE);
-//        lcd_refresh(&full_screen_update_boundary);
-        delay_rtc_ms(200-duration);
+        TestBattery();
+        handle_rotation();
+        handle_ui();
+        frames_count++;
+        duration = 200 - (get_corrected_time_msec() - start);
     }
     // </editor-fold>
 }

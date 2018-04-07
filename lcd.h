@@ -6,7 +6,8 @@
 #include "DAACEDcommon.h"
 #include "DAACEDbitmap.h"
 
-#define UI_COUNTER_START_LINE   16
+#define LCD_DIRECT_ACCESS
+#define UI_HEADER_END_LINE   16
 #define UI_COUNTER_START_PIXEL  0
 #define UI_FOOTER_START_LINE    80
 #define UI_FOOTER_GRID_H_CELLS  3
@@ -42,6 +43,7 @@
 #define LCD_BACKLIGHT_ON()      (LATEbits.LE6 = 0)
 #define LCD_BACKLIGHT_OFF()     (LATEbits.LE6 = 1)
 
+#ifndef LCD_DIRECT_ACCESS
 int16_t cursor_x, cursor_y;
 
 typedef union {
@@ -66,6 +68,7 @@ typedef struct {
 } UpdateBoundary;
 
 UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 1};
+#endif
 
 #define ORIENTATION_NORMAL              0
 #define ORIENTATION_INVERTED            1
@@ -117,7 +120,13 @@ volatile uint8_t frames_count = 0;
 #define CMD_COL_ADD             (0x15)
 
 #define CMD_DATASCAN_DIR        (0xBC)
-
+#ifdef SMALL_LCD
+#define LCD_ORIENTATION_NORMAL  (0x01)
+#define LCD_ORIENTATION_INVERTED (0x10)
+#else
+#define LCD_ORIENTATION_NORMAL  (0x00)
+#define LCD_ORIENTATION_INVERTED (0x11)
+#endif
 #define CMD_WRITE_DATA          (0x5C)
 #define CMD_READ_DATA           (0x5D)
 
@@ -200,12 +209,14 @@ uint8_t spi_write(uint8_t data);
 void spi_init();
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="LCD functions definitions">
+#ifndef LCD_DIRECT_ACCESS
 void lcd_refresh(UpdateBoundary * box);
+#endif
 uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font);
 void lcd_init();
 void lcd_clear();
-void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity);
-void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity);
+//void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity);
+//void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity);
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data);
@@ -215,6 +226,7 @@ void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_
 void lcd_clear_data_ram();
 void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
+void lcd_set_orientation();
 // </editor-fold>
 #endif	/* LCD_H */
 

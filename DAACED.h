@@ -166,6 +166,7 @@ typedef union{
 AR_IS_T AR_IS;
 
 #define AutoStart AR_IS.Autostart
+#define Autorotate AR_IS.AutoRotate
 #define AR_IS_Address                100
 uint16_t BuzzerFrequency=2000;
 uint16_t BuzzerParDuration=200;

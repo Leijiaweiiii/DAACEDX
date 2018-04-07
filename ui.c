@@ -5,7 +5,7 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
     double s;
     uint8_t x_pos = 0;
-    uint8_t y_pos = UI_COUNTER_START_LINE + BigFont->height;
+    uint8_t y_pos = UI_HEADER_END_LINE + BigFont->height;
     sprintf(message, "#%03d", shot_no);
     lcd_write_string_d(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
@@ -27,10 +27,7 @@ void print_big_time_label(time_t t) {
     time_t ms = sec * 1000;
     ms = t - ms;
     sprintf(message, "%.02f ", 0.001 * ms + sec);
-    if(orientation == ORIENTATION_NORMAL)
-        lcd_write_string_d(message, 0, UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
-    else
-        lcd_write_string_d(message, LCD_WIDTH, LCD_HEIGHT - UI_COUNTER_START_LINE, BigFont, BLACK_OVER_WHITE);
+    lcd_write_string_d(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void update_countdown_time_on_screen() {
@@ -48,7 +45,7 @@ void PowerOffTimer() {
 }
 
 void StartTimer() {
-    lcd_clear();
+    lcd_clear_data_ram();
     set_screen_title("Timer Run");
     CurPar_idx = 0;
     StartParTimer();
@@ -56,18 +53,12 @@ void StartTimer() {
     DoMain();
 }
 
-void StartReviewScreen() {
-    set_screen_title("Review");
-    DoReview();
-}
-
-void StartSettingsMenuScreen() {
-    set_screen_title("Settings");
-    DoSettings();
-}
-
 void StopTimer() {
     set_screen_title("Timer Idle");
+    lcd_clear();
+    print_header();
+    print_footer();
+    update_shot_time_on_screen();
 }
 
 void NextReviewItem() {
@@ -85,33 +76,23 @@ void handle_power_off() {
             //do nothing - we're sleeping;
             break;
     }
+    comandToHandle = None;
 }
 
 void handle_timer_idle() {
+    update_shot_time_on_screen();
+    print_header();
+    print_footer();
     switch (comandToHandle) {
-        case StartLong:
-            ui_state = PowerOff;
-            PowerOffTimer();
-            break;
-        case StartShort:
-            ui_state = TimerCountdown;
-            StartTimer();            
-            break;
-        case ReviewShort:
-            ui_state = ReviewScreen;
-            StartReviewScreen();            
-            break;
-        case ReviewLong:
-            ui_state = SettingsScreen;
-            StartSettingsMenuScreen();
-            break;
+        case StartLong:STATE_HANDLE_POWER_OFF;break;
+        case StartShort:STATE_HANDLE_COUNTDOWN;break;
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;break;
+        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;break;
         default:
             //All the rest ignoring
             break;
     }
-    update_shot_time_on_screen();
-    print_header();
-    print_footer();
+    comandToHandle = None;
 }
 
 void HandleTimerEvents() {
@@ -129,6 +110,9 @@ void HandleTimerEvents() {
 }
 
 void handle_timer_listening() {
+    update_shot_time_on_screen();
+    print_header();
+    print_footer();
     switch (comandToHandle) {
         case StartLong:
             ui_state = PowerOff;
@@ -147,61 +131,41 @@ void handle_timer_listening() {
         default:
             // All the rest keys handled inside the next handler.
             // As well as shoot events
-            HandleTimerEvents();
-            
+            HandleTimerEvents();       
             break;
     }
-    update_shot_time_on_screen();
-    print_header();
-    print_footer();
+    comandToHandle = None;
 }
 
 void handle_review_screen() {
     switch (comandToHandle) {
-        case StartLong:
-            ui_state = PowerOff;
-            PowerOffTimer();
-            break;
-        case StartShort:
-            ui_state = TimerIdle;
-            StopTimer();
-            break;
-        case ReviewShort:
-            ui_state = ReviewScreen;
-            NextReviewItem();
-            break;
-        case ReviewLong:
-            ui_state = SettingsScreen;
-            StartSettingsMenuScreen();
-            break;
+        case StartLong:STATE_HANDLE_POWER_OFF;break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;break;
+        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;break;
         default:
             //All the rest ignoring
             break;
     }
+    comandToHandle = None;
 }
 
 void handle_settings_screen() {
     switch (comandToHandle) {
-        case StartLong:
-            ui_state = PowerOff;
-            PowerOffTimer();
-            break;
-        case StartShort:
-            ui_state = TimerIdle;
-            StopTimer();            
-            break;
-        case ReviewShort:
-            ui_state = ReviewScreen;
-            StartReviewScreen();            
-            break;
+        case StartLong:STATE_HANDLE_POWER_OFF;break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;break;
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;break;
         default:
             //All the rest ignoring
             
             break;
     }
+    comandToHandle = None;
 }
 
 void handle_countdown() {
+    print_footer();
+    print_header();
+    update_countdown_time_on_screen();
     switch (comandToHandle) {
         case StartLong:
             ui_state = PowerOff;
@@ -224,9 +188,9 @@ void handle_countdown() {
         default:
             // All the rest keys handled inside the next handler.
             // As well as shoot events
-            update_countdown_time_on_screen();
             break;
     }
+    comandToHandle = None;
 }
 
 TBool is_long_press() {
@@ -240,6 +204,20 @@ TBool is_long_press() {
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
     KeyReleased = true; // Mark key released only here to avoid double sensing of key press
+    return duration >= LONG_PRESS_THRESHOLD_SEC;
+}
+TBool is_long_press_repeatable() {
+    //taking lower byte to save memory...
+    uint8_t press_time = LSB(rtc_time_sec);
+    uint8_t duration = 0;
+    KeyReleased = false; // Mark key released only here to avoid double sensing of key press
+    do {
+        duration = rtc_time_sec - press_time;
+        //        delay_rtc_ms(100);
+        if (duration > STICKY_THRESHOLD_SEC)
+            return duration >= LONG_PRESS_THRESHOLD_SEC;
+    } while (Keypressed);
+    
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
@@ -260,12 +238,28 @@ void define_input_action() {
                     comandToHandle = StartShort;
                 break;
             case KeyBk:
+                if (is_long_press())
+                    comandToHandle = BackLong;
+                else
+                    comandToHandle = BackShort;
                 break;
             case KeyDw:
+                if (is_long_press_repeatable())
+                    comandToHandle = DownLong;
+                else
+                    comandToHandle = DownShort;
                 break;
             case KeyUp:
+                if (is_long_press_repeatable())
+                    comandToHandle = UpLong;
+                else
+                    comandToHandle = UpShort;
                 break;
             case KeyIn:
+                if (is_long_press())
+                    comandToHandle = OkLong;
+                else
+                    comandToHandle = OkShort;
                 break;
             case KeyInDw:
                 break;
@@ -303,5 +297,4 @@ void handle_ui() {
             //We should never get here, nothing to do.
             break;
     }
-    comandToHandle = None;
 }
