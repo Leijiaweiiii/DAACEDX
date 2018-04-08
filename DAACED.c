@@ -2945,6 +2945,7 @@ void update_screen_model() {
                     ParNowCounting = false;
                 }
             }
+#ifdef ASYNC_DETECT
             if (Detect()) {
                 if (!shoot_detected) {
                     UpdateShot(now);
@@ -2952,6 +2953,7 @@ void update_screen_model() {
             } else {
                 shoot_detected = false;
             }
+#endif
             break;
         case TimerCountdown:
             if (now - countdown_start_time >= DelayTime) {

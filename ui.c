@@ -110,6 +110,10 @@ void HandleTimerEvents() {
 }
 
 void handle_timer_listening() {
+#ifndef ASYNC_DETECT
+    if(Detect())
+        UpdateShootNow();
+#endif
     update_shot_time_on_screen();
     print_header();
     print_footer();
