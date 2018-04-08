@@ -22,12 +22,9 @@ extern "C" {
 TBool BatteryLow = False;
 // </editor-fold>
 
-#define ADC_INT_ENABLE     {ADCON0bits.ADCONT = 1;PIR1bits.ADIF=0;INTCONbits.PEIE=1;PIE1bits.ADIE=1;}
-#define ADC_INT_DISABLE     {ADCON0bits.ADCONT = 0;}
-
-void init_adc_interrupt();
 void ADC_init();
 uint16_t ADC_Read(char selectedADC);
+uint16_t ADC_Read_average(char selectedADC, uint8_t cycles);
 #ifdef	__cplusplus
 }
 #endif

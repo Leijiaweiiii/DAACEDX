@@ -13,6 +13,9 @@ void ADC_init() {
     ADCLK = 0b00100000; // ADC CLK = OSC/64
     ADREF = 0b00000011; // ADC connected to FVR
     FVRCON = 0b11000010; // FVR set to 2048mV
+    ADCON0bits.ADCONT = 0;
+    PIE1bits.ADIE=0;
+    PIR1bits.ADIF=0;
 
 }
 
@@ -23,26 +26,13 @@ uint16_t ADC_Read(char selectedADC) {
     return (ADRESH << 8) | ADRESL;
 }
 
-void init_adc_interrupt() {
 
-    /*
-     ?
- EN and POL bits
- CxIE bit of the PIE2 register
- INTP bit (for a rising edge detection)
- INTN bit (for a falling edge detection)
- PEIE and GIE bits of the INTCON register
-     */
-    //    CM1CON0bits.EN = 1;         //Enable comparator
-    //    CM1CON0bits.POL = 0;        // Do't invert polarity - OUT=1 iff VC1P > VC1N
-    //    CM1CON0bits.SYNC = 1;       // Output synchronized to Timer1 clock (10ms timer in our case)
-    //    CM1CON1bits.INTP = 1;       // Interrupt on positive edge
-    //    CM1CON1bits.INTN = 0;       // Disable negative edge interrupt
-    //    CM1PCHbits.PCH = 0b001;     // Positive edge - input pin 22 - ANA2
-    //    CM1NCHbits.NCH = 0b110;     // Voltage reference - FVR Buffer
-    //    FVRCONbits.FVREN = 1;       // Enable FVR
-    //    FVRCONbits.CDAFVR = 0b01;   // Reference is 1.024V
-    ADC_INT_ENABLE;
+uint16_t ADC_Read_average(char selectedADC, uint8_t cycles) {
+    uint16_t res = 0;
+    for (size_t i = 0; i<cycles;i++){
+        res = res + ADC_Read(selectedADC);
+    }
+    return res/cycles;
 }
 
 // </editor-fold>

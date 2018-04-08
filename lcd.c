@@ -67,6 +67,19 @@ void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_by
         spi_write(data[index]);
     }
 }
+
+// rows in pages
+void lcd_prepare_send_data(uint8_t c1,uint8_t p1,uint8_t c2,uint8_t p2){
+    lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
+    lcd_send_command(CMD_COL_ADD); // Column address.
+    lcd_send_data(c1); // Start column address.
+    lcd_send_data(c2); // End column address.
+
+    lcd_send_command(CMD_PAGE_ADD); // Row address.
+    lcd_send_data(p1); // Start row address.
+    lcd_send_data(p2); // End row address.
+    lcd_send_command(CMD_WRITE_DATA); // Write data.
+}
 #ifndef LCD_DIRECT_ACCESS
 void lcd_update_boundingbox(UpdateBoundary * box, uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
     box->changed |= box->min_x > x_min;
@@ -211,17 +224,7 @@ void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t pol
 #endif
 
 void lcd_clear_data_ram() {
-    lcd_send_command(CMD_EXTENSION_1);
-    lcd_send_command(CMD_PAGE_ADD); // Row address.
-    lcd_send_data(0); // Start row address.
-    lcd_send_data(LCD_MAX_ADDRESS); // End row address.
-
-    lcd_send_command(CMD_COL_ADD); // Column address.
-    lcd_send_data(0x00); // Start column address.
-    lcd_send_data(LCD_WIDTH); // End column address.
-
-    lcd_send_command(CMD_WRITE_DATA);
-
+    lcd_prepare_send_data(0,0,LCD_MAX_ADDRESS,LCD_WIDTH);
     // Clear only the area that we're using
     for (uint16_t index = 0; index < (50+PAGE(LCD_MAX_ADDRESS)) * LCD_WIDTH; index++) {
         lcd_send_data(LCD_WHITE_PAGE);
@@ -294,43 +297,38 @@ uint8_t lcd_write_char_d(unsigned int c,
         uint8_t y_pos,
         const FONT_INFO *font,
         uint8_t polarity) {
-    uint8_t column,start_page,end_page,data,heigh_in_bytes;
+    uint8_t column,start_page,end_page,data;
     int8_t i;
-    const uint8_t *bitmap,*column_start;
-    heigh_in_bytes = (font->height%8==0)?font->height/8:font->height/8+1;
+    const uint8_t *bitmap;
+    FONT_CHAR_INFO char_info;
+    
     if ((c < font->char_start) || (c > font->char_end)) return 0;
     if( ! START_OF_PAGE(y_pos)) return 0; // Don't drow not on the edge of the page
     c = c - font->char_start; // 'c' now become index to tables.
-    bitmap = font->bitmap + font->char_descriptors[c].offset;
-    start_page = PAGE(y_pos) + Y_OFFSET;
-    end_page = PAGE(y_pos+font->height) + Y_OFFSET;
+    char_info = font->char_descriptors[c];
+    bitmap = font->bitmap + char_info.offset;
+    start_page = PAGE(y_pos);
+    end_page = PAGE(y_pos + font->height);
     /*
      *      for column between x and x + char width in bits
      *          set address for writing a column
      *          for index between PAGE(font heigh) and 0
      *              draw page (PAGE(Y),column,bitmap[index])
      */
-    for(column = x_pos;column < x_pos+font->char_descriptors[c].width;column++){
-        lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-        lcd_send_command(CMD_PAGE_ADD); // Row address.
-        lcd_send_data(start_page); // Start row address.
-        lcd_send_data(end_page); // End row address.
-        lcd_send_command(CMD_COL_ADD); // Column address.
-        lcd_send_data(column); // Start column address.
-        lcd_send_data(column); // End column address.
-        lcd_send_command(CMD_WRITE_DATA); // Write data.
+    for(column = x_pos;column < x_pos+char_info.width;column++){
+        lcd_prepare_send_data(column,start_page,column,end_page);
         // TODO: Calculate carefully
-        for (i=heigh_in_bytes ;i>font->truncate;i=i-1){
+        for (i=font->height;i>0;i=i-1){
             data = bitmap[i-1];
             if(polarity == BLACK_OVER_WHITE)
                 lcd_send_data(data);
             else
                 lcd_send_data(~data);
         }
-        bitmap += heigh_in_bytes;
+        bitmap += font->height;
     }
 
-    return (font->char_descriptors[c].width);
+    return char_info.width;
 }
 #ifndef LCD_DIRECT_ACCESS
 void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
@@ -344,6 +342,7 @@ void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 }
 #endif
 
+
 // TODO: Implement lcd_get_block_d
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos,uint8_t polarity) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
@@ -352,16 +351,8 @@ void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 //    if (! (START_OF_PAGE(y1_pos) && START_OF_PAGE(y2_pos + 1))) return;
     
     for (uint8_t column = x1_pos; column < x2_pos; column = column + 1) {
-        lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-        lcd_send_command(CMD_COL_ADD); // Column address.
-        lcd_send_data(column); // Start column address.
-        lcd_send_data(column); // End column address.
-        
-        lcd_send_command(CMD_PAGE_ADD); // Row address.
-        lcd_send_data(PAGE(y1_pos)+Y_OFFSET); // Start row address.
-        lcd_send_data(PAGE(y2_pos+1)+Y_OFFSET); // End row address.
-        lcd_send_command(CMD_WRITE_DATA); // Write data.
-        for (uint8_t page = PAGE(y1_pos); page < PAGE(y2_pos+1); page = page + 1) {
+        lcd_prepare_send_data(column,PAGE(y1_pos),column,PAGE(y2_pos));
+        for (uint8_t page = PAGE(y1_pos); page <= PAGE(y2_pos); page = page + 1) {
             if(polarity==BLACK_OVER_WHITE)
                 lcd_send_data(LCD_BLACK_PAGE);
             else
@@ -650,6 +641,27 @@ void lcd_set_orientation() {
         lcd_send_data(LCD_ORIENTATION_NORMAL);
     else
         lcd_send_command(LCD_ORIENTATION_INVERTED);
+}
+
+void lcd_send_graph_column(size_t column, uint16_t value){
+    int8_t page_dot,pixel;
+    pixel = (value>>3)%8;
+    page_dot = value >>5 + 3;
+    lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
+    lcd_send_command(CMD_COL_ADD); // Column address.
+    lcd_send_data(column); // Start column address.
+    lcd_send_data(column); // End column address.
+
+    lcd_send_command(CMD_PAGE_ADD); // Row address.
+    lcd_send_data(3); // Start row address.
+    lcd_send_data(LCD_MAX_PAGES); // End row address.
+    lcd_send_command(CMD_WRITE_DATA); // Write data.
+    for(uint8_t page = LCD_MAX_PAGES;page >2;page--){
+        if(page_dot==page)
+            lcd_send_data(pixel);
+        else
+            lcd_send_data(LCD_WHITE_PAGE);
+    }
 }
 // </editor-fold>
 

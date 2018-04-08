@@ -2561,7 +2561,6 @@ void DoReview() {
                 break;
             case ReviewLong:ui_state = SettingsScreen;
                 break;
-                break;
             default:
                 break;
         }
@@ -2995,6 +2994,24 @@ static void interrupt isr(void) {
 }
 // </editor-fold>
 
+
+void DoAdcGraph(){
+    size_t column = 0;
+    time_t t,t_1 = 0;
+    char lbl[16];
+
+    while(True){
+            t=get_corrected_time_msec();
+//        lcd_send_graph_column(column++%160,ADC_Read_average(ENVELOPE,128));
+//        if(column%320==0){
+//            t_1 = t;
+//            t = get_corrected_time_msec();
+            sprintf(lbl,"dt: %012ud",t);
+            lcd_write_string(lbl,5,8,MediumFont,BLACK_OVER_WHITE);
+//        lcd_write_string("0000000000",5,8,MediumFont,BLACK_OVER_WHITE);
+//        }
+    }
+}
 void main(void) {
     time_t start, duration;
     char message[16];
@@ -3028,5 +3045,6 @@ void main(void) {
         frames_count++;
         duration = 200 - (get_corrected_time_msec() - start);
     }
+//    DoAdcGraph();
     // </editor-fold>
 }

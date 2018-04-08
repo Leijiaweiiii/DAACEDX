@@ -21,7 +21,7 @@
 
 #define rtc_time_msec       (TMR1>>6)
 
-#define delay_rtc_ms(x)    {time_t __st = rtc_time_msec;while((rtc_time_msec-__st)<x);}
+#define delay_rtc_ms(x)    {uint8_t __st = rtc_time_msec;while((rtc_time_msec-__st)<x);}
 
 volatile uint32_t button_down_time, button_up_time;
 void initialize_rtc_timer();
