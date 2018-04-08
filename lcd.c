@@ -297,38 +297,37 @@ uint8_t lcd_write_char_d(unsigned int c,
         uint8_t y_pos,
         const FONT_INFO *font,
         uint8_t polarity) {
-    uint8_t column,start_page,end_page,data;
+    uint8_t column,start_page,end_page,data,heigh_in_bytes;
     int8_t i;
     const uint8_t *bitmap;
-    FONT_CHAR_INFO char_info;
     
     if ((c < font->char_start) || (c > font->char_end)) return 0;
-    if( ! START_OF_PAGE(y_pos)) return 0; // Don't drow not on the edge of the page
+    if( ! START_OF_PAGE(y_pos)) return 0; // Don't draw not on the edge of the page
     c = c - font->char_start; // 'c' now become index to tables.
-    char_info = font->char_descriptors[c];
-    bitmap = font->bitmap + char_info.offset;
+heigh_in_bytes = (font->height%8==0)?font->height/8:font->height/8+1;
+    bitmap = font->bitmap + font->char_descriptors[c].offset;
     start_page = PAGE(y_pos);
-    end_page = PAGE(y_pos + font->height);
+    end_page = PAGE(y_pos) + heigh_in_bytes;
     /*
      *      for column between x and x + char width in bits
      *          set address for writing a column
      *          for index between PAGE(font heigh) and 0
      *              draw page (PAGE(Y),column,bitmap[index])
      */
-    for(column = x_pos;column < x_pos+char_info.width;column++){
+    for(column = x_pos;column < x_pos+font->char_descriptors[c].width;column++){
         lcd_prepare_send_data(column,start_page,column,end_page);
         // TODO: Calculate carefully
-        for (i=font->height;i>0;i=i-1){
+        for (i=heigh_in_bytes;i>0;i=i-1){
             data = bitmap[i-1];
             if(polarity == BLACK_OVER_WHITE)
                 lcd_send_data(data);
             else
                 lcd_send_data(~data);
         }
-        bitmap += font->height;
+        bitmap += heigh_in_bytes;
     }
 
-    return char_info.width;
+    return font->char_descriptors[c].width;
 }
 #ifndef LCD_DIRECT_ACCESS
 void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {

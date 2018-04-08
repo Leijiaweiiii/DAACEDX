@@ -272,5 +272,6 @@ uint8_t print_header();
 uint8_t print_footer();
 uint8_t print_time(uint8_t line, uint8_t pos);
 void handle_rotation();
-
+TBool Detect();
+void UpdateShootNow();
 #endif /*  _DAACED_H_ */

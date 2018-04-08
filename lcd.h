@@ -28,9 +28,10 @@
 #define LCD_MAX_ADDRESS         (0xA1)
 #define PAGE_HEIGTH              (8)
 #define LCD_MAX_PAGES           (0x0F)
-#define PAGE(x)                 x/PAGE_HEIGTH
+#define Y_OFFSET                (7)
+#define PAGE(x)                 (x/PAGE_HEIGTH + Y_OFFSET)
+
 #define START_OF_PAGE(x)        (x%PAGE_HEIGTH == 0)
-#define Y_OFFSET                (6)
 #define BLACK_OVER_WHITE        (0x01)
 #define WHITE_OVER_BLACK        (0x00)
 

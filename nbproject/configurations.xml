@@ -29,7 +29,6 @@
       <itemPath>uart.c</itemPath>
       <itemPath>adc.c</itemPath>
       <itemPath>TimesNewRoman12pt.c</itemPath>
-      <itemPath>robotoCondensed16pt.c</itemPath>
       <itemPath>tahoma8pt.c</itemPath>
       <itemPath>robotoCondensed20pt.c</itemPath>
     </logicalFolder>

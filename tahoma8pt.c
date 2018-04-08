@@ -1,3 +1,4 @@
+#include "DAACEDfont.h"
 /* 
 **  Font data for Tahoma 8pt
 */
@@ -749,9 +750,11 @@ const FONT_CHAR_INFO tahoma_8ptDescriptors[] =
 const FONT_INFO tahoma_8ptFontInfo =
 {
 	11, /*  Character height */
+    1,
 	' ', /*  Start character */
 	'~', /*  End character */
 	tahoma_8ptDescriptors, /*  Character descriptor array */
 	tahoma_8ptBitmaps, /*  Character bitmap array */
+    0
 };
 
