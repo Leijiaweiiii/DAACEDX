@@ -7,7 +7,7 @@
 #include "DAACEDbitmap.h"
 
 #define LCD_DIRECT_ACCESS
-#define UI_HEADER_END_LINE   16
+#define UI_HEADER_END_LINE      16
 #define UI_COUNTER_START_PIXEL  0
 #define UI_FOOTER_START_LINE    80
 #define UI_FOOTER_GRID_H_CELLS  3

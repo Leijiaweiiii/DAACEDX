@@ -353,11 +353,11 @@ void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
     //don't fill blocks not 8 bit hight
-    //    if (! (START_OF_PAGE(y1_pos) && START_OF_PAGE(y2_pos + 1))) return;
+//    if (! (START_OF_PAGE(y1_pos) )) return;
 
     for (uint8_t column = x1_pos; column < x2_pos; column = column + 1) {
         lcd_prepare_send_data(column, PAGE(y1_pos), column, PAGE(y2_pos));
-        for (uint8_t page = PAGE(y1_pos); page <= PAGE(y2_pos); page = page + 1) {
+        for (uint8_t page = PAGE(y1_pos); page < PAGE(y2_pos); page = page + 1) {
             if (polarity == BLACK_OVER_WHITE)
                 lcd_send_data(LCD_BLACK_PAGE);
             else
@@ -615,8 +615,6 @@ void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INF
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
-    //    lcd_write_string_b(str_ptr, x_pos, y_pos, font, polarity);
-    //    lcd_refresh(&full_screen_update_boundary);
 }
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {

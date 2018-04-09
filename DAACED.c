@@ -437,16 +437,6 @@ void TestBattery(void) {
 // <editor-fold defaultstate="collapsed" desc="Settings Display">
 
 uint8_t SettingsTitle(void) {
-    //    uint8_t top;
-    //    top = 0;
-    //    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    //    TestBattery();
-    //    lcd_write_string(SettingsMenu.MenuTitle, 0, 0, MediumFont, BLACK_OVER_WHITE);
-    //    if (AR_IS.BT) lcd_write_string("BT", 123, 0, SmallFont, BLACK_OVER_WHITE);
-    //    lcd_battery_info(LCD_WIDTH - 20, 0, battery_level);
-    //    top += (MediumFont->height + 1);
-    //    lcd_draw_hline(0, LCD_WIDTH, top, BLACK_OVER_WHITE);
-    //    top += 2;
     set_screen_title(SettingsMenu.MenuTitle);
     print_header();
     return UI_HEADER_END_LINE;
@@ -464,16 +454,17 @@ void SettingsDisplay(void) {
         //Inc Page
         Menu.page++;
         Menu.refresh = True;
-    } else if (Menu.menu <= (Menu.PageSize * (Menu.page - 1))) {
+    } else if (Menu.menu <=(Menu.PageSize * (Menu.page - 1))) {
         //Dec Page
         Menu.page--;
         Menu.refresh = True;
     }
 
+    // TODO: There is a bug with menu leftovers at the bottom
     if (Menu.refresh) {
         lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, LCD_HEIGHT);
         for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
-            if (p >= Menu.top && (p <= height)) {
+            if (p >= Menu.top && (p < height)) {
                 if (Menu.menu == i + 1) color = WHITE_OVER_BLACK;
                 else color = BLACK_OVER_WHITE;
                 lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, color);
@@ -496,7 +487,7 @@ void increment_menu_index() {
         Menu.prev = Menu.menu;
         Menu.menu--;
         Menu.refresh = False;
-        SettingsDisplay();
+//        SettingsDisplay();
     } else Beep();
 }
 
@@ -505,7 +496,7 @@ void decrement_menu_index() {
         Menu.prev = Menu.menu;
         Menu.menu++;
         Menu.refresh = False;
-        SettingsDisplay();
+//        SettingsDisplay();
     } else Beep();
 }
 
@@ -2365,21 +2356,21 @@ void DoSet(void) {
 void SetSettingsMenu() {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
     SettingsMenu.TotMenuItems = 13;
-    strcpy(SettingsMenu.MenuTitle, "Settings ");
-    strcpy(SettingsMenu.MenuItem[0], " Delay ");
-    strcpy(SettingsMenu.MenuItem[1], " Par ");
-    strcpy(SettingsMenu.MenuItem[2], " Buzzer ");
-    strcpy(SettingsMenu.MenuItem[3], " Auto Start ");
-    strcpy(SettingsMenu.MenuItem[4], " Timer Mode ");
-    strcpy(SettingsMenu.MenuItem[5], " Clock ");
-    strcpy(SettingsMenu.MenuItem[6], " Countdown ");
-    strcpy(SettingsMenu.MenuItem[7], " Tilt ");
-    strcpy(SettingsMenu.MenuItem[8], " Backlight ");
-    strcpy(SettingsMenu.MenuItem[9], " Sensitivity ");
-    strcpy(SettingsMenu.MenuItem[10], " Filter ");
-    strcpy(SettingsMenu.MenuItem[11], " Input ");
-    strcpy(SettingsMenu.MenuItem[12], " Bluetooth ");
-    strcpy(SettingsMenu.MenuItem[13], " SaveSettings ");
+    strcpy(SettingsMenu.MenuTitle, "Settings        ");
+    strcpy(SettingsMenu.MenuItem[0],  " Delay       ");
+    strcpy(SettingsMenu.MenuItem[1],  " Par         ");
+    strcpy(SettingsMenu.MenuItem[2],  " Buzzer      ");
+    strcpy(SettingsMenu.MenuItem[3],  " Auto Start  ");
+    strcpy(SettingsMenu.MenuItem[4],  " Timer Mode  ");
+    strcpy(SettingsMenu.MenuItem[5],  " Clock       ");
+    strcpy(SettingsMenu.MenuItem[6],  " Countdown   ");
+    strcpy(SettingsMenu.MenuItem[7],  " Tilt        ");
+    strcpy(SettingsMenu.MenuItem[8],  " Backlight   ");
+    strcpy(SettingsMenu.MenuItem[9],  " Sensitivity ");
+    strcpy(SettingsMenu.MenuItem[10], " Filter      ");
+    strcpy(SettingsMenu.MenuItem[11], " Input       ");
+    strcpy(SettingsMenu.MenuItem[12], " Bluetooth   ");
+    strcpy(SettingsMenu.MenuItem[13], " SaveSettings");
     strcpy(SettingsMenu.MenuItem[14], " Diagnostics ");
 }
 
@@ -2399,7 +2390,7 @@ void DoSettings(void) {
     SaveToEEPROM = False;
     Menu.refresh = True;
     Menu.page = 0; //Force refresh
-
+    lcd_clear_data_ram();
     do {
         TestBattery();
         handle_rotation();
@@ -2618,7 +2609,7 @@ TBool Detect(void) {
     }
 }
 
-uint8_t print_time(uint8_t line, uint8_t pos) {
+uint8_t print_time() {
     char message[20];
     sprintf(message,
             "%02d%s%02d %s",
@@ -2628,30 +2619,25 @@ uint8_t print_time(uint8_t line, uint8_t pos) {
             get_minute(),
             ScreenTitle);
     uint8_t width = lcd_string_lenght(message, SmallFont);
-    //    lcd_clear_block(pos, line, width, SmallFont->height);
-    lcd_write_string(message, pos, line, SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
 
-void print_batery_text_info(uint8_t line) {
+void print_batery_text_info() {
     char message[20];
     sprintf(message,
             "%d%%", (battery_level > 100) ? 100 : battery_level);
     uint8_t width = lcd_string_lenght(message, SmallFont);
     //    lcd_clear_block(LCD_WIDTH - 8 - width, line, LCD_WIDTH, SmallFont->height);
-    lcd_write_string(message, LCD_WIDTH - 8 - width, line, SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_header() {
-    uint8_t line = 0;
-    TBool Aux = false;
-    char message[10];
-    //    lcd_clear_block_d(line, line, LCD_WIDTH, MediumFont->height);
-    print_time(line, line);
-    print_batery_text_info(line);
+    print_time();
+    print_batery_text_info();
     //    lcd_battery_info(LCD_WIDTH - 20, line, battery_level);
     //    lcd_draw_hline(0, LCD_WIDTH, MediumFont->height, BLACK_OVER_WHITE);
-    return SmallFont->height;
+    return UI_HEADER_END_LINE;
 }
 
 void print_stats() {

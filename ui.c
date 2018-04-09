@@ -7,13 +7,13 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     uint8_t x_pos = 0;
     uint8_t y_pos = UI_HEADER_END_LINE + BigFont->height;
     sprintf(message, "#%03d", shot_no);
-    lcd_write_string_d(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
     x_pos = lcd_string_lenght(message, SmallFont) + 7;
     s = 0.001 * split;
     sprintf(message, "Split %.2f", s);
     
-    lcd_write_string_d(
+    lcd_write_string(
             message,
             x_pos,
             y_pos, SmallFont,
@@ -27,7 +27,7 @@ void print_big_time_label(time_t t) {
     time_t ms = sec * 1000;
     ms = t - ms;
     sprintf(message, "%.02f ", 0.001 * ms + sec);
-    lcd_write_string_d(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void update_countdown_time_on_screen() {
