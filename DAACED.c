@@ -839,7 +839,7 @@ void DoADC(uint8_t mode) {
                 if (yValue < 2) yValue = 2;
                 if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
                 //lcd_set_pixel(xValue,yValue);
-//                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
+                //                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
                 __delay_ms(10);
                 if (xValue > 155) {
                     xValue = 3;
@@ -868,7 +868,7 @@ void DoADC(uint8_t mode) {
                 if (yValue < 2) yValue = 2;
                 if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
                 //lcd_set_pixel(xValue,yValue);
-//                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
+                //                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
                 if (mode == 2) __delay_ms(50);
                 if (xValue > 155) {
                     xValue = 3;
@@ -897,7 +897,7 @@ void DoADC(uint8_t mode) {
                 if (yValue < 2) yValue = 2;
                 if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
                 //lcd_set_pixel(xValue,yValue);
-//                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
+                //                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
                 __delay_ms(50);
                 if (xValue > 155) {
                     xValue = 3;
@@ -2423,11 +2423,11 @@ void DoSettings(void) {
 #define REVIEW_SHOT_FORMAT      "%s # %2d: %3.2f "
 #define REVIEW_SPLIT_FORMAT     "} %3.2f"
 
-void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp,TBool scroll_shots) {
+void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_shots) {
     char message[60];
     uint8_t line = UI_HEADER_END_LINE;
-    char * str_selection = scroll_shots?" ":"|";
-    char * shot_selection = scroll_shots?"|":" ";
+    char * str_selection = scroll_shots ? " " : "|";
+    char * shot_selection = scroll_shots ? "|" : " ";
     // We're assuming here that Medium font has even number of bytes heigh
     uint8_t halfline = (MediumFont->height / 2);
     print_header();
@@ -2444,10 +2444,10 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     for (uint8_t col = 0; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
         lcd_write_char('_', col, line, MediumFont, BLACK_OVER_WHITE);
     }
-    for (uint8_t i = PAGE(UI_HEADER_END_LINE);i<=PAGE(line);i++){
+    for (uint8_t i = PAGE(UI_HEADER_END_LINE); i <= PAGE(line); i++) {
         lcd_write_string(str_selection, 0, i*PAGE_HEIGTH, MediumFont, BLACK_OVER_WHITE);
     }
-    
+
     line += MediumFont->height;
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
@@ -2459,7 +2459,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
                 (float) ShootString.ShootTime[CurShoot - 1] / 1000
                 );
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
-//        lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
+        //        lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
         line += halfline;
         sprintf(message, REVIEW_SPLIT_FORMAT, (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
         lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
@@ -2470,7 +2470,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
         sprintf(message,
                 REVIEW_SHOT_FORMAT,
                 shot_selection,
-                CurShoot, 
+                CurShoot,
                 (float) ShootString.ShootTime[CurShoot] / 1000
                 );
         lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
@@ -2486,7 +2486,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     }
     if (CurShoot < ShootString.TotShoots) {
         if (ShootString.ShootTime[CurShoot + 1] > 0) {
-            sprintf(message, 
+            sprintf(message,
                     REVIEW_SHOT_FORMAT,
                     shot_selection,
                     CurShoot + 1,
@@ -2495,7 +2495,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
             lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
         }
     }
-//    lcd_write_char('_', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
+    //    lcd_write_char('_', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
 }
 
 void review_scroll_shot_up() {
@@ -2533,7 +2533,7 @@ void DoReview() {
     //    getShootString(CurShootString);
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     while (ui_state == ReviewScreen) {
-        
+
         TestBattery();
         print_header();
         define_input_action();
@@ -2565,14 +2565,17 @@ void DoReview() {
                 break;
         }
         comandToHandle = None;
-        ReviewDisplay(battery_level, CurShoot, CurShootString + 1,scroll_shots);
+        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
     }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
+uint16_t Mean = 0;
+#define DETECT_THRESHOLD_LEVELS 10
+uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {148, 124, 104, 87, 73, 61, 51, 43, 36, 33};
 
 void DetectInit(void) {
-    uint16_t Mean = 0;
+
     uint16_t Peak = 0;
     uint16_t ADCvalue;
 
@@ -2583,25 +2586,25 @@ void DetectInit(void) {
     }
     Mean = Mean >> 6;
     switch (Sensitivity) {
-        case 10: DetectThreshold = Mean + 33;
+        case 10: DetectThreshold = Mean + threshold_offsets[9];
             break;
-        case 9: DetectThreshold = Mean + 36;
+        case 9: DetectThreshold = Mean + threshold_offsets[8];
             break;
-        case 8: DetectThreshold = Mean + 43;
+        case 8: DetectThreshold = Mean + threshold_offsets[7];
             break;
-        case 7: DetectThreshold = Mean + 51;
+        case 7: DetectThreshold = Mean + threshold_offsets[6];
             break;
-        case 6: DetectThreshold = Mean + 61;
+        case 6: DetectThreshold = Mean + threshold_offsets[5];
             break;
-        case 5: DetectThreshold = Mean + 73;
+        case 5: DetectThreshold = Mean + threshold_offsets[4];
             break;
-        case 4: DetectThreshold = Mean + 87;
+        case 4: DetectThreshold = Mean + threshold_offsets[3];
             break;
-        case 3: DetectThreshold = Mean + 104;
+        case 3: DetectThreshold = Mean + threshold_offsets[2];
             break;
-        case 2: DetectThreshold = Mean + 124;
+        case 2: DetectThreshold = Mean + threshold_offsets[1];
             break;
-        case 1: DetectThreshold = Mean + 148;
+        case 1: DetectThreshold = Mean + threshold_offsets[0];
             break;
     }
 }
@@ -2953,6 +2956,8 @@ void update_screen_model() {
                 shoot_detected = false;
             }
 #endif
+            if (AdcDetect())
+                UpdateShootNow();
             break;
         case TimerCountdown:
             if (now - countdown_start_time >= DelayTime) {
@@ -2989,29 +2994,59 @@ static void interrupt isr(void) {
         if (!Keypressed) {//Assignment will not work because of not native boolean
             KeyReleased = true;
         }
+        ADC_SAMPLE;
         update_screen_model();
+
     }
 }
 // </editor-fold>
 
+void DoThresholdGrapg(uint8_t column) {
+    if (AdcDetect())
+         lcd_send_page_mark(10+column, PAGE(LCD_HEIGHT) - 1, WHITE_OVER_BLACK);
+    for (uint8_t i = 0; i < DETECT_THRESHOLD_LEVELS; i++) {
+        if (ADC_LATEST_VALUE > Mean + threshold_offsets[i])
+            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, BLACK_OVER_WHITE);
+        else
+            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, WHITE_OVER_BLACK);
+    }    
+}
 
-void DoAdcGraph(){
+void DoAdcGraph() {
     size_t column = 0;
-    time_t t,t_1 = 0;
+    time_t t, t_1 = 0;
+    int written = 0;
     char lbl[16];
+    uint8_t lap = 0;
+    lbl[15] = 0;
+    t = rtc_time_msec;
+    DetectInit();
 
-    while(True){
-            t=get_corrected_time_msec();
-//        lcd_send_graph_column(column++%160,ADC_Read_average(ENVELOPE,128));
-//        if(column%320==0){
-//            t_1 = t;
-//            t = get_corrected_time_msec();
-            sprintf(lbl,"dt: %012ud",t);
-            lcd_write_string(lbl,5,8,MediumFont,BLACK_OVER_WHITE);
-//        lcd_write_string("0000000000",5,8,MediumFont,BLACK_OVER_WHITE);
+    while (True) {
+        column = (column + 1) % 140;
+        //        lcd_draw_bit_graph_column(20 + column,ADC_MIDDLE_VALUE - cma_n);
+        ////        lcd_draw_scope_column(20 + column,median_v);
+        lcd_draw_bit_mark_column(5); // bit scale
+        DoThresholdGrapg(10+column);
+
+        lcd_send_page(10+column,PAGE(25),0x0F,lap%2);
+        if (column == 0) {
+            lap++;
+            if(Keypressed)
+                return;
+        }
+            t_1 = t;
+            t = rtc_time_msec;
+            written = sprintf(lbl, "dt: %u", t - t_1);
+            for (uint8_t i = written; i < 15; i++) {
+                lbl[i] = ' ';
+            }
+            lcd_write_string(lbl, 5, 8, MediumFont, BLACK_OVER_WHITE);
 //        }
+        __delay_ms(5);
     }
 }
+
 void main(void) {
     time_t start, duration;
     char message[16];
@@ -3037,14 +3072,14 @@ void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Main">
 
     lcd_clear_data_ram();
-    while (True) {
-        start = get_corrected_time_msec();
-        TestBattery();
-        handle_rotation();
-        handle_ui();
-        frames_count++;
-        duration = 200 - (get_corrected_time_msec() - start);
-    }
-//    DoAdcGraph();
+        while (True) {
+            start = get_corrected_time_msec();
+            TestBattery();
+            handle_rotation();
+            handle_ui();
+            frames_count++;
+            duration = 200 - (get_corrected_time_msec() - start);
+        }
+    
     // </editor-fold>
 }

@@ -114,9 +114,10 @@ void handle_timer_listening() {
     if(Detect())
         UpdateShootNow();
 #endif
-    update_shot_time_on_screen();
+//    update_shot_time_on_screen();
     print_header();
-    print_footer();
+    DoAdcGraph();
+//    print_footer();
     switch (comandToHandle) {
         case StartLong:
             ui_state = PowerOff;

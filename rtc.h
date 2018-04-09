@@ -17,7 +17,7 @@
 
 // Timer3 counting output of timer1 which is 2 seconds
 #define rtc_time_sec        ((TMR3|(TMR5<<16))<<1|(TMR1>>15))
-#define set_rtc_time(x)     {time_t __ts=x/2;TMR3=0x0000FFFF & __ts; TMR5=(0xFFFF0000 & __ts)>>16;}
+#define set_rtc_time(x)     {time_t __ts=x>>1;TMR3=0x0000FFFF & __ts; TMR5=(0xFFFF0000 & __ts)>>16;}
 
 #define rtc_time_msec       (TMR1>>6)
 

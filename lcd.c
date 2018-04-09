@@ -69,7 +69,8 @@ void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_by
 }
 
 // rows in pages
-void lcd_prepare_send_data(uint8_t c1,uint8_t p1,uint8_t c2,uint8_t p2){
+
+void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2) {
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_COL_ADD); // Column address.
     lcd_send_data(c1); // Start column address.
@@ -81,6 +82,7 @@ void lcd_prepare_send_data(uint8_t c1,uint8_t p1,uint8_t c2,uint8_t p2){
     lcd_send_command(CMD_WRITE_DATA); // Write data.
 }
 #ifndef LCD_DIRECT_ACCESS
+
 void lcd_update_boundingbox(UpdateBoundary * box, uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
     box->changed |= box->min_x > x_min;
     box->changed |= box->max_x < x_max;
@@ -161,9 +163,9 @@ void lcd_draw_pixel_b(uint8_t x_pos, uint8_t y_pos, uint8_t polarity) {
     } else {
         y_pos += Y_OFFSET;
     }
-    if(update_page(&lcd_buffer[PAGE(y_pos)][x_pos], y_pos, polarity))/* Update bounding box only if the bit actually changed the state*/
+    if (update_page(&lcd_buffer[PAGE(y_pos)][x_pos], y_pos, polarity))/* Update bounding box only if the bit actually changed the state*/
         lcd_update_boundingbox(&full_screen_update_boundary, x_pos, y_pos, x_pos, y_pos);
-        // TODO: Calculate this in more generic way - now this will work only for the main screen
+    // TODO: Calculate this in more generic way - now this will work only for the main screen
 }
 
 void lcd_set_pixel_b(uint8_t x_pos, uint8_t y_pos) {
@@ -186,7 +188,7 @@ void lcd_draw_line_b(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_
         SWAP(y0_pos, y1_pos);
     }
 
-//    lcd_update_boundingbox(&full_screen_update_boundary, x0_pos, y0_pos, x1_pos, y1_pos);
+    //    lcd_update_boundingbox(&full_screen_update_boundary, x0_pos, y0_pos, x1_pos, y1_pos);
 
     uint8_t dx, dy;
     dx = x1_pos - x0_pos;
@@ -198,7 +200,7 @@ void lcd_draw_line_b(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_
     if (y0_pos < y1_pos) y_step = 1;
     else y_step = -1;
 
-    for (; x0_pos <= x1_pos; x0_pos=x0_pos+1) {
+    for (; x0_pos <= x1_pos; x0_pos = x0_pos + 1) {
         if (steep) {
             lcd_draw_pixel_b(y0_pos, x0_pos, polarity);
         } else {
@@ -224,19 +226,20 @@ void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t pol
 #endif
 
 void lcd_clear_data_ram() {
-    lcd_prepare_send_data(0,0,LCD_MAX_ADDRESS,LCD_WIDTH);
+    lcd_prepare_send_data(0, 0, LCD_MAX_ADDRESS, LCD_WIDTH);
     // Clear only the area that we're using
-    for (uint16_t index = 0; index < (50+PAGE(LCD_MAX_ADDRESS)) * LCD_WIDTH; index++) {
+    for (uint16_t index = 0; index < (50 + PAGE(LCD_MAX_ADDRESS)) * LCD_WIDTH; index++) {
         lcd_send_data(LCD_WHITE_PAGE);
     }
 }
 #ifndef LCD_DIRECT_ACCESS
+
 void lcd_refresh(UpdateBoundary * box) {
     uint8_t column, max_column, page;
     // Don't even try to update unchanged box
     if (!box->changed) return;
 
-    for (page = box->min_y / PAGE_HEIGTH; page < box->max_y / PAGE_HEIGTH; page=page+1) {
+    for (page = box->min_y / PAGE_HEIGTH; page < box->max_y / PAGE_HEIGTH; page = page + 1) {
         lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
         lcd_send_command(CMD_PAGE_ADD); // Row address.
         lcd_send_data(page + Y_OFFSET); // Start row address.
@@ -251,7 +254,7 @@ void lcd_refresh(UpdateBoundary * box) {
 
         lcd_send_command(CMD_WRITE_DATA); // Write data.
 
-        for (; column <= max_column; column=column+1) {
+        for (; column <= max_column; column = column + 1) {
             lcd_send_data(lcd_buffer[page][column].PAGE); // Sending data from buffer.
         }
     }
@@ -261,7 +264,7 @@ void lcd_refresh(UpdateBoundary * box) {
     box->min_y = LCD_HEIGHT - 1;
     box->max_y = 0;
     box->changed = false;
-//    frames_count=frames_count+1;
+    //    frames_count=frames_count+1;
 }
 
 uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
@@ -273,8 +276,8 @@ uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FON
     c = c - font->char_start; // 'c' now become index to tables.
     bitmap = font->bitmap + font->char_descriptors[c].offset;
 
-    for (j = 0; j < font->height; j=j+1) {
-        for (i = 0; i < font->char_descriptors[c].width; i=i+1) {
+    for (j = 0; j < font->height; j = j + 1) {
+        for (i = 0; i < font->char_descriptors[c].width; i = i + 1) {
             if (i % 8 == 0) {
                 line = bitmap[(font->char_descriptors[c].width + 7) / 8 * j + i / 8]; // line data
             }
@@ -292,19 +295,20 @@ uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FON
 #endif
 
 // write char directly to the screen
+
 uint8_t lcd_write_char_d(unsigned int c,
         uint8_t x_pos,
         uint8_t y_pos,
         const FONT_INFO *font,
         uint8_t polarity) {
-    uint8_t column,start_page,end_page,data,heigh_in_bytes;
+    uint8_t column, start_page, end_page, data, heigh_in_bytes;
     int8_t i;
     const uint8_t *bitmap;
-    
+
     if ((c < font->char_start) || (c > font->char_end)) return 0;
-    if( ! START_OF_PAGE(y_pos)) return 0; // Don't draw not on the edge of the page
+    if (!START_OF_PAGE(y_pos)) return 0; // Don't draw not on the edge of the page
     c = c - font->char_start; // 'c' now become index to tables.
-heigh_in_bytes = (font->height%8==0)?font->height/8:font->height/8+1;
+    heigh_in_bytes = (font->height % 8 == 0) ? font->height / 8 : font->height / 8 + 1;
     bitmap = font->bitmap + font->char_descriptors[c].offset;
     start_page = PAGE(y_pos);
     end_page = PAGE(y_pos) + heigh_in_bytes;
@@ -314,12 +318,12 @@ heigh_in_bytes = (font->height%8==0)?font->height/8:font->height/8+1;
      *          for index between PAGE(font heigh) and 0
      *              draw page (PAGE(Y),column,bitmap[index])
      */
-    for(column = x_pos;column < x_pos+font->char_descriptors[c].width;column++){
-        lcd_prepare_send_data(column,start_page,column,end_page);
+    for (column = x_pos; column < x_pos + font->char_descriptors[c].width; column++) {
+        lcd_prepare_send_data(column, start_page, column, end_page);
         // TODO: Calculate carefully
-        for (i=heigh_in_bytes;i>0;i=i-1){
-            data = bitmap[i-1];
-            if(polarity == BLACK_OVER_WHITE)
+        for (i = heigh_in_bytes; i > 0; i = i - 1) {
+            data = bitmap[i - 1];
+            if (polarity == BLACK_OVER_WHITE)
                 lcd_send_data(data);
             else
                 lcd_send_data(~data);
@@ -330,6 +334,7 @@ heigh_in_bytes = (font->height%8==0)?font->height/8:font->height/8+1;
     return font->char_descriptors[c].width;
 }
 #ifndef LCD_DIRECT_ACCESS
+
 void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
@@ -343,16 +348,17 @@ void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 
 
 // TODO: Implement lcd_get_block_d
-void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos,uint8_t polarity) {
+
+void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
     //don't fill blocks not 8 bit hight
-//    if (! (START_OF_PAGE(y1_pos) && START_OF_PAGE(y2_pos + 1))) return;
-    
+    //    if (! (START_OF_PAGE(y1_pos) && START_OF_PAGE(y2_pos + 1))) return;
+
     for (uint8_t column = x1_pos; column < x2_pos; column = column + 1) {
-        lcd_prepare_send_data(column,PAGE(y1_pos),column,PAGE(y2_pos));
+        lcd_prepare_send_data(column, PAGE(y1_pos), column, PAGE(y2_pos));
         for (uint8_t page = PAGE(y1_pos); page <= PAGE(y2_pos); page = page + 1) {
-            if(polarity==BLACK_OVER_WHITE)
+            if (polarity == BLACK_OVER_WHITE)
                 lcd_send_data(LCD_BLACK_PAGE);
             else
                 lcd_send_data(LCD_WHITE_PAGE);
@@ -361,13 +367,14 @@ void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 }
 
 void lcd_fill_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_send_block_d(x1_pos,y1_pos,x2_pos,y2_pos,BLACK_OVER_WHITE);
+    lcd_send_block_d(x1_pos, y1_pos, x2_pos, y2_pos, BLACK_OVER_WHITE);
 }
 
 void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_send_block_d(x1_pos,y1_pos,x2_pos,y2_pos,WHITE_OVER_BLACK);
+    lcd_send_block_d(x1_pos, y1_pos, x2_pos, y2_pos, WHITE_OVER_BLACK);
 }
 #ifndef LCD_DIRECT_ACCESS
+
 void lcd_clear_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
@@ -389,6 +396,7 @@ uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     }
     return strlng;
 }
+
 void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     if (str_ptr == NULL) return;
 
@@ -411,6 +419,7 @@ void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const
     }
 }
 #ifndef LCD_DIRECT_ACCESS
+
 void lcd_write_string_b(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     if (str_ptr == NULL) return;
 
@@ -433,7 +442,6 @@ void lcd_write_string_b(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const
     }
 }
 
-
 void lcd_draw_bitmap_b(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
     for (uint8_t y = 0; y < bitmap_data->image_height; y++) {
         for (uint8_t x = 0; x < (bitmap_data->image_width + 7) / 8; x++) {
@@ -453,7 +461,7 @@ void lcd_draw_bitmap_b(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap
 //    for (uint8_t y = 0; y < bitmap_data->image_height; y++) {
 //        for (uint8_t x = 0; x < (bitmap_data->image_width + 7) / 8; x++) {
 //            uint8_t data = *(bitmap_data->image_data + ((y * ((bitmap_data->image_width + 7) / 8) + x)));
-//            
+//
 //        }
 //    }
 //}
@@ -466,6 +474,7 @@ void lcd_battery_info_b(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage
         lcd_draw_vline_b(x_pos + (bar * 2), y_pos + 2, y_pos + 3 + 2, BLACK_OVER_WHITE);
     }
 }
+
 void lcd_battery_info_d(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     battery_percentage %= 100;
     lcd_draw_bitmap_b(x_pos, y_pos, &battery_bitmap_data);
@@ -546,12 +555,12 @@ void lcd_init() {
 
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_ICON_DISABLE); // Disable ICON RAM.
-    
-//    lcd_send_command(CMD_SET_SCROLL_AREA);
-//    lcd_send_data(100);           //  Start at line 0
-//    lcd_send_data(LCD_HEIGHT);  //  End at LCD_HEGHT
-//    lcd_send_data(LCD_HEIGHT);  //  LCD_HEGHT lines to display
-//    lcd_send_data(0x01);        // Top mode
+
+    //    lcd_send_command(CMD_SET_SCROLL_AREA);
+    //    lcd_send_data(100);           //  Start at line 0
+    //    lcd_send_data(LCD_HEIGHT);  //  End at LCD_HEGHT
+    //    lcd_send_data(LCD_HEIGHT);  //  LCD_HEGHT lines to display
+    //    lcd_send_data(0x01);        // Top mode
 
     lcd_clear_data_ram(); // Clearing data RAM.
 
@@ -559,9 +568,9 @@ void lcd_init() {
 }
 
 void lcd_clear() {
-//    memset(lcd_buffer, 0, sizeof (lcd_buffer));
-//    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
-//    lcd_refresh(&full_screen_update_boundary);
+    //    memset(lcd_buffer, 0, sizeof (lcd_buffer));
+    //    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+    //    lcd_refresh(&full_screen_update_boundary);
     lcd_clear_data_ram();
 }
 
@@ -578,6 +587,7 @@ void lcd_decrease_contrast() {
 }
 
 #ifndef LCD_DIRECT_ACCESS
+
 void lcd_set_pixel(uint8_t x_pos, uint8_t y_pos) {
     lcd_set_pixel_b(x_pos, y_pos);
 }
@@ -598,14 +608,15 @@ void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polar
     lcd_draw_hline_b(x0_pos, x1_pos, y_pos, polarity);
 }
 #endif
+
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_char_d(c, x_pos, y_pos, font, polarity);
 }
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
-//    lcd_write_string_b(str_ptr, x_pos, y_pos, font, polarity);
-//    lcd_refresh(&full_screen_update_boundary);
+    //    lcd_write_string_b(str_ptr, x_pos, y_pos, font, polarity);
+    //    lcd_refresh(&full_screen_update_boundary);
 }
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
@@ -615,16 +626,17 @@ void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_I
     lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
 }
 // TODO: Implement
+
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-//    lcd_draw_bitmap_d(x_pos, y_pos, bitmap_data);
+    //    lcd_draw_bitmap_d(x_pos, y_pos, bitmap_data);
 }
 // TODO: Implement
+
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     if (battery_percentage > 100) battery_percentage = 100;
- //   lcd_battery_info_d(x_pos, y_pos, battery_percentage);
-//    lcd_refresh(&full_screen_update_boundary);
+    //   lcd_battery_info_d(x_pos, y_pos, battery_percentage);
+    //    lcd_refresh(&full_screen_update_boundary);
 }
-
 
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_fill_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
@@ -642,25 +654,46 @@ void lcd_set_orientation() {
         lcd_send_command(LCD_ORIENTATION_INVERTED);
 }
 
-void lcd_send_graph_column(size_t column, uint16_t value){
-    int8_t page_dot,pixel;
-    pixel = (value>>3)%8;
-    page_dot = value >>5 + 3;
-    lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-    lcd_send_command(CMD_COL_ADD); // Column address.
-    lcd_send_data(column); // Start column address.
-    lcd_send_data(column); // End column address.
+#define LCD_GRAPH_HEIGTH        12
+#define LCD_GRAPH_START_PAGE    Y_OFFSET+3
 
-    lcd_send_command(CMD_PAGE_ADD); // Row address.
-    lcd_send_data(3); // Start row address.
-    lcd_send_data(LCD_MAX_PAGES); // End row address.
-    lcd_send_command(CMD_WRITE_DATA); // Write data.
-    for(uint8_t page = LCD_MAX_PAGES;page >2;page--){
-        if(page_dot==page)
-            lcd_send_data(pixel);
-        else
-            lcd_send_data(LCD_WHITE_PAGE);
+void lcd_draw_bit_graph_column(size_t column, uint16_t value) {
+    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
+    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
+        if ((value >> (2 * page)) & 0x3) lcd_send_data(LCD_BLACK_PAGE);
+        else lcd_send_data(LCD_WHITE_PAGE);
     }
+}
+
+void lcd_draw_bit_mark_column(size_t column) {
+    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
+    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
+        if (page%2==0) lcd_send_data(LCD_BLACK_PAGE);
+        else lcd_send_data(LCD_WHITE_PAGE);
+    }
+}
+
+void lcd_draw_scope_column(size_t column, uint16_t value) {
+    uint8_t mark_page, mark_bit;
+    mark_bit = (value % LCD_GRAPH_HEIGTH) % PAGE_HEIGTH;
+    mark_page = value / LCD_GRAPH_HEIGTH;
+    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
+    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
+        if (page == mark_page) lcd_send_data(mark_bit);
+        else lcd_send_data(LCD_WHITE_PAGE);
+    }
+}
+
+void lcd_send_page_mark(uint8_t column, uint8_t page, uint8_t polarity) {
+    lcd_prepare_send_data(column, page, column, page);
+    if (polarity == BLACK_OVER_WHITE) lcd_send_data(LCD_BLACK_PAGE);
+    else lcd_send_data(LCD_WHITE_PAGE);
+}
+
+void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity) {
+    lcd_prepare_send_data(column, page, column, page);
+    if (polarity == BLACK_OVER_WHITE) lcd_send_data(value);
+    else lcd_send_data(~value);
 }
 // </editor-fold>
 
