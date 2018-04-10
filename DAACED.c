@@ -454,7 +454,7 @@ void SettingsDisplay(void) {
         //Inc Page
         Menu.page++;
         Menu.refresh = True;
-    } else if (Menu.menu <=(Menu.PageSize * (Menu.page - 1))) {
+    } else if (Menu.menu <= (Menu.PageSize * (Menu.page - 1))) {
         //Dec Page
         Menu.page--;
         Menu.refresh = True;
@@ -487,7 +487,7 @@ void increment_menu_index() {
         Menu.prev = Menu.menu;
         Menu.menu--;
         Menu.refresh = False;
-//        SettingsDisplay();
+        //        SettingsDisplay();
     } else Beep();
 }
 
@@ -496,7 +496,7 @@ void decrement_menu_index() {
         Menu.prev = Menu.menu;
         Menu.menu++;
         Menu.refresh = False;
-//        SettingsDisplay();
+        //        SettingsDisplay();
     } else Beep();
 }
 
@@ -2357,16 +2357,16 @@ void SetSettingsMenu() {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
     SettingsMenu.TotMenuItems = 13;
     strcpy(SettingsMenu.MenuTitle, "Settings        ");
-    strcpy(SettingsMenu.MenuItem[0],  " Delay       ");
-    strcpy(SettingsMenu.MenuItem[1],  " Par         ");
-    strcpy(SettingsMenu.MenuItem[2],  " Buzzer      ");
-    strcpy(SettingsMenu.MenuItem[3],  " Auto Start  ");
-    strcpy(SettingsMenu.MenuItem[4],  " Timer Mode  ");
-    strcpy(SettingsMenu.MenuItem[5],  " Clock       ");
-    strcpy(SettingsMenu.MenuItem[6],  " Countdown   ");
-    strcpy(SettingsMenu.MenuItem[7],  " Tilt        ");
-    strcpy(SettingsMenu.MenuItem[8],  " Backlight   ");
-    strcpy(SettingsMenu.MenuItem[9],  " Sensitivity ");
+    strcpy(SettingsMenu.MenuItem[0], " Delay       ");
+    strcpy(SettingsMenu.MenuItem[1], " Par         ");
+    strcpy(SettingsMenu.MenuItem[2], " Buzzer      ");
+    strcpy(SettingsMenu.MenuItem[3], " Auto Start  ");
+    strcpy(SettingsMenu.MenuItem[4], " Timer Mode  ");
+    strcpy(SettingsMenu.MenuItem[5], " Clock       ");
+    strcpy(SettingsMenu.MenuItem[6], " Countdown   ");
+    strcpy(SettingsMenu.MenuItem[7], " Tilt        ");
+    strcpy(SettingsMenu.MenuItem[8], " Backlight   ");
+    strcpy(SettingsMenu.MenuItem[9], " Sensitivity ");
     strcpy(SettingsMenu.MenuItem[10], " Filter      ");
     strcpy(SettingsMenu.MenuItem[11], " Input       ");
     strcpy(SettingsMenu.MenuItem[12], " Bluetooth   ");
@@ -2931,19 +2931,22 @@ void update_screen_model() {
                 // Software "interrupt" emulation
                 if (now - parStartTime_ms >= ParTime[CurPar_idx]) {
                     ParNowCounting = false;
+                    timerEventToHandle = ParEvent;
                 }
             }
 #ifdef ASYNC_DETECT
             if (Detect()) {
+                // Guard raising edge detection
                 if (!shoot_detected) {
                     UpdateShot(now);
                 }
             } else {
                 shoot_detected = false;
             }
-#endif
+#else
             if (AdcDetect())
                 UpdateShootNow();
+#endif
             break;
         case TimerCountdown:
             if (now - countdown_start_time >= DelayTime) {
@@ -2977,6 +2980,7 @@ static void interrupt isr(void) {
     }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
+        update_rtc_time;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             KeyReleased = true;
         }
@@ -2989,13 +2993,13 @@ static void interrupt isr(void) {
 
 void DoThresholdGrapg(uint8_t column) {
     if (AdcDetect())
-         lcd_send_page_mark(10+column, PAGE(LCD_HEIGHT) - 1, WHITE_OVER_BLACK);
+        lcd_send_page_mark(10 + column, PAGE(LCD_HEIGHT) - 1, WHITE_OVER_BLACK);
     for (uint8_t i = 0; i < DETECT_THRESHOLD_LEVELS; i++) {
         if (ADC_LATEST_VALUE > Mean + threshold_offsets[i])
             lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, BLACK_OVER_WHITE);
         else
             lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, WHITE_OVER_BLACK);
-    }    
+    }
 }
 
 void DoAdcGraph() {
@@ -3013,22 +3017,24 @@ void DoAdcGraph() {
         //        lcd_draw_bit_graph_column(20 + column,ADC_MIDDLE_VALUE - cma_n);
         ////        lcd_draw_scope_column(20 + column,median_v);
         lcd_draw_bit_mark_column(5); // bit scale
-        DoThresholdGrapg(10+column);
+        DoThresholdGrapg(10 + column);
 
-        lcd_send_page(10+column,PAGE(25),0x0F,lap%2);
+        lcd_send_page(10 + column, PAGE(25), 0x0F, lap % 2);
         if (column == 0) {
             lap++;
-            if(Keypressed)
+            if (Keypressed){
+                ui_state = TimerIdle;
                 return;
-        }
-            t_1 = t;
-            t = rtc_time_msec;
-            written = sprintf(lbl, "dt: %u", t - t_1);
-            for (uint8_t i = written; i < 15; i++) {
-                lbl[i] = ' ';
             }
-            lcd_write_string(lbl, 5, 8, MediumFont, BLACK_OVER_WHITE);
-//        }
+        }
+        t_1 = t;
+        t = rtc_time_msec;
+        written = sprintf(lbl, "dt: %u", t - t_1);
+        for (uint8_t i = written; i < 15; i++) {
+            lbl[i] = ' ';
+        }
+        lcd_write_string(lbl, 5, 8, MediumFont, BLACK_OVER_WHITE);
+        //        }
         __delay_ms(5);
     }
 }
@@ -3058,14 +3064,14 @@ void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Main">
 
     lcd_clear_data_ram();
-        while (True) {
-            start = get_corrected_time_msec();
-            TestBattery();
-            handle_rotation();
-            handle_ui();
-            frames_count++;
-            duration = 200 - (get_corrected_time_msec() - start);
-        }
-    
+    while (True) {
+        start = get_corrected_time_msec();
+        TestBattery();
+        handle_rotation();
+        handle_ui();
+        frames_count++;
+        duration = 200 - (get_corrected_time_msec() - start);
+    }
+
     // </editor-fold>
 }

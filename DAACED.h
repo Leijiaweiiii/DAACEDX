@@ -27,7 +27,7 @@
 // </editor-fold>
 
 
-
+#define ASYNC_DETECT
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
 extern uint8_t sinus_table[32];
@@ -143,7 +143,6 @@ unsigned char PortE_Data;
 TBool Powered;
 #define PowerON              {LATEbits.LATE0 = 1; Powered=True;}
 #define PowerOFF             {LATEbits.LATE0 = 0; Powered=False;}
-uint8_t powered_off_sec = 0;
 
 #define BuzzerPeriod          50            //[10uSec]  = 10/Freq
 #define BuzzerCycles          300           //Cycles

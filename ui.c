@@ -46,7 +46,6 @@ void PowerOffTimer() {
 
 void StartTimer() {
     lcd_clear_data_ram();
-    set_screen_title("Timer Run");
     CurPar_idx = 0;
     StartParTimer();
     StartCountdownTimer();
@@ -54,15 +53,10 @@ void StartTimer() {
 }
 
 void StopTimer() {
-    set_screen_title("Timer Idle");
     lcd_clear();
     print_header();
     print_footer();
     update_shot_time_on_screen();
-}
-
-void NextReviewItem() {
-    set_screen_title("Review-N");
 }
 
 void handle_power_off() {
@@ -80,6 +74,7 @@ void handle_power_off() {
 }
 
 void handle_timer_idle() {
+    set_screen_title("Timer Idle");
     update_shot_time_on_screen();
     print_header();
     print_footer();
@@ -110,11 +105,13 @@ void HandleTimerEvents() {
 }
 
 void handle_timer_listening() {
+    set_screen_title("Listening");
 #ifndef ASYNC_DETECT
     if(Detect())
         UpdateShootNow();
 #endif
 //    update_shot_time_on_screen();
+    lcd_clear();
     print_header();
     DoAdcGraph();
 //    print_footer();
@@ -125,7 +122,7 @@ void handle_timer_listening() {
             break;
         case StartShort:
             if (AutoStart) {
-                ui_state = TimerListening;
+                ui_state = TimerCountdown;
                 StartTimer();                
             }
             break;
@@ -168,6 +165,7 @@ void handle_settings_screen() {
 }
 
 void handle_countdown() {
+    set_screen_title("All Set");
     print_footer();
     print_header();
     update_countdown_time_on_screen();
