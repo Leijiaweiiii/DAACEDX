@@ -2517,16 +2517,15 @@ void review_next_string() {
 
 void DoReview() {
     TBool scroll_shots = True;
-    TestBattery();
     CurShootString = 0;
     CurShoot = 2;
     set_screen_title("Review");
+
     //    getShootString(CurShootString);
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    while (ui_state == ReviewScreen) {
-
+    do {
         TestBattery();
-        print_header();
+        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
         define_input_action();
         switch (comandToHandle) {
             case UpShort:
@@ -2550,14 +2549,14 @@ void DoReview() {
                 break;
             case StartShort:STATE_HANDLE_TIMER_IDLE;
                 break;
-            case ReviewLong:ui_state = SettingsScreen;
+            case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
                 break;
             default:
                 break;
         }
         comandToHandle = None;
-        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
-    }
+
+    } while (ui_state == ReviewScreen);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
@@ -3022,7 +3021,7 @@ void DoAdcGraph() {
         lcd_send_page(10 + column, PAGE(25), 0x0F, lap % 2);
         if (column == 0) {
             lap++;
-            if (Keypressed){
+            if (Keypressed) {
                 ui_state = TimerIdle;
                 return;
             }

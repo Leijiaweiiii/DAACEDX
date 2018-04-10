@@ -61,10 +61,7 @@ void StopTimer() {
 
 void handle_power_off() {
     switch (comandToHandle) {
-        case StartLong:
-            ui_state = TimerIdle;
-            DoPowerOn();
-            StopTimer();
+        case StartLong:STATE_HANDLE_POWER_ON;
             break;
         default:
             //do nothing - we're sleeping;
@@ -92,10 +89,7 @@ void handle_timer_idle() {
 
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
-        case TimerTimeout:
-            ui_state = TimerIdle;
-            StopTimer();            
-            break;
+        case TimerTimeout:STATE_HANDLE_TIMER_IDLE;break;
         case ParEvent:
             StartParTimer();
             break;
@@ -110,25 +104,19 @@ void handle_timer_listening() {
     if(Detect())
         UpdateShootNow();
 #endif
-//    update_shot_time_on_screen();
     lcd_clear();
+//    update_shot_time_on_screen();
+
     print_header();
     DoAdcGraph();
 //    print_footer();
     switch (comandToHandle) {
-        case StartLong:
-            ui_state = PowerOff;
-            PowerOffTimer();
+        case StartLong:STATE_HANDLE_POWER_OFF;
             break;
         case StartShort:
-            if (AutoStart) {
-                ui_state = TimerCountdown;
-                StartTimer();                
-            }
+            if (AutoStart) STATE_HANDLE_COUNTDOWN;
             break;
-        case ReviewShort:
-            ui_state = TimerIdle;
-            StopTimer();
+        case ReviewShort:STATE_HANDLE_TIMER_IDLE;
             break;
         default:
             // All the rest keys handled inside the next handler.
@@ -170,22 +158,15 @@ void handle_countdown() {
     print_header();
     update_countdown_time_on_screen();
     switch (comandToHandle) {
-        case StartLong:
-            ui_state = PowerOff;
-            PowerOffTimer();
+        case StartLong:STATE_HANDLE_POWER_OFF;break;
+        case StartShort: 
+            if (AutoStart)
+                STATE_HANDLE_TIMER_IDLE;
             break;
-        case StartShort:
-            if (AutoStart) {
-                ui_state = TimerListening;
-                StartTimer();                
-            }
-            break;
-        case ReviewShort:
-            ui_state = TimerIdle;
-            StopTimer();            
-            break;
+        case ReviewShort:STATE_HANDLE_TIMER_IDLE;break;
         case CountdownExpired:
             ui_state = TimerListening;
+            update_shot_time_on_screen();
             PlayStartSound();
             break;
         default:
