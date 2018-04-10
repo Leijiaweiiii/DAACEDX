@@ -9,19 +9,27 @@
 
 #define SYS_MODE_NORMAL (0)
 #define SYS_MODE_SLEEP  (1)
-#define delay_rtc(x)    {uint32_t __st= rtc_time_sec;while(rtc_time_sec-__st<x);}
+
 
 #define SHOOT_IF            (PIR1bits.ADIF)
 #define SHOOT_IE            (PIE1bits.ADIE)
 
 
 // Timer3 counting output of timer1 which is 2 seconds
+extern const uint16_t correction_table[];
+typedef struct{
+    time_t sec;
+    time_t unix_time_ms;
+    uint16_t msec;
+}rtc_time_t;
+rtc_time_t rtc_time;
+
 #define rtc_time_sec        ((TMR3|(TMR5<<16))<<1|(TMR1>>15))
 #define set_rtc_time(x)     {time_t __ts=x>>1;TMR3=0x0000FFFF & __ts; TMR5=(0xFFFF0000 & __ts)>>16;}
-
 #define rtc_time_msec       (TMR1>>6)
-
-#define delay_rtc_ms(x)    {uint8_t __st = rtc_time_msec;while((rtc_time_msec-__st)<x);}
+#define update_rtc_time     {rtc_time.sec = rtc_time_sec;rtc_time.msec = correction_table[rtc_time_msec];rtc_time.unix_time_ms = rtc_time.sec*1000+rtc_time.msec;}
+#define delay_rtc(x)        {time_t __st = rtc_time.sec; while((rtc_time.sec  - __st)<x);}
+#define delay_rtc_ms(x)     {time_t __st = rtc_time.unix_time_ms;while((rtc_time.unix_time_ms -  __st)<x);}
 
 volatile uint32_t button_down_time, button_up_time;
 void initialize_rtc_timer();
