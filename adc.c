@@ -1,5 +1,4 @@
 #include "adc.h"
-#include <stdlib.h>
 // <editor-fold defaultstate="collapsed" desc="MicroController ADC Interface">
 
 void ADC_init() {
@@ -11,8 +10,8 @@ void ADC_init() {
     ADCON1 = 0b00000001; // Select ADC Double Sample
     ADCON2 = 0b00001000; // Normal ADC operation
     ADCON3 = 0b00001000; // Normal ADC operation
-//    ADCLK = 0b00100000; // ADC CLK = OSC/64
-    ADCLK = 0b111111;   // 2uS per sample
+    ADCLK = 0b00100000; // ADC CLK = OSC/64
+//    ADCLK = 0b111111;   // 2uS per sample
     ADREFbits.ADNREF = 0;   // VSS
     ADREFbits.ADPREF = 0;   // VDD
     ADREF = 0b00000011; // ADC connected to FVR
@@ -63,4 +62,12 @@ uint16_t median(){
 
 TBool AdcDetect(){
     return ADC_MIDDLE_VALUE - cma_n>ADC_DETECTION_THRESHOLD;
+}
+
+uint16_t MeanValue(){
+    uint16_t avg = 0;
+    for(uint16_t i=0;i<ADC_BUFFER_SIZE;i++)
+        avg += samples[i];
+    
+    return avg>>4;
 }

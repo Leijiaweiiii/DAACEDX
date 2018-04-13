@@ -20,6 +20,9 @@
 #define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*UI_FOOTER_GRID_HEIGH)
 #define LCD_BLACK_PAGE          0xFF
 #define LCD_WHITE_PAGE          0x00
+
+#define LCD_GRAPH_HEIGTH        12
+#define LCD_GRAPH_START_PAGE    Y_OFFSET+3
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
 #define SMALL_LCD
 #define MSB_FIRST
@@ -73,12 +76,9 @@ UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 
 
 #define ORIENTATION_NORMAL              0
 #define ORIENTATION_INVERTED            1
-#define ORIENTATION_INVERSE_THRESHOLD   400
+#define ORIENTATION_INVERSE_THRESHOLD   0x170
 TBool orientation = ORIENTATION_NORMAL;
 TBool orientation_change_enabled = false;
-
-#define topSpace     20
-#define botSpace     10
 
 #define PopX1       LCD_WIDTH/8
 #define PopY1       LCD_HEIGHT/4
@@ -228,11 +228,12 @@ void lcd_clear_data_ram();
 void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_set_orientation();
-void lcd_draw_bit_graph_column(size_t column, uint16_t value);
-void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
-void lcd_draw_scope_column(size_t column, uint16_t value);
-void lcd_draw_bit_mark_column(size_t column);
-void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity);
+//
+//void lcd_draw_bit_graph_column(size_t column, uint16_t value);
+//void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
+//void lcd_draw_scope_column(size_t column, uint16_t value);
+//void lcd_draw_bit_mark_column(size_t column);
+//void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity);
 // </editor-fold>
 #endif	/* LCD_H */
 

@@ -47,12 +47,16 @@ extern "C" {
     volatile ButtonCommand comandToHandle = None;
 
     typedef enum TimerEvent{
-        NoEvent = 0,TimerTimeout,ParEvent
+        NoEvent = 0,
+                TimerTimeout,
+                ParEvent,
+                ShotDetected
     } TimerEvent;
     TimerEvent timerEventToHandle = NoEvent;
 
     char ScreenTitle[32];
-    void set_screen_title(char * value);
+#define set_screen_title(x) {strmycpy(ScreenTitle, x);}
+
     void print_big_time_label(time_t t);
     void print_line_with_shots_and_split(uint8_t shot_no,time_t split);
     void handle_settings_screen();

@@ -23,20 +23,15 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
 
 void print_big_time_label(time_t t) {
     char message[16];
-    time_t sec = t/1000;
-    time_t ms = sec * 1000;
-    ms = t - ms;
-    sprintf(message, "%.02f ", 0.001 * ms + sec);
+//    time_t sec = t/1000;
+//    time_t ms = (t/10)%100;
+    sprintf(message, "%3.02f ",((float)t)/1000);
     lcd_write_string(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void update_countdown_time_on_screen() {
-    time_t reminder = DelayTime - get_corrected_time_msec() + countdown_start_time;
+    time_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder /100 * 100);
-}
-
-void set_screen_title(char * value) {
-    strcpy(ScreenTitle, value);
 }
 
 void PowerOffTimer() {
@@ -104,12 +99,12 @@ void handle_timer_listening() {
     if(Detect())
         UpdateShootNow();
 #endif
-    lcd_clear();
-//    update_shot_time_on_screen();
+//    lcd_clear();
+    update_shot_time_on_screen();
 
     print_header();
-    DoAdcGraph();
-//    print_footer();
+//    DoAdcGraph();
+    print_footer();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
@@ -246,8 +241,14 @@ void define_input_action() {
                     comandToHandle = OkShort;
                 break;
             case KeyInDw:
+                // TODO: Remove when device fixed or for production
+                if (is_long_press())
+                    comandToHandle = StartLong;
+                else
+                    comandToHandle = StartShort;
                 break;
             case KeyInUp:
+                
                 break;
             default:
                 //user can press anything, but we can handle only specific gestures

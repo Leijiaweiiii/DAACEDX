@@ -3,15 +3,18 @@
 #define	DAACED_COMMON_H
 
 #include <xc.h> // include processor files - each processor file is guarded.  
+
 #include <stdint.h>
 #include "DAACEDfont.h"
 #include "__size_t.h"
 #include "__null.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "string.h"
-
-
+//#include "string.h"
+#ifndef STRMYCMP
+#define STRMYCMP
+extern void strmycpy(char * to, const char * from);
+#endif
 // <editor-fold defaultstate="collapsed" desc="General">
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ            (64000000UL) //64MHz
@@ -39,9 +42,14 @@ typedef enum {
 #define BIT(bit_position)       (1<<bit_position)
 #define SWAP(x,y)               { x = x + y; y = x - y; x = x - y;}
 #define UNUSED(x)               (void)(x)
+#define ABS(x)                  ((x<0)?-x:x)
 
 #define LCD_CS_SELECT()         (LATFbits.LF3 = 0)
 #define LCD_CS_DESELECT()       (LATFbits.LF3 = 1)
 // </editor-fold> 
+
+extern void	qsort(void *, size_t, size_t, int (*)(const void *, const void *));
+extern void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
+#define Beep() {generate_sinus(1, 1000, 50);}
 #endif	/* DAACED_COMMON_H */
 

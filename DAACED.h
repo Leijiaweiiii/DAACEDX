@@ -9,7 +9,7 @@
     Global R&D ltd. 04_9592201    ;  www.global_rd.com
     Eli Jacob 054_8010330         ;  eli@global_rd.com
    ===========================================================================*/
-
+#define ASYNC_DETECT
 // <editor-fold defaultstate="collapsed" desc="Includes">
 #ifndef _DAACED_H_
 #define _DAACED_H_
@@ -25,9 +25,6 @@
 #include "ui.h"
 #include "adc.h"
 // </editor-fold>
-
-
-#define ASYNC_DETECT
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
 extern uint8_t sinus_table[32];
@@ -117,13 +114,13 @@ uint8_t find_set_bit_position(uint8_t n);
 #define Key                  (PORTB & 0x3D)
 // TODO: Change to correct combination of keys
 //#define KeySt                 0x02  //Start
-#define KeySt                 0x20  //Start
+#define KeySt                 0x80  //Start
 #define KeyRw                 0x01  //Review
 #define KeyBk                 0x04  //Back
 #define KeyDw                 0x08  //v
 #define KeyUp                 0x10  //^
-//#define KeyIn                 0x20  //Enter
-#define KeyIn                 0x02  //Enter
+#define KeyIn                 0x20  //Enter
+//#define KeyIn                 0x02  //Enter
 #define KeyInDw               0x28  //Enter+v
 #define KeyInUp               0x30  //Enter+^
 
@@ -178,14 +175,15 @@ uint8_t BuzzerLevel=2;
 #define BuzzerFrequency_Address      104
 #define BuzzerParDuration_Address    106
 #define BuzzerLevel_Address          108
-uint8_t CustomCDtime=18;
+time_t CustomCDtime=5*60*1000; // 5 min in ms
+// TODO: Review storage size for all the data
 #define CustomCDtime_Address         110
 
 
 TBool   SaveToEEPROM;
 #define BT_Address                   112
 
-#define MAXSHOOT    50//100
+#define MAXSHOOT    5//100
 struct tShoot
 {
     time_t ShootTime[MAXSHOOT]; //in 1mS unit
@@ -196,7 +194,6 @@ struct tShoot
 
 } ShootString;
 
-volatile TBool shoot_detected = 0;
 //ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
 time_t  measurement_start_time_msec;        // Reference time for counting shppt.
                                     // Should be set to RTC before beep starts
@@ -242,21 +239,10 @@ time_t parStartTime_ms;
 
 #define ShootStringStartAddress     1000
 
-#define MAXMenuItems   15
-#define MAXItemLenght  18
-
-typedef struct DispTy
-{
-    uint8_t menu,selected,pos,top,lineh,height,prev,page,PageSize;
-    TBool refresh,active;
-}SetMenuTy;
-struct MenuTy
-{
-    char MenuItem[MAXMenuItems][MAXItemLenght];
-    uint8_t TotMenuItems;
-    char MenuTitle[25];
-}SettingsMenu;
-SetMenuTy Menu;
+#include "menu.h"
+SettingsMenu_t m; // Submenue for reuse   
+SettingsMenu_t SettingsMenu;
+TimeSelection_t ts;
 uint8_t  battery_level;
 // </editor-fold>
 
@@ -277,4 +263,5 @@ void handle_rotation();
 TBool Detect();
 void UpdateShootNow();
 void DoAdcGraph();
+
 #endif /*  _DAACED_H_ */

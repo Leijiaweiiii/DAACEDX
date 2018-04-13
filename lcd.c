@@ -586,29 +586,6 @@ void lcd_decrease_contrast() {
     lcd_send_command(CMD_VOP_CON_DEC_VOP);
 }
 
-#ifndef LCD_DIRECT_ACCESS
-
-void lcd_set_pixel(uint8_t x_pos, uint8_t y_pos) {
-    lcd_set_pixel_b(x_pos, y_pos);
-}
-
-void lcd_clear_pixel(uint8_t x_pos, uint8_t y_pos) {
-    lcd_clear_pixel_b(x_pos, y_pos);
-}
-
-void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity) {
-    lcd_draw_line_b(x0_pos, y0_pos, x1_pos, y1_pos, polarity);
-}
-
-void lcd_draw_vline(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polarity) {
-    lcd_draw_vline_b(x_pos, y0_pos, y1_pos, polarity);
-}
-
-void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
-    lcd_draw_hline_b(x0_pos, x1_pos, y_pos, polarity);
-}
-#endif
-
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     lcd_write_char_d(c, x_pos, y_pos, font, polarity);
 }
@@ -632,8 +609,7 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
 
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     if (battery_percentage > 100) battery_percentage = 100;
-    //   lcd_battery_info_d(x_pos, y_pos, battery_percentage);
-    //    lcd_refresh(&full_screen_update_boundary);
+
 }
 
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
@@ -651,47 +627,46 @@ void lcd_set_orientation() {
     else
         lcd_send_command(LCD_ORIENTATION_INVERTED);
 }
-
-#define LCD_GRAPH_HEIGTH        12
-#define LCD_GRAPH_START_PAGE    Y_OFFSET+3
-
-void lcd_draw_bit_graph_column(size_t column, uint16_t value) {
-    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
-    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
-        if ((value >> (2 * page)) & 0x3) lcd_send_data(LCD_BLACK_PAGE);
-        else lcd_send_data(LCD_WHITE_PAGE);
-    }
-}
-
-void lcd_draw_bit_mark_column(size_t column) {
-    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
-    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
-        if (page%2==0) lcd_send_data(LCD_BLACK_PAGE);
-        else lcd_send_data(LCD_WHITE_PAGE);
-    }
-}
-
-void lcd_draw_scope_column(size_t column, uint16_t value) {
-    uint8_t mark_page, mark_bit;
-    mark_bit = (value % LCD_GRAPH_HEIGTH) % PAGE_HEIGTH;
-    mark_page = value / LCD_GRAPH_HEIGTH;
-    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
-    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
-        if (page == mark_page) lcd_send_data(mark_bit);
-        else lcd_send_data(LCD_WHITE_PAGE);
-    }
-}
-
-void lcd_send_page_mark(uint8_t column, uint8_t page, uint8_t polarity) {
-    lcd_prepare_send_data(column, page, column, page);
-    if (polarity == BLACK_OVER_WHITE) lcd_send_data(LCD_BLACK_PAGE);
-    else lcd_send_data(LCD_WHITE_PAGE);
-}
-
-void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity) {
-    lcd_prepare_send_data(column, page, column, page);
-    if (polarity == BLACK_OVER_WHITE) lcd_send_data(value);
-    else lcd_send_data(~value);
-}
+//
+//void lcd_draw_bit_graph_column(size_t column, uint16_t value) {
+//    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
+//    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
+//        if ((value >> (2 * page)) & 0x3) lcd_send_data(LCD_BLACK_PAGE);
+//        else lcd_send_data(LCD_WHITE_PAGE);
+//    }
+//}
+//
+//void lcd_draw_bit_mark_column(size_t column) {
+//    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
+//    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
+//        if (page%2==0) lcd_send_data(LCD_BLACK_PAGE);
+//        else lcd_send_data(LCD_WHITE_PAGE);
+//    }
+//}
+//
+//void lcd_draw_scope_column(size_t column, uint16_t value) {
+//    uint8_t mark_page, mark_bit;
+//    mark_bit = (value % LCD_GRAPH_HEIGTH) % PAGE_HEIGTH;
+//    mark_page = value / LCD_GRAPH_HEIGTH;
+//    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
+//    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
+//        if (page == mark_page) 
+//            lcd_send_data(mark_bit);
+//        else 
+//            lcd_send_data(LCD_WHITE_PAGE);
+//    }
+//}
+//
+//void lcd_send_page_mark(uint8_t column, uint8_t page, uint8_t polarity) {
+//    lcd_prepare_send_data(column, page, column, page);
+//    if (polarity == BLACK_OVER_WHITE) lcd_send_data(LCD_BLACK_PAGE);
+//    else lcd_send_data(LCD_WHITE_PAGE);
+//}
+//
+//void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity) {
+//    lcd_prepare_send_data(column, page, column, page);
+//    if (polarity == BLACK_OVER_WHITE) lcd_send_data(value);
+//    else lcd_send_data(~value);
+//}
 // </editor-fold>
 

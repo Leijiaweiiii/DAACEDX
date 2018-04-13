@@ -26,8 +26,8 @@ void ADC_init();
 uint16_t ADC_Read(char selectedADC);
 uint16_t ADC_Read_average(char selectedADC);
 
-#define ADC_BUFFER_SIZE             9
-#define ADC_MID_BUFFER              5
+#define ADC_BUFFER_SIZE             7
+#define ADC_MID_BUFFER              4
 
 uint16_t samples[ADC_BUFFER_SIZE];
 uint8_t head_index = 0;
@@ -36,15 +36,18 @@ uint8_t head_index = 0;
 #define ADC_BUFFER_PUT(x)           {samples[head_index] = x;ADC_INC_HEAD_INDEX;}
 #define ADC_MIDDLE_VALUE            (samples[ADC_MIFDDLE_INDEX])
 #define ADC_LATEST_VALUE            (samples[head_index])
-#define ADC_DETECTION_THRESHOLD     100
+#define ADC_DETECTION_THRESHOLD     200
 
 TBool AdcDetect();
 uint16_t median_v = 0;
 uint16_t median();
 uint16_t cma_n = 0;
-#define ADC_CMA_MEMORY_FACTOR       32
+uint16_t MeanValue();
+#define ADC_CMA_MEMORY_FACTOR       16
 #define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
 #define ADC_SAMPLE                  {ADC_BUFFER_PUT(ADC_Read(ENVELOPE));ADC_SET_CMA_NEXT(median());}
+#define ADC_ENABLE_INTERRUPT        {ADPCH = ENVELOPE;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
+#define ADC_DISABLE_INTERRUPT       {PIE1bits.ADIE=0;}
 
 #ifdef	__cplusplus
 }

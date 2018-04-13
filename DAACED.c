@@ -86,6 +86,16 @@
 #include "uart.h"
 // </editor-fold>
 
+void strmycpy(char * to, const char * from) {
+    char * cp;
+
+    cp = to;
+    while (*cp = *from) {
+        cp++;
+        from++;
+    }
+}
+
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
 
 void PIC_init(void) {
@@ -169,17 +179,17 @@ uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_
 
         tempactualfreq = ((_XTAL_FREQ / (4 * prescaler)) / ((tempPRvalue + 1)));
 
-        if (freqdiffrence > abs(tempactualfreq - freq)) {
+        if (freqdiffrence > ABS(tempactualfreq - freq)) {
             *selectedPRvalue = tempPRvalue;
             *selectedPrescalar = prescaler;
-            freqdiffrence = abs(tempactualfreq - freq);
+            freqdiffrence = ABS(tempactualfreq - freq);
         }
     }
 
     tempactualfreq = ((_XTAL_FREQ / (4 * (*selectedPrescalar))) / ((*selectedPRvalue) + 1));
     int32_t lowestfreq = ((_XTAL_FREQ / (4 * (*selectedPrescalar))) / ((*selectedPRvalue) + 2));
 
-    if (abs(lowestfreq - freq) < abs(tempactualfreq - freq)) {
+    if (ABS(lowestfreq - freq) < ABS(tempactualfreq - freq)) {
         (*selectedPRvalue)++;
     }
     tempactualfreq = ((_XTAL_FREQ / (4 * (*selectedPrescalar))) / ((*selectedPRvalue) + 1));
@@ -419,14 +429,12 @@ void stop_sinus() {
     LATEbits.LATE2 = 0; // Driver OFF
 }
 
-void Beep(void) {
-    generate_sinus(1, 1000, 50);
-}
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Small Routines">
 
 void TestBattery(void) {
+    if (ui_state == TimerListening) return; // Don't measure anything when testing shots
     uint16_t battery = ADC_Read(BATTERY);
     uint16_t battery_mV = battery*BAT_divider;
     battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
@@ -436,697 +444,12 @@ void TestBattery(void) {
 
 // <editor-fold defaultstate="collapsed" desc="Settings Display">
 
-uint8_t SettingsTitle(void) {
-    set_screen_title(SettingsMenu.MenuTitle);
+uint8_t SettingsTitle(SettingsMenu_t* sm) {
+    set_screen_title(sm->MenuTitle);
     print_header();
     return UI_HEADER_END_LINE;
 }
 
-void SettingsDisplay(void) {
-    uint8_t i, color, p, lineh, height, mpos;
-    char msg[10];
-    p = UI_HEADER_END_LINE;
-    lineh = MediumFont->height;
-    height = LCD_HEIGHT - lineh;
-    Menu.PageSize = 6;
-
-    if (Menu.menu > (Menu.PageSize * Menu.page)) {
-        //Inc Page
-        Menu.page++;
-        Menu.refresh = True;
-    } else if (Menu.menu <= (Menu.PageSize * (Menu.page - 1))) {
-        //Dec Page
-        Menu.page--;
-        Menu.refresh = True;
-    }
-
-    // TODO: There is a bug with menu leftovers at the bottom
-    if (Menu.refresh) {
-        lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, LCD_HEIGHT);
-        for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
-            if (p >= Menu.top && (p < height)) {
-                if (Menu.menu == i + 1) color = WHITE_OVER_BLACK;
-                else color = BLACK_OVER_WHITE;
-                lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, color);
-            }
-            p += lineh;
-        }
-        Menu.refresh = False;
-    } else {
-        for (i = (Menu.PageSize * (Menu.page - 1)); i < SettingsMenu.TotMenuItems; i++) {
-            if (Menu.menu == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
-            if (Menu.prev == i + 1) lcd_write_string(SettingsMenu.MenuItem[i], 3, p, MediumFont, BLACK_OVER_WHITE);
-            p += lineh;
-        }
-    }
-    //    lcd_refresh(&full_screen_update_boundary);
-}
-
-void increment_menu_index() {
-    if (Menu.menu > 1) {
-        Menu.prev = Menu.menu;
-        Menu.menu--;
-        Menu.refresh = False;
-        //        SettingsDisplay();
-    } else Beep();
-}
-
-void decrement_menu_index() {
-    if (Menu.menu < (SettingsMenu.TotMenuItems)) {
-        Menu.prev = Menu.menu;
-        Menu.menu++;
-        Menu.refresh = False;
-        //        SettingsDisplay();
-    } else Beep();
-}
-
-void MenuSelection(void) {
-    switch (comandToHandle) {
-        case UpShort:
-            increment_menu_index();
-            break;
-        case DownShort:
-            decrement_menu_index();
-            break;
-        case OkShort:
-        case OkLong:
-            Menu.selected = Menu.menu;
-            break;
-        case BackShort:
-        case BackLong:
-            Menu.menu = 0;
-            break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
-            break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
-            break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
-        default:
-            break;
-    }
-    comandToHandle = None;
-}
-
-uint8_t PopMsg(const char* msg, uint16_t wait) {
-    uint16_t t = 0;
-    uint8_t Yo1 = PopY1 + ((PopY2 - (PopY1 + MediumFont->height)) >> 1);
-    uint8_t Xo1 = PopX1 + ((PopX2 - (PopX1 + lcd_string_lenght(msg, MediumFont))) >> 1);
-    lcd_fill_block(PopX1, PopY1, PopX2, PopY2);
-    lcd_write_string(msg, Xo1, Yo1, MediumFont, WHITE_OVER_BLACK);
-    if (wait == 0) {
-        while (!Keypressed);
-        return Key;
-    } else {
-        while (t < wait) {
-            __delay_ms(1);
-            t++;
-            if (Keypressed) return Key;
-        }
-        return Yo1;
-    }
-}
-// </editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="Diagnostics">
-// <editor-fold defaultstate="collapsed" desc="LCD demo functions">
-
-void display_message(const char * message) {
-    lcd_fill_block(2, 98, 158, 112);
-    lcd_write_string(message, 4, 101, &tahoma_8ptFontInfo, WHITE_OVER_BLACK);
-}
-
-void lcd_demo() {
-    char message[32];
-    lcd_fill_block(0, 0, 160, 114);
-    display_message("lcd_fill_block()");
-    __delay_ms(1000);
-
-    lcd_clear_block(158, 112, 2, 2);
-    display_message("lcd_clear_block()");
-    __delay_ms(1000);
-
-    for (uint8_t battery = 0; battery <= 100; battery += 10) {
-        lcd_battery_info(4, 4, battery);
-        sprintf(message, "Battery : %d%%", battery);
-        display_message(message);
-        __delay_ms(1);
-    }
-    lcd_clear_block(2, 2, 156, 98);
-    display_message("lcd_draw_bitmap()");
-    for (uint8_t y = 5; y < 96 - demo_bitmap_data.image_height; y = y + 30) {
-        for (uint8_t x = 5; x < 150 - demo_bitmap_data.image_width; x = x + 30) {
-            lcd_draw_bitmap(x, y, &demo_bitmap_data);
-            __delay_ms(300);
-            lcd_clear_block(x, y, x + demo_bitmap_data.image_width, y + demo_bitmap_data.image_height);
-        }
-    }
-
-    lcd_clear_block(2, 2, 158, 98);
-    lcd_write_string("Hello..!!", 3, 3, MediumFont, BLACK_OVER_WHITE);
-    display_message("Black On White");
-    __delay_ms(1000);
-
-    lcd_fill_block(2, 2, 158, 98);
-    __delay_ms(1000);
-    lcd_clear_block(2, 2, 158, 98);
-    lcd_write_string(" Hello..!! ", 3, 3, MediumFont, WHITE_OVER_BLACK);
-    display_message("White On Black");
-    __delay_ms(1000);
-
-    lcd_clear_block(2, 2, 158, 98);
-    lcd_write_string("1234", 3, 3, BigFont, BLACK_OVER_WHITE);
-    display_message("I am Big");
-    __delay_ms(1000);
-
-}
-//LCD demo functions End
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Keypad test">
-
-void Diag_Keypad(void) {
-    lcd_write_string(" Keypad test", 3, 3, MediumFont, BLACK_OVER_WHITE);
-    while (!Exit) {
-        lcd_clear_block(20, 30, 80, 110);
-        switch (Key) {
-            case KeySt:
-                lcd_write_char('1', 20, 30, BigFont, BLACK_OVER_WHITE);
-                Delay(100);
-                break;
-            case KeyRw:
-                lcd_write_char('2', 20, 30, BigFont, BLACK_OVER_WHITE);
-                Delay(100);
-                break;
-            case KeyBk:
-                lcd_write_char('3', 20, 30, BigFont, BLACK_OVER_WHITE);
-                Delay(100);
-                break;
-            case KeyDw:
-                lcd_write_char('4', 20, 30, BigFont, BLACK_OVER_WHITE);
-                Delay(100);
-                break;
-            case KeyUp:
-                lcd_write_char('5', 20, 30, BigFont, BLACK_OVER_WHITE);
-                Delay(100);
-                break;
-            case KeyIn:
-                lcd_write_char('6', 20, 30, BigFont, BLACK_OVER_WHITE);
-                Delay(100);
-                break;
-        }
-    }
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Buzzer Test Menu">
-
-void Diag_Buzzer_display(uint8_t m, TBool selected) {
-    uint8_t color;
-    if (selected) color = WHITE_OVER_BLACK;
-    else color = BLACK_OVER_WHITE;
-    switch (m) {
-        case 0:
-            lcd_clear_block(0, 0, 160, 114);
-            lcd_write_string(" Buzzer test ", 3, 1, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" 1KHz    10% ", 3, 15, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" 1KHz   100% ", 3, 29, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" 1.5KHz  10% ", 3, 43, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" 1.5KHz 100% ", 3, 57, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" 2KHz    10% ", 3, 71, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" 2KHz   100% ", 3, 85, MediumFont, BLACK_OVER_WHITE);
-            break;
-        case 1:
-            lcd_write_string(" 1KHz    10% ", 3, 15, MediumFont, color);
-            break;
-        case 2:
-            lcd_write_string(" 1KHz   100% ", 3, 29, MediumFont, color);
-            break;
-        case 3:
-            lcd_write_string(" 1.5KHz  10% ", 3, 43, MediumFont, color);
-            break;
-        case 4:
-            lcd_write_string(" 1.5KHz 100% ", 3, 57, MediumFont, color);
-            break;
-        case 5:
-            lcd_write_string(" 2KHz    10% ", 3, 71, MediumFont, color);
-            break;
-        case 6:
-            lcd_write_string(" 2KHz   100% ", 3, 85, MediumFont, color);
-            break;
-    }
-}
-
-void DoBeep(uint8_t mode) {
-    switch (mode) {
-        case 1:
-            generate_sinus(1, 1000, 200);
-            break;
-        case 2:
-            generate_sinus(10, 1000, 50);
-            break;
-        case 3:
-            generate_sinus(1, 1500, 200);
-            break;
-        case 4:
-            generate_sinus(10, 1500, 50);
-            break;
-        case 5:
-            generate_sinus(1, 2000, 200);
-            break;
-        case 6:
-            generate_sinus(10, 2000, 50);
-            break;
-    }
-}
-
-void Diag_Buzzer() {
-    uint8_t menu, prevmenu;
-
-    menu = 1;
-    prevmenu = 0;
-    while (!Exit) {
-        if (prevmenu != menu) {
-            Diag_Buzzer_display(prevmenu, false); //if prevmenu=0 Display All
-            //else repaint previous selection
-            Diag_Buzzer_display(menu, true); //Display selected
-            prevmenu = menu;
-        }
-        if (Keypressed) {
-            lcd_write_char(' ', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-            switch (Key) {
-                case KeyUp:if (menu > 1) menu--;
-                    lcd_write_char('5', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-                case KeyDw:if (menu < 6) menu++;
-                    lcd_write_char('4', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-                case KeyIn: //select
-                    lcd_write_char('6', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    DoBeep(menu);
-                    prevmenu = 0; //Redraw menu
-                    break;
-                case KeyBk: //escape
-                    lcd_write_char('3', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    prevmenu = 0; //Redraw menu
-                    break;
-                case KeySt:
-                    lcd_write_char('1', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-                case KeyRw:
-                    lcd_write_char('2', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
-            lcd_write_char(' ', 140, 15, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-            lcd_write_char(menu + 48, 140, 15, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-        }
-    }
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Battery Test">
-
-void Diag_Battery() {
-    lcd_write_string(" Battery ", 3, 10, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-    while (!Exit) {
-        char message[32];
-        uint16_t battery = ADC_Read(BATTERY);
-        uint16_t battery_mV = battery*BAT_divider;
-        battery_level = (battery_mV / 10) - 320; // ((battery_mV-3200)*100)/(4200-3200)
-        sprintf(message, " Battery level   : %d%% ", battery_level);
-        lcd_write_string(message, 3, 30, &tahoma_8ptFontInfo, WHITE_OVER_BLACK);
-        sprintf(message, " Battery voltage : %dmV ", battery_mV);
-        lcd_write_string(message, 3, 50, &tahoma_8ptFontInfo, WHITE_OVER_BLACK);
-        sprintf(message, " Battery reading : %d ", battery);
-        lcd_write_string(message, 3, 70, &tahoma_8ptFontInfo, WHITE_OVER_BLACK);
-        lcd_battery_info(130, 10, battery_level);
-        Delay(50);
-    }
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="ADC test Menu">
-
-void Diag_ADC_display(uint8_t m, TBool selected) {
-    uint8_t color;
-    if (selected) color = WHITE_OVER_BLACK;
-    else color = BLACK_OVER_WHITE;
-    switch (m) {
-        case 0:
-            lcd_clear_block(0, 0, 160, 114);
-            lcd_write_string(" ADC test ", 3, 1, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" Accelerometer ", 3, 15, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" Microphone slow", 3, 29, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" Microphone fast", 3, 43, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" Envelope ", 3, 57, MediumFont, BLACK_OVER_WHITE);
-            break;
-        case 1:
-            lcd_write_string(" Accelerometer ", 3, 15, MediumFont, color);
-            break;
-        case 2:
-            lcd_write_string(" Microphone slow", 3, 29, MediumFont, color);
-            break;
-        case 3:
-            lcd_write_string(" Microphone fast", 3, 43, MediumFont, color);
-            break;
-        case 4:
-            lcd_write_string(" Envelope ", 3, 57, MediumFont, color);
-            break;
-    }
-
-}
-
-void displayGraph(const char* title, const char* x_axis, const char* y_axis) {
-    lcd_clear_block(160, 114, 0, 0);
-    lcd_write_string(title, 40, 3, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_string(x_axis, 3, 18, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-    lcd_write_string(y_axis, 135, 102, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-    lcd_fill_block(3, 30, 4, 101);
-    lcd_fill_block(3, 100, 150, 101);
-}
-
-uint16_t PrevyValue, PrevxValue;
-
-void DoADC(uint8_t mode) {
-    uint16_t yValue, xValue;
-    uint16_t ADCvalue, Bias;
-    char ADCstr[30];
-    xValue = 3;
-
-    ADC_init();
-    switch (mode) {
-        case 1:
-            displayGraph(" Accelerometer ", " [mS] ", " [mV] ");
-            Bias = ADC_Read(ACCELEROMETER);
-            for (uint8_t i = 0; i < 64; i++) {
-                Bias += ADC_Read(ACCELEROMETER);
-            }
-            Bias = (Bias >> 6) + 60;
-            PrevxValue = xValue;
-            PrevyValue = Bias;
-            while (!Exit) {
-                xValue++;
-                ADCvalue = ADC_Read(ACCELEROMETER);
-                sprintf(ADCstr, "%d", ADCvalue);
-                lcd_write_string(ADCstr, 30, 18, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                yValue = Bias - ADCvalue;
-                if (yValue < 2) yValue = 2;
-                if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
-                //lcd_set_pixel(xValue,yValue);
-                //                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
-                __delay_ms(10);
-                if (xValue > 155) {
-                    xValue = 3;
-                    displayGraph(" Accelerometer ", " [mS] ", " [mV] ");
-                }
-                PrevxValue = xValue;
-                PrevyValue = yValue;
-            }
-            break;
-        case 2:
-        case 3:
-            displayGraph(" Microphone ", " [mS] ", " [mV] ");
-            Bias = ADC_Read(MICROPHONE);
-            for (uint8_t i = 0; i < 64; i++) {
-                Bias += ADC_Read(MICROPHONE);
-            }
-            Bias = (Bias >> 6) + 60;
-            PrevxValue = xValue;
-            PrevyValue = Bias;
-            while (!Exit) {
-                xValue++;
-                ADCvalue = ADC_Read(MICROPHONE);
-                sprintf(ADCstr, "%d", ADCvalue);
-                lcd_write_string(ADCstr, 30, 18, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                yValue = Bias - ADCvalue;
-                if (yValue < 2) yValue = 2;
-                if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
-                //lcd_set_pixel(xValue,yValue);
-                //                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
-                if (mode == 2) __delay_ms(50);
-                if (xValue > 155) {
-                    xValue = 3;
-                    displayGraph(" Microphone ", " [mS] ", " [mV] ");
-                }
-                PrevxValue = xValue;
-                PrevyValue = yValue;
-            }
-            break;
-        case 4:
-            displayGraph(" Envelope ", " [mS] ", " [mV] ");
-            Bias = ADC_Read(ENVELOPE);
-            for (uint8_t i = 0; i < 64; i++) {
-                Bias += ADC_Read(ENVELOPE);
-            }
-            Bias = (Bias >> 6) + 60;
-            PrevxValue = xValue;
-            PrevyValue = Bias;
-            while (!Exit) {
-                xValue++;
-                ADCvalue = ADC_Read(ENVELOPE);
-                sprintf(ADCstr, "%d", ADCvalue);
-                lcd_write_string(ADCstr, 30, 18, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                //yValue=128-(ADCvalue>>3);
-                yValue = Bias - ADCvalue;
-                if (yValue < 2) yValue = 2;
-                if (yValue > (LCD_HEIGHT - 2)) yValue = LCD_HEIGHT - 2;
-                //lcd_set_pixel(xValue,yValue);
-                //                lcd_draw_line(PrevxValue, PrevyValue, xValue, yValue, BLACK_OVER_WHITE);
-                __delay_ms(50);
-                if (xValue > 155) {
-                    xValue = 3;
-                    displayGraph(" Envelope ", " [mS] ", " [mV] ");
-                }
-                PrevxValue = xValue;
-                PrevyValue = yValue;
-            }
-            break;
-    }
-}
-
-void Diag_ADC(void) {
-    uint8_t menu, prevmenu;
-
-    menu = 1;
-    prevmenu = 0;
-    while (!Exit) {
-        if (prevmenu != menu) {
-            Diag_ADC_display(prevmenu, false); //if prevmenu=0 Display All
-            //else repaint previous selection
-            Diag_ADC_display(menu, true); //Display selected
-            prevmenu = menu;
-        }
-        if (Keypressed) {
-            lcd_write_char(' ', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-            switch (Key) {
-                case KeyUp:if (menu > 1) menu--;
-                    lcd_write_char('5', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-                case KeyDw:if (menu < 4) menu++;
-                    lcd_write_char('4', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-                case KeyIn: //select
-                    lcd_write_char('6', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    DoADC(menu);
-                    prevmenu = 0; //Redraw menu
-                    break;
-                case KeyBk: //escape
-                    lcd_write_char('3', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    prevmenu = 0; //Redraw menu
-                    break;
-                case KeySt:
-                    lcd_write_char('1', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-                case KeyRw:
-                    lcd_write_char('2', 140, 3, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
-            lcd_write_char(' ', 140, 15, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-            lcd_write_char(menu + 48, 140, 15, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-        }
-    }
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="EEPROM test">
-
-void eeprom_test() {
-    char EE_data[4];
-    lcd_write_string(" EEPROM diagnostics ", 3, 1, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_string(" Writing ", 3, 20, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-    uint8_t temp_data[8] = {1, 2, 4, 8, 16, 32, 64, 128}; //,0xAA,0xCE,0x55,0x31,0xFF,0x45,0xEC};
-    uint8_t x = 37;
-
-    while (!Exit) {
-        for (uint8_t i = 0; i < sizeof (temp_data); i++) {
-            sprintf(EE_data, "%02x", temp_data[i]);
-            lcd_write_string(EE_data, (i + 1)*18, 35, &tahoma_8ptFontInfo, WHITE_OVER_BLACK);
-            eeprom_write_data(i, temp_data[i]);
-        }
-        lcd_write_string(" Reading ", 3, 50, &tahoma_8ptFontInfo, BLACK_OVER_WHITE);
-        for (uint8_t i = 0; i < sizeof (temp_data); i++) {
-            sprintf(EE_data, "%02x", eeprom_read_data(i));
-            lcd_write_string(EE_data, (i + 1)*18, 65, &tahoma_8ptFontInfo, WHITE_OVER_BLACK); //((i%8)*15)+
-        }
-        while (Keypressed); //Wait till the key is released
-        while (!Keypressed); //Wait till a key is pressed
-        for (uint8_t i = 0; i < sizeof (temp_data); i++) {
-            temp_data[i] = 5 * x + 1;
-            x = temp_data[i];
-        }
-    }
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Auxiliar Input test">
-
-void aux_test() {
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    lcd_write_string(" TBD0 ", 3, 40, MediumFont, BLACK_OVER_WHITE);
-    __delay_ms(500);
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Pseudo Data">
-
-void ReadBackEEPROMdata() {
-    uint16_t add, data;
-    uint8_t s, i, j, h;
-    char msg[20];
-
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    for (s = 0; s < 30; s++) {
-        add = ShootStringStartAddress + (s * Size_of_ShootString);
-        h = eeprom_read_data(add + 1);
-        sprintf(msg, "String %1d, Sh=%2d", eeprom_read_data(add), h);
-        lcd_write_string(msg, 3, 0, SmallFont, WHITE_OVER_BLACK);
-        j = SmallFont->height;
-        add += 2;
-        for (i = 0; i < h; i++) {
-            data = eeprom_read_wdata(add);
-            sprintf(msg, "Shoot %2d:%5.2f   ", i, (float) data / 1000);
-            add += 2;
-            lcd_write_string(msg, 3, j, SmallFont, BLACK_OVER_WHITE);
-            j += SmallFont->height;
-            if (j > LCD_HEIGHT - SmallFont->height) {
-                while (Keypressed);
-                while (!Keypressed);
-                if (Exit) {
-                    lcd_clear();
-                    PopMsg("Exit", 200);
-                    return;
-                }
-                __delay_ms(30);
-                j = SmallFont->height;
-                lcd_clear_block(0, SmallFont->height, LCD_WIDTH - 1, LCD_HEIGHT - 1);
-            }
-        }
-        while (Keypressed);
-        while (!Keypressed);
-        if (Exit) {
-            lcd_clear();
-            PopMsg("Exit", 200);
-            return;
-        }
-    }
-    PopMsg("Done", 1000);
-}
-
-void PseudoData() {
-    uint8_t x = 27;
-    uint8_t s, i, j;
-    uint16_t add = ShootStringStartAddress;
-    uint16_t data = 60; //0.6sec
-
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    lcd_write_string("Sure to overwrite?", 3, 40, MediumFont, WHITE_OVER_BLACK);
-    while (Keypressed);
-    while (!Keypressed);
-    if (Select) {
-        __delay_ms(30); //debounce
-        lcd_write_string(" Really !? ", 30, 60, MediumFont, WHITE_OVER_BLACK);
-        while (Keypressed);
-        while (!Keypressed);
-        if (Select) {
-            lcd_write_string(" Writing... ", 30, 60, MediumFont, BLACK_OVER_WHITE);
-            for (s = 0; s < 30; s++) {
-                add = ShootStringStartAddress + (s * Size_of_ShootString);
-                data = 60 + x;
-                if (s == 0) eeprom_write_data(add, 1);
-                else eeprom_write_data(add, 0);
-                add++;
-                j = (j * 5 + 1) % 99;
-                eeprom_write_data(add, j);
-                add++;
-                for (i = 0; i < j; i++) {
-                    x = 5 * x + 1;
-                    if (x > 200) x = x % 200;
-                    if (x < 20) x = 27;
-                    if (data > (0xFFFF - x)) data = 0xFFFF;
-                    else data += x;
-                    eeprom_write_wdata(add, data);
-                    add += 2;
-                    ;
-                }
-            }
-            PopMsg("Done", 1000);
-        }
-    }
-    lcd_clear();
-    ReadBackEEPROMdata();
-}
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Diagnostic Menu">
-
-void Diagnose() {
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    switch (Menu.menu) {
-        case 1:lcd_demo();
-            break;
-        case 2:Diag_Keypad();
-            break;
-        case 3:Diag_Buzzer();
-            break;
-        case 4:Diag_Battery();
-            break;
-        case 5:Diag_ADC();
-            break;
-        case 6:eeprom_test();
-            break;
-        case 7:aux_test();
-            break;
-        case 8:PseudoData();
-            break;
-    }
-    Menu.refresh = True;
-}
-
-void Diagnostics(void) {
-    Menu.menu = 1;
-    Menu.pos = 0;
-    Menu.top = 0;
-    SettingsMenu.TotMenuItems = 8;
-    strcpy(SettingsMenu.MenuTitle, "Diagnostics ");
-    strcpy(SettingsMenu.MenuItem[0], " Display ");
-    strcpy(SettingsMenu.MenuItem[1], " Keypad ");
-    strcpy(SettingsMenu.MenuItem[2], " Buzzer ");
-    strcpy(SettingsMenu.MenuItem[3], " Battery ");
-    strcpy(SettingsMenu.MenuItem[4], " ADC ");
-    strcpy(SettingsMenu.MenuItem[5], " EEPROM ");
-    strcpy(SettingsMenu.MenuItem[6], " Auxiliary ");
-    strcpy(SettingsMenu.MenuItem[7], " Pseudo Data ");
-    //SettingsMenu.MenuItem={" Backlight "," Display "," Keypad "," Buzzer "," Battery "," ADC "," EEPROM "," Auxiliary "," Pseudo Data "};
-
-    Menu.lineh = MediumFont->height + 1;
-    //Top Line
-    Menu.top = SettingsTitle();
-    Menu.height = LCD_HEIGHT - (Menu.lineh + Menu.top);
-    //Main Screen
-    Menu.refresh = True;
-    Menu.page = 0; //Force refresh
-
-    do {
-        SettingsDisplay();
-        MenuSelection();
-        if (Menu.menu > 0) Diagnose();
-    } while (Menu.menu > 0);
-}
-// </editor-fold>
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Save and retrive DATA">
@@ -1164,8 +487,8 @@ void getSettings() {
 }
 
 void getDefaultSettings() {
-    Sensitivity = 5;
-    Filter = 30;
+    Sensitivity = 6;
+    Filter = 150;
     AR_IS.Autostart = 1;
     AR_IS.Mic = 1;
     AR_IS.AutoRotate = 0;
@@ -1250,93 +573,53 @@ TBool getShootString(uint8_t ShootStrNum) {
 
 // <editor-fold defaultstate="collapsed" desc="Delay Settings">
 
-void SetCustomDelay(uint8_t top) {
-    TBool Done;
-    char msg[20];
-
-    if (DelayTime < 10) DelayTime = 10;
-    strcpy(SettingsMenu.MenuTitle, "Settings: ");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string("Custom Delay", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%3.1f", (float) DelayTime / 10);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((DelayTime + i) < 99) DelayTime += i;
-                    else DelayTime = 99;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((DelayTime - i) > 10) DelayTime -= i;
-                    else DelayTime = 10;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%3.1f", (float) DelayTime / 10);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 11) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 1;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
+void SetCustomDelay() {
+    NumberSelection_t n;
+    // TODO: Check if static strmycpy may be replaced with assignment
+    strmycpy(n.MenuTitle, "Custom Delay");
+    n.fmin = 0.1;
+    n.fmax = 10.0;
+    n.fstep = 0.1;
+    n.fvalue = (double) DelayTime / 1000;
+    n.fold_value = n.fvalue;
+    n.format = "%2.1f";
+    do {
+        DisplayDouble(&n);
+        SelectDouble(&n);
+    } while (!n.done);
+    // TODO: Apply or function to save flag everywhere like here
+    SaveToEEPROM |= (n.fold_value != n.fvalue);
 }
 
-void SetDelay() {
-    Menu.top = 0;
-    Menu.pos = 0;
-    Menu.menu = 1;
-    SettingsMenu.TotMenuItems = 4;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Delay");
-    strcpy(SettingsMenu.MenuItem[0], " Instant ");
-    strcpy(SettingsMenu.MenuItem[1], " Fixed 3sec. ");
-    strcpy(SettingsMenu.MenuItem[2], " Random");
-    strcpy(SettingsMenu.MenuItem[3], " Custom ");
+void SetDelay(SettingsMenu_t * m) {
+    m->menu = 1;
+    m->TotMenuItems = 4;
+    m->done = False;
+    strmycpy(m->MenuTitle, "Delay");
+    strmycpy(m->MenuItem[0], " Instant ");
+    strmycpy(m->MenuItem[1], " Fixed 3sec. ");
+    strmycpy(m->MenuItem[2], " Random");
+    strmycpy(m->MenuItem[3], " Custom ");
 
     switch (DelayMode) {
-        case Instant: Menu.menu = 1;
+        case Instant: m->menu = 1;
             break;
-        case Fixed: Menu.menu = 2;
+        case Fixed: m->menu = 2;
             break;
-        case Random: Menu.menu = 3;
+        case Random: m->menu = 3;
             break;
-        case Custom: Menu.menu = 4;
+        case Custom: m->menu = 4;
             break;
-        default: Menu.menu = 2;
+        default: m->menu = 2;
             break;
     }
 
-    Menu.lineh = MediumFont->height + 1;
-    //Top Line
-    Menu.top = SettingsTitle();
-    Menu.height = LCD_HEIGHT - (Menu.lineh + Menu.top);
-    Menu.refresh = True;
-    //Main Screen
-    SettingsDisplay();
-    MenuSelection();
+    do {
+        DisplaySettings(&m);
+        SelectMenuItem(&m);
+    } while (!m->done);
 
-    switch (Menu.menu) {
+    switch (m->menu) {
         case 1: DelayMode = Instant;
             SaveToEEPROM = True;
             break;
@@ -1348,7 +631,7 @@ void SetDelay() {
             SaveToEEPROM = True;
             break;
         case 4: DelayMode = Custom;
-            SetCustomDelay(Menu.top);
+            SetCustomDelay();
             break;
     }
 }
@@ -1373,54 +656,104 @@ TBool DeletePar(uint8_t Par_i) {
         return False;
 }
 
-void SetPar() {
-    uint8_t Mtop;
-    char msg[15];
-    TBool Done;
-    TBool changed;
-    uint8_t redraw;
+void edit_par(SettingsMenu_t * s) {
     uint8_t i, j, k;
+    TBool Done = False;
+    char msg[15];
+    i = 10;
+    j = 0;
+    k = 0;
+    while (!Done) {
+        if (Keypressed) {
+            switch (Key) {
+                case KeyUp:
+                    if ((ParTime[s->menu - 1] + i) <= ((ParTime[s->menu])-(BuzzerParDuration))) {
+                        ParTime[s->menu - 1] += i;
+                    } else {
+                        DeletePar(s->menu - 1); //DeletePar will save if needed no need change
+                        Done = True;
+                    }
+                    break;
+                case KeyDw:
+                    if (TotPar > 1) {
+                        if ((ParTime[s->menu - 1] - i) >= ((ParTime[s->menu - 2]) + BuzzerParDuration)) {
+                            ParTime[s->menu - 1] -= i;
+                        } else {
+                            DeletePar(s->menu - 1);
+                            Done = True;
+                        }
+                    } else if (TotPar == 1) {
+                        if (ParTime[0] >= ((BuzzerStartDuration) + i)) {
+                            ParTime[0] -= i;
+                        } else {
+                            DeletePar(0);
+                            Done = True;
+                        }
+                    }
+                    break;
+                default: Done = True;
+            }
 
-    Menu.lineh = MediumFont->height + 1;
-    Menu.pos = 0;
+            sprintf(msg, "%5.1f", (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
+            lcd_write_string(msg, 30, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+            sprintf(msg, " Par %d: %5.1f", s->menu, (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
+            strmycpy(s->MenuItem[s->menu - 1], msg);
+
+        }
+        while ((Keypressed) && (k < 250)) {
+            __delay_ms(1);
+            k++;
+        }
+        k = 0;
+        if (Keypressed) j++;
+        if (j > 1) {
+            if (i * 2 < 255) i = i * 2;
+            else i = 255;
+            j = 0;
+        } //if after 500mS still pressed go faster
+        if (!Keypressed) {
+            i = 10;
+            j = 0;
+        } //if key not pressed go slow (again))
+    }
+}
+
+void SetPar(SettingsMenu_t * m) {
+    char msg[15];
+
+    TBool changed;
+    uint8_t redraw, i;
+
     //Main Screen
-    Menu.menu = 1;
+    m->menu = 1;
     redraw = 2;
     changed = False;
-    while (Menu.menu > 0) {
+    while (m->menu > 0) {
         if (redraw > 0) {
-            Mtop = 0;
             i = 0;
             TotPar = 0;
             do {
+                //TODO: Check if this is not a cause of any problem
                 if ((ParTime[i] > 0) && (ParTime[i] < 100000)) {
-                    sprintf(msg, " Par %d: %5.1f", i + 1, (float) ParTime[i] / 1000); //unit is 1mS
-                    strcpy(SettingsMenu.MenuItem[i], msg);
+                    sprintf(msg, " Par %d: %5.02f", i + 1, (float) ParTime[i] / 1000); //unit is 1mS
+                    strmycpy(m->MenuItem[i], msg);
                     TotPar++;
                 }
                 i++;
             } while ((ParTime[i] > 0) && (ParTime[i] < 100000) && (i <= MAXPAR));
 
-            sprintf(SettingsMenu.MenuTitle, "Total Par=%d", TotPar);
-            sprintf(SettingsMenu.MenuItem[TotPar], " Par %d: Off", TotPar + 1);
-            SettingsMenu.TotMenuItems = TotPar + 1;
-
-            //Top Line
-            Mtop = SettingsTitle();
-            Menu.height = LCD_HEIGHT - (Menu.lineh + Mtop);
-            redraw = 0;
+            sprintf(m->MenuTitle, "Total Par=%d", TotPar);
+            sprintf(m->MenuItem[TotPar], " Par %d: Off", TotPar + 1);
+            m->TotMenuItems = TotPar + 1;
         }
-        Menu.top = Mtop;
-        Menu.refresh = True;
-        SettingsDisplay();
-        MenuSelection();
-        if (Menu.menu > 0) {
-            if (Menu.menu == TotPar + 1) {
+        DisplaySettings(&m);
+
+        SelectMenuItem(&m);
+        if (m->menu > 0) {
+            if (m->menu == m->TotMenuItems) {
                 if (TotPar > 0) {
-                    ParTime[Menu.menu - 1] = ParTime[Menu.menu - 2] + BuzzerParDuration;
+                    ParTime[m->menu - 1] = ParTime[m->menu - 2] + BuzzerParDuration;
                     TotPar++;
-                    changed = True;
-                    redraw = 1;
                 } else {
                     ParTime[0] = BuzzerStartDuration;
                     TotPar = 1;
@@ -1428,78 +761,7 @@ void SetPar() {
                     redraw = 1;
                 }
             }
-            Menu.top = SettingsTitle();
-            Menu.top += 3;
-            sprintf(msg, " Par %d", Menu.menu);
-            lcd_write_string(msg, 30, Menu.top, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_char('^', 0, Menu.top, MediumFont, BLACK_OVER_WHITE);
-            Menu.top += topSpace;
-            sprintf(msg, "%5.1f", (float) ParTime[Menu.menu - 1] / 1000); //unit is 10mS
-            lcd_write_string(msg, 30, Menu.top, BigFont, BLACK_OVER_WHITE);
-            lcd_write_char('_', 0, Menu.top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-            Done = False;
-            i = 10;
-            j = 0;
-            k = 0;
-            while (!Done) {
-                if (Keypressed) {
-                    switch (Key) {
-                        case KeyUp: if ((ParTime[Menu.menu - 1] + i) <= ((ParTime[Menu.menu])-(BuzzerParDuration))) {
-                                ParTime[Menu.menu - 1] += i;
-                                changed = True;
-                            } else {
-                                redraw = 2;
-                                DeletePar(Menu.menu - 1); //DeletePar will save if needed no need change
-                                Done = True;
-                            }
-                            break;
-                        case KeyDw: if (TotPar > 1) {
-                                if ((ParTime[Menu.menu - 1] - i) >= ((ParTime[Menu.menu - 2]) + BuzzerParDuration)) {
-                                    ParTime[Menu.menu - 1] -= i;
-                                    changed = True;
-                                } else {
-                                    redraw = 2;
-                                    DeletePar(Menu.menu - 1);
-                                    Done = True;
-                                }
-                            } else if (TotPar == 1) {
-                                if (ParTime[0] >= ((BuzzerStartDuration) + i)) {
-                                    ParTime[0] -= i;
-                                    changed = True;
-                                } else {
-                                    redraw = 2;
-                                    DeletePar(0);
-                                    Done = True;
-                                }
-                            }
-                            break;
-                        default: Done = True;
-
-                    }
-                    if (redraw < 2) //do not draw for delate
-                    {
-                        sprintf(msg, "%5.1f", (float) ParTime[Menu.menu - 1] / 1000); //unit is 1mS
-                        lcd_write_string(msg, 30, Menu.top, BigFont, BLACK_OVER_WHITE);
-                        sprintf(msg, " Par %d: %5.1f", Menu.menu, (float) ParTime[Menu.menu - 1] / 1000); //unit is 1mS
-                        strcpy(SettingsMenu.MenuItem[Menu.menu - 1], msg);
-                    }
-                }
-                while ((Keypressed) && (k < 250)) {
-                    __delay_ms(1);
-                    k++;
-                }
-                k = 0;
-                if (Keypressed) j++;
-                if (j > 1) {
-                    if (i * 2 < 255) i = i * 2;
-                    else i = 255;
-                    j = 0;
-                } //if after 500mS still pressed go faster
-                if (!Keypressed) {
-                    i = 10;
-                    j = 0;
-                } //if key not pressed go slow (again))
-            }
+            edit_par(&m);
         }
     }
     if (changed) {
@@ -1513,459 +775,212 @@ void SetPar() {
 // <editor-fold defaultstate="collapsed" desc="Backlight">
 
 void SetBacklight() {//PWM Backlite
-    uint8_t top;
-    TBool Done;
-    char msg[20];
-
-    if (BackLightLevel > 99) BackLightLevel = 50;
-    strcpy(SettingsMenu.MenuTitle, "Settings: ");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string("Backlight", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%2d", BackLightLevel);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((BackLightLevel + i) < 99) BackLightLevel += i;
-                    else BackLightLevel = 99;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((BackLightLevel - i) > 1) BackLightLevel -= i;
-                    else BackLightLevel = 1;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            set_backlight(BackLightLevel);
-            sprintf(msg, "%2d", BackLightLevel);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 40) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 1;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
+    NumberSelection_t b;
+    strmycpy(b.MenuTitle, "Backlight");
+    b.max = 99;
+    b.min = 1;
+    b.step = 1;
+    b.value = BackLightLevel;
+    b.old_value = b.value;
+    b.format = "%u";
+    b.done = False;
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+    } while (!b.done);
+    BackLightLevel = b.value;
+    SaveToEEPROM != (b.value != b.old_value);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Buzzer Settings">
 
-void SetBeepFreq(uint8_t top) {
-    TBool Done;
-    char msg[20];
-
-    if (BuzzerFrequency < 800) BuzzerFrequency = 800;
-    if (BuzzerFrequency > 3000) BuzzerFrequency = 3000;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Beep");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string(" Frequency ", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%3.1f", (float) BuzzerFrequency / 1000);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint16_t i = 100;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((BuzzerFrequency + i) < 3000) BuzzerFrequency += i;
-                    else BuzzerFrequency = 3000;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((BuzzerFrequency - i) > 800) BuzzerFrequency -= i;
-                    else BuzzerFrequency = 800;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%3.1f", (float) BuzzerFrequency / 1000);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 1000) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 100;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
+void SetBeepFreq() {
+    NumberSelection_t b;
+    b.min = 800;
+    b.max = 3000;
+    b.value = BuzzerFrequency;
+    b.old_value = b.value;
+    strmycpy(b.MenuTitle, "Tone");
+    b.step = 100;
+    b.format = "%u";
+    b.done = False;
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+    } while (!b.done);
+    BuzzerFrequency = b.value;
+    SaveToEEPROM |= (b.value != b.old_value);
 }
 
-void SetBeepLevel(uint8_t top) {
-    TBool Done;
-    char msg[20];
-
-    strcpy(SettingsMenu.MenuTitle, "Settings: Beep");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string(" Loudness ", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%2d", BuzzerLevel);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((BuzzerLevel + i) < 10) BuzzerLevel += i;
-                    else BuzzerLevel = 10;
-                    SaveToEEPROM = True;
-                    generate_sinus(BuzzerLevel, BuzzerFrequency, 100);
-                    break;
-                case KeyDw: if ((BuzzerLevel - i) > 0) BuzzerLevel -= i;
-                    else BuzzerLevel = 0;
-                    SaveToEEPROM = True;
-                    generate_sinus(BuzzerLevel, BuzzerFrequency, 100);
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%2d", BuzzerLevel);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-        while (Keypressed);
-    }
+void SetBeepLevel() {
+    NumberSelection_t b;
+    if (BuzzerLevel > 100) BuzzerLevel = 100;
+    strmycpy(b.MenuTitle, "Loudness");
+    b.min = 0;
+    b.max = 100;
+    b.step = 1;
+    b.format = "%u";
+    b.value = BuzzerLevel;
+    b.old_value = b.value;
+    b.done = False;
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+    } while (!b.done);
+    BuzzerLevel = b.value;
+    SaveToEEPROM |= (b.value != b.old_value);
 }
 
-void SetBeepTime(uint8_t top, TBool Par) {
-    TBool Done;
-    char msg[20];
-    uint16_t duration;
-
-    if (Par) duration = BuzzerParDuration;
-    else duration = BuzzerStartDuration;
-    if (duration < 50) duration = 50;
-    if (duration > 1000) duration = 1000;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Beep ");
-    top = SettingsTitle();
-    top += 3;
-    if (Par) lcd_write_string("Par Duration", 30, top, MediumFont, BLACK_OVER_WHITE);
-    else lcd_write_string("Start Duration", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%3.1fsec", (float) duration / 1000);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 50;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((duration + i) < 1000) duration += i;
-                    else duration = 1000;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((duration - i) > 50) duration -= i;
-                    else duration = 50;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%3.1fsec", (float) duration / 1000);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i * 2 < 255) i = i * 2;
-            else i = 255;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 50;
-            j = 0;
-        } //if key not pressed go slow (again))
+void SetBeepTime(TBool Par) {
+    NumberSelection_t d;
+    if (Par) {
+        d.value = BuzzerParDuration;
+        strmycpy(d.MenuTitle, "Par Duration ms");
+    } else {
+        d.value = BuzzerStartDuration;
+        strmycpy(d.MenuTitle, "Start Duration ms");
     }
-    if (Par) BuzzerParDuration = duration;
-    else BuzzerStartDuration = duration;
+    d.min = 50;
+    d.max = 1000;
+    d.step = 50;
+    d.old_value = d.value;
+    d.done = False;
+    do {
+
+    } while (!d.done);
+
+    if (Par) BuzzerParDuration = d.value;
+    else BuzzerStartDuration = d.value;
+    SaveToEEPROM |= (d.value != d.old_value);
 }
 
-void SetBeep() {
-    TBool Done;
+void SetBeep(SettingsMenu_t * m) {
+    m->menu = 1;
 
-    Menu.menu = 1;
-    Menu.top = 0;
-    Menu.pos = 0;
-    Done = False;
-    SettingsMenu.TotMenuItems = 5;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Beep");
-    strcpy(SettingsMenu.MenuItem[0], " Frequency ");
-    strcpy(SettingsMenu.MenuItem[1], " Loudness ");
-    strcpy(SettingsMenu.MenuItem[2], " Par Duration ");
-    strcpy(SettingsMenu.MenuItem[3], " Start Duration ");
-    strcpy(SettingsMenu.MenuItem[4], " Test Beep ");
+    m->done = False;
+    m->TotMenuItems = 5;
+    strmycpy(m->MenuTitle, "Beep");
+    strmycpy(m->MenuItem[0], " Frequency ");
+    strmycpy(m->MenuItem[1], " Loudness ");
+    strmycpy(m->MenuItem[2], " Par Duration ");
+    strmycpy(m->MenuItem[3], " Start Duration ");
+    strmycpy(m->MenuItem[4], " Test Beep ");
 
-    Menu.lineh = MediumFont->height + 1;
-    //Top Line
-    Menu.top = SettingsTitle();
-    Menu.height = LCD_HEIGHT - (Menu.lineh + Menu.top);
-    //Main Screen
-    Menu.refresh = True;
-    SettingsDisplay();
 
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if (Menu.menu > 1) {
-                        Menu.prev = Menu.menu;
-                        Menu.refresh = False;
-                        Menu.menu--;
-                        SettingsDisplay();
-                    } else Beep();
-                    break;
-                case KeyDw: if (Menu.menu < (SettingsMenu.TotMenuItems)) {
-                        Menu.prev = Menu.menu;
-                        Menu.refresh = False;
-                        Menu.menu++;
-                        SettingsDisplay();
-                    } else Beep();
-                    break;
-                case KeyIn: switch (Menu.menu) {
-                        case 1: SetBeepFreq(Menu.top);
-                            break;
-                        case 2: SetBeepLevel(Menu.top);
-                            break;
-                        case 3: SetBeepTime(Menu.top, True);
-                            break;
-                        case 4: SetBeepTime(Menu.top, False);
-                            break;
-                        case 5: generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
-                            break;
-                    }
-                    SettingsTitle();
-                    Menu.refresh = True;
-                    SettingsDisplay();
-                    break;
-                default: Done = True;
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
+    do {
+        DisplaySettings(m);
+        SelectMenuItem(m);
+        switch (m->menu) {
+            case 1:
+                SetBeepFreq();
+                break;
+            case 2:
+                SetBeepLevel();
+                break;
+            case 3:
+                SetBeepTime(True);
+                break;
+            case 4:
+                SetBeepTime(False);
+                break;
+            case 5:
+                generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
+                break;
         }
-    }
+    } while (m->menu != 0);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
 
 void SetSens() {//Sensitivity
-
-    TBool Done;
-    char msg[20];
-    uint8_t top;
-
+    NumberSelection_t s;
     if (Sensitivity > 10) Sensitivity = 10;
-    strcpy(SettingsMenu.MenuTitle, "Settings: ");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string("Sensitivity", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%2d", Sensitivity);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-    uint8_t j = 0;
-    uint8_t k = 0;
+    strmycpy(s.MenuTitle, "Sensitivity");
+    s.max = 10;
+    s.min = 1;
+    s.value = Sensitivity;
+    s.old_value = Sensitivity;
+    s.step = 1;
+    s.format = "%u";
+    do {
+        DisplayInteger(&s);
+        SelectInteger(&s);
+    } while (!s.done);
 
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((Sensitivity + i) < 10) Sensitivity += i;
-                    else Sensitivity = 10;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((Sensitivity - i) > 1) Sensitivity -= i;
-                    else Sensitivity = 1;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%2d", Sensitivity);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 4) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 1;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
+    SaveToEEPROM = (s.value != s.old_value);
 }
+
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Filter">
 
-void SetFilter() {//Filter
-
-    TBool Done;
-    char msg[20];
-    uint8_t top;
-
+void SetFilter() {
     if (Filter > 100) Filter = 100;
-    strcpy(SettingsMenu.MenuTitle, "Settings: ");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string("Filter", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    top += topSpace;
-    sprintf(msg, "%2d", Filter);
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((Filter + i) < 100) Filter += i;
-                    else Filter = 100;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((Filter - i) > 10) Filter -= i;
-                    else Filter = 10;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%3d", Filter);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 4) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 1;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
+    NumberSelection_t f;
+    strmycpy(f.MenuTitle, "Filter");
+    f.min = 10;
+    f.max = 100;
+    f.step = 10;
+    f.value = Filter;
+    f.old_value = f.value;
+    f.done = False;
+    f.format = "%3d";
+    do {
+        DisplayInteger(&f);
+        SelectInteger(&f);
+    } while (!f.done);
+    Filter = f.value;
+    SaveToEEPROM |= (f.value != f.old_value);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
 
-void SetAutoStart() {
+void SetAutoStart(SettingsMenu_t * m) {
     TBool orgset;
-    TBool Done = False;
-    Menu.top = 0;
-    Menu.pos = 0;
-    Menu.menu = 1;
-    SettingsMenu.TotMenuItems = 1;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Tilt");
-    if (AutoStart) strcpy(SettingsMenu.MenuItem[0], " Auto Start ON ");
-    else strcpy(SettingsMenu.MenuItem[0], " Auto Start OFF ");
 
-    Menu.top = SettingsTitle();
-    Menu.refresh = True;
+    m->done = False;
+    m->menu = (AutoStart) ? 2 : 1;
+    m->TotMenuItems = 2;
+    strmycpy(m->MenuTitle, "Autostart");
+    strmycpy(m->MenuItem[0], " Auto Start OFF ");
+    strmycpy(m->MenuItem[1], " Auto Start ON ");
+    SettingsTitle(m);
 
-    SettingsDisplay();
+
     orgset = AutoStart;
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyIn: AutoStart = !AutoStart;
-                    SettingsTitle();
-                    Menu.refresh = True;
-                    if (AutoStart) strcpy(SettingsMenu.MenuItem[0], " Auto Start ON ");
-                    else strcpy(SettingsMenu.MenuItem[0], " Auto Start OFF ");
-                    SettingsDisplay();
-                    break;
-                default: Done = True;
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
-        }
-    }
-
-    SaveToEEPROM = (AutoStart != orgset);
+    do {
+        DisplaySettings(m);
+        SelectMenuItem(m);
+    } while (!m->done);
+    AutoStart = (m->menu == 2) ? True : False;
+    SaveToEEPROM |= (AutoStart != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="TimerMode">
 
-void SetMode() {
+void SetMode(SettingsMenu_t * m) {
     TBool orgset;
+    m->done = False;
+    m->menu = 1;
+    m->TotMenuItems = 8;
+    strmycpy(m->MenuTitle, "Mode");
+    strmycpy(m->MenuItem[0], " Timer Mode ");
+    strmycpy(m->MenuItem[1], " Biancchi ");
+    strmycpy(m->MenuItem[2], " Barricade ");
+    strmycpy(m->MenuItem[3], " Falling Plate ");
+    strmycpy(m->MenuItem[4], " NRA-PPC A ");
+    strmycpy(m->MenuItem[5], " NRA-PPC B ");
+    strmycpy(m->MenuItem[6], " NRA-PPC C ");
+    strmycpy(m->MenuItem[7], " NRA-PPC D ");
 
-    Menu.menu = 1;
-    Menu.top = 0;
-    Menu.pos = 0;
-    SettingsMenu.TotMenuItems = 8;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Mode");
-    strcpy(SettingsMenu.MenuItem[0], " Timer Mode ");
-    strcpy(SettingsMenu.MenuItem[1], " Biancchi ");
-    strcpy(SettingsMenu.MenuItem[2], " Barricade ");
-    strcpy(SettingsMenu.MenuItem[3], " Falling Plate ");
-    strcpy(SettingsMenu.MenuItem[4], " NRA-PPC A ");
-    strcpy(SettingsMenu.MenuItem[5], " NRA-PPC B ");
-    strcpy(SettingsMenu.MenuItem[6], " NRA-PPC C ");
-    strcpy(SettingsMenu.MenuItem[7], " NRA-PPC D ");
+    SettingsTitle(&m);
 
-    Menu.lineh = MediumFont->height + 1;
-    Menu.top = SettingsTitle();
-    Menu.height = LCD_HEIGHT - (Menu.lineh + Menu.top);
-    Menu.refresh = True;
     //Main Screen
-    SettingsDisplay();
+    do {
+        DisplaySettings(&m);
 
-    MenuSelection();
-    switch (Menu.menu) {
+        SelectMenuItem(&m);
+    } while (!m->done);
+    switch (m->menu) { //TODO implement
         case 1://TBC
             break;
         case 2:
@@ -1976,92 +991,37 @@ void SetMode() {
 // <editor-fold defaultstate="collapsed" desc="Clock">
 
 void SetClock() {
-    uint8_t menu, top, pos, height;
     uint8_t hour = get_hour();
     uint8_t minute = get_minute();
     TBool Done;
 
-    menu = 1;
-    top = 0;
-    pos = 0;
-    Done = False;
-    SettingsMenu.TotMenuItems = 9;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Clock");
-    top = SettingsTitle();
-    //Main Screen
-
-    TBool Done;
     char msg[20];
+    strmycpy(ts.MenuTitle, "Clock");
+
 
     if (hour > 23) hour = 23;
     if (minute > 59) minute = 59;
+    ts.hour = hour;
+    ts.minute = minute;
+    do {
+        DisplayTime(&ts);
+        SelectTime(&ts);
+    } while (!ts.done);
 
-    top += 3;
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    sprintf(msg, "%02d:%02d", hour, minute);
-    top += topSpace;
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if (minute + i < 59) minute += i;
-                    else {
-                        minute = 0;
-                        if (hour < 23) hour++;
-                        else (hour = 0);
-                    }
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if (minute - i > 0) minute -= i;
-                    else {
-                        minute = 60 - i;
-                        if (hour > 0) hour--;
-                        else (hour = 23);
-                    }
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            if (hour > 23) hour = 23;
-            if (minute > 59) minute = 59;
-            sprintf(msg, "%02d:%02d", hour, minute);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 60) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 1;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
-    set_time(hour, minute, 0);
+    set_time(ts.hour, ts.minute, 0);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
 
-void CountDownMode(uint8_t cdt) {
+void CountDownMode(uint8_t cdt, SettingsMenu_t * m) {
     uint8_t top, prev_cdtime, tcount;
     uint16_t cdtime;
     TBool Run;
     char msg[20];
 
     prev_cdtime = 0;
-    strcpy(SettingsMenu.MenuTitle, "Cntdwn");
-    top = SettingsTitle();
+    strmycpy(m->MenuTitle, "Countdown");
+    top = SettingsTitle(m);
     while (!Exit) {
         cdtime = cdt * 10;
         Run = False;
@@ -2109,123 +1069,79 @@ void CountDownMode(uint8_t cdt) {
     }
 }
 
-void SetCustomCountDown(uint8_t top) {
-    TBool Done;
-    char msg[20];
-
-    strcpy(SettingsMenu.MenuTitle, "Settings: ");
-    top = SettingsTitle();
-    top += 3;
-    lcd_write_string("Countdown", 30, top, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_char('^', 0, top, MediumFont, BLACK_OVER_WHITE);
-    sprintf(msg, "%02d:%02d", (CustomCDtime * 10) / 60, (CustomCDtime * 10) % 60);
-    top += topSpace;
-    lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-    lcd_write_char('_', 0, top + BigFont->height + botSpace, MediumFont, BLACK_OVER_WHITE);
-    Done = False;
-    uint8_t i = 1;
-    uint8_t j = 0;
-    uint8_t k = 0;
-
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if ((CustomCDtime + i) < 99) CustomCDtime += i;
-                    else CustomCDtime = 99;
-                    SaveToEEPROM = True;
-                    break;
-                case KeyDw: if ((CustomCDtime - i) > 1) CustomCDtime -= i;
-                    else CustomCDtime = 1;
-                    SaveToEEPROM = True;
-                    break;
-                default: Done = True;
-            }
-            sprintf(msg, "%02d:%02d", (CustomCDtime * 10) / 60, (CustomCDtime * 10) % 60);
-            lcd_write_string(msg, 30, top, BigFont, BLACK_OVER_WHITE);
-        }
-
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i < 11) i = i * 2;
-            j = 0;
-        }//if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 1;
-            j = 0;
-        } //if key not pressed go slow (again))
-    }
+void SetCustomCountDown() {
+    strmycpy(ts.MenuTitle, "Custom Countdown");
+    // TODO: Review time format here
+    // Hour means minute here
+    ts.hour = CustomCDtime / 60000;
+    // Minute means seconds
+    ts.minute = CustomCDtime / 1000;
+    ts.old_hour = ts.hour;
+    ts.old_minute = ts.minute;
+    ts.done = False;
+    do {
+        DisplayTime(&ts);
+        SelectTime(&ts);
+    } while (!ts.done);
+    CustomCDtime = ts.hour * 60000 + ts.minute * 1000;
+    SaveToEEPROM = (ts.hour != ts.old_hour || ts.minute != ts.old_minute);
 }
 
-void SetCountDown() {
-    TBool Done;
+void SetCountDown(SettingsMenu_t * m) {
+    m->menu = 1;
 
-    Menu.menu = 1;
-    Menu.top = 0;
-    Menu.pos = 0;
-    Done = False;
-    SettingsMenu.TotMenuItems = 4;
-    strcpy(SettingsMenu.MenuTitle, "Settings:Countdown");
-    strcpy(SettingsMenu.MenuItem[0], " Off ");
-    strcpy(SettingsMenu.MenuItem[1], " 3 minutes ");
-    strcpy(SettingsMenu.MenuItem[2], " 5 minutes ");
-    strcpy(SettingsMenu.MenuItem[3], " Custom ");
+    m->done = False;
+    m->TotMenuItems = 4;
+    strmycpy(m->MenuTitle, "Countdown");
+    strmycpy(m->MenuItem[0], " Off ");
+    strmycpy(m->MenuItem[1], " 3 minutes ");
+    strmycpy(m->MenuItem[2], " 5 minutes ");
+    strmycpy(m->MenuItem[3], " Custom ");
 
-    Menu.lineh = MediumFont->height + 1;
-    //Top Line
-    Menu.top = SettingsTitle();
-    Menu.height = LCD_HEIGHT - (Menu.lineh + Menu.top);
-    Menu.refresh = True;
     //Main Screen
-    SettingsDisplay();
-
-    MenuSelection();
-    switch (Menu.menu) {
-        case 2: CountDownMode(18);
+    do {
+        DisplaySettings(m);
+        SelectMenuItem(m);
+    } while (!m->done);
+    switch (m->menu) {
+        case 2: CountDownMode(18, m);
             break;
-        case 3: CountDownMode(30);
+        case 3: CountDownMode(30, m);
             break;
-        case 4: SetCustomCountDown(Menu.top);
-            CountDownMode(CustomCDtime);
+        case 4: SetCustomCountDown();
+            CountDownMode(CustomCDtime, m);
             break;
     }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Tilt">
 
-void SetTilt() {
+void SetTilt(SettingsMenu_t * m) {
     uint8_t orgset;
-    TBool Done = False;
 
-    Menu.top = 0;
-    Menu.pos = 0;
-    Menu.menu = 1;
-    SettingsMenu.TotMenuItems = 1;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Tilt");
-    if (AR_IS.AutoRotate) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
-    else strcpy(SettingsMenu.MenuItem[0], " Auto Rotate OFF ");
-
-    Menu.top = SettingsTitle();
-    Menu.refresh = True;
-
-    SettingsDisplay();
+    m->done = False;
+    m->menu = 1;
+    m->TotMenuItems = 1;
+    strmycpy(m->MenuTitle, "Tilt");
+    if (AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
+    else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
+    SettingsTitle(m);
+    // SettingsDisplay(&SetTiltMenu);
     orgset = AR_IS.AR_IS;
 
-    while (!Done) {
+    while (!m->done) {
+        DisplaySettings(m);
         if (Keypressed) {
             switch (Key) {
                 case KeyIn:
                     AR_IS.AutoRotate != AR_IS.AutoRotate;
-                    Menu.refresh = True;
-                    if (AR_IS.AutoRotate) strcpy(SettingsMenu.MenuItem[0], " Auto Rotate ON ");
-                    else strcpy(SettingsMenu.MenuItem[0], " Auto Rotate OFF ");
-                    SettingsDisplay();
+                    if (AR_IS.AutoRotate) strmycpy(m->MenuItem[0],
+                            " Auto Rotate ON ");
+                    else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
+
                     break;
-                default: Done = True;
+                default:
+                    //Done = True;
                     break;
             }
             while (Keypressed); // wait here till key is released
@@ -2236,70 +1152,42 @@ void SetTilt() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
 
-void UpdateIS(void) {
-    if (AR_IS.Mic) strcpy(SettingsMenu.MenuItem[0], " Microphone: ON  ");
-    else strcpy(SettingsMenu.MenuItem[0], " Microphone: OFF ");
-    if (AR_IS.A) strcpy(SettingsMenu.MenuItem[1], " A: ON  ");
-    else strcpy(SettingsMenu.MenuItem[1], " A: OFF ");
-    if (AR_IS.B) strcpy(SettingsMenu.MenuItem[2], " B: ON  ");
-    else strcpy(SettingsMenu.MenuItem[2], " B: OFF ");
+void UpdateIS(SettingsMenu_t * sm) {
+    if (AR_IS.Mic) strmycpy(sm->MenuItem[0], " Microphone: ON  ");
+    else strmycpy(sm->MenuItem[0], " Microphone: OFF ");
+    if (AR_IS.A) strmycpy(sm->MenuItem[1], " A: ON  ");
+    else strmycpy(sm->MenuItem[1], " A: OFF ");
+    if (AR_IS.B) strmycpy(sm->MenuItem[2], " B: ON  ");
+    else strmycpy(sm->MenuItem[2], " B: OFF ");
 }
 
-void SetInput() {
+void SetInput(SettingsMenu_t * m) {
     uint8_t orgset;
     TBool Done = False;
-
-    Menu.top = 0;
-    Menu.pos = 0;
-    Menu.menu = 1;
-    SettingsMenu.TotMenuItems = 3;
-    strcpy(SettingsMenu.MenuTitle, "Settings: Input");
-    Menu.top = SettingsTitle();
-    Menu.refresh = True;
-    UpdateIS();
-    SettingsDisplay();
+    m->menu = 1;
+    m->TotMenuItems = 3;
+    strmycpy(m->MenuTitle, "Input");
+    UpdateIS(m);
+    DisplaySettings(m);
     orgset = AR_IS.AR_IS;
 
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp: if (Menu.menu > 1) {
-                        Menu.prev = Menu.menu;
-                        Menu.refresh = False;
-                        Menu.menu--;
-                        SettingsDisplay();
-                    } else Beep();
-                    break;
-                case KeyDw:
-                    if (Menu.menu < (SettingsMenu.TotMenuItems)) {
-                        Menu.prev = Menu.menu;
-                        Menu.refresh = False;
-                        Menu.menu++;
-                        SettingsDisplay();
-                    } else Beep();
-                    break;
-                case KeyIn:
-                    switch (Menu.menu) {
-                        case 1:
-                            AR_IS.Mic ^= AR_IS.Mic;
-                            break;
-                        case 2:
-                            AR_IS.A ^= AR_IS.A;
-                            break;
-                        case 3:
-                            AR_IS.B ^= AR_IS.B;
-                            break;
-                    }
-                    Menu.refresh = True;
-                    UpdateIS();
-                    SettingsDisplay();
-                    break;
-                default: Done = True;
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
+    do {
+        m->selected = 0;
+        DisplaySettings(m);
+        SelectBinaryMenuItem(m);
+        switch (m->selected) {
+            case 1:
+                AR_IS.Mic ^= AR_IS.Mic;
+                break;
+            case 2:
+                AR_IS.A ^= AR_IS.A;
+                break;
+            case 3:
+                AR_IS.B ^= AR_IS.B;
+                break;
         }
-    }
+        UpdateIS(m);
+    } while (!m->done);
 
     SaveToEEPROM = (AR_IS.AR_IS != orgset);
 }
@@ -2314,24 +1202,25 @@ void BlueTooth() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
 
-void DoSet(void) {
+void DoSet(SettingsMenu_t * s) {
+
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    switch (Menu.menu) {
-        case 1:SetDelay();
+    switch (s->menu) {
+        case 1:SetDelay(&m);
             break;
-        case 2:SetPar();
+        case 2:SetPar(&m);
             break;
-        case 3:SetBeep();
+        case 3:SetBeep(&m);
             break;
-        case 4:SetAutoStart();
+        case 4:SetAutoStart(&m);
             break;
-        case 5:SetMode();
+        case 5:SetMode(&m);
             break;
         case 6:SetClock();
             break;
-        case 7:SetCountDown();
+        case 7:SetCountDown(&m);
             break;
-        case 8:SetTilt();
+        case 8:SetTilt(&m);
             break;
         case 9:SetBacklight();
             break;
@@ -2339,68 +1228,58 @@ void DoSet(void) {
             break;
         case 11:SetFilter();
             break;
-        case 12:SetInput();
+        case 12:SetInput(&m);
             break;
         case 13:BlueTooth();
             break;
-        case 14:
-            saveSettings();
-            PopMsg("Saved", 1000);
-            break;
-        case 15:Diagnostics();
-            break;
+            //        case 14:
+            //            saveSettings();
+            //            PopMsg("Saved", 1000);
+            //            break;
+            //        case 15:Diagnostics();
+            //            break;
     }
-    Menu.refresh = True;
 }
 
-void SetSettingsMenu() {
+void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
-    SettingsMenu.TotMenuItems = 13;
-    strcpy(SettingsMenu.MenuTitle, "Settings        ");
-    strcpy(SettingsMenu.MenuItem[0], " Delay       ");
-    strcpy(SettingsMenu.MenuItem[1], " Par         ");
-    strcpy(SettingsMenu.MenuItem[2], " Buzzer      ");
-    strcpy(SettingsMenu.MenuItem[3], " Auto Start  ");
-    strcpy(SettingsMenu.MenuItem[4], " Timer Mode  ");
-    strcpy(SettingsMenu.MenuItem[5], " Clock       ");
-    strcpy(SettingsMenu.MenuItem[6], " Countdown   ");
-    strcpy(SettingsMenu.MenuItem[7], " Tilt        ");
-    strcpy(SettingsMenu.MenuItem[8], " Backlight   ");
-    strcpy(SettingsMenu.MenuItem[9], " Sensitivity ");
-    strcpy(SettingsMenu.MenuItem[10], " Filter      ");
-    strcpy(SettingsMenu.MenuItem[11], " Input       ");
-    strcpy(SettingsMenu.MenuItem[12], " Bluetooth   ");
-    strcpy(SettingsMenu.MenuItem[13], " SaveSettings");
-    strcpy(SettingsMenu.MenuItem[14], " Diagnostics ");
+
+    SettingsMenu->TotMenuItems = 13;
+
+    strmycpy(SettingsMenu->MenuTitle, "Settings");
+    strmycpy(SettingsMenu->MenuItem[0], " Delay");
+    strmycpy(SettingsMenu->MenuItem[1], " Par");
+    strmycpy(SettingsMenu->MenuItem[2], " Buzzer");
+    strmycpy(SettingsMenu->MenuItem[3], " Auto Start");
+    strmycpy(SettingsMenu->MenuItem[4], " Timer Mode");
+    strmycpy(SettingsMenu->MenuItem[5], " Clock");
+    strmycpy(SettingsMenu->MenuItem[6], " Countdown");
+    strmycpy(SettingsMenu->MenuItem[7], " Tilt");
+    strmycpy(SettingsMenu->MenuItem[8], " Backlight");
+    strmycpy(SettingsMenu->MenuItem[9], " Sensitivity");
+    strmycpy(SettingsMenu->MenuItem[10], " Filter");
+    strmycpy(SettingsMenu->MenuItem[11], " Input");
+    strmycpy(SettingsMenu->MenuItem[12], " Bluetooth");
+    strmycpy(SettingsMenu->MenuItem[13], " SaveSettings");
+    strmycpy(SettingsMenu->MenuItem[14], " Diagnostics");
 }
 
 void DoSettings(void) {
     set_screen_title("Settings");
-    Menu.menu = 1;
-    Menu.pos = 0;
-    Menu.top = 0;
-    Menu.selected = 0;
 
-    Menu.lineh = MediumFont->height + 1;
-    SetSettingsMenu();
-    //Top Line
-    Menu.top = SettingsTitle();
-    Menu.height = LCD_HEIGHT - (Menu.lineh + Menu.top);
-    //Main Screen
+    SettingsMenu.menu = 0;
+
+    SetSettingsMenu(&SettingsMenu);
+    SettingsTitle(&SettingsMenu);
     SaveToEEPROM = False;
-    Menu.refresh = True;
-    Menu.page = 0; //Force refresh
+    SettingsMenu.page = 0; //Force refresh
     lcd_clear_data_ram();
     do {
         TestBattery();
         handle_rotation();
-        SettingsTitle();
-        SetSettingsMenu();
-        SettingsDisplay();
-        define_input_action();
-        MenuSelection();
-
-        if (Menu.selected > 0) DoSet();
+        DisplaySettings(&SettingsMenu);
+        SelectMenuItem(&SettingsMenu);
+        if (SettingsMenu.menu > 0) DoSet(&SettingsMenu);
     } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
         saveSettings();
@@ -2560,12 +1439,12 @@ void DoReview() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
-uint16_t Mean = 0;
+
 #define DETECT_THRESHOLD_LEVELS 10
-uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {148, 124, 104, 87, 73, 61, 51, 43, 36, 33};
+uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {/*220, 190, 160, */148, 124, 104, 87, 73, 61, 51, 43, 36, 33};
 
 void DetectInit(void) {
-
+    uint16_t Mean = 0;
     uint16_t Peak = 0;
     uint16_t ADCvalue;
 
@@ -2627,15 +1506,12 @@ void print_batery_text_info() {
     sprintf(message,
             "%d%%", (battery_level > 100) ? 100 : battery_level);
     uint8_t width = lcd_string_lenght(message, SmallFont);
-    //    lcd_clear_block(LCD_WIDTH - 8 - width, line, LCD_WIDTH, SmallFont->height);
     lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_header() {
     print_time();
     print_batery_text_info();
-    //    lcd_battery_info(LCD_WIDTH - 20, line, battery_level);
-    //    lcd_draw_hline(0, LCD_WIDTH, MediumFont->height, BLACK_OVER_WHITE);
     return UI_HEADER_END_LINE;
 }
 
@@ -2703,11 +1579,12 @@ uint8_t print_footer() {
     else sprintf(message, " Mic: Off");
     print_label_at_footer_grid(message, 1, 0);
 
-    if (ParTime[CurPar_idx] > 0) {
-        sprintf(message, "Par%d: %3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
-    } else {
-        sprintf(message, " Par: Off");
-    }
+    //    if (ParTime[CurPar_idx] > 0) {
+    //        sprintf(message, "Par%d: %3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+    sprintf(message, "ADC: %d   ", ADC_LATEST_VALUE);
+    //    } else {
+    //        sprintf(message, " Par: Off");
+    //    }
     print_label_at_footer_grid(message, 0, 1);
     if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON", 1, 1);
     else print_label_at_footer_grid(" Aux: Off", 1, 1);
@@ -2726,115 +1603,12 @@ uint8_t print_footer() {
     return line - UI_FOOTER_START_LINE;
 }
 
-uint8_t MainDisplay(uint8_t CurrentShotNumber, uint8_t par, uint8_t voffset) {
-    char shot_time[10], shot_number[10], first_split[16];
-    uint8_t line = voffset, current_offset = 0;
-
-    sprintf(shot_time, "%3.2f", (float) ShootString.ShootTime[CurrentShotNumber] / 1000);
-    sprintf(first_split, "1st:%3.2f", (float) ShootString.ShootTime[0] / 1000);
-    sprintf(shot_number, "Shot#%2d", CurrentShotNumber);
-    lcd_clear_block(line, 0, LCD_WIDTH, LCD_HEIGHT - line);
-    lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
-    lcd_write_string(shot_time, 0, line, BigFont, BLACK_OVER_WHITE);
-    line += BigFont->height;
-    line += 5;
-
-    current_offset = LCD_WIDTH - lcd_string_lenght(shot_number, MediumFont);
-    lcd_write_string(first_split, 0, line, MediumFont, BLACK_OVER_WHITE);
-    lcd_write_string(shot_number, current_offset, line, MediumFont, BLACK_OVER_WHITE);
-    line += MediumFont->height;
-    line++;
-    lcd_draw_hline(0, LCD_WIDTH, line, BLACK_OVER_WHITE);
-    line += 3;
-    // bottom lines
-    //    line += print_footer(par,line);
-    return line - voffset;
-}
-
-void DoOldMain(void) {
-    char message[10];
-    TestBattery();
-    uint24_t FirstTime = 0;
-    uint8_t Shoot = 0;
-    uint8_t pos, header_end;
-    ShootString.ShootTime[Shoot] = 0;
-    getPar();
-    uint8_t Par = 0;
-    TBool Done = False;
-    header_end = print_header();
-    pos = MainDisplay(Shoot, Par, header_end);
-
-    switch (DelayMode) {
-        case Instant:DelayTime = 0;
-            break;
-        case Fixed: DelayTime = 30;
-            break;
-        case Random: DelayTime = (5 * DelayTime) % 99;
-            break;
-        case Custom: DelayTime = eeprom_read_wdata(DelayTime_Address);
-            //Read again in case was changed from other mode
-            break;
-    }
-    uint16_t t = DelayTime;
-    DetectMode = Mic;
-    DetectInit();
-    t = DelayTime * 10;
-    while (t > 8) {
-        if (t % 2 == 0) {
-            sprintf(message, "%3.2f", (float) t / 1000);
-            lcd_write_string(message, 0, pos, BigFont, BLACK_OVER_WHITE);
-        }
-        t -= 9;
-    }
-    lcd_write_string("  0.00", 0, pos, BigFont, BLACK_OVER_WHITE);
-    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerStartDuration);
-    delay_rtc(150);
-    t = 0;
-    while (!Done) {
-        TestBattery();
-        if (Detect()) {
-            Shoot++;
-            ShootString.TotShoots = Shoot;
-            ShootString.ShootTime[Shoot] = t;
-            if (Shoot == 1) FirstTime = t;
-            MainDisplay(Shoot, Par, Y_OFFSET);
-        }
-        __delay_ms(10);
-        t++;
-        if ((t > ParTime[Par]) && (Par < TotPar)) {
-            Par++;
-            MainDisplay(Shoot, Par, Y_OFFSET);
-            generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
-            __delay_ms(150);
-        }
-        if (t > 99900) {
-            if (Shoot > 0) saveShootString();
-            DoReview();
-            return;
-        }
-        if (Keypressed)
-            switch (Key) {
-                case KeyRw:
-                {
-                    t = 0;
-                    if (Shoot > 0) saveShootString();
-                    DoReview();
-                    return;
-                }
-                case KeySt: if (AutoStart) {
-                        t = 0;
-                        if (Shoot > 0) saveShootString();
-                        Shoot = 0;
-                    }
-            }
-    }
-}
-
 void DoMain(void) {
-    measurement_start_time_msec = get_corrected_time_msec();
+    measurement_start_time_msec = rtc_time.unix_time_ms;
     ShootString.ShootStringMark = 1;
     ShootString.TotShoots = 0;
-    memset(ShootString.ShootTime, 0, sizeof (time_t) * MAXSHOOT);
+    for (int i = 0; i < MAXSHOOT; i++)
+        ShootString.ShootTime[i] = 0;
     DetectInit();
     //    DoOldMain();
 }
@@ -2904,48 +1678,36 @@ void StartCountdownTimer() {
             //Read again in case was changed from other mode
             break;
     }
-    countdown_start_time = get_corrected_time_msec();
+    countdown_start_time = rtc_time.unix_time_ms;
 }
 
 void UpdateShot(time_t now) {
-    time_t dt = now - ShootString.ShootTime[ShootString.TotShoots];
+    time_t dt = now - measurement_start_time_msec;
+    time_t ddt = dt - (ShootString.TotShoots == 0) ? 0 : ShootString.ShootTime[ShootString.TotShoots - 1];
     //Don't count shoots less than Filter
-    if (dt > Filter) {
-        ShootString.ShootTime[ShootString.TotShoots] = now;
+    if (ddt > Filter) {
+        ShootString.ShootTime[ShootString.TotShoots] = dt;
         ShootString.TotShoots++;
-        if (ShootString.TotShoots == MAXSHOOT)
+        if (ShootString.TotShoots >= MAXSHOOT)
             timerEventToHandle = TimerTimeout;
     }
 }
 
 void UpdateShootNow() {
-    UpdateShot(get_corrected_time_msec());
+    UpdateShot(rtc_time.unix_time_ms);
 }
 
 void update_screen_model() {
-    time_t now = get_corrected_time_msec();
+    time_t now = rtc_time.unix_time_ms;
     switch (ui_state) {
         case TimerListening:
-            if (ParNowCounting) { // If into if because IDK how XC8 optimises conditions
+            if (ParNowCounting) {
                 // Software "interrupt" emulation
                 if (now - parStartTime_ms >= ParTime[CurPar_idx]) {
                     ParNowCounting = false;
                     timerEventToHandle = ParEvent;
                 }
             }
-#ifdef ASYNC_DETECT
-            if (Detect()) {
-                // Guard raising edge detection
-                if (!shoot_detected) {
-                    UpdateShot(now);
-                }
-            } else {
-                shoot_detected = false;
-            }
-#else
-            if (AdcDetect())
-                UpdateShootNow();
-#endif
             break;
         case TimerCountdown:
             if (now - countdown_start_time >= DelayTime) {
@@ -2959,7 +1721,7 @@ void update_screen_model() {
 }
 
 void handle_rotation() {
-    if (Autorotate) {
+    if (Autorotate && ui_state != TimerListening) {
         TBool oldOrientation = orientation;
         orientation = ADC_Read(ACCELEROMETER) > ORIENTATION_INVERSE_THRESHOLD;
         if (oldOrientation != orientation) {
@@ -2977,70 +1739,72 @@ static void interrupt isr(void) {
         PIR6bits.TMR1GIF = 0;
         frames_count = 0;
     }
+    if (PIR1bits.ADIF) {
+        PIR1bits.ADIF = 0;
+        while (GO_nDONE);
+        ADC_BUFFER_PUT((ADRESH << 8) | ADRESL);
+        if (ADPCH == ENVELOPE && ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
+            UpdateShootNow();
+        }
+    }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         update_rtc_time;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             KeyReleased = true;
         }
-        ADC_SAMPLE;
+        ADC_ENABLE_INTERRUPT;
         update_screen_model();
 
     }
 }
 // </editor-fold>
-
-void DoThresholdGrapg(uint8_t column) {
-    if (AdcDetect())
-        lcd_send_page_mark(10 + column, PAGE(LCD_HEIGHT) - 1, WHITE_OVER_BLACK);
-    for (uint8_t i = 0; i < DETECT_THRESHOLD_LEVELS; i++) {
-        if (ADC_LATEST_VALUE > Mean + threshold_offsets[i])
-            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, BLACK_OVER_WHITE);
-        else
-            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, WHITE_OVER_BLACK);
-    }
-}
-
-void DoAdcGraph() {
-    size_t column = 0;
-    time_t t, t_1 = 0;
-    int written = 0;
-    char lbl[16];
-    uint8_t lap = 0;
-    lbl[15] = 0;
-    t = rtc_time_msec;
-    DetectInit();
-
-    while (True) {
-        column = (column + 1) % 140;
-        //        lcd_draw_bit_graph_column(20 + column,ADC_MIDDLE_VALUE - cma_n);
-        ////        lcd_draw_scope_column(20 + column,median_v);
-        lcd_draw_bit_mark_column(5); // bit scale
-        DoThresholdGrapg(10 + column);
-
-        lcd_send_page(10 + column, PAGE(25), 0x0F, lap % 2);
-        if (column == 0) {
-            lap++;
-            if (Keypressed) {
-                ui_state = TimerIdle;
-                return;
-            }
-        }
-        t_1 = t;
-        t = rtc_time_msec;
-        written = sprintf(lbl, "dt: %u", t - t_1);
-        for (uint8_t i = written; i < 15; i++) {
-            lbl[i] = ' ';
-        }
-        lcd_write_string(lbl, 5, 8, MediumFont, BLACK_OVER_WHITE);
-        //        }
-        __delay_ms(5);
-    }
-}
+//
+//void DoThresholdGrapg(uint8_t column) {
+//    //    for (uint8_t i = 0; i < DETECT_THRESHOLD_LEVELS; i++) {
+//    //        //        if (ADC_LATEST_VALUE > Mean + threshold_offsets[i])
+//    //        //        if (ADC_MIDDLE_VALUE - cma_n>threshold_offsets[i])
+//    //        if (MeanValue() > threshold_offsets[i])
+//    //            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, BLACK_OVER_WHITE);
+//    //        else
+//    //            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, WHITE_OVER_BLACK);
+//    //    }
+//    lcd_draw_scope_column(column, ADC_LATEST_VALUE >> 2);
+//}
+//
+//void DoAdcGraph() {
+//    size_t column = 0;
+//    time_t t, t_1 = 0;
+//    int written = 0;
+//    char lbl[16];
+//    uint8_t lap = 0;
+//    lbl[24] = 0;
+//    t = rtc_time_msec;
+//    DetectInit();
+//
+//    while (True) {
+//        column = (column + 1) % 140;
+//        lcd_draw_bit_mark_column(5); // bit scale
+//        DoThresholdGrapg(10 + column);
+//
+//        lcd_send_page(10 + column, PAGE(25), 0x0F, lap % 2);
+//        if (column == 0) {
+//            lap++;
+//            if (Keypressed) {
+//                ui_state = TimerIdle;
+//                return;
+//            }
+//        }
+//        t_1 = t;
+//        t = rtc_time_msec;
+//        written = sprintf(lbl, "dt:%02u ", t - t_1);
+//        sprintf(lbl + written, "%x ", ADC_LATEST_VALUE);
+//        lcd_write_string(lbl, 5, 8, MediumFont, BLACK_OVER_WHITE);
+//        delay_rtc_ms(15);
+//    }
+//}
 
 void main(void) {
-    time_t start, duration;
-    char message[16];
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     PIC_init();
     PowerON
@@ -3064,13 +1828,12 @@ void main(void) {
 
     lcd_clear_data_ram();
     while (True) {
-        start = get_corrected_time_msec();
         TestBattery();
         handle_rotation();
         handle_ui();
         frames_count++;
-        duration = 200 - (get_corrected_time_msec() - start);
     }
+    //        DoAdcGraph();
 
     // </editor-fold>
 }
