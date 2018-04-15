@@ -487,7 +487,7 @@ void getSettings() {
 }
 
 void getDefaultSettings() {
-    Sensitivity = 6;
+    Sensitivity = 7;
     Filter = 150;
     AR_IS.Autostart = 1;
     AR_IS.Mic = 1;
@@ -1454,28 +1454,7 @@ void DetectInit(void) {
         if (Peak < ADCvalue) Peak = ADCvalue;
     }
     Mean = Mean >> 6;
-    switch (Sensitivity) {
-        case 10: DetectThreshold = Mean + threshold_offsets[9];
-            break;
-        case 9: DetectThreshold = Mean + threshold_offsets[8];
-            break;
-        case 8: DetectThreshold = Mean + threshold_offsets[7];
-            break;
-        case 7: DetectThreshold = Mean + threshold_offsets[6];
-            break;
-        case 6: DetectThreshold = Mean + threshold_offsets[5];
-            break;
-        case 5: DetectThreshold = Mean + threshold_offsets[4];
-            break;
-        case 4: DetectThreshold = Mean + threshold_offsets[3];
-            break;
-        case 3: DetectThreshold = Mean + threshold_offsets[2];
-            break;
-        case 2: DetectThreshold = Mean + threshold_offsets[1];
-            break;
-        case 1: DetectThreshold = Mean + threshold_offsets[0];
-            break;
-    }
+    DetectThreshold = Mean + threshold_offsets[Sensitivity - 1];
 }
 
 TBool Detect(void) {
@@ -1682,8 +1661,14 @@ void StartCountdownTimer() {
 }
 
 void UpdateShot(time_t now) {
-    time_t dt = now - measurement_start_time_msec;
-    time_t ddt = dt - (ShootString.TotShoots == 0) ? 0 : ShootString.ShootTime[ShootString.TotShoots - 1];
+    time_t dt,ddt;
+    dt = now - measurement_start_time_msec;
+    if(ShootString.TotShoots == 0){
+        ddt = 0;
+    } else{
+        ddt = ShootString.ShootTime[ShootString.TotShoots - 1];
+    }
+    ddt = dt - ddt;
     //Don't count shoots less than Filter
     if (ddt > Filter) {
         ShootString.ShootTime[ShootString.TotShoots] = dt;

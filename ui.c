@@ -95,11 +95,6 @@ void HandleTimerEvents() {
 
 void handle_timer_listening() {
     set_screen_title("Listening");
-#ifndef ASYNC_DETECT
-    if(Detect())
-        UpdateShootNow();
-#endif
-//    lcd_clear();
     update_shot_time_on_screen();
 
     print_header();

@@ -183,7 +183,7 @@ time_t CustomCDtime=5*60*1000; // 5 min in ms
 TBool   SaveToEEPROM;
 #define BT_Address                   112
 
-#define MAXSHOOT    5//100
+#define MAXSHOOT    100//100
 struct tShoot
 {
     time_t ShootTime[MAXSHOOT]; //in 1mS unit
