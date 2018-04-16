@@ -1628,11 +1628,11 @@ void StartCountdownTimer() {
 }
 
 void UpdateShot(time_t now) {
-    time_t dt,ddt;
+    time_t dt, ddt;
     dt = now - measurement_start_time_msec;
-    if(ShootString.TotShoots == 0){
+    if (ShootString.TotShoots == 0) {
         ddt = 0;
-    } else{
+    } else {
         ddt = ShootString.ShootTime[ShootString.TotShoots - 1];
     }
     ddt = dt - ddt;
