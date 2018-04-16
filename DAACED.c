@@ -1780,9 +1780,10 @@ void main(void) {
 
     lcd_clear_data_ram();
     while (True) {
-        TestBattery();
-        handle_rotation();
-        handle_ui();
+//        TestBattery();
+//        handle_rotation();
+//        handle_ui();
+        lcd_demo();
         frames_count++;
     }
     //        DoAdcGraph();

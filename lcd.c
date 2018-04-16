@@ -1,4 +1,5 @@
 #include "lcd.h"
+#include "rtc.h"
 
 // <editor-fold defaultstate="collapsed" desc="SPI">
 
@@ -226,10 +227,10 @@ void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t pol
 #endif
 
 void lcd_clear_data_ram() {
-    lcd_prepare_send_data(0, 0, LCD_MAX_ADDRESS, LCD_WIDTH);
+    lcd_prepare_send_data(0, 0, LCD_MAX_PAGES, LCD_WIDTH);
     // Clear only the area that we're using
-    for (uint16_t index = 0; index < (50 + PAGE(LCD_MAX_ADDRESS)) * LCD_WIDTH; index++) {
-        lcd_send_data(LCD_WHITE_PAGE);
+    for (uint16_t index = 0; index < LCD_MAX_PAGES*LCD_WIDTH; index++) {
+            lcd_send_data(LCD_WHITE_PAGE);
     }
 }
 #ifndef LCD_DIRECT_ACCESS
@@ -488,6 +489,66 @@ void lcd_battery_info_d(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="LCD functions implementations">
+void lcd_old_init() {
+    LCD_CS_DESELECT();
+
+    __delay_ms(10);
+    lcd_reset();                                            // Reset LCD.
+    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
+    lcd_send_command(CMD_SET_MODE_MASTER);                  // Enable master mode.
+
+    lcd_send_command(CMD_EXTENSION_2);                      // Extension2 command.
+    lcd_send_command(CMD_AUTO_READ);                        // Disable auto read.
+    lcd_send_data(0x9F);
+
+    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
+    lcd_send_command(CMD_SLEEP_OUT);                        // Sleep out.
+    lcd_send_command(CMD_DISPLAY_OFF);                      // Display OFF.
+    lcd_send_command(CMD_INT_OSC_ON);                       // Internal oscillator ON.
+
+    lcd_send_command(CMD_POWER_CON);                        // Power control.
+    lcd_send_data(0x0B);                                    // Regulator, Follower and Booster ON.
+    lcd_send_command(CMD_SET_VOP);                          // Set Vop.
+    lcd_send_data(0x35);                                    // 16 Volts.
+    lcd_send_data(0x04);
+
+    lcd_send_command(CMD_EXTENSION_2);                      // Extension2 commands.
+    lcd_send_command(CMD_ANALOG_CKT);                       // Analog Circuit set.
+    lcd_send_data(0x00);
+    lcd_send_data(0x01);                                    // Booster efficiency 1.
+    lcd_send_data(0x02);                                    // LCD bias 1/12
+//    lcd_send_data(0x01);                                    // LCD bias 1/13
+
+    lcd_send_command(CMD_BOOSTER_LVL);                      // Booster level.
+    lcd_send_data(0xFB);                                    // x10.
+
+    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 commands.
+    lcd_send_command(CMD_DISPLAY_MODE);                     // Display mode.
+    lcd_send_data(0x10);                                    // Monochrome mode.
+    lcd_send_command(CMD_DISPLAY_CONTROL);                  // Display control.
+    lcd_send_data(0x00);                                    // No clock division.
+    lcd_send_data(0x7F);                                    // 1/128 duty.
+//    lcd_send_data(0b10011111);                              // 1/160 duty.
+    lcd_send_data(0x00);                                    // ??
+
+    lcd_send_command(CMD_DATASCAN_DIR);                     // data scan directon.
+    lcd_send_data(0x01);
+    lcd_send_command(0xA6);
+
+    lcd_send_command(CMD_DATA_FORMAT_LSB);                  // LSB First.
+
+    lcd_send_command(CMD_INVERSION_OFF);                    // Pixel inversion OFF.
+
+    lcd_send_command(CMD_EXTENSION_2);                      // Extension2 command.
+    lcd_send_command(CMD_PWR_SRC_INT);                      // Use internel oscillator.
+
+    lcd_send_command(CMD_EXTENSION_1);                      // Extension1 command.
+    lcd_send_command(CMD_ICON_DISABLE);                     // Disable ICON RAM.
+
+    lcd_clear_data_ram();                                   // Clearing data RAM.
+
+    lcd_send_command(CMD_DISPLAY_ON);                       // Turn ON display.
+}
 
 void lcd_init() {
 #ifndef LCD_DIRECT_ACCESS
@@ -536,7 +597,7 @@ void lcd_init() {
 #ifdef SMALL_LCD
     lcd_send_data(LCD_DUTY_CICLE_128); // 1/128 duty.
 #else
-    lcd_send_data(LCD_DUTY_CICLE_160); // 1/160 duty.
+    lcd_send_data(LCD_DUTY_CICLE_128); // 1/160 duty.
 #endif
     lcd_send_data(0x00); // ??
 
@@ -548,8 +609,12 @@ void lcd_init() {
 #else
     lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
 #endif
+    
+#ifdef SMALL_LCD
     lcd_send_command(CMD_INVERSION_OFF); // Pixel inversion OFF.
-
+#else
+    lcd_send_command(CMD_INVERSION_OFF);
+#endif
     lcd_send_command(CMD_EXTENSION_2); // Extension2 command.
     lcd_send_command(CMD_PWR_SRC_INT); // Use internel oscillator.
 
@@ -562,6 +627,7 @@ void lcd_init() {
     //    lcd_send_data(LCD_HEIGHT);  //  LCD_HEGHT lines to display
     //    lcd_send_data(0x01);        // Top mode
 
+    lcd_send_command(CMD_NOP);
     lcd_clear_data_ram(); // Clearing data RAM.
 
     lcd_send_command(CMD_DISPLAY_ON); // Turn ON display.
@@ -669,4 +735,64 @@ void lcd_set_orientation() {
 //    else lcd_send_data(~value);
 //}
 // </editor-fold>
+
+void display_message(const char * message) {
+    lcd_fill_block(2, 98, 158, 112);
+    lcd_write_string(message, 4, 101, BigFont, WHITE_OVER_BLACK);
+}
+void lcd_demo(){
+    display_message("Hello!!!!");
+    for (uint8_t i = 0;i<5;i++){
+        lcd_increase_contrast();
+        delay_rtc_ms(100);
+    }
+    for (uint8_t i = 0;i<5;i++){
+        lcd_decrease_contrast();
+        delay_rtc_ms(100);
+    }
+} 
+void lcd_demo1() {
+    char message[32];
+    lcd_fill_block(0, 0, 160, 114);
+    display_message("lcd_fill_block()");
+    __delay_ms(1000);
+    
+    lcd_clear_block(158, 112, 2, 2);
+    display_message("lcd_clear_block()");
+    __delay_ms(1000);
+    
+    for(uint8_t battery = 0; battery <= 100; battery+=10) {
+        lcd_battery_info(4,4,battery);
+        sprintf(message, "Battery : %d%%", battery);
+        display_message(message);
+        __delay_ms(1);
+    }
+//    lcd_clear_block(2, 2, 156, 98);
+//    display_message("lcd_draw_bitmap()");
+//    for(uint8_t y = 5; y < 96-demo_bitmap_data.image_height; y = y + 30) {
+//        for(uint8_t x = 5; x < 150 - demo_bitmap_data.image_width; x = x + 30) {
+//            lcd_draw_bitmap(x, y, &demo_bitmap_data);
+//            __delay_ms(300);
+//            lcd_clear_block(x,y, x+demo_bitmap_data.image_width, y+demo_bitmap_data.image_height);
+//        }
+//    }
+
+    lcd_clear_block(2, 2, 158, 98);
+    lcd_write_string("Hello..!!", 3, 3, MediumFont, BLACK_OVER_WHITE);
+    display_message("Black On White");
+    __delay_ms(1000);
+    
+    lcd_fill_block(2, 2, 158, 98);
+    __delay_ms(1000);
+    lcd_clear_block(2, 2, 158, 98);
+    lcd_write_string(" Hello..!! ", 3, 3, MediumFont, WHITE_OVER_BLACK);
+    display_message("White On Black");
+    __delay_ms(1000);
+    
+    lcd_clear_block(2, 2, 158, 98);
+    lcd_write_string("1234", 3, 3, BigFont, BLACK_OVER_WHITE);
+    display_message("I am Big");
+    __delay_ms(1000);
+    
+}
 

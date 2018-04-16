@@ -24,13 +24,21 @@
 #define LCD_GRAPH_HEIGTH        12
 #define LCD_GRAPH_START_PAGE    Y_OFFSET+3
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
-#define SMALL_LCD
+//#define SMALL_LCD
+#undef SMALL_LCD
 #define MSB_FIRST
+#ifdef SMALL_LCD
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
 #define LCD_MAX_ADDRESS         (0xA1)
+#define LCD_MAX_PAGES           (0x06)
+#else
+#define LCD_WIDTH               (240)
+#define LCD_HEIGHT              (160)
+#define LCD_MAX_ADDRESS         (0xA2)
+#define LCD_MAX_PAGES           (0x14)
+#endif
 #define PAGE_HEIGTH              (8)
-#define LCD_MAX_PAGES           (0x0F)
 #define Y_OFFSET                (6)
 #define PAGE(x)                 (x/PAGE_HEIGTH + Y_OFFSET)
 
@@ -228,6 +236,10 @@ void lcd_clear_data_ram();
 void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_set_orientation();
+void lcd_demo();
+void lcd_old_init();
+void lcd_send_data(uint8_t data);
+void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
 //
 //void lcd_draw_bit_graph_column(size_t column, uint16_t value);
 //void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
