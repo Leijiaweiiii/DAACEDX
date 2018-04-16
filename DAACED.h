@@ -201,6 +201,7 @@ uint8_t  CurShoot;                //The current shoot of the displayed string
 uint16_t CurShootString,          //Currently displayed string number 0..29
          CurrStringStartAddress;
 #define  Size_of_ShootString        302  // sizeof(ShootString)  did not work
+#define SHOTS_ON_REVIEW_SCREEN      4
 
 typedef enum {
     Instant, Fixed, Random, Custom
@@ -240,7 +241,7 @@ time_t parStartTime_ms;
 #define ShootStringStartAddress     1000
 
 #include "menu.h"
-SettingsMenu_t m; // Submenue for reuse   
+SettingsMenu_t ma; // Submenue for reuse   
 SettingsMenu_t SettingsMenu;
 TimeSelection_t ts;
 uint8_t  battery_level;

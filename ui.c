@@ -25,7 +25,7 @@ void print_big_time_label(time_t t) {
     char message[16];
 //    time_t sec = t/1000;
 //    time_t ms = (t/10)%100;
-    sprintf(message, "%3.02f ",((float)t)/1000);
+    sprintf(message, "%3.02f  ",((float)t)/1000);
     lcd_write_string(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
@@ -56,6 +56,8 @@ void StopTimer() {
 
 void handle_power_off() {
     switch (comandToHandle) {
+        case ReviewLong:
+        case OkLong:
         case StartLong:STATE_HANDLE_POWER_ON;
             break;
         default:

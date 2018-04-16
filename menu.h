@@ -29,7 +29,7 @@ extern "C" {
         uint8_t page;
         TBool done;
     } SettingsMenu_t;
-
+#define InitSettingsMenuDefaults(m) {m->done = False;m->menu = 1;m->page = 0;m->selected = 0;}
     typedef struct {
         char MenuTitle[MAXMenuTitleLength];
         char * format;

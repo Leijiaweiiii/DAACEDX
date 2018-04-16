@@ -592,9 +592,8 @@ void SetCustomDelay() {
 }
 
 void SetDelay(SettingsMenu_t * m) {
-    m->menu = 1;
+    InitSettingsMenuDefaults(m);
     m->TotMenuItems = 4;
-    m->done = False;
     strmycpy(m->MenuTitle, "Delay");
     strmycpy(m->MenuItem[0], " Instant ");
     strmycpy(m->MenuItem[1], " Fixed 3sec. ");
@@ -615,8 +614,8 @@ void SetDelay(SettingsMenu_t * m) {
     }
 
     do {
-        DisplaySettings(&m);
-        SelectMenuItem(&m);
+        DisplaySettings(m);
+        SelectMenuItem(m);
     } while (!m->done);
 
     switch (m->menu) {
@@ -696,7 +695,7 @@ void edit_par(SettingsMenu_t * s) {
 
             sprintf(msg, "%5.1f", (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
             lcd_write_string(msg, 30, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
-            sprintf(msg, " Par %d: %5.1f", s->menu, (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
+            sprintf(msg, " Par %2d: %5.1f", s->menu, (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
             strmycpy(s->MenuItem[s->menu - 1], msg);
 
         }
@@ -725,7 +724,7 @@ void SetPar(SettingsMenu_t * m) {
     uint8_t redraw, i;
 
     //Main Screen
-    m->menu = 1;
+    InitSettingsMenuDefaults(m);
     redraw = 2;
     changed = False;
     while (m->menu > 0) {
@@ -746,9 +745,9 @@ void SetPar(SettingsMenu_t * m) {
             sprintf(m->MenuItem[TotPar], " Par %d: Off", TotPar + 1);
             m->TotMenuItems = TotPar + 1;
         }
-        DisplaySettings(&m);
+        DisplaySettings(m);
 
-        SelectMenuItem(&m);
+        SelectMenuItem(m);
         if (m->menu > 0) {
             if (m->menu == m->TotMenuItems) {
                 if (TotPar > 0) {
@@ -761,7 +760,7 @@ void SetPar(SettingsMenu_t * m) {
                     redraw = 1;
                 }
             }
-            edit_par(&m);
+            edit_par(m);
         }
     }
     if (changed) {
@@ -855,9 +854,7 @@ void SetBeepTime(TBool Par) {
 }
 
 void SetBeep(SettingsMenu_t * m) {
-    m->menu = 1;
-
-    m->done = False;
+    InitSettingsMenuDefaults(m);
     m->TotMenuItems = 5;
     strmycpy(m->MenuTitle, "Beep");
     strmycpy(m->MenuItem[0], " Frequency ");
@@ -936,8 +933,7 @@ void SetFilter() {
 
 void SetAutoStart(SettingsMenu_t * m) {
     TBool orgset;
-
-    m->done = False;
+    InitSettingsMenuDefaults(m);
     m->menu = (AutoStart) ? 2 : 1;
     m->TotMenuItems = 2;
     strmycpy(m->MenuTitle, "Autostart");
@@ -959,8 +955,7 @@ void SetAutoStart(SettingsMenu_t * m) {
 
 void SetMode(SettingsMenu_t * m) {
     TBool orgset;
-    m->done = False;
-    m->menu = 1;
+    InitSettingsMenuDefaults(m);
     m->TotMenuItems = 8;
     strmycpy(m->MenuTitle, "Mode");
     strmycpy(m->MenuItem[0], " Timer Mode ");
@@ -972,13 +967,12 @@ void SetMode(SettingsMenu_t * m) {
     strmycpy(m->MenuItem[6], " NRA-PPC C ");
     strmycpy(m->MenuItem[7], " NRA-PPC D ");
 
-    SettingsTitle(&m);
+    SettingsTitle(m);
 
     //Main Screen
     do {
-        DisplaySettings(&m);
-
-        SelectMenuItem(&m);
+        DisplaySettings(m);
+        SelectMenuItem(m);
     } while (!m->done);
     switch (m->menu) { //TODO implement
         case 1://TBC
@@ -993,12 +987,7 @@ void SetMode(SettingsMenu_t * m) {
 void SetClock() {
     uint8_t hour = get_hour();
     uint8_t minute = get_minute();
-    TBool Done;
-
-    char msg[20];
     strmycpy(ts.MenuTitle, "Clock");
-
-
     if (hour > 23) hour = 23;
     if (minute > 59) minute = 59;
     ts.hour = hour;
@@ -1088,9 +1077,7 @@ void SetCustomCountDown() {
 }
 
 void SetCountDown(SettingsMenu_t * m) {
-    m->menu = 1;
-
-    m->done = False;
+    InitSettingsMenuDefaults(m);
     m->TotMenuItems = 4;
     strmycpy(m->MenuTitle, "Countdown");
     strmycpy(m->MenuItem[0], " Off ");
@@ -1118,9 +1105,7 @@ void SetCountDown(SettingsMenu_t * m) {
 
 void SetTilt(SettingsMenu_t * m) {
     uint8_t orgset;
-
-    m->done = False;
-    m->menu = 1;
+    InitSettingsMenuDefaults(m);
     m->TotMenuItems = 1;
     strmycpy(m->MenuTitle, "Tilt");
     if (AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
@@ -1163,8 +1148,7 @@ void UpdateIS(SettingsMenu_t * sm) {
 
 void SetInput(SettingsMenu_t * m) {
     uint8_t orgset;
-    TBool Done = False;
-    m->menu = 1;
+    InitSettingsMenuDefaults(m);
     m->TotMenuItems = 3;
     strmycpy(m->MenuTitle, "Input");
     UpdateIS(m);
@@ -1203,24 +1187,24 @@ void BlueTooth() {
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
 
 void DoSet(SettingsMenu_t * s) {
-
+    SettingsMenu_t * m = &ma;
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     switch (s->menu) {
-        case 1:SetDelay(&m);
+        case 1:SetDelay(m);
             break;
-        case 2:SetPar(&m);
+        case 2:SetPar(m);
             break;
-        case 3:SetBeep(&m);
+        case 3:SetBeep(m);
             break;
-        case 4:SetAutoStart(&m);
+        case 4:SetAutoStart(m);
             break;
-        case 5:SetMode(&m);
+        case 5:SetMode(m);
             break;
         case 6:SetClock();
             break;
-        case 7:SetCountDown(&m);
+        case 7:SetCountDown(m);
             break;
-        case 8:SetTilt(&m);
+        case 8:SetTilt(m);
             break;
         case 9:SetBacklight();
             break;
@@ -1228,7 +1212,7 @@ void DoSet(SettingsMenu_t * s) {
             break;
         case 11:SetFilter();
             break;
-        case 12:SetInput(&m);
+        case 12:SetInput(m);
             break;
         case 13:BlueTooth();
             break;
@@ -1268,18 +1252,20 @@ void DoSettings(void) {
     set_screen_title("Settings");
 
     SettingsMenu.menu = 0;
-
+    SettingsMenu.page = 0; //Force refresh
+    SettingsMenu.selected = 0;
     SetSettingsMenu(&SettingsMenu);
     SettingsTitle(&SettingsMenu);
     SaveToEEPROM = False;
-    SettingsMenu.page = 0; //Force refresh
+
     lcd_clear_data_ram();
     do {
         TestBattery();
         handle_rotation();
+        print_header();
         DisplaySettings(&SettingsMenu);
         SelectMenuItem(&SettingsMenu);
-        if (SettingsMenu.menu > 0) DoSet(&SettingsMenu);
+        if (SettingsMenu.selected > 0) DoSet(&SettingsMenu);
     } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
         saveSettings();
@@ -1290,14 +1276,12 @@ void DoSettings(void) {
 // </editor-fold>
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ReviewMenu">
-#define REVIEW_SHOT_FORMAT      "%s # %2d: %3.2f "
-#define REVIEW_SPLIT_FORMAT     "} %3.2f"
+#define REVIEW_SHOT_FORMAT      "#%2d: %3.2f "
+#define REVIEW_SPLIT_FORMAT     "}%3.2f "
 
 void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_shots) {
-    char message[60];
     uint8_t line = UI_HEADER_END_LINE;
-    char * str_selection = scroll_shots ? " " : "|";
-    char * shot_selection = scroll_shots ? "|" : " ";
+    char message[20];
     // We're assuming here that Medium font has even number of bytes heigh
     uint8_t halfline = (MediumFont->height / 2);
     print_header();
@@ -1305,67 +1289,51 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     //String line
 
     line += halfline;
-    sprintf(message, " Str# %2d/%2d %3.2f ",
+    sprintf(message, "Str#%02d/%02d - %3.2f ",
             CurShootStringDisp,
             ShootString.TotShoots,
             (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
     lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
     line += MediumFont->height;
-    for (uint8_t col = 0; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
+    for (uint8_t col = 5; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
         lcd_write_char('_', col, line, MediumFont, BLACK_OVER_WHITE);
     }
-    for (uint8_t i = PAGE(UI_HEADER_END_LINE); i <= PAGE(line); i++) {
-        lcd_write_string(str_selection, 0, i*PAGE_HEIGTH, MediumFont, BLACK_OVER_WHITE);
+    for (uint8_t i = UI_HEADER_END_LINE; i < line; i+=PAGE_HEIGTH) {
+        if (scroll_shots) {
+            lcd_write_string(" ", 0, i, MediumFont, BLACK_OVER_WHITE);
+        } else {
+            lcd_write_string("|", 1, i, MediumFont, BLACK_OVER_WHITE);
+        }
     }
 
     line += MediumFont->height;
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
-    if (ShootString.ShootTime[CurShoot - 1] > 0) {
-        sprintf(message,
-                REVIEW_SHOT_FORMAT,
-                shot_selection,
-                CurShoot - 1,
-                (float) ShootString.ShootTime[CurShoot - 1] / 1000
-                );
-        lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
-        //        lcd_write_char('^', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
-        line += halfline;
-        sprintf(message, REVIEW_SPLIT_FORMAT, (float) (ShootString.ShootTime[CurShoot] - ShootString.ShootTime[CurShoot - 1]) / 1000);
-        lcd_write_string(message, 89, line, MediumFont, BLACK_OVER_WHITE);
-        line += halfline;
-    }
-
-    if (ShootString.ShootTime[CurShoot] > 0) {
-        sprintf(message,
-                REVIEW_SHOT_FORMAT,
-                shot_selection,
-                CurShoot,
-                (float) ShootString.ShootTime[CurShoot] / 1000
-                );
-        lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
-        line += halfline;
-        if (CurShoot < ShootString.TotShoots) {
-            sprintf(message,
-                    REVIEW_SPLIT_FORMAT,
-                    (float) (ShootString.ShootTime[CurShoot + 1] - ShootString.ShootTime[CurShoot]) / 1000
-                    );
-            lcd_write_string(message, 92, line, MediumFont, BLACK_OVER_WHITE);
-        }
-        line += halfline;
-    }
-    if (CurShoot < ShootString.TotShoots) {
-        if (ShootString.ShootTime[CurShoot + 1] > 0) {
+    for (int8_t i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
+        if (ShootString.ShootTime[CurShoot + i] > 0) {
+            if (scroll_shots) {
+                lcd_write_string("|", 1, line, MediumFont, BLACK_OVER_WHITE);
+            } else {
+                lcd_write_string(" ", 0, line, MediumFont, BLACK_OVER_WHITE);
+            }
             sprintf(message,
                     REVIEW_SHOT_FORMAT,
-                    shot_selection,
-                    CurShoot + 1,
-                    (float) ShootString.ShootTime[CurShoot + 1] / 1000
+                    CurShoot + i,
+                    (float) ShootString.ShootTime[CurShoot + i] / 1000
                     );
-            lcd_write_string(message, 0, line, MediumFont, BLACK_OVER_WHITE);
+            lcd_write_string(message, 5, line, MediumFont, (i != 1)& 0x01);
+            line += halfline;
+
+            // Don't print last diff at half line
+            if (i < SHOTS_ON_REVIEW_SCREEN - 1) {
+                sprintf(message,
+                        REVIEW_SPLIT_FORMAT,
+                        (float) (ShootString.ShootTime[CurShoot + i + 1] - ShootString.ShootTime[CurShoot + i]) / 1000);
+                lcd_write_string(message, 100, line, MediumFont, BLACK_OVER_WHITE);
+            }
+            line += halfline;
         }
     }
-    //    lcd_write_char('_', LCD_WIDTH - 10, line, MediumFont, BLACK_OVER_WHITE);
 }
 
 void review_scroll_shot_up() {
@@ -1375,7 +1343,7 @@ void review_scroll_shot_up() {
 }
 
 void review_scroll_shot_down() {
-    if (CurShoot < ShootString.TotShoots) {
+    if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN+1) {
         CurShoot++;
     } else Beep();
 }
@@ -1397,7 +1365,7 @@ void review_next_string() {
 void DoReview() {
     TBool scroll_shots = True;
     CurShootString = 0;
-    CurShoot = 2;
+    CurShoot = 1;
     set_screen_title("Review");
 
     //    getShootString(CurShootString);
@@ -1475,7 +1443,6 @@ uint8_t print_time() {
             //            ":",
             get_minute(),
             ScreenTitle);
-    uint8_t width = lcd_string_lenght(message, SmallFont);
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }

@@ -2,47 +2,58 @@
 #include "lcd.h"
 #include "ui.h"
 
-void DisplayTime(TimeSelection_t * t){
+void DisplayTime(TimeSelection_t * t) {
     char msg[10];
-    sprintf(msg,"%02d:%02d",t->hour,t->minute);
-    lcd_write_string(msg,3,UI_HEADER_END_LINE,BigFont,BLACK_OVER_WHITE);
+    sprintf(msg, "%02d:%02d", t->hour, t->minute);
+    lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
-void DisplayDouble(NumberSelection_t* s){
+void DisplayDouble(NumberSelection_t* s) {
     char msg[10];
-    sprintf(msg,s->format,s->fvalue);
-    lcd_write_string(msg,3,UI_HEADER_END_LINE,BigFont,BLACK_OVER_WHITE);
+    sprintf(msg, s->format, s->fvalue);
+    lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
-void DisplayInteger(NumberSelection_t* s){
+void DisplayInteger(NumberSelection_t* s) {
     char msg[10];
-    sprintf(msg,s->format,s->value);
-    lcd_write_string(msg,3,UI_HEADER_END_LINE,BigFont,BLACK_OVER_WHITE);
+    sprintf(msg, s->format, s->value);
+    lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void DisplaySettings(SettingsMenu_t* sm) {
-    uint8_t i,  p, lineh;
+    uint8_t i, p, lineh;
     char msg[10];
     p = UI_HEADER_END_LINE;
     lineh = MediumFont->height;
 
-    if (sm->menu > (MENU_PAGE_SIZE * sm->page)) {
-        //Inc Page
-        sm->page++;
-        lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, LCD_HEIGHT);
-    } else if (sm->menu <= (MENU_PAGE_SIZE * (sm->page - 1))) {
-        //Dec Page
-        sm->page--;
-        lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, LCD_HEIGHT);
-    }
-
-
-    for (i = (MENU_PAGE_SIZE * (sm->page - 1)); i < sm->TotMenuItems; i++) {
-        if (sm->menu == i + 1) lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
-        if (sm->prev == i + 1) lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, BLACK_OVER_WHITE);
+    for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
+        if (sm->menu == i) {
+            lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
+        } else {
+            lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, BLACK_OVER_WHITE);
+        }
         p += lineh;
     }
-    //    lcd_refresh(&full_screen_update_boundary);
+}
+
+void decrement_menu_index(SettingsMenu_t * s) {
+    if (s->menu > 0) {
+        s->prev = s->menu;
+        s->menu--;
+        if(s->menu <= MENU_PAGE_SIZE * (s->page - 1)){
+            s->page--;
+        }
+    } else Beep();
+}
+
+void increment_menu_index(SettingsMenu_t * s) {
+    if (s->menu < s->TotMenuItems) {
+        s->prev = s->menu;
+        s->menu++;
+        if (s->menu > MENU_PAGE_SIZE * s->page) {
+            s->page++;
+        }
+    } else Beep();
 }
 
 void SelectMenuItem(SettingsMenu_t* s) {
@@ -50,17 +61,11 @@ void SelectMenuItem(SettingsMenu_t* s) {
     switch (comandToHandle) {
         case UpShort:
         case UpLong:
-            if (s->menu > 1) {
-                s->prev = s->menu;
-                s->menu--;
-            } else Beep();
+            decrement_menu_index(s);
             break;
         case DownShort:
         case DownLong:
-            if (s->menu < (s->TotMenuItems)) {
-                s->prev = s->menu;
-                s->menu++;
-            } else Beep();
+            increment_menu_index(s);
             break;
         case OkShort:
         case OkLong:
@@ -84,23 +89,16 @@ void SelectMenuItem(SettingsMenu_t* s) {
     comandToHandle = None;
 }
 
-
 void SelectBinaryMenuItem(SettingsMenu_t* s) {
     define_input_action();
     switch (comandToHandle) {
         case UpShort:
         case UpLong:
-            if (s->menu > 1) {
-                s->prev = s->menu;
-                s->menu--;
-            } else Beep();
+            increment_menu_index(s);
             break;
         case DownShort:
         case DownLong:
-            if (s->menu < (s->TotMenuItems)) {
-                s->prev = s->menu;
-                s->menu++;
-            } else Beep();
+            decrement_menu_index(s);
             break;
         case OkShort:
         case OkLong:
@@ -254,23 +252,21 @@ void SelectTime(TimeSelection_t* ts) {
     comandToHandle = None;
 }
 
-
-
 uint8_t PopMsg(const char* msg, uint16_t wait) {
-//    uint16_t t = 0;
-//    uint8_t Yo1 = PopY1 + ((PopY2 - (PopY1 + MediumFont->height)) >> 1);
-//    uint8_t Xo1 = PopX1 + ((PopX2 - (PopX1 + lcd_string_lenght(msg, MediumFont))) >> 1);
-//    lcd_fill_block(PopX1, PopY1, PopX2, PopY2);
-//    lcd_write_string(msg, Xo1, Yo1, MediumFont, WHITE_OVER_BLACK);
-//    //    if (wait == 0) {
-//    //        while (!Keypressed);
-//    //        return Key;
-//    //    } else {
-//    while (t < wait) {
-//        __delay_ms(1);
-//        t++;
-//        //            if (Keypressed) return Key;
-//    }
+    //    uint16_t t = 0;
+    //    uint8_t Yo1 = PopY1 + ((PopY2 - (PopY1 + MediumFont->height)) >> 1);
+    //    uint8_t Xo1 = PopX1 + ((PopX2 - (PopX1 + lcd_string_lenght(msg, MediumFont))) >> 1);
+    //    lcd_fill_block(PopX1, PopY1, PopX2, PopY2);
+    //    lcd_write_string(msg, Xo1, Yo1, MediumFont, WHITE_OVER_BLACK);
+    //    //    if (wait == 0) {
+    //    //        while (!Keypressed);
+    //    //        return Key;
+    //    //    } else {
+    //    while (t < wait) {
+    //        __delay_ms(1);
+    //        t++;
+    //        //            if (Keypressed) return Key;
+    //    }
     //        return Yo1;
     //    }
     // TODO: Handle popup with selection
