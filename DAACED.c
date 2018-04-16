@@ -487,8 +487,8 @@ void getSettings() {
 }
 
 void getDefaultSettings() {
-    Sensitivity = 7;
-    Filter = 150;
+    Sensitivity = 5;
+    Filter = 70;
     AR_IS.Autostart = 1;
     AR_IS.Mic = 1;
     AR_IS.AutoRotate = 0;
