@@ -1297,7 +1297,7 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
     for (uint8_t col = 5; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
         lcd_write_char('_', col, line, MediumFont, BLACK_OVER_WHITE);
     }
-    for (uint8_t i = UI_HEADER_END_LINE; i < line; i+=PAGE_HEIGTH) {
+    for (uint8_t i = UI_HEADER_END_LINE; i < line; i += PAGE_HEIGTH) {
         if (scroll_shots) {
             lcd_write_string(" ", 0, i, MediumFont, BLACK_OVER_WHITE);
         } else {
@@ -1342,7 +1342,7 @@ void review_scroll_shot_up() {
 }
 
 void review_scroll_shot_down() {
-    if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN+1) {
+    if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN + 1) {
         CurShoot++;
     } else Beep();
 }
