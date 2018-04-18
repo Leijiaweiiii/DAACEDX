@@ -1,7 +1,3 @@
-/*
- * TODO : Add license.
- */
-
 // How to generate font binary data? [theDotFactory.exe]
 // Note : Font height MUST be in bit. (Configure under settings.)
 // Note : Add one more parameter "character_spacing" for adding spaces between character as per font.

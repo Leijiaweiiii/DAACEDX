@@ -117,22 +117,22 @@ void init_ms_timer0() {
 // </editor-fold>
 
 uint8_t get_hour() {
-    time_t const_time = rtc_time_sec;
+    time_t const_time = rtc_time.sec;
     return gmtime(&const_time)->tm_hour;
 }
 
 uint8_t get_minute() {
-    time_t const_time = rtc_time_sec;
+    time_t const_time = rtc_time.sec;
     return gmtime(&const_time)->tm_min;
 }
 
 uint8_t get_second() {
-    time_t const_time = rtc_time_sec;
+    time_t const_time = rtc_time.sec;
     return gmtime(&const_time)->tm_sec;
 }
 
 void set_time(uint8_t h, uint8_t m, uint8_t s) {
-    time_t const_time = rtc_time_sec;
+    time_t const_time = rtc_time.sec;
     struct tm * t = gmtime(&const_time);
     t->tm_min = m;
     t->tm_hour = h;

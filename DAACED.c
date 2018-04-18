@@ -1439,7 +1439,7 @@ uint8_t print_time() {
     sprintf(message,
             "%02d%s%02d %s",
             get_hour(),
-            (rtc_time_sec % 4) ? ":" : ".",
+            (rtc_time.sec % 4) ? ":" : ".",
             //            ":",
             get_minute(),
             ScreenTitle);
@@ -1765,7 +1765,6 @@ void main(void) {
     spi_init();
     lcd_init();
     ADC_init();
-    //    init_adc_interrupt();
     eeprom_init();
     //    getSettings();
     getDefaultSettings();
@@ -1780,10 +1779,10 @@ void main(void) {
 
     lcd_clear_data_ram();
     while (True) {
-//        TestBattery();
-//        handle_rotation();
-//        handle_ui();
-        lcd_demo();
+        TestBattery();
+        handle_rotation();
+        handle_ui();
+//        lcd_demo();
         frames_count++;
     }
     //        DoAdcGraph();

@@ -1,6 +1,4 @@
-/*
- *  TODO : Add License.
- */
+
 // How to convert bitmap to binary data?
 // > Use "TheDotFactory.exe" utility.
 

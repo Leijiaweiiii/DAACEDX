@@ -170,12 +170,11 @@ void handle_countdown() {
 }
 
 TBool is_long_press() {
-    //taking lower byte to save memory...
-    uint8_t press_time = LSB(rtc_time_sec);
-    uint8_t duration = 0;
+    //TODO: try save memory taking lower byte to save memory...
+    time_t press_time = rtc_time.sec;
+    time_t duration = 0;
     do {
-        duration = rtc_time_sec - press_time;
-        //        delay_rtc_ms(100);
+        duration = rtc_time.sec - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
@@ -183,12 +182,11 @@ TBool is_long_press() {
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 TBool is_long_press_repeatable() {
-    //taking lower byte to save memory...
-    uint8_t press_time = LSB(rtc_time_sec);
-    uint8_t duration = 0;
+    time_t press_time = rtc_time.sec;
+    time_t duration = 0;
     KeyReleased = false; // Mark key released only here to avoid double sensing of key press
     do {
-        duration = rtc_time_sec - press_time;
+        duration = rtc_time.sec - press_time;
         //        delay_rtc_ms(100);
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;

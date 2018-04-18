@@ -347,9 +347,6 @@ void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 }
 #endif
 
-
-// TODO: Implement lcd_get_block_d
-
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
     if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
@@ -666,7 +663,6 @@ void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_I
     lcd_write_string_d("       ", x_pos, y_pos, font, polarity);
     lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
 }
-// TODO: Implement
 
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
     //    lcd_draw_bitmap_d(x_pos, y_pos, bitmap_data);

@@ -21,8 +21,8 @@ void DisplayInteger(NumberSelection_t* s) {
 }
 
 void DisplaySettings(SettingsMenu_t* sm) {
-    uint8_t i, p, lineh;
-    char msg[10];
+    uint8_t p, lineh;
+    uint16_t i;
     p = UI_HEADER_END_LINE;
     lineh = MediumFont->height;
 
