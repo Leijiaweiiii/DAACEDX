@@ -70,13 +70,25 @@ const uint16_t correction_table[] =
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
 
 void initialize_rtc_timer() {
+    uint8_t init_timeout=1;
     // Real time counter will count 2 seconds forever.
     // Timer1 for sync
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
     OSCENbits.SOSCEN = 1; // Secondary Oscillator Manual Request Enable bit.
-    while (!OSCSTATbits.SOR); // Wait for Secondary Oscillator to be ready to use.
     TMR1CLKbits.CS = 0b0110; // TIMER1 clock source = 32.768KHz Secondary Oscillator.
+    // Wait for Secondary Oscillator to be ready to use.
+    while (!OSCSTATbits.SOR){
+        init_timeout++;
+        Delay(1);
+        if(init_timeout==0){
+            // Fall back to the internal oscillator
+            TMR1CLKbits.CS = 0b0100; // fall back to LFINTOSC
+            break;
+        }
+    }
+    // TODO: bringup oscillator failover functionality
+    
     T1CONbits.CKPS = 0b00; // Prescale = 1:1.
     T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
     T1CONbits.RD16 = 1;
