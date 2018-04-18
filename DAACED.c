@@ -1260,7 +1260,6 @@ void DoSettings(void) {
 
     lcd_clear_data_ram();
     do {
-        TestBattery();
         handle_rotation();
         print_header();
         DisplaySettings(&SettingsMenu);
@@ -1371,7 +1370,6 @@ void DoReview() {
     //    getShootString(CurShootString);
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     do {
-        TestBattery();
         ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
         define_input_action();
         switch (comandToHandle) {
@@ -1653,6 +1651,7 @@ void update_screen_model() {
     time_t now = rtc_time.unix_time_ms;
     switch (ui_state) {
         case TimerListening:
+            ADC_ENABLE_INTERRUPT_ENVELOPE;
             if (ParNowCounting) {
                 // Software "interrupt" emulation
                 if (now - parStartTime_ms >= ParTime[CurPar_idx]) {
@@ -1667,6 +1666,11 @@ void update_screen_model() {
             }
             break;
         default:
+            if(rtc_time.unix_time_ms%2){
+                ADC_ENABLE_INTERRUPT_BATTERY;
+            } else {
+                ADC_ENABLE_INTERRUPT_ACCELEROMETR;
+            }
             //do nothing, we're stimm in ISR
             break;
     }
@@ -1674,11 +1678,6 @@ void update_screen_model() {
 
 void handle_rotation() {
     if (Autorotate && ui_state != TimerListening) {
-        TBool oldOrientation = orientation;
-        orientation = ADC_Read(ACCELEROMETER) > ORIENTATION_INVERSE_THRESHOLD;
-        if (oldOrientation != orientation) {
-            lcd_clear_data_ram();
-        }
         lcd_set_orientation();
     }
 }
@@ -1694,10 +1693,27 @@ static void interrupt isr(void) {
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
         while (GO_nDONE);
-        ADC_BUFFER_PUT((ADRESH << 8) | ADRESL);
-        if (ADPCH == ENVELOPE && ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
-            UpdateShootNow();
+
+        switch (ADPCH) {
+            case ENVELOPE:
+                ADC_BUFFER_PUT((ADRESH << 8) | ADRESL);
+                if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
+                    UpdateShootNow();
+                }
+                break;
+            case BATTERY:
+            {
+                uint16_t battery = ((ADRESH << 8) | ADRESL);
+                uint16_t battery_mV = battery*BAT_divider;
+                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
+                if (battery_level > 99) battery_level = 99;
+            }
+                break;
+            case ACCELEROMETER:
+                orientation = ((ADRESH << 8) | ADRESL) > ORIENTATION_INVERSE_THRESHOLD;
+                break;
         }
+
     }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
@@ -1705,7 +1721,7 @@ static void interrupt isr(void) {
         if (!Keypressed) {//Assignment will not work because of not native boolean
             KeyReleased = true;
         }
-        ADC_ENABLE_INTERRUPT;
+        
         update_screen_model();
 
     }
@@ -1779,10 +1795,9 @@ void main(void) {
 
     lcd_clear_data_ram();
     while (True) {
-        TestBattery();
         handle_rotation();
         handle_ui();
-//        lcd_demo();
+        //        lcd_demo();
         frames_count++;
     }
     //        DoAdcGraph();

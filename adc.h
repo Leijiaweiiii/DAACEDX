@@ -46,7 +46,9 @@ uint16_t MeanValue();
 #define ADC_CMA_MEMORY_FACTOR       16
 #define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
 #define ADC_SAMPLE                  {ADC_BUFFER_PUT(ADC_Read(ENVELOPE));ADC_SET_CMA_NEXT(median());}
-#define ADC_ENABLE_INTERRUPT        {ADPCH = ENVELOPE;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
+#define ADC_ENABLE_INTERRUPT_ENVELOPE              {ADPCH = ENVELOPE;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
+#define ADC_ENABLE_INTERRUPT_BATTERY               {ADPCH = BATTERY;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
+#define ADC_ENABLE_INTERRUPT_ACCELEROMETR          {ADPCH = ACCELEROMETER;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_DISABLE_INTERRUPT       {PIE1bits.ADIE=0;}
 
 #ifdef	__cplusplus
