@@ -21,15 +21,15 @@ extern "C" {
 #define MENU_PAGE_SIZE  6
     typedef struct {
         char MenuItem[MAXMenuItems][MAXItemLenght];
-        uint8_t TotMenuItems;
+        uint8_t TotalMenuItems;
         char MenuTitle[MAXMenuTitleLength];
         uint8_t menu;
         uint8_t selected;
-        uint8_t prev;
         uint8_t page;
         TBool done;
     } SettingsMenu_t;
-#define InitSettingsMenuDefaults(m) {m->done = False;m->menu = 1;m->page = 0;m->selected = 0;}
+#define InitSettingsMenuDefaults(m) {m->done = False;m->menu = 0;m->page = 0;m->selected = 0;}
+#define ItemToPage(x)               (x/MENU_PAGE_SIZE)
     typedef struct {
         char MenuTitle[MAXMenuTitleLength];
         char * format;

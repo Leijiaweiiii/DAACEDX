@@ -26,7 +26,7 @@ void DisplaySettings(SettingsMenu_t* sm) {
     p = UI_HEADER_END_LINE;
     lineh = MediumFont->height;
 
-    for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
+    for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
         if (sm->menu == i) {
             lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
         } else {
@@ -38,21 +38,15 @@ void DisplaySettings(SettingsMenu_t* sm) {
 
 void decrement_menu_index(SettingsMenu_t * s) {
     if (s->menu > 0) {
-        s->prev = s->menu;
         s->menu--;
-        if(s->menu <= MENU_PAGE_SIZE * (s->page - 1)){
-            s->page--;
-        }
+        s->page = ItemToPage(s->menu);
     } else Beep();
 }
 
 void increment_menu_index(SettingsMenu_t * s) {
-    if (s->menu < s->TotMenuItems) {
-        s->prev = s->menu;
+    if (s->menu < s->TotalMenuItems) {
         s->menu++;
-        if (s->menu > MENU_PAGE_SIZE * s->page) {
-            s->page++;
-        }
+        s->page = ItemToPage(s->menu);
     } else Beep();
 }
 

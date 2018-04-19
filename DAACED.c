@@ -593,7 +593,7 @@ void SetCustomDelay() {
 
 void SetDelay(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotMenuItems = 4;
+    m->TotalMenuItems = 4;
     strmycpy(m->MenuTitle, "Delay");
     strmycpy(m->MenuItem[0], " Instant ");
     strmycpy(m->MenuItem[1], " Fixed 3sec. ");
@@ -743,13 +743,13 @@ void SetPar(SettingsMenu_t * m) {
 
             sprintf(m->MenuTitle, "Total Par=%d", TotPar);
             sprintf(m->MenuItem[TotPar], " Par %d: Off", TotPar + 1);
-            m->TotMenuItems = TotPar + 1;
+            m->TotalMenuItems = TotPar + 1;
         }
         DisplaySettings(m);
 
         SelectMenuItem(m);
         if (m->menu > 0) {
-            if (m->menu == m->TotMenuItems) {
+            if (m->menu == m->TotalMenuItems) {
                 if (TotPar > 0) {
                     ParTime[m->menu - 1] = ParTime[m->menu - 2] + BuzzerParDuration;
                     TotPar++;
@@ -855,7 +855,7 @@ void SetBeepTime(TBool Par) {
 
 void SetBeep(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotMenuItems = 5;
+    m->TotalMenuItems = 5;
     strmycpy(m->MenuTitle, "Beep");
     strmycpy(m->MenuItem[0], " Frequency ");
     strmycpy(m->MenuItem[1], " Loudness ");
@@ -935,7 +935,7 @@ void SetAutoStart(SettingsMenu_t * m) {
     TBool orgset;
     InitSettingsMenuDefaults(m);
     m->menu = (AutoStart) ? 2 : 1;
-    m->TotMenuItems = 2;
+    m->TotalMenuItems = 2;
     strmycpy(m->MenuTitle, "Autostart");
     strmycpy(m->MenuItem[0], " Auto Start OFF ");
     strmycpy(m->MenuItem[1], " Auto Start ON ");
@@ -956,7 +956,7 @@ void SetAutoStart(SettingsMenu_t * m) {
 void SetMode(SettingsMenu_t * m) {
     TBool orgset;
     InitSettingsMenuDefaults(m);
-    m->TotMenuItems = 8;
+    m->TotalMenuItems = 8;
     strmycpy(m->MenuTitle, "Mode");
     strmycpy(m->MenuItem[0], " Timer Mode ");
     strmycpy(m->MenuItem[1], " Biancchi ");
@@ -1078,7 +1078,7 @@ void SetCustomCountDown() {
 
 void SetCountDown(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotMenuItems = 4;
+    m->TotalMenuItems = 4;
     strmycpy(m->MenuTitle, "Countdown");
     strmycpy(m->MenuItem[0], " Off ");
     strmycpy(m->MenuItem[1], " 3 minutes ");
@@ -1106,7 +1106,7 @@ void SetCountDown(SettingsMenu_t * m) {
 void SetTilt(SettingsMenu_t * m) {
     uint8_t orgset;
     InitSettingsMenuDefaults(m);
-    m->TotMenuItems = 1;
+    m->TotalMenuItems = 1;
     strmycpy(m->MenuTitle, "Tilt");
     if (AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
     else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
@@ -1149,7 +1149,7 @@ void UpdateIS(SettingsMenu_t * sm) {
 void SetInput(SettingsMenu_t * m) {
     uint8_t orgset;
     InitSettingsMenuDefaults(m);
-    m->TotMenuItems = 3;
+    m->TotalMenuItems = 3;
     strmycpy(m->MenuTitle, "Input");
     UpdateIS(m);
     DisplaySettings(m);
@@ -1228,7 +1228,7 @@ void DoSet(SettingsMenu_t * s) {
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
 
-    SettingsMenu->TotMenuItems = 13;
+    SettingsMenu->TotalMenuItems = 13;
 
     strmycpy(SettingsMenu->MenuTitle, "Settings");
     strmycpy(SettingsMenu->MenuItem[0], " Delay");
