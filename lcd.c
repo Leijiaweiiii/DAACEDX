@@ -227,9 +227,9 @@ void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t pol
 #endif
 
 void lcd_clear_data_ram() {
-    lcd_prepare_send_data(0, 0, LCD_MAX_PAGES, LCD_WIDTH);
+    lcd_prepare_send_data(0, 0, LCD_WIDTH, LCD_MAX_ADDRESS);
     // Clear only the area that we're using
-    for (uint16_t index = 0; index < LCD_MAX_PAGES*LCD_WIDTH; index++) {
+    for (uint16_t index = 0; index < LCD_MAX_ADDRESS*LCD_WIDTH; index++) {
             lcd_send_data(LCD_WHITE_PAGE);
     }
 }
