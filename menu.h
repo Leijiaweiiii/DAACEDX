@@ -1,4 +1,5 @@
 #include "DAACEDcommon.h"
+#include "ui.h"
 /* 
  * File:   menu.h
  * Author: navado
@@ -19,17 +20,30 @@ extern "C" {
 #define MAXMenuTitleLength  25
 
 #define MENU_PAGE_SIZE  6
+
     typedef struct {
         char MenuItem[MAXMenuItems][MAXItemLenght];
         uint8_t TotalMenuItems;
         char MenuTitle[MAXMenuTitleLength];
         uint8_t menu;
-        uint8_t selected;
         uint8_t page;
-        TBool done;
+
+        union {
+            unsigned flags : 8;
+
+            struct {
+                unsigned done           : 1;
+                unsigned redraw         : 1;
+                unsigned selected       : 1;
+                unsigned UNUSED         : 6;
+            };
+        };
     } SettingsMenu_t;
-#define InitSettingsMenuDefaults(m) {m->done = False;m->menu = 0;m->page = 0;m->selected = 0;}
-#define ItemToPage(x)               (x/MENU_PAGE_SIZE)
+#define InitSettingsMenuDefaults(m)     {m->done = False;m->menu = 0;m->page = 0;m->selected = False;}
+#define InitSettingsNumberDefaults(m)   {m->done = False;m->selected = False;}
+#define ItemToPage(x)                   (x/MENU_PAGE_SIZE)
+#define SettingsNotDone(x)              ((!x->done) && ui_state == SettingsScreen)    
+
     typedef struct {
         char MenuTitle[MAXMenuTitleLength];
         char * format;
@@ -53,17 +67,36 @@ extern "C" {
             int24_t old_value;
             float fold_value;
         };
+
         union {
             int24_t step;
             float fstep;
         };
-        TBool done;
+         union {
+            unsigned flags : 8;
+
+            struct {
+                unsigned done           : 1;
+                unsigned redraw         : 1;
+                unsigned selected       : 1;
+                unsigned UNUSED         : 6;
+            };
+        };
     } NumberSelection_t;
 
     typedef struct {
         char MenuTitle[MAXMenuTitleLength];
         int8_t hour, minute, old_hour, old_minute;
-        TBool done;
+         union {
+            unsigned flags : 8;
+
+            struct {
+                unsigned done           : 1;
+                unsigned redraw         : 1;
+                unsigned selected       : 1;
+                unsigned UNUSED         : 6;
+            };
+        };
     } TimeSelection_t;
 
 
@@ -77,7 +110,7 @@ extern "C" {
     void DisplayInteger(NumberSelection_t* s);
     void SelectTime(TimeSelection_t * t);
     void DisplayTime(TimeSelection_t * t);
-
+    extern uint8_t print_header(); // implemented in DAACED.c
 #ifdef	__cplusplus
 }
 #endif

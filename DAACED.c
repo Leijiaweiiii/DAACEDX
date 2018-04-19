@@ -593,45 +593,46 @@ void SetCustomDelay() {
 
 void SetDelay(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 4;
     strmycpy(m->MenuTitle, "Delay");
     strmycpy(m->MenuItem[0], " Instant ");
     strmycpy(m->MenuItem[1], " Fixed 3sec. ");
     strmycpy(m->MenuItem[2], " Random");
     strmycpy(m->MenuItem[3], " Custom ");
-
+    m->TotalMenuItems = 4;
     switch (DelayMode) {
-        case Instant: m->menu = 1;
+        case Instant: m->menu = 0;
             break;
-        case Fixed: m->menu = 2;
+        case Fixed: m->menu = 1;
             break;
-        case Random: m->menu = 3;
+        case Random: m->menu = 2;
             break;
-        case Custom: m->menu = 4;
+        case Custom: m->menu = 3;
             break;
-        default: m->menu = 2;
+        default: m->menu = 1;
             break;
     }
 
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
-    } while (!m->done);
+    } while (SettingsNotDone(m));
 
-    switch (m->menu) {
-        case 1: DelayMode = Instant;
-            SaveToEEPROM = True;
-            break;
-        case 2: DelayMode = Fixed;
-            DelayTime = 30;
-            SaveToEEPROM = True;
-            break;
-        case 3: DelayMode = Random;
-            SaveToEEPROM = True;
-            break;
-        case 4: DelayMode = Custom;
-            SetCustomDelay();
-            break;
+    if (m->selected) {
+        switch (m->menu) {
+            case 0: DelayMode = Instant;
+                SaveToEEPROM = True;
+                break;
+            case 1: DelayMode = Fixed;
+                DelayTime = 30;
+                SaveToEEPROM = True;
+                break;
+            case 2: DelayMode = Random;
+                SaveToEEPROM = True;
+                break;
+            case 3: DelayMode = Custom;
+                SetCustomDelay();
+                break;
+        }
     }
 }
 // </editor-fold>
@@ -786,8 +787,10 @@ void SetBacklight() {//PWM Backlite
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-    } while (!b.done);
+        set_backlight(b.value);
+    } while (SettingsNotDone((&b)));
     BackLightLevel = b.value;
+    set_backlight(BackLightLevel);
     SaveToEEPROM != (b.value != b.old_value);
 }
 // </editor-fold>
@@ -806,7 +809,7 @@ void SetBeepFreq() {
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-    } while (!b.done);
+    } while (SettingsNotDone((&b)));
     BuzzerFrequency = b.value;
     SaveToEEPROM |= (b.value != b.old_value);
 }
@@ -816,22 +819,23 @@ void SetBeepLevel() {
     if (BuzzerLevel > 100) BuzzerLevel = 100;
     strmycpy(b.MenuTitle, "Loudness");
     b.min = 0;
-    b.max = 100;
+    b.max = 99;
     b.step = 1;
-    b.format = "%u";
+    b.format = "%02u ";
     b.value = BuzzerLevel;
     b.old_value = b.value;
     b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-    } while (!b.done);
+    } while (SettingsNotDone((&b)));
     BuzzerLevel = b.value;
     SaveToEEPROM |= (b.value != b.old_value);
 }
 
 void SetBeepTime(TBool Par) {
     NumberSelection_t d;
+    InitSettingsNumberDefaults((&d));
     if (Par) {
         d.value = BuzzerParDuration;
         strmycpy(d.MenuTitle, "Par Duration ms");
@@ -844,9 +848,11 @@ void SetBeepTime(TBool Par) {
     d.step = 50;
     d.old_value = d.value;
     d.done = False;
+    d.format = "%4d  ";
     do {
-
-    } while (!d.done);
+        DisplayInteger(&d);
+        SelectInteger(&d);
+    } while (SettingsNotDone((&d)));
 
     if (Par) BuzzerParDuration = d.value;
     else BuzzerStartDuration = d.value;
@@ -855,42 +861,51 @@ void SetBeepTime(TBool Par) {
 
 void SetBeep(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 5;
+
     strmycpy(m->MenuTitle, "Beep");
     strmycpy(m->MenuItem[0], " Frequency ");
     strmycpy(m->MenuItem[1], " Loudness ");
     strmycpy(m->MenuItem[2], " Par Duration ");
     strmycpy(m->MenuItem[3], " Start Duration ");
     strmycpy(m->MenuItem[4], " Test Beep ");
-
+    m->TotalMenuItems = 5;
 
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
-        switch (m->menu) {
-            case 1:
-                SetBeepFreq();
-                break;
-            case 2:
-                SetBeepLevel();
-                break;
-            case 3:
-                SetBeepTime(True);
-                break;
-            case 4:
-                SetBeepTime(False);
-                break;
-            case 5:
-                generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
-                break;
+        if (m->selected) {
+            lcd_clear();
+            switch (m->menu) {
+                case 0:
+                    SetBeepFreq();
+                    break;
+                case 1:
+                    SetBeepLevel();
+                    break;
+                case 2:
+                    SetBeepTime(True);
+                    break;
+                case 3:
+                    SetBeepTime(False);
+                    break;
+                case 4:
+                    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
+                    break;
+            }
+            // Here we want it done only when back pressed
+            // i.e. not selected and done
+            m->done = False;
+            m->selected = False;
+            lcd_clear();
         }
-    } while (m->menu != 0);
+    } while (SettingsNotDone(m));
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
 
 void SetSens() {//Sensitivity
     NumberSelection_t s;
+    InitSettingsNumberDefaults((&s));
     if (Sensitivity > 10) Sensitivity = 10;
     strmycpy(s.MenuTitle, "Sensitivity");
     s.max = 10;
@@ -902,7 +917,7 @@ void SetSens() {//Sensitivity
     do {
         DisplayInteger(&s);
         SelectInteger(&s);
-    } while (!s.done);
+    } while (SettingsNotDone((&s)));
 
     SaveToEEPROM = (s.value != s.old_value);
 }
@@ -931,23 +946,34 @@ void SetFilter() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
 
+void set_autostert_label(char * l) {
+    if (AutoStart)
+        strmycpy(l, " Auto Start ON ");
+    else
+        strmycpy(l, " Auto Start OFF ");
+}
+
 void SetAutoStart(SettingsMenu_t * m) {
     TBool orgset;
     InitSettingsMenuDefaults(m);
-    m->menu = (AutoStart) ? 2 : 1;
-    m->TotalMenuItems = 2;
+    m->TotalMenuItems = 1;
     strmycpy(m->MenuTitle, "Autostart");
-    strmycpy(m->MenuItem[0], " Auto Start OFF ");
-    strmycpy(m->MenuItem[1], " Auto Start ON ");
+    set_autostert_label(m->MenuItem[0]);
     SettingsTitle(m);
-
-
     orgset = AutoStart;
     do {
         DisplaySettings(m);
-        SelectMenuItem(m);
-    } while (!m->done);
-    AutoStart = (m->menu == 2) ? True : False;
+        SelectBinaryMenuItem(m);
+        if (m->selected) {
+            m->selected = False;
+            m->done = False;
+            if (AutoStart)
+                AutoStart = False;
+            else
+                AutoStart = True;
+            set_autostert_label(m->MenuItem[0]);
+        }
+    } while (SettingsNotDone(m));
     SaveToEEPROM |= (AutoStart != orgset);
 }
 // </editor-fold>
@@ -973,7 +999,7 @@ void SetMode(SettingsMenu_t * m) {
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
-    } while (!m->done);
+    } while (SettingsNotDone(m));
     switch (m->menu) { //TODO implement
         case 1://TBC
             break;
@@ -985,17 +1011,15 @@ void SetMode(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="Clock">
 
 void SetClock() {
-    uint8_t hour = get_hour();
-    uint8_t minute = get_minute();
+    TimeSelection_t ts;
+    InitSettingsNumberDefaults((&ts));
+    ts.hour = get_hour();
+    ts.minute = get_minute();
     strmycpy(ts.MenuTitle, "Clock");
-    if (hour > 23) hour = 23;
-    if (minute > 59) minute = 59;
-    ts.hour = hour;
-    ts.minute = minute;
     do {
         DisplayTime(&ts);
         SelectTime(&ts);
-    } while (!ts.done);
+    } while (SettingsNotDone((&ts)));
 
     set_time(ts.hour, ts.minute, 0);
 }
@@ -1059,6 +1083,7 @@ void CountDownMode(uint8_t cdt, SettingsMenu_t * m) {
 }
 
 void SetCustomCountDown() {
+    TimeSelection_t ts;
     strmycpy(ts.MenuTitle, "Custom Countdown");
     // TODO: Review time format here
     // Hour means minute here
@@ -1071,7 +1096,7 @@ void SetCustomCountDown() {
     do {
         DisplayTime(&ts);
         SelectTime(&ts);
-    } while (!ts.done);
+    } while (SettingsNotDone((&ts)));
     CustomCDtime = ts.hour * 60000 + ts.minute * 1000;
     SaveToEEPROM = (ts.hour != ts.old_hour || ts.minute != ts.old_minute);
 }
@@ -1089,13 +1114,13 @@ void SetCountDown(SettingsMenu_t * m) {
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
-    } while (!m->done);
+    } while (SettingsNotDone(m));
     switch (m->menu) {
-        case 2: CountDownMode(18, m);
+        case 1: CountDownMode(18, m);
             break;
-        case 3: CountDownMode(30, m);
+        case 2: CountDownMode(30, m);
             break;
-        case 4: SetCustomCountDown();
+        case 3: SetCustomCountDown();
             CountDownMode(CustomCDtime, m);
             break;
     }
@@ -1114,35 +1139,29 @@ void SetTilt(SettingsMenu_t * m) {
     // SettingsDisplay(&SetTiltMenu);
     orgset = AR_IS.AR_IS;
 
-    while (!m->done) {
+    do {
         DisplaySettings(m);
-        if (Keypressed) {
-            switch (Key) {
-                case KeyIn:
-                    AR_IS.AutoRotate != AR_IS.AutoRotate;
-                    if (AR_IS.AutoRotate) strmycpy(m->MenuItem[0],
-                            " Auto Rotate ON ");
-                    else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
-
-                    break;
-                default:
-                    //Done = True;
-                    break;
-            }
-            while (Keypressed); // wait here till key is released
+        SelectBinaryMenuItem(m);
+        if (m->selected) {
+            m->selected = False;
+            AR_IS.AutoRotate = !AR_IS.AutoRotate;
+            if (AR_IS.AutoRotate)
+                strmycpy(m->MenuItem[0], " Auto Rotate ON ");
+            else
+                strmycpy(m->MenuItem[0], " Auto Rotate OFF");
         }
-    }
+    } while (SettingsNotDone(m));
     SaveToEEPROM = (AR_IS.AR_IS != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
 
 void UpdateIS(SettingsMenu_t * sm) {
-    if (AR_IS.Mic) strmycpy(sm->MenuItem[0], " Microphone: ON  ");
-    else strmycpy(sm->MenuItem[0], " Microphone: OFF ");
-    if (AR_IS.A) strmycpy(sm->MenuItem[1], " A: ON  ");
+    if (AR_IS.Mic) strmycpy(sm->MenuItem[0], " Microphone: ON ");
+    else strmycpy(sm->MenuItem[0], " Microphone: OFF");
+    if (AR_IS.A) strmycpy(sm->MenuItem[1], " A: ON ");
     else strmycpy(sm->MenuItem[1], " A: OFF ");
-    if (AR_IS.B) strmycpy(sm->MenuItem[2], " B: ON  ");
+    if (AR_IS.B) strmycpy(sm->MenuItem[2], " B: ON ");
     else strmycpy(sm->MenuItem[2], " B: OFF ");
 }
 
@@ -1156,22 +1175,24 @@ void SetInput(SettingsMenu_t * m) {
     orgset = AR_IS.AR_IS;
 
     do {
-        m->selected = 0;
         DisplaySettings(m);
         SelectBinaryMenuItem(m);
-        switch (m->selected) {
-            case 1:
-                AR_IS.Mic ^= AR_IS.Mic;
-                break;
-            case 2:
-                AR_IS.A ^= AR_IS.A;
-                break;
-            case 3:
-                AR_IS.B ^= AR_IS.B;
-                break;
+        if (m->selected) {
+            switch (m->menu) {
+                case 0:
+                    AR_IS.Mic = !AR_IS.Mic;
+                    break;
+                case 1:
+                    AR_IS.A = !AR_IS.A;
+                    break;
+                case 2:
+                    AR_IS.B = !AR_IS.B;
+                    break;
+            }
+            UpdateIS(m);
+            m->selected = False;
         }
-        UpdateIS(m);
-    } while (!m->done);
+    } while (SettingsNotDone(m));
 
     SaveToEEPROM = (AR_IS.AR_IS != orgset);
 }
@@ -1186,41 +1207,41 @@ void BlueTooth() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
 
-void DoSet(SettingsMenu_t * s) {
+void DoSet(uint8_t menu) {
     SettingsMenu_t * m = &ma;
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    switch (s->menu) {
-        case 1:SetDelay(m);
+    lcd_clear();
+    switch (menu) {
+        case 0:SetDelay(m);
             break;
-        case 2:SetPar(m);
+        case 1:SetPar(m);
             break;
-        case 3:SetBeep(m);
+        case 2:SetBeep(m);
             break;
-        case 4:SetAutoStart(m);
+        case 3:SetAutoStart(m);
             break;
-        case 5:SetMode(m);
+        case 4:SetMode(m);
             break;
-        case 6:SetClock();
+        case 5:SetClock();
             break;
-        case 7:SetCountDown(m);
+        case 6:SetCountDown(m);
             break;
-        case 8:SetTilt(m);
+        case 7:SetTilt(m);
             break;
-        case 9:SetBacklight();
+        case 8:SetBacklight();
             break;
-        case 10:SetSens();
+        case 9:SetSens();
             break;
-        case 11:SetFilter();
+        case 10:SetFilter();
             break;
-        case 12:SetInput(m);
+        case 11:SetInput(m);
             break;
-        case 13:BlueTooth();
+        case 12:BlueTooth();
             break;
-            //        case 14:
+            //        case 13:
             //            saveSettings();
             //            PopMsg("Saved", 1000);
             //            break;
-            //        case 15:Diagnostics();
+            //        case 14:Diagnostics();
             //            break;
     }
 }
@@ -1251,9 +1272,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
 void DoSettings(void) {
     set_screen_title("Settings");
 
-    SettingsMenu.menu = 0;
-    SettingsMenu.page = 0; //Force refresh
-    SettingsMenu.selected = 0;
+    InitSettingsMenuDefaults((&SettingsMenu));
     SetSettingsMenu(&SettingsMenu);
     SettingsTitle(&SettingsMenu);
     SaveToEEPROM = False;
@@ -1264,13 +1283,18 @@ void DoSettings(void) {
         print_header();
         DisplaySettings(&SettingsMenu);
         SelectMenuItem(&SettingsMenu);
-        if (SettingsMenu.selected > 0) DoSet(&SettingsMenu);
+        if (SettingsMenu.selected) {
+            DoSet(SettingsMenu.menu);
+            SettingsMenu.selected = False;
+            lcd_clear();
+        }
     } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
         saveSettings();
         PopMsg("Saved", 200);
         return;
     }
+    lcd_clear();
 }
 // </editor-fold>
 // </editor-fold>
@@ -1666,7 +1690,7 @@ void update_screen_model() {
             }
             break;
         default:
-            if(rtc_time.unix_time_ms%2){
+            if (rtc_time.unix_time_ms % 2) {
                 ADC_ENABLE_INTERRUPT_BATTERY;
             } else {
                 ADC_ENABLE_INTERRUPT_ACCELEROMETR;
@@ -1721,7 +1745,7 @@ static void interrupt isr(void) {
         if (!Keypressed) {//Assignment will not work because of not native boolean
             KeyReleased = true;
         }
-        
+
         update_screen_model();
 
     }

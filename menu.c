@@ -1,21 +1,25 @@
 #include "menu.h"
 #include "lcd.h"
 #include "ui.h"
+#include "DAACED.h"
 
 void DisplayTime(TimeSelection_t * t) {
     char msg[10];
+    print_header();
     sprintf(msg, "%02d:%02d", t->hour, t->minute);
     lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void DisplayDouble(NumberSelection_t* s) {
     char msg[10];
+    print_header();
     sprintf(msg, s->format, s->fvalue);
     lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void DisplayInteger(NumberSelection_t* s) {
     char msg[10];
+    print_header();
     sprintf(msg, s->format, s->value);
     lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
@@ -23,8 +27,13 @@ void DisplayInteger(NumberSelection_t* s) {
 void DisplaySettings(SettingsMenu_t* sm) {
     uint8_t p, lineh;
     uint16_t i;
+    print_header();
     p = UI_HEADER_END_LINE;
     lineh = MediumFont->height;
+    if(sm->redraw){
+        lcd_clear();
+        sm->redraw = False;
+    }
 
     for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
         if (sm->menu == i) {
@@ -37,17 +46,22 @@ void DisplaySettings(SettingsMenu_t* sm) {
 }
 
 void decrement_menu_index(SettingsMenu_t * s) {
+    uint8_t oldPage = s->page;
     if (s->menu > 0) {
         s->menu--;
         s->page = ItemToPage(s->menu);
     } else Beep();
+    s->redraw |= (oldPage != s->page);
+        
 }
 
 void increment_menu_index(SettingsMenu_t * s) {
-    if (s->menu < s->TotalMenuItems) {
+    uint8_t oldPage = s->page;
+    if (s->menu < s->TotalMenuItems - 1) {
         s->menu++;
         s->page = ItemToPage(s->menu);
     } else Beep();
+    s->redraw |= (oldPage != s->page);
 }
 
 void SelectMenuItem(SettingsMenu_t* s) {
@@ -64,11 +78,11 @@ void SelectMenuItem(SettingsMenu_t* s) {
         case OkShort:
         case OkLong:
             s->done = True;
+            s->selected = True;
             break;
         case BackShort:
         case BackLong:
-            // TODO: It's a lot redundant semantics here
-            s->menu = 0;
+            s->selected = False;
             s->done = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;
@@ -88,20 +102,20 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
     switch (comandToHandle) {
         case UpShort:
         case UpLong:
-            increment_menu_index(s);
+            decrement_menu_index(s);
             break;
         case DownShort:
         case DownLong:
-            decrement_menu_index(s);
+            increment_menu_index(s);
             break;
         case OkShort:
         case OkLong:
-            s->selected = s->menu;
+            s->selected = True;
+            s->done = False;
             break;
         case BackShort:
         case BackLong:
-            // TODO: It's a lot redundant semantics here
-            s->menu = 0;
+            s->selected = False;
             s->done = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;

@@ -241,9 +241,10 @@ time_t parStartTime_ms;
 #define ShootStringStartAddress     1000
 
 #include "menu.h"
-SettingsMenu_t ma; // Submenue for reuse   
+SettingsMenu_t ma; // Submenu for second level menu
+SettingsMenu_t mx; // Submenu for third level menu
 SettingsMenu_t SettingsMenu;
-TimeSelection_t ts;
+
 uint8_t  battery_level;
 // </editor-fold>
 

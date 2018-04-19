@@ -24,10 +24,11 @@
 #define LCD_GRAPH_HEIGTH        12
 #define LCD_GRAPH_START_PAGE    Y_OFFSET+3
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
-//#define SMALL_LCD
-#undef SMALL_LCD
-#define MSB_FIRST
+#define SMALL_LCD
+//#undef SMALL_LCD
+
 #ifdef SMALL_LCD
+#define MSB_FIRST
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
 #define LCD_MAX_ADDRESS         (0xA1)
@@ -247,5 +248,6 @@ void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
 //void lcd_draw_bit_mark_column(size_t column);
 //void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity);
 // </editor-fold>
+
 #endif	/* LCD_H */
 
