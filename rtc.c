@@ -144,13 +144,15 @@ uint8_t get_second() {
 }
 
 void set_time(uint8_t h, uint8_t m, uint8_t s) {
-    time_t const_time = rtc_time.sec;
-    struct tm * t = gmtime(&const_time);
-    t->tm_min = m;
-    t->tm_hour = h;
-    t->tm_sec = s;
-    time_t newtime = mktime(t);
+    // TODO: Review and fix - something broken here
+    struct tm t;
+    t.tm_min = m;
+    t.tm_hour = h;
+    t.tm_sec = s;
+    time_t newtime = mktime(&t);
+    di();
     set_rtc_time(newtime);
+    ei();
 }
 
 time_t get_corrected_time_msec(){

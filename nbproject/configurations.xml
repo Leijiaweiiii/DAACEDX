@@ -24,6 +24,7 @@
                    projectFiles="true">
       <itemPath>DAACED.c</itemPath>
       <itemPath>DAACEDbitmap.c</itemPath>
+      <itemPath>DAACEDfont.c</itemPath>
       <itemPath>rtc.c</itemPath>
       <itemPath>lcd.c</itemPath>
       <itemPath>ui.c</itemPath>
@@ -51,7 +52,7 @@
         <targetDevice>PIC18F66K40</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>1.45</languageToolchainVersion>
         <platform>2</platform>
