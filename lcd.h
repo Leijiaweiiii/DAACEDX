@@ -6,16 +6,39 @@
 #include "DAACEDcommon.h"
 #include "DAACEDbitmap.h"
 
+
+// <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
+#define SMALL_LCD
+//#undef SMALL_LCD
 #define LCD_DIRECT_ACCESS
-#define UI_HEADER_END_LINE      16
-#define UI_COUNTER_START_PIXEL  0
-#define UI_FOOTER_START_LINE    80
 #define UI_FOOTER_GRID_H_CELLS  3
 #define UI_FOOTER_GRID_V_CELLS  2
-    // (LCD_WIDTH/UI_FOOTER_GRID_H_CELLS)
+#ifdef SMALL_LCD
+#define MSB_FIRST
+#define LCD_WIDTH               (160)
+#define LCD_HEIGHT              (115)
+#define LCD_MAX_ADDRESS         (0xA1)
+#define LCD_MAX_PAGES           (0x06)
+uint16_t contrast_value = 0x0135;
+#define UI_HEADER_END_LINE      (16)
+#define UI_COUNTER_START_PIXEL  (0)
+#define UI_FOOTER_START_LINE    (80)
 #define UI_FOOTER_GRID_WIDTH    (53)
-// ((LCD_HEIGHT-UI_FOOTER_START_LINE)/UI_FOOTER_GRID_V_CELLS)
 #define UI_FOOTER_GRID_HEIGH    (16)
+#else
+#define LCD_WIDTH               (240)
+#define LCD_HEIGHT              (160)
+#define LCD_MAX_ADDRESS         (0xA2)
+#define LCD_MAX_PAGES           (0x20)
+uint16_t contrast_value = 0x010C; // Empirical starting value
+#define UI_HEADER_END_LINE      (16)
+#define UI_COUNTER_START_PIXEL  (0)
+#define UI_FOOTER_START_LINE    (80)
+#define UI_FOOTER_GRID_WIDTH    (53)
+#define UI_FOOTER_GRID_HEIGH    (16)
+#endif
+
+
 #define UI_FOOTER_GRID_X(x)     (x*UI_FOOTER_GRID_WIDTH)
 #define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*UI_FOOTER_GRID_HEIGH)
 #define LCD_BLACK_PAGE          0xFF
@@ -23,22 +46,8 @@
 
 #define LCD_GRAPH_HEIGTH        12
 #define LCD_GRAPH_START_PAGE    Y_OFFSET+3
-// <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
-#define SMALL_LCD
-//#undef SMALL_LCD
 
-#ifdef SMALL_LCD
-#define MSB_FIRST
-#define LCD_WIDTH               (160)
-#define LCD_HEIGHT              (115)
-#define LCD_MAX_ADDRESS         (0xA1)
-#define LCD_MAX_PAGES           (0x06)
-#else
-#define LCD_WIDTH               (240)
-#define LCD_HEIGHT              (160)
-#define LCD_MAX_ADDRESS         (0xA2)
-#define LCD_MAX_PAGES           (0x14)
-#endif
+
 #define PAGE_HEIGTH              (8)
 #define Y_OFFSET                (6)
 #define PAGE(x)                 (x/PAGE_HEIGTH + Y_OFFSET)
@@ -100,6 +109,7 @@ const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
 
 
 volatile uint8_t frames_count = 0;
+
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="ST75256 COMMANDS">
@@ -241,7 +251,8 @@ void lcd_demo();
 void lcd_old_init();
 void lcd_send_data(uint8_t data);
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
-//
+void lcd_increase_contrast();
+void lcd_decrease_contrast();
 //void lcd_draw_bit_graph_column(size_t column, uint16_t value);
 //void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
 //void lcd_draw_scope_column(size_t column, uint16_t value);

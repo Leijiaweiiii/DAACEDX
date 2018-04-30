@@ -77,6 +77,14 @@ void handle_timer_idle() {
         case StartShort:STATE_HANDLE_COUNTDOWN;break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;break;
         case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;break;
+        case UpLong:
+        case UpShort:
+            lcd_increase_contrast();
+            break;
+        case DownLong:
+        case DownShort:
+            lcd_decrease_contrast();
+            break;
         default:
             //All the rest ignoring
             break;
