@@ -1,6 +1,6 @@
 #include "rtc.h"
 
-const uint16_t correction_table[] ={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+const uint16_t correction_table[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
     40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
     61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
@@ -67,44 +67,52 @@ const uint16_t correction_table[] ={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
 
 
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
-uint8_t get_time_source(){
-    if(OSCSTATbits.EXTOR)
+
+uint8_t get_time_source() {
+    if (OSCSTATbits.EXTOR)
         return 'E';
-    if(OSCSTATbits.SOR)
+    if (OSCSTATbits.SOR)
         return 'S';
     return 'I';
 }
+
 void initialize_rtc_timer() {
-    uint8_t init_timeout = 1;
+    uint16_t init_timeout = 1;
     // Real time counter will count 2 seconds forever.
     // Timer1 for sync
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
     OSCENbits.EXTOEN = 1; // Reference Oscillator Manual Request Enable bit.
-    TMR1CLKbits.CS = 0b0111; // TIMER1 clock source = 32.768KHz Reference Oscillator.
+    OSCENbits.SOSCEN = 0;
     while (!OSCSTATbits.EXTOR) {
         init_timeout++;
-        if(init_timeout == 0) // Don't stuck here too much time
+        if (init_timeout == 10000) {
             break;
+        }
+        Delay(1);
     }
 
-    // Check if primary oscillator failed and fail-over to other options
     if (!OSCSTATbits.EXTOR) {
-        init_timeout = 1;
-        OSCENbits.EXTOEN = 0; // Disable not working Reference Oscillator.
-        OSCENbits.SOSCEN = 1; // Secondary Oscillator Manual Request Enable bit.
-        TMR1CLKbits.CS = 0b0110; // TIMER1 clock source = 32.768KHz Secondary Oscillator.
-        // Wait for Secondary Oscillator to be ready to use.
-        while (!OSCSTATbits.SOR) {
+        OSCENbits.SOSCEN = 1;
+        OSCENbits.EXTOEN = 0;
+        while (!OSCSTATbits.EXTOR) {
             init_timeout++;
-            Delay(1);
-            if (init_timeout == 0) {
-                OSCENbits.SOSCEN = 0; // Disable not working secondary oscillator
-                // Fall back to the internal oscillator
-                TMR1CLKbits.CS = 0b0100; // fall back to LFINTOSC
+            if (init_timeout == 10000) {
                 break;
             }
+            Delay(1);
         }
+    }
+    if (OSCSTATbits.EXTOR) {
+        TMR1CLKbits.CS = 0b0111; // TIMER1 clock source = 32.768KHz Reference Oscillator.
+        OSCENbits.SOSCEN = 0;
+    } else if (OSCSTATbits.SOR) {
+        TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
+        OSCENbits.EXTOEN = 0;
+    } else {
+        TMR1CLKbits.CS = 0b0100; // fall back to LFINTOSC
+        OSCENbits.SOSCEN = 0; // Disable not working secondary oscillator
+        OSCENbits.EXTOEN = 0;
     }
     // TODO: bringup oscillator failover functionality
 
