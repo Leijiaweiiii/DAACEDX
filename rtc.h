@@ -41,4 +41,5 @@ uint8_t get_second();
 uint16_t get_ms_corrected();
 time_t get_corrected_time_msec();
 void set_time(uint8_t h, uint8_t m, uint8_t s);
+uint8_t get_time_source();
 #endif /* RTC_H */

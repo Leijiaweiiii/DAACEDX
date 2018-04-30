@@ -1457,13 +1457,14 @@ TBool Detect(void) {
 }
 
 uint8_t print_time() {
-    char message[20];
+    char message[30];
     sprintf(message,
-            "%02d%s%02d %s",
+            "%02d%s%02d %c %s",
             get_hour(),
             (rtc_time.sec % 4) ? ":" : ".",
             //            ":",
             get_minute(),
+            get_time_source(),
             ScreenTitle);
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
