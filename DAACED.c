@@ -978,33 +978,134 @@ void SetAutoStart(SettingsMenu_t * m) {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="TimerMode">
+// <editor-fold defaultstate="collapsed" desc="">
+
+void fill_par_bianci() {
+    TotPar = 12;
+    ParTime[0] = 3000;
+    ParTime[1] = 4000;
+    ParTime[2] = 8000;
+    ParTime[3] = 4000;
+    ParTime[4] = 5000;
+    ParTime[5] = 6000;
+    ParTime[6] = 5000;
+    ParTime[7] = 6000;
+    ParTime[8] = 7000;
+    ParTime[9] = 7000;
+    ParTime[10] = 10000;
+    ParTime[11] = 15000;
+}
+
+void fill_par_barricade() {
+    TotPar = 8;
+    ParTime[0] = 5000;
+    ParTime[1] = 5000;
+    ParTime[2] = 6000;
+    ParTime[3] = 6000;
+    ParTime[4] = 7000;
+    ParTime[5] = 7000;
+    ParTime[6] = 8000;
+    ParTime[7] = 8000;
+}
+
+void fill_par_falling_plate() {
+    TotPar = 8;
+    ParTime[0] = 6000;
+    ParTime[1] = 6000;
+    ParTime[2] = 7000;
+    ParTime[3] = 7000;
+    ParTime[4] = 8000;
+    ParTime[5] = 8000;
+    ParTime[6] = 9000;
+    ParTime[7] = 9000;
+}
+
+void fill_par_nra_ppc_a() {
+    TotPar = 4;
+    ParTime[0] = 20000;
+    ParTime[1] = 90000;
+    ParTime[2] = 165000;
+    ParTime[3] = 12000;
+}
+
+void fill_par_nra_ppc_b() {
+    TotPar = 5;
+    ParTime[0] = 20000;
+    ParTime[1] = 12000;
+    ParTime[2] = 90000;
+    ParTime[3] = 12000;
+    ParTime[4] = 120000;
+}
+
+void fill_par_nra_ppc_c() {
+    TotPar = 4;
+    ParTime[0] = 20000;
+    ParTime[1] = 90000;
+    ParTime[2] = 12000;
+    ParTime[3] = 165000;
+}
+
+void fill_par_nra_ppc_d() {
+    TotPar = 4;
+    ParTime[0] = 8000;
+    ParTime[1] = 20000;
+    ParTime[2] = 20000;
+    ParTime[3] = 90000;
+}
+// </editor-fold>
 
 void SetMode(SettingsMenu_t * m) {
     TBool orgset;
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 8;
-    strmycpy(m->MenuTitle, "Mode");
-    strmycpy(m->MenuItem[0], " Timer Mode ");
-    strmycpy(m->MenuItem[1], " Biancchi ");
-    strmycpy(m->MenuItem[2], " Barricade ");
-    strmycpy(m->MenuItem[3], " Falling Plate ");
-    strmycpy(m->MenuItem[4], " NRA-PPC A ");
-    strmycpy(m->MenuItem[5], " NRA-PPC B ");
-    strmycpy(m->MenuItem[6], " NRA-PPC C ");
-    strmycpy(m->MenuItem[7], " NRA-PPC D ");
+    strmycpy(m->MenuTitle, "Timer Mode");
+    strmycpy(m->MenuItem[Regular], " Regular ");
+    strmycpy(m->MenuItem[Practical], " Practical ");
+    strmycpy(m->MenuItem[Barricade], " Barricade ");
+    strmycpy(m->MenuItem[FallingPlate], " Falling Plate ");
+    strmycpy(m->MenuItem[NRA_PPC_A], " NRA-PPC A ");
+    strmycpy(m->MenuItem[NRA_PPC_B], " NRA-PPC B ");
+    strmycpy(m->MenuItem[NRA_PPC_C], " NRA-PPC C ");
+    strmycpy(m->MenuItem[NRA_PPC_D], " NRA-PPC D ");
 
     SettingsTitle(m);
-
+    m->menu = ParMode;
     //Main Screen
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
     } while (SettingsNotDone(m));
-    switch (m->menu) { //TODO implement
-        case 1://TBC
-            break;
-        case 2:
-            break;
+    if (m->selected) {
+        ParMode = m->menu;
+        switch (m->menu) {
+            case Regular:
+                getPar();
+                break;
+            case Practical:
+                fill_par_bianci();
+                break;
+            case Barricade:
+                fill_par_barricade();
+                break;
+            case FallingPlate:
+                fill_par_falling_plate();
+                break;
+            case NRA_PPC_A:
+                fill_par_nra_ppc_a();
+                break;
+            case NRA_PPC_B:
+                fill_par_nra_ppc_b();
+                break;
+            case NRA_PPC_C:
+                fill_par_nra_ppc_c();
+                break;
+            case NRA_PPC_D:
+                fill_par_nra_ppc_d();
+                break;
+            default:
+                // How can we get here?
+                break;
+        }
     }
 }
 // </editor-fold>
@@ -1631,7 +1732,7 @@ void StartParTimer() {
     if (CurPar_idx < MAXPAR) {
         CurPar_idx++;
         ParNowCounting = true;
-        parStartTime_ms = rtc_time_msec;
+        parStartTime_ms = rtc_time.unix_time_ms;
     }
 }
 

@@ -97,6 +97,7 @@ void HandleTimerEvents() {
         case TimerTimeout:STATE_HANDLE_TIMER_IDLE;break;
         case ParEvent:
             StartParTimer();
+            PlayParSound();
             break;
             // By default do nothing
     }

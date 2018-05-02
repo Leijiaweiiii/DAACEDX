@@ -230,14 +230,24 @@ uint8_t Filter;
 #define Filter_Address               128
 
 #define ParAddress                   200
-#define MAXPAR 10
+#define MAXPAR 15
 uint8_t TotPar;
 uint24_t ParTime[MAXPAR]; //in 1mS unit
 uint8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
-
+typedef enum{
+    Regular = 0,
+            Practical = 1,
+            Barricade = 2,
+            FallingPlate = 3,
+            NRA_PPC_A = 4,
+            NRA_PPC_B = 5,
+            NRA_PPC_C = 6,
+            NRA_PPC_D = 7
+} ParMode_t;
+ParMode_t ParMode = Regular;
 #define ShootStringStartAddress     1000
 
 #include "menu.h"
