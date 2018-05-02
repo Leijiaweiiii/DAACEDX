@@ -77,7 +77,7 @@ uint8_t get_time_source() {
 }
 
 void initialize_rtc_timer() {
-    uint16_t init_timeout = 1;
+    uint8_t init_timeout = 0;
     // Real time counter will count 2 seconds forever.
     // Timer1 for sync
     RTC_TIMER_IE = 0; // Disable interrupt.
@@ -86,21 +86,22 @@ void initialize_rtc_timer() {
     OSCENbits.SOSCEN = 0;
     while (!OSCSTATbits.EXTOR) {
         init_timeout++;
-        if (init_timeout == 10000) {
+        if (init_timeout == 0) {
             break;
         }
-        Delay(1);
+        Delay(2);
     }
 
     if (!OSCSTATbits.EXTOR) {
         OSCENbits.SOSCEN = 1;
         OSCENbits.EXTOEN = 0;
-        while (!OSCSTATbits.EXTOR) {
+        init_timeout = 0;
+        while (!OSCSTATbits.SOR) {
             init_timeout++;
-            if (init_timeout == 10000) {
+            if (init_timeout == 0) {
                 break;
             }
-            Delay(1);
+            Delay(2);
         }
     }
     if (OSCSTATbits.EXTOR) {
