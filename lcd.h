@@ -8,8 +8,8 @@
 
 
 // <editor-fold defaultstate="collapsed" desc="LCD parameters and definitions">
-#define SMALL_LCD
-//#undef SMALL_LCD
+//#define SMALL_LCD
+#undef SMALL_LCD
 #define LCD_DIRECT_ACCESS
 #define UI_FOOTER_GRID_H_CELLS  3
 #define UI_FOOTER_GRID_V_CELLS  2
@@ -18,24 +18,26 @@
 #define LCD_WIDTH               (160)
 #define LCD_HEIGHT              (115)
 #define LCD_MAX_ADDRESS         (0xA1)
-#define LCD_MAX_PAGES           (0x06)
+#define LCD_MAX_PAGES           (15)
 uint16_t contrast_value = 0x0135;
 #define UI_HEADER_END_LINE      (16)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (80)
 #define UI_FOOTER_GRID_WIDTH    (53)
 #define UI_FOOTER_GRID_HEIGH    (16)
+#define Y_OFFSET                (6)
 #else
 #define LCD_WIDTH               (240)
 #define LCD_HEIGHT              (160)
 #define LCD_MAX_ADDRESS         (0xA2)
-#define LCD_MAX_PAGES           (0x20)
-uint16_t contrast_value = 0x010C; // Empirical starting value
+#define LCD_MAX_PAGES           (20)
+uint16_t contrast_value = 0x0125; // Empirical starting value
 #define UI_HEADER_END_LINE      (16)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (80)
 #define UI_FOOTER_GRID_WIDTH    (53)
 #define UI_FOOTER_GRID_HEIGH    (16)
+#define Y_OFFSET                (0)
 #endif
 
 
@@ -49,7 +51,7 @@ uint16_t contrast_value = 0x010C; // Empirical starting value
 
 
 #define PAGE_HEIGTH              (8)
-#define Y_OFFSET                (6)
+
 #define PAGE(x)                 (x/PAGE_HEIGTH + Y_OFFSET)
 
 #define START_OF_PAGE(x)        (x%PAGE_HEIGTH == 0)
@@ -220,7 +222,8 @@ volatile uint8_t frames_count = 0;
 #define LCD_BIAS_13             (0x01)
 
 #define LCD_DUTY_CICLE_128      (0x7F)
-#define LCD_DUTY_CICLE_160      (0x0F)
+#define LCD_DUTY_CICLE_160      (0x9F)
+#define LCD_DUTY_CICLE_162      (0xA1)
 
 
 // </editor-fold>

@@ -594,7 +594,7 @@ void lcd_init() {
 #ifdef SMALL_LCD
     lcd_send_data(LCD_DUTY_CICLE_128); // 1/128 duty.
 #else
-    lcd_send_data(LCD_DUTY_CICLE_128); // 1/160 duty.
+    lcd_send_data(LCD_DUTY_CICLE_160); // 1/160 duty.
 #endif
     lcd_send_data(0x00); // ??
 
@@ -740,14 +740,15 @@ void display_message(const char * message) {
 }
 
 void lcd_demo() {
-    display_message("Hello!!!!");
-    for (uint8_t i = 0; i < 5; i++) {
-        lcd_increase_contrast();
-        delay_rtc_ms(100);
-    }
-    for (uint8_t i = 0; i < 5; i++) {
-        lcd_decrease_contrast();
-        delay_rtc_ms(100);
+    uint8_t d = LCD_BLACK_PAGE;
+    for(int page = 0;page<50;page++){
+        lcd_prepare_send_data(0,page,LCD_WIDTH,page);
+        if(page%2==0) d = LCD_WHITE_PAGE;
+        else d = LCD_BLACK_PAGE;
+        for (int col = 0;col<LCD_WIDTH;col++){
+            if(col%8==0) d = ~d;
+            lcd_send_data(d);
+        }
     }
 }
 
