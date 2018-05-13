@@ -20,6 +20,7 @@ extern "C" {
 
     typedef enum {
         PowerOff = 0,
+        ChargerScreen,
         TimerIdle,
         TimerListening,
         TimerCountdown,
@@ -42,7 +43,8 @@ extern "C" {
         BackShort,
         BackLong,
         OkShort,
-        OkLong
+        OkLong,
+        ChargerEvent
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 

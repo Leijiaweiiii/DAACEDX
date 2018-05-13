@@ -1695,6 +1695,35 @@ void DoPowerOn() {
     set_backlight(BackLightLevel);
 }
 
+void DoCharging() {
+    char msg[10];
+    if (charger_state_changed) {
+        PowerON;
+        switch (charger_state) {
+            case Charging:
+                set_backlight(2);
+                lcd_clear();
+                sprintf(msg, "Charging ");
+                lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                break;
+            case Complete:
+                set_backlight(1);
+                lcd_clear();
+                sprintf(msg, "Charged  ");
+                lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                break;
+            case NotCharging:
+                lcd_clear();
+                set_backlight(0);
+                PowerOFF;
+                break;
+            default:
+                break;
+        }        
+        charger_state_changed = false;
+    }
+}
+
 void clear_timer_area() {
     lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
 }
@@ -1815,6 +1844,7 @@ static void interrupt isr(void) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         PIR6bits.TMR1GIF = 0;
         frames_count = 0;
+        define_charger_state();
     }
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
@@ -1847,9 +1877,7 @@ static void interrupt isr(void) {
         if (!Keypressed) {//Assignment will not work because of not native boolean
             KeyReleased = true;
         }
-
         update_screen_model();
-
     }
 }
 // </editor-fold>

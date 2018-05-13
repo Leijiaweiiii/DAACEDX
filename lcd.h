@@ -38,6 +38,8 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define UI_FOOTER_GRID_WIDTH    (53)
 #define UI_FOOTER_GRID_HEIGH    (16)
 #define Y_OFFSET                (0)
+#define UI_CHARGING_LBL_X       (72)
+#define UI_CHARGING_LBL_Y       (72)
 #endif
 
 

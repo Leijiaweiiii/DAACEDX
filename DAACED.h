@@ -24,6 +24,7 @@
 #include "lcd.h"
 #include "ui.h"
 #include "adc.h"
+#include "charger.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
@@ -263,6 +264,7 @@ void DoMain();
 void DoReview();
 void DoPowerOff();
 void DoPowerOn();
+void DoCharging();
 void update_shot_time_on_screen();
 void PlayParSound();
 void StartParTimer();

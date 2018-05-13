@@ -54,11 +54,27 @@ void StopTimer() {
     update_shot_time_on_screen();
 }
 
+void handle_charger_connected() {
+    switch (comandToHandle) {
+        case ChargerEvent:
+            DoCharging();
+            break;
+        default:
+            PowerOFF;
+            ui_state = PowerOff;
+            break;
+    }
+}
+
 void handle_power_off() {
     switch (comandToHandle) {
         case ReviewLong:
         case OkLong:
         case StartLong:STATE_HANDLE_POWER_ON;
+            break;
+        case ChargerEvent:
+            DoCharging();
+            ui_state = ChargerScreen;
             break;
         default:
             //do nothing - we're sleeping;
@@ -73,10 +89,14 @@ void handle_timer_idle() {
     print_header();
     print_footer();
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;break;
-        case StartShort:STATE_HANDLE_COUNTDOWN;break;
-        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;break;
-        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;break;
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:STATE_HANDLE_COUNTDOWN;
+            break;
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
+            break;
+        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
+            break;
         case UpLong:
         case UpShort:
             lcd_increase_contrast();
@@ -84,6 +104,10 @@ void handle_timer_idle() {
         case DownLong:
         case DownShort:
             lcd_decrease_contrast();
+            break;
+        case ChargerEvent:
+            DoCharging();
+            ui_state = ChargerScreen;
             break;
         default:
             //All the rest ignoring
@@ -94,7 +118,8 @@ void handle_timer_idle() {
 
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
-        case TimerTimeout:STATE_HANDLE_TIMER_IDLE;break;
+        case TimerTimeout:STATE_HANDLE_TIMER_IDLE;
+            break;
         case ParEvent:
             StartParTimer();
             PlayParSound();
@@ -252,12 +277,17 @@ void define_input_action() {
                     comandToHandle = StartShort;
                 break;
             case KeyInUp:
-                
+
                 break;
             default:
+
                 //user can press anything, but we can handle only specific gestures
                 break;
         }
+    } else {
+        define_charger_state();
+        if (charger_state_changed)
+            comandToHandle = ChargerEvent;
     }
 }
 
@@ -281,6 +311,9 @@ void handle_ui() {
             break;
         case SettingsScreen:
             handle_settings_screen();
+            break;
+        case ChargerScreen:
+            handle_charger_connected();
             break;
         default:
             //We should never get here, nothing to do.
