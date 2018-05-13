@@ -52,6 +52,7 @@ void StopTimer() {
     print_header();
     print_footer();
     update_shot_time_on_screen();
+    timer_idle_last_action_time = rtc_time.unix_time_ms;
 }
 
 void handle_charger_connected() {
@@ -83,11 +84,19 @@ void handle_power_off() {
     comandToHandle = None;
 }
 
+void handle_timer_idle_shutdown(){
+    if(comandToHandle!=None){
+        timer_idle_last_action_time = rtc_time.unix_time_ms;
+    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time>=timer_idle_shutdown_timeout){
+        comandToHandle = StartLong;
+    }
+}
 void handle_timer_idle() {
     set_screen_title("Timer Idle");
     update_shot_time_on_screen();
     print_header();
     print_footer();
+    handle_timer_idle_shutdown();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;

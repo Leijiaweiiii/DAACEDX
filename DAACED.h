@@ -172,6 +172,9 @@ uint16_t BuzzerFrequency=2000;
 uint16_t BuzzerParDuration=200;
 uint16_t BuzzerStartDuration=200;
 uint8_t BuzzerLevel=2;
+// Automatic shutdown after timeout 20 minutes
+time_t timer_idle_shutdown_timeout = 1200000;
+time_t timer_idle_last_action_time;
 #define BuzzerStartDuration_Address  102
 #define BuzzerFrequency_Address      104
 #define BuzzerParDuration_Address    106
