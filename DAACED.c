@@ -1570,12 +1570,18 @@ uint8_t print_time() {
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
+uint8_t old_bat_length = 0;
 
 void print_batery_text_info() {
-    char message[20];
+    char message[32];
     sprintf(message,
-            "%d%%", (battery_level > 100) ? 100 : battery_level);
+            " %s %d%%",
+            charger_text_state(),
+            (battery_level > 100) ? 100 : battery_level);
     uint8_t width = lcd_string_lenght(message, SmallFont);
+    if (old_bat_length > width)
+        lcd_clear_block(LCD_WIDTH - 10 - old_bat_length, 0, LCD_WIDTH - 8, SmallFont->height + 1);
+    old_bat_length = width;
     lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
 }
 
@@ -1649,18 +1655,19 @@ uint8_t print_footer() {
     else sprintf(message, " Mic: Off");
     print_label_at_footer_grid(message, 1, 0);
 
-    //    if (ParTime[CurPar_idx] > 0) {
-    //        sprintf(message, "Par%d: %3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
-    sprintf(message, "ADC: %d   ", ADC_LATEST_VALUE);
-    //    } else {
-    //        sprintf(message, " Par: Off");
-    //    }
+    if (ParTime[CurPar_idx] > 0) {
+        sprintf(message, "Par%d: %3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+        //    sprintf(message, "ADC: %d   ", ADC_LATEST_VALUE);
+    } else {
+        sprintf(message, " Par: Off");
+    }
     print_label_at_footer_grid(message, 0, 1);
     if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON", 1, 1);
     else print_label_at_footer_grid(" Aux: Off", 1, 1);
 
     //    sprintf(message, " Buz:%d", BuzzerLevel);
-    sprintf(message, "FPS:%02d ", frames_count);
+    //    sprintf(message, "FPS:%02d ", frames_count);
+    sprintf(message, "CNT:0x%X ", contrast_value);
     print_label_at_footer_grid(message, 2, 0);
 
     sprintf(message, " %s %s %s",
@@ -1951,7 +1958,7 @@ void main(void) {
     while (True) {
         handle_rotation();
         handle_ui();
-        //        lcd_demo();
+        //          lcd_demo();
         frames_count++;
     }
     //        DoAdcGraph();

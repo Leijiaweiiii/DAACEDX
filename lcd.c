@@ -617,13 +617,13 @@ void lcd_init() {
 
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_ICON_DISABLE); // Disable ICON RAM.
-
-    //    lcd_send_command(CMD_SET_SCROLL_AREA);
-    //    lcd_send_data(100);           //  Start at line 0
-    //    lcd_send_data(LCD_HEIGHT);  //  End at LCD_HEGHT
-    //    lcd_send_data(LCD_HEIGHT);  //  LCD_HEGHT lines to display
-    //    lcd_send_data(0x01);        // Top mode
-
+#ifndef SMALL_LCD
+//    lcd_send_command(CMD_SET_SCROLL_AREA);
+//    lcd_send_data(0);           //  Start at line 0
+//    lcd_send_data(LCD_MAX_PAGES);  //  End at LCD_HEGHT
+//    lcd_send_data(LCD_MAX_PAGES);  //  LCD_HEGHT lines to display
+//    lcd_send_data(0x11);        // Whole Mode
+#endif
     lcd_send_command(CMD_NOP);
     lcd_clear_data_ram(); // Clearing data RAM.
 
