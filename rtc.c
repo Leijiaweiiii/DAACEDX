@@ -104,10 +104,11 @@ void initialize_rtc_timer() {
             Delay(2);
         }
     }
-    if (OSCSTATbits.EXTOR) {
-        TMR1CLKbits.CS = 0b0111; // TIMER1 clock source = 32.768KHz Reference Oscillator.
-        OSCENbits.SOSCEN = 0;
-    } else if (OSCSTATbits.SOR) {
+//    if (OSCSTATbits.EXTOR) {
+//        TMR1CLKbits.CS = 0b0111; // TIMER1 clock source = 32.768KHz Reference Oscillator.
+//        OSCENbits.SOSCEN = 0;
+//    } else 
+        if (OSCSTATbits.SOR) {
         TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
         OSCENbits.EXTOEN = 0;
     } else {
