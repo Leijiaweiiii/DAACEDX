@@ -12,7 +12,7 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     x_pos = lcd_string_lenght(message, SmallFont) + 7;
     s = 0.001 * split;
     sprintf(message, "Split %.2f", s);
-    
+
     lcd_write_string(
             message,
             x_pos,
@@ -23,15 +23,15 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
 
 void print_big_time_label(time_t t) {
     char message[16];
-//    time_t sec = t/1000;
-//    time_t ms = (t/10)%100;
-    sprintf(message, "%3.02f  ",((float)t)/1000);
+    //    time_t sec = t/1000;
+    //    time_t ms = (t/10)%100;
+    sprintf(message, "%3.02f  ", ((float) t) / 1000);
     lcd_write_string(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void update_countdown_time_on_screen() {
     time_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
-    print_big_time_label(reminder /100 * 100);
+    print_big_time_label(reminder / 100 * 100);
 }
 
 void PowerOffTimer() {
@@ -143,7 +143,7 @@ void handle_timer_listening() {
     update_shot_time_on_screen();
 
     print_header();
-//    DoAdcGraph();
+    //    DoAdcGraph();
     print_footer();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF;
@@ -156,7 +156,7 @@ void handle_timer_listening() {
         default:
             // All the rest keys handled inside the next handler.
             // As well as shoot events
-            HandleTimerEvents();       
+            HandleTimerEvents();
             break;
     }
     comandToHandle = None;
@@ -164,9 +164,12 @@ void handle_timer_listening() {
 
 void handle_review_screen() {
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;break;
-        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;break;
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;
+            break;
+        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
+            break;
         default:
             //All the rest ignoring
             break;
@@ -176,12 +179,15 @@ void handle_review_screen() {
 
 void handle_settings_screen() {
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;break;
-        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;break;
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;
+            break;
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
+            break;
         default:
             //All the rest ignoring
-            
+
             break;
     }
     comandToHandle = None;
@@ -193,12 +199,14 @@ void handle_countdown() {
     print_header();
     update_countdown_time_on_screen();
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;break;
-        case StartShort: 
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:
             if (AutoStart)
                 STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:STATE_HANDLE_TIMER_IDLE;break;
+        case ReviewShort:STATE_HANDLE_TIMER_IDLE;
+            break;
         case CountdownExpired:
             ui_state = TimerListening;
             update_shot_time_on_screen();
@@ -224,6 +232,7 @@ TBool is_long_press() {
     KeyReleased = true; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
+
 TBool is_long_press_repeatable() {
     time_t press_time = rtc_time.sec;
     time_t duration = 0;
@@ -234,7 +243,7 @@ TBool is_long_press_repeatable() {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
-    
+
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 

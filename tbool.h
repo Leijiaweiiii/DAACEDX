@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   tbool.h
  * Author: navado
  *
@@ -11,9 +11,10 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+
 typedef enum {
-    false=0, true=1
-} TBool;
+        false = 0, true = 1
+    } TBool;
 
 #ifdef	__cplusplus
 }

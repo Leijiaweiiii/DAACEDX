@@ -67,7 +67,7 @@ extern "C" {
     void handle_ui();
     void PowerOffTimer();
     void StopTimer();
-#define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;lcd_clear();PowerOffTimer();}
+#define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;PowerOffTimer();}
 #define STATE_HANDLE_POWER_ON           {ui_state = TimerIdle;DoPowerOn();lcd_clear();StopTimer();}
 #define STATE_HANDLE_TIMER_IDLE         {ui_state = TimerIdle;lcd_clear();StopTimer();}
 #define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();DoReview();}
