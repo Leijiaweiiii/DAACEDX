@@ -29,9 +29,8 @@ extern void strmycpy(char * to, const char * from);
 #define	Off 0
 #define	Pos 1
 #define	Neg 0
-typedef enum {
-    false=0, true=1
-} TBool;
+
+#include "tbool.h"
 
 #define HEX2DEC(x)            (x > '9') ? (x - 'a')+10 : x-'0'
 #define DEC(x)                (x-'0')
