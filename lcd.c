@@ -691,6 +691,23 @@ void lcd_set_orientation() {
     else
         lcd_send_command(LCD_ORIENTATION_INVERTED);
 }
+
+void lcd_draw_fullsize_hline_before(uint8_t line, uint8_t data){
+    uint8_t x1_pos = 0;
+    uint8_t x2_pos = LCD_WIDTH;
+    uint8_t page = PAGE(line) - 1;
+    for (uint8_t column = x1_pos; column < x2_pos; column = column + 1) {
+        lcd_prepare_send_data(column, page, column, page);
+        lcd_send_data(data);
+    }
+}
+
+void lcd_draw_vgrid_line(uint8_t column, uint8_t start_line){
+    lcd_prepare_send_data(column, PAGE(start_line), column+1, LCD_MAX_PAGES);
+    for (uint8_t r = PAGE(start_line); r < 2 * LCD_MAX_PAGES; r = r + 1) {
+        lcd_send_data(LCD_BLACK_PAGE);
+    }
+}
 //
 //void lcd_draw_bit_graph_column(size_t column, uint16_t value) {
 //    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));

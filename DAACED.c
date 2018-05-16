@@ -1588,6 +1588,7 @@ void print_batery_text_info() {
 uint8_t print_header() {
     print_time();
     print_batery_text_info();
+    lcd_draw_fullsize_hline_before(UI_HEADER_END_LINE,LCD_MID_LINE_PAGE);
     return UI_HEADER_END_LINE;
 }
 
@@ -1616,14 +1617,15 @@ void print_stats() {
 }
 
 // TODO: Implement
-//void print_footer_grid() {
-//    for (uint8_t i = UI_FOOTER_START_LINE; i <= LCD_HEIGHT; i += UI_FOOTER_GRID_HEIGH) {
-//        lcd_draw_hline(0, LCD_WIDTH, i, BLACK_OVER_WHITE);
-//    }
-//    for (uint8_t i = 0; i <= LCD_WIDTH; i += UI_FOOTER_GRID_WIDTH) {
-//        lcd_draw_line(i, UI_FOOTER_START_LINE, i, LCD_HEIGHT, BLACK_OVER_WHITE);
-//    }
-//}
+void print_footer_grid() {
+    lcd_draw_fullsize_hline_before(UI_FOOTER_START_LINE, LCD_TOP_LINE_PAGE);
+    lcd_draw_fullsize_hline_before(UI_FOOTER_START_LINE + UI_FOOTER_GRID_HEIGH,LCD_MID_LINE_PAGE);
+    lcd_draw_fullsize_hline_before(UI_FOOTER_START_LINE + UI_FOOTER_GRID_HEIGH*2,LCD_TOP_LINE_PAGE);
+    
+    for (uint8_t i = 0; i <= UI_FOOTER_GRID_H_CELLS; i++) {
+        lcd_draw_vgrid_line(i*UI_FOOTER_GRID_WIDTH, UI_FOOTER_START_LINE);
+    }
+}
 
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
     //    lcd_clear_block_d(
@@ -1639,7 +1641,7 @@ uint8_t print_footer() {
     //    print_stats();
     uint8_t line = UI_FOOTER_START_LINE + 2;
     char message[20];
-    //    print_footer_grid();
+    print_footer_grid();
     switch (DelayMode) {
         case Instant:sprintf(message, " Instant");
             break;
@@ -1661,13 +1663,13 @@ uint8_t print_footer() {
     } else {
         sprintf(message, " Par: Off");
     }
-    print_label_at_footer_grid(message, 0, 1);
+//    print_label_at_footer_grid(message, 0, 1);
     if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON", 1, 1);
     else print_label_at_footer_grid(" Aux: Off", 1, 1);
 
-    //    sprintf(message, " Buz:%d", BuzzerLevel);
+        sprintf(message, " Buz:%d", BuzzerLevel);
     //    sprintf(message, "FPS:%02d ", frames_count);
-    sprintf(message, "CNT:0x%X ", contrast_value);
+//    sprintf(message, "CNT:0x%X ", contrast_value);
     print_label_at_footer_grid(message, 2, 0);
 
     sprintf(message, " %s %s %s",

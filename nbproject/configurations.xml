@@ -26,17 +26,18 @@
                    projectFiles="true">
       <itemPath>DAACED.c</itemPath>
       <itemPath>DAACEDbitmap.c</itemPath>
-      <itemPath>DAACEDfont.c</itemPath>
       <itemPath>rtc.c</itemPath>
       <itemPath>lcd.c</itemPath>
       <itemPath>ui.c</itemPath>
       <itemPath>uart.c</itemPath>
       <itemPath>adc.c</itemPath>
-      <itemPath>TimesNewRoman12pt.c</itemPath>
-      <itemPath>tahoma8pt.c</itemPath>
-      <itemPath>robotoCondensed20pt.c</itemPath>
       <itemPath>menu.c</itemPath>
       <itemPath>charger.c</itemPath>
+      <itemPath>MyriadPro18pts_bold.c</itemPath>
+      <itemPath>MyriadPro24pts_bold.c</itemPath>
+      <itemPath>MyriadPro62pts_bold.c</itemPath>
+      <itemPath>tahoma8pt.c</itemPath>
+      <itemPath>TimesNewRoman12pt.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

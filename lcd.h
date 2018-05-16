@@ -11,7 +11,7 @@
 //#define SMALL_LCD
 #undef SMALL_LCD
 #define LCD_DIRECT_ACCESS
-#define UI_FOOTER_GRID_H_CELLS  3
+#define UI_FOOTER_GRID_H_CELLS  4
 #define UI_FOOTER_GRID_V_CELLS  2
 #ifdef SMALL_LCD
 #define MSB_FIRST
@@ -32,21 +32,24 @@ uint16_t contrast_value = 0x0135;
 #define LCD_MAX_ADDRESS         (0xA2)
 #define LCD_MAX_PAGES           (20)
 uint16_t contrast_value = 0x0125; // Empirical starting value
-#define UI_HEADER_END_LINE      (16)
+#define UI_HEADER_END_LINE      (32)
 #define UI_COUNTER_START_PIXEL  (0)
-#define UI_FOOTER_START_LINE    (80)
-#define UI_FOOTER_GRID_WIDTH    (53)
-#define UI_FOOTER_GRID_HEIGH    (16)
+#define UI_FOOTER_START_LINE    (112)
+#define UI_FOOTER_GRID_WIDTH    (60)
+#define UI_FOOTER_GRID_HEIGH    (24)
 #define Y_OFFSET                (0)
-#define UI_CHARGING_LBL_X       (72)
-#define UI_CHARGING_LBL_Y       (72)
+#define UI_CHARGING_LBL_X       (64)
+#define UI_CHARGING_LBL_Y       (64)
 #endif
 
 
-#define UI_FOOTER_GRID_X(x)     (x*UI_FOOTER_GRID_WIDTH)
+#define UI_FOOTER_GRID_X(x)     (x*UI_FOOTER_GRID_WIDTH + 2)
 #define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*UI_FOOTER_GRID_HEIGH)
 #define LCD_BLACK_PAGE          0xFF
 #define LCD_WHITE_PAGE          0x00
+#define LCD_TOP_LINE_PAGE       0xC0
+#define LCD_MID_LINE_PAGE       0x18
+#define LCD_BOT_LINE_PAGE       0x03
 
 #define LCD_GRAPH_HEIGTH        12
 #define LCD_GRAPH_START_PAGE    Y_OFFSET+3
@@ -109,7 +112,10 @@ TBool orientation_change_enabled = false;
 
 const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
 const FONT_INFO *MediumFont = &timesNewRoman_12ptFontInfo;
-const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
+//const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
+//const FONT_INFO *SmallFont = &myriadPro_18ptFontInfo;
+//const FONT_INFO *MediumFont = &myriadPro_24ptFontInfo;
+const FONT_INFO *BigFont = &myriadPro_62ptFontInfo;
 
 
 volatile uint8_t frames_count = 0;
@@ -258,6 +264,8 @@ void lcd_send_data(uint8_t data);
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
 void lcd_increase_contrast();
 void lcd_decrease_contrast();
+void lcd_draw_fullsize_hline_before(uint8_t line,uint8_t data);
+void lcd_draw_vgrid_line(uint8_t column, uint8_t start_line);
 //void lcd_draw_bit_graph_column(size_t column, uint16_t value);
 //void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
 //void lcd_draw_scope_column(size_t column, uint16_t value);

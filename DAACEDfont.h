@@ -103,4 +103,19 @@ extern const uint_8 timesNewRoman_12ptBitmaps[];
 extern const FONT_INFO timesNewRoman_12ptFontInfo;
 extern const FONT_CHAR_INFO timesNewRoman_12ptDescriptors[];
 
+/* Font data for Myriad Pro 18pt */
+extern const uint_8 myriadPro_18ptBitmaps[];
+extern const FONT_INFO myriadPro_18ptFontInfo;
+extern const FONT_CHAR_INFO myriadPro_18ptDescriptors[];
+
+/* Font data for Myriad Pro 24pt */
+extern const uint_8 myriadPro_24ptBitmaps[];
+extern const FONT_INFO myriadPro_24ptFontInfo;
+extern const FONT_CHAR_INFO myriadPro_24ptDescriptors[];
+
+/* Font data for Myriad Pro 62pt */
+extern const uint_8 myriadPro_62ptBitmaps[];
+extern const FONT_INFO myriadPro_62ptFontInfo;
+extern const FONT_CHAR_INFO myriadPro_62ptDescriptors[];
+
 #endif // _FONT_H_
