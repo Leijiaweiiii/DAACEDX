@@ -493,7 +493,6 @@ void getDefaultSettings() {
     AR_IS.Mic = 1;
     AR_IS.AutoRotate = 0;
     AR_IS.BT = 1;
-    //    AR_IS.AR_IS=0xFF;
     BuzzerFrequency = 1500;
     BuzzerParDuration = 200;
     BuzzerStartDuration = 300;
@@ -502,6 +501,12 @@ void getDefaultSettings() {
     DelayMode = Fixed;
     DelayTime = 3000;
     BackLightLevel = 2;
+    TotPar = 0;
+    ParMode = Regular;
+    CurPar_idx = 0;
+    for(uint8_t i=0;i<MAXPAR;i++){
+        ParTime[i] = 0;
+    }
 }
 
 void savePar(uint8_t i) {
