@@ -587,7 +587,6 @@ void SetCustomDelay() {
         DisplayDouble(&n);
         SelectDouble(&n);
     } while (!n.done);
-    // TODO: Apply or function to save flag everywhere like here
     SaveToEEPROM |= (n.fold_value != n.fvalue);
 }
 
@@ -919,7 +918,7 @@ void SetSens() {//Sensitivity
         SelectInteger(&s);
     } while (SettingsNotDone((&s)));
 
-    SaveToEEPROM = (s.value != s.old_value);
+    SaveToEEPROM |= (s.value != s.old_value);
 }
 
 // </editor-fold>
@@ -1199,7 +1198,7 @@ void SetCustomCountDown() {
         SelectTime(&ts);
     } while (SettingsNotDone((&ts)));
     CustomCDtime = ts.hour * 60000 + ts.minute * 1000;
-    SaveToEEPROM = (ts.hour != ts.old_hour || ts.minute != ts.old_minute);
+    SaveToEEPROM |= (ts.hour != ts.old_hour || ts.minute != ts.old_minute);
 }
 
 void SetCountDown(SettingsMenu_t * m) {
@@ -1252,7 +1251,7 @@ void SetTilt(SettingsMenu_t * m) {
                 strmycpy(m->MenuItem[0], " Auto Rotate OFF");
         }
     } while (SettingsNotDone(m));
-    SaveToEEPROM = (AR_IS.AR_IS != orgset);
+    SaveToEEPROM |= (AR_IS.AR_IS != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
@@ -1295,7 +1294,7 @@ void SetInput(SettingsMenu_t * m) {
         }
     } while (SettingsNotDone(m));
 
-    SaveToEEPROM = (AR_IS.AR_IS != orgset);
+    SaveToEEPROM |= (AR_IS.AR_IS != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
@@ -1392,8 +1391,6 @@ void DoSettings(void) {
     } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
         saveSettings();
-        PopMsg("Saved", 200);
-        return;
     }
     lcd_clear();
 }
