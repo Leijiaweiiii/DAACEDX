@@ -112,16 +112,19 @@ uint8_t find_set_bit_position(uint8_t n);
 
 // <editor-fold defaultstate="collapsed" desc="Disp&Keys">
 #define Bot                  LCD_HEIGHT-30
+#define SWAP_KEYS
+#ifndef SWAP_KEYS
+#define Key                  (PORTB & 0x3F)
+#define KeySt                 0x02  //Start
+#else
 #define Key                  (PORTB & 0x3D)
-// TODO: Change to correct combination of keys
-//#define KeySt                 0x02  //Start
 #define KeySt                 0x80  //Start
+#endif
 #define KeyRw                 0x01  //Review
 #define KeyBk                 0x04  //Back
 #define KeyDw                 0x08  //v
 #define KeyUp                 0x10  //^
 #define KeyIn                 0x20  //Enter
-//#define KeyIn                 0x02  //Enter
 #define KeyInDw               0x28  //Enter+v
 #define KeyInUp               0x30  //Enter+^
 
@@ -235,9 +238,9 @@ uint8_t Filter;
 
 #define ParAddress                   200
 #define MAXPAR 15
-uint8_t TotPar;
+uint8_t TotPar = 0; // 1 based
 uint24_t ParTime[MAXPAR]; //in 1mS unit
-uint8_t CurPar_idx = 0; //The par index
+volatile uint8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
@@ -280,5 +283,6 @@ void handle_rotation();
 TBool Detect();
 void UpdateShootNow();
 void DoAdcGraph();
+void DoDiagnostics();
 
 #endif /*  _DAACED_H_ */

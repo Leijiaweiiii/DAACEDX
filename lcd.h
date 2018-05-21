@@ -23,7 +23,7 @@ uint16_t contrast_value = 0x0135;
 #define UI_HEADER_END_LINE      (16)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (80)
-#define UI_FOOTER_GRID_WIDTH    (53)
+#define UI_FOOTER_GRID_WIDTH    (60)
 #define UI_FOOTER_GRID_HEIGH    (16)
 #define Y_OFFSET                (6)
 #else
@@ -33,6 +33,7 @@ uint16_t contrast_value = 0x0135;
 #define LCD_MAX_PAGES           (20)
 uint16_t contrast_value = 0x0125; // Empirical starting value
 #define UI_HEADER_END_LINE      (32)
+#define UI_DIAG_GRID_START_LINE (39)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (112)
 #define UI_FOOTER_GRID_WIDTH    (60)
@@ -44,7 +45,7 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 
 
 #define UI_FOOTER_GRID_X(x)     (x*UI_FOOTER_GRID_WIDTH + 2)
-#define UI_FOOTER_GRID_Y(x)     (UI_FOOTER_START_LINE+x*UI_FOOTER_GRID_HEIGH)
+#define UI_FOOTER_GRID_Y(x,y)     (y+x*UI_FOOTER_GRID_HEIGH)
 #define LCD_BLACK_PAGE          0xFF
 #define LCD_WHITE_PAGE          0x00
 #define LCD_TOP_LINE_PAGE       0xC0
@@ -264,8 +265,9 @@ void lcd_send_data(uint8_t data);
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
 void lcd_increase_contrast();
 void lcd_decrease_contrast();
-void lcd_draw_fullsize_hline_before(uint8_t line,uint8_t data);
-void lcd_draw_vgrid_line(uint8_t column, uint8_t start_line);
+void lcd_draw_fullsize_hline(uint8_t line,uint8_t data);
+void lcd_draw_vgrid_lines(uint8_t start_line);
+void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
 //void lcd_draw_bit_graph_column(size_t column, uint16_t value);
 //void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
 //void lcd_draw_scope_column(size_t column, uint16_t value);

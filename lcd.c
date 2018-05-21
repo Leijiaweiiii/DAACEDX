@@ -618,11 +618,11 @@ void lcd_init() {
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_ICON_DISABLE); // Disable ICON RAM.
 #ifndef SMALL_LCD
-//    lcd_send_command(CMD_SET_SCROLL_AREA);
-//    lcd_send_data(0);           //  Start at line 0
-//    lcd_send_data(LCD_MAX_PAGES);  //  End at LCD_HEGHT
-//    lcd_send_data(LCD_MAX_PAGES);  //  LCD_HEGHT lines to display
-//    lcd_send_data(0x11);        // Whole Mode
+    //    lcd_send_command(CMD_SET_SCROLL_AREA);
+    //    lcd_send_data(0);           //  Start at line 0
+    //    lcd_send_data(LCD_MAX_PAGES);  //  End at LCD_HEGHT
+    //    lcd_send_data(LCD_MAX_PAGES);  //  LCD_HEGHT lines to display
+    //    lcd_send_data(0x11);        // Whole Mode
 #endif
     lcd_send_command(CMD_NOP);
     lcd_clear_data_ram(); // Clearing data RAM.
@@ -692,20 +692,78 @@ void lcd_set_orientation() {
         lcd_send_command(LCD_ORIENTATION_INVERTED);
 }
 
-void lcd_draw_fullsize_hline_before(uint8_t line, uint8_t data){
+void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {
     uint8_t x1_pos = 0;
     uint8_t x2_pos = LCD_WIDTH;
-    uint8_t page = PAGE(line) - 1;
-    for (uint8_t column = x1_pos; column < x2_pos; column = column + 1) {
+    uint8_t page = PAGE(line);
+    for (uint8_t column = x1_pos; column < x2_pos; column++) {
         lcd_prepare_send_data(column, page, column, page);
         lcd_send_data(data);
     }
 }
 
-void lcd_draw_vgrid_line(uint8_t column, uint8_t start_line){
-    lcd_prepare_send_data(column, PAGE(start_line), column+1, LCD_MAX_PAGES);
-    for (uint8_t r = PAGE(start_line); r < 2 * LCD_MAX_PAGES; r = r + 1) {
-        lcd_send_data(LCD_BLACK_PAGE);
+TBool column_is_a_junction(uint8_t c) {
+    switch (c) {
+        case 0:
+        case 1:
+        case 60:
+        case 61:
+        case 120:
+        case 121:
+        case 180:
+        case 181:
+        case 238:
+        case 239:
+            return True;
+            break;
+        default:
+            return False;
+            break;
+    }
+}
+
+TBool page_not_on_hline(uint8_t p){
+    // TODO: fix
+    switch(p){
+        case 4:
+        case 8:
+        case 12:
+        case 16:
+        case 20:
+            return False;
+            break;
+        default:
+            return True;
+            break;
+    }
+}
+
+void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data) {
+    uint8_t x1_pos = 0;
+    uint8_t x2_pos = LCD_WIDTH;
+    uint8_t page = PAGE(line);
+    for (uint8_t column = x1_pos; column < x2_pos; column++) {
+        lcd_prepare_send_data(column, page, column, page);
+        if (column_is_a_junction(column))
+            lcd_send_data(LCD_BLACK_PAGE);
+        else
+            lcd_send_data(data);
+    }
+}
+
+void lcd_send_page(uint8_t page, uint8_t col, uint8_t data) {
+    lcd_prepare_send_data(col, page, col, page);
+    lcd_send_data(data);
+}
+
+void lcd_draw_vgrid_lines(uint8_t start_line) {
+    for (uint8_t p = PAGE(start_line); p < LCD_MAX_PAGES; p++) {
+        if (page_not_on_hline(p)) {
+            for (uint8_t c = 0; c < LCD_WIDTH; c++) {
+                if (column_is_a_junction(c))
+                    lcd_send_page(p, c, LCD_BLACK_PAGE);
+            }
+        }
     }
 }
 //
@@ -758,12 +816,12 @@ void display_message(const char * message) {
 
 void lcd_demo() {
     uint8_t d = LCD_BLACK_PAGE;
-    for(int page = 0;page<50;page++){
-        lcd_prepare_send_data(0,page,LCD_WIDTH,page);
-        if(page%2==0) d = LCD_WHITE_PAGE;
+    for (int page = 0; page < 50; page++) {
+        lcd_prepare_send_data(0, page, LCD_WIDTH, page);
+        if (page % 2 == 0) d = LCD_WHITE_PAGE;
         else d = LCD_BLACK_PAGE;
-        for (int col = 0;col<LCD_WIDTH;col++){
-            if(col%8==0) d = ~d;
+        for (int col = 0; col < LCD_WIDTH; col++) {
+            if (col % 8 == 0) d = ~d;
             lcd_send_data(d);
         }
     }

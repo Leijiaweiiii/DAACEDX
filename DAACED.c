@@ -1342,19 +1342,19 @@ void DoSet(uint8_t menu) {
             break;
         case 12:BlueTooth();
             break;
-            //        case 13:
-            //            saveSettings();
-            //            PopMsg("Saved", 1000);
-            //            break;
-            //        case 14:Diagnostics();
-            //            break;
+        case 13:
+            getDefaultSettings();
+            break;
+        case 14:
+            DoDiagnostics();
+            break;
     }
 }
 
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
 
-    SettingsMenu->TotalMenuItems = 13;
+    SettingsMenu->TotalMenuItems = 15;
 
     strmycpy(SettingsMenu->MenuTitle, "Settings");
     strmycpy(SettingsMenu->MenuItem[0], " Delay");
@@ -1370,7 +1370,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     strmycpy(SettingsMenu->MenuItem[10], " Filter");
     strmycpy(SettingsMenu->MenuItem[11], " Input");
     strmycpy(SettingsMenu->MenuItem[12], " Bluetooth");
-    strmycpy(SettingsMenu->MenuItem[13], " SaveSettings");
+    strmycpy(SettingsMenu->MenuItem[13], " Reset Settings");
     strmycpy(SettingsMenu->MenuItem[14], " Diagnostics");
 }
 
@@ -1421,9 +1421,8 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
             (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
     lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
     line += MediumFont->height;
-    for (uint8_t col = 5; col < LCD_WIDTH; col += lcd_string_lenght("_", MediumFont)) {
-        lcd_write_char('_', col, line, MediumFont, BLACK_OVER_WHITE);
-    }
+    lcd_draw_fullsize_hline(line,LCD_MID_LINE_PAGE);
+    
     for (uint8_t i = UI_HEADER_END_LINE; i < line; i += PAGE_HEIGTH) {
         if (scroll_shots) {
             lcd_write_string(" ", 0, i, MediumFont, BLACK_OVER_WHITE);
@@ -1531,6 +1530,40 @@ void DoReview() {
     } while (ui_state == ReviewScreen);
 }
 // </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Diagnostics">
+void print_label_at_diagnostics_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
+    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y,UI_DIAG_GRID_START_LINE), SmallFont, BLACK_OVER_WHITE);
+}
+
+void print_stats() {
+    char message[32];
+    for(uint8_t y=UI_DIAG_GRID_START_LINE;y<LCD_HEIGHT;y+=UI_FOOTER_GRID_HEIGH){
+        lcd_draw_fullsize_hgridline(y,LCD_MID_LINE_PAGE);
+    }
+    
+    lcd_draw_vgrid_lines(UI_HEADER_END_LINE);
+    // TODO: Implement some diagnostics
+    for(uint8_t x = 0;x<4;x++)
+        for(uint8_t y = 0;y<5;y++){
+            uint8_t p = UI_FOOTER_GRID_Y(y,UI_DIAG_GRID_START_LINE);
+            sprintf(message," %d %d,%d",PAGE(p),x,y);
+            print_label_at_diagnostics_grid(message,x,y);
+        }            
+}
+
+void DoDiagnostics(){
+    SettingsMenu_t * s = &mx;
+    s->selected = False;
+    s->done = False;
+    strmycpy(ScreenTitle, " Diagnostics");
+    do {
+        print_header();
+        print_stats();
+        SelectMenuItem(s);
+    } while(SettingsNotDone(s));
+
+}
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
 
 #define DETECT_THRESHOLD_LEVELS 10
@@ -1590,53 +1623,28 @@ void print_batery_text_info() {
 uint8_t print_header() {
     print_time();
     print_batery_text_info();
-    lcd_draw_fullsize_hline_before(UI_HEADER_END_LINE,LCD_MID_LINE_PAGE);
+    lcd_draw_fullsize_hline(UI_HEADER_END_LINE-1,LCD_MID_LINE_PAGE);
     return UI_HEADER_END_LINE;
 }
 
-void print_stats() {
-    char message[32];
-    uint8_t pos = 8;
-    sprintf(message, "FPS:%d", frames_count);
-    lcd_clear_block(pos, (LCD_HEIGHT - SmallFont->height), LCD_WIDTH, LCD_HEIGHT);
-    lcd_write_string(message, pos, LCD_HEIGHT - SmallFont->height, SmallFont, BLACK_OVER_WHITE);
-    sprintf(message, "RTC: %u.%03u", rtc_time_sec, get_ms_corrected());
-    lcd_write_string(message, 55, LCD_HEIGHT - SmallFont->height, SmallFont, BLACK_OVER_WHITE);
-    //
-    //    sprintf(message, "TMR3=%d", TMR3);
-    //    lcd_write_string(message, pos, (LCD_HEIGHT - 2 * SmallFont->height), SmallFont, BLACK_OVER_WHITE);
-    //    sprintf(message, "TMR5=%d", TMR5);
-    //    lcd_write_string(message, pos, (LCD_HEIGHT - 3 * SmallFont->height), SmallFont, BLACK_OVER_WHITE);
-    //    sprintf(message, "t=%u.%u",rtc_time_sec,rtc_time_msec);
-    //    lcd_clear_block(pos, (LCD_HEIGHT - 4 * SmallFont->height), LCD_WIDTH, (LCD_HEIGHT - 3 * SmallFont->height - 9));
-    //    lcd_write_string(message, pos, (LCD_HEIGHT - 4 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
-    //    sprintf(message, "c=%.3f",(float)corrected_time_msec()/1000);
-    //    lcd_clear_block(pos, (LCD_HEIGHT - 5 * SmallFont->height), LCD_WIDTH, (LCD_HEIGHT - 3 * SmallFont->height - 9));
-    //    lcd_write_string(message, pos, (LCD_HEIGHT - 5 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
-    //
-    ////    sprintf(message, "SYNC EVC=%d", ms_int);
-    ////    lcd_write_string(message, pos, (LCD_HEIGHT - 5 * SmallFont->height - 8), SmallFont, BLACK_OVER_WHITE);
-}
 
 // TODO: Implement
 void print_footer_grid() {
-    lcd_draw_fullsize_hline_before(UI_FOOTER_START_LINE, LCD_TOP_LINE_PAGE);
-    lcd_draw_fullsize_hline_before(UI_FOOTER_START_LINE + UI_FOOTER_GRID_HEIGH,LCD_MID_LINE_PAGE);
-    lcd_draw_fullsize_hline_before(UI_FOOTER_START_LINE + UI_FOOTER_GRID_HEIGH*2,LCD_TOP_LINE_PAGE);
+    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE-1, LCD_BOT_LINE_PAGE);
+    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE-1 + UI_FOOTER_GRID_HEIGH,LCD_MID_LINE_PAGE);
+    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE-1 + UI_FOOTER_GRID_HEIGH*2,LCD_TOP_LINE_PAGE);
     
-    for (uint8_t i = 0; i <= UI_FOOTER_GRID_H_CELLS; i++) {
-        lcd_draw_vgrid_line(i*UI_FOOTER_GRID_WIDTH, UI_FOOTER_START_LINE);
-    }
+    lcd_draw_vgrid_lines(UI_FOOTER_START_LINE);
 }
 
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
-    //    lcd_clear_block_d(
-    //            UI_FOOTER_GRID_X(grid_x),
-    //            UI_FOOTER_GRID_Y(grid_y),
-    //            UI_FOOTER_GRID_X(grid_x)+UI_FOOTER_GRID_WIDTH,
-    //            UI_FOOTER_GRID_Y(grid_y)+UI_FOOTER_GRID_HEIGH
-    //            );
-    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y), SmallFont, BLACK_OVER_WHITE);
+//    lcd_clear_block_d(
+//            UI_FOOTER_GRID_X(grid_x),
+//            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE),
+//            UI_FOOTER_GRID_X(grid_x)+UI_FOOTER_GRID_WIDTH,
+//            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE)+UI_FOOTER_GRID_HEIGH
+//            );
+    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE), SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_footer() {
@@ -1659,19 +1667,17 @@ uint8_t print_footer() {
     else sprintf(message, " Mic: Off");
     print_label_at_footer_grid(message, 1, 0);
 
-    if (ParTime[CurPar_idx] > 0) {
-        sprintf(message, "Par%d: %3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+    if (TotPar > 0) {
+        sprintf(message, "Par %d:%3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
         //    sprintf(message, "ADC: %d   ", ADC_LATEST_VALUE);
     } else {
         sprintf(message, " Par: Off");
     }
-//    print_label_at_footer_grid(message, 0, 1);
+    print_label_at_footer_grid(message, 0, 1);
     if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON", 1, 1);
     else print_label_at_footer_grid(" Aux: Off", 1, 1);
 
-        sprintf(message, " Buz:%d", BuzzerLevel);
-    //    sprintf(message, "FPS:%02d ", frames_count);
-//    sprintf(message, "CNT:0x%X ", contrast_value);
+    sprintf(message, " Buz:%d", BuzzerLevel);
     print_label_at_footer_grid(message, 2, 0);
 
     sprintf(message, " %s %s %s",
@@ -1681,6 +1687,11 @@ uint8_t print_footer() {
             );
     print_label_at_footer_grid(message, 2, 1);
 
+    sprintf(message, " FPS:%02d ", frames_count);
+    print_label_at_footer_grid(message, 3, 1);
+    sprintf(message, " KEY:0x%02X ", PORTB);
+    print_label_at_footer_grid(message, 3, 0);
+//    sprintf(message, "CNT:0x%X ", contrast_value);
     return line - UI_FOOTER_START_LINE;
 }
 
@@ -1769,7 +1780,7 @@ void PlayStartSound() {
 }
 
 void StartParTimer() {
-    if (CurPar_idx < MAXPAR) {
+    if (CurPar_idx < TotPar) {
         CurPar_idx++;
         ParNowCounting = true;
         parStartTime_ms = rtc_time.unix_time_ms;
@@ -1949,7 +1960,7 @@ void main(void) {
     eeprom_init();
     //    getSettings();
     getDefaultSettings();
-    getPar();
+//    getPar();
     set_backlight(BackLightLevel);
     init_ms_timer0();
     initialize_rtc_timer();

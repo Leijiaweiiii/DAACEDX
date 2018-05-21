@@ -20,12 +20,14 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
             BLACK_OVER_WHITE
             );
 }
-
+uint8_t old_time_str_len = 0;
 void print_big_time_label(time_t t) {
     char message[16];
-    //    time_t sec = t/1000;
-    //    time_t ms = (t/10)%100;
     sprintf(message, "%3.02f  ", ((float) t) / 1000);
+    uint8_t len = lcd_string_lenght(message,BigFont);
+    if(len<old_time_str_len)
+        lcd_clear_block(0,UI_HEADER_END_LINE,LCD_WIDTH,BigFont->height+UI_HEADER_END_LINE);
+    old_time_str_len = len;
     lcd_write_string(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
@@ -42,7 +44,8 @@ void PowerOffTimer() {
 void StartTimer() {
     lcd_clear_data_ram();
     CurPar_idx = 0;
-    StartParTimer();
+    if(TotPar > 0)
+        StartParTimer();
     StartCountdownTimer();
     DoMain();
 }
@@ -130,7 +133,8 @@ void HandleTimerEvents() {
         case TimerTimeout:STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
-            StartParTimer();
+            if(TotPar > 0)
+                StartParTimer();
             PlayParSound();
             break;
             // By default do nothing
