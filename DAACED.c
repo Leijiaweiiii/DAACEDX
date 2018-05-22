@@ -591,7 +591,8 @@ void SetCustomDelay() {
     do {
         DisplayDouble(&n);
         SelectDouble(&n);
-    } while (!n.done);
+    } while (SettingsNotDone((&n)));
+    DelayTime = (time_t)(n.fvalue * 1000);
     SaveToEEPROM |= (n.fold_value != n.fvalue);
 }
 
@@ -618,26 +619,26 @@ void SetDelay(SettingsMenu_t * m) {
 
     do {
         DisplaySettings(m);
-        SelectMenuItem(m);
-    } while (SettingsNotDone(m));
-
-    if (m->selected) {
-        switch (m->menu) {
-            case 0: DelayMode = Instant;
-                SaveToEEPROM = True;
-                break;
-            case 1: DelayMode = Fixed;
-                DelayTime = 30;
-                SaveToEEPROM = True;
-                break;
-            case 2: DelayMode = Random;
-                SaveToEEPROM = True;
-                break;
-            case 3: DelayMode = Custom;
-                SetCustomDelay();
-                break;
+        SelectBinaryMenuItem(m);
+        if (m->selected) {
+            m->selected = False;
+            switch (m->menu) {
+                case 0: DelayMode = Instant;
+                    SaveToEEPROM = True;
+                    break;
+                case 1: DelayMode = Fixed;
+                    DelayTime = 30;
+                    SaveToEEPROM = True;
+                    break;
+                case 2: DelayMode = Random;
+                    SaveToEEPROM = True;
+                    break;
+                case 3: DelayMode = Custom;
+                    SetCustomDelay();
+                    break;
+            }
         }
-    }
+    } while (SettingsNotDone(m));
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Par">
@@ -687,12 +688,12 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             // Add new par
             if (m->menu < MAXPAR) {
                 TBool res = False;
-                
+
                 ParTime[TotPar] = 1000; // Default setting 1 second
                 res = EditPar(TotPar);
-                if(res){ // Roll back if not selected
+                if (res) { // Roll back if not selected
                     TotPar++;
-                }else {
+                } else {
                     ParTime[TotPar] = 0;
                 }
             }
@@ -875,7 +876,7 @@ void SetSens() {//Sensitivity
         DisplayInteger(&s);
         SelectInteger(&s);
     } while (SettingsNotDone((&s)));
-
+    Sensitivity = s.value;
     SaveToEEPROM |= (s.value != s.old_value);
 }
 
@@ -1349,6 +1350,7 @@ void DoSettings(void) {
     } while (ui_state == SettingsScreen);
     if (SaveToEEPROM) {
         saveSettings();
+        SaveToEEPROM = False;
     }
     lcd_clear();
 }
@@ -1356,7 +1358,7 @@ void DoSettings(void) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ReviewMenu">
 #define REVIEW_SHOT_FORMAT      "#%2d: %3.2f "
-#define REVIEW_SPLIT_FORMAT     "}%3.2f "
+#define REVIEW_SPLIT_FORMAT     "} %3.2f "
 
 void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_shots) {
     uint8_t line = UI_HEADER_END_LINE;
