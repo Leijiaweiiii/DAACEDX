@@ -504,7 +504,7 @@ void getDefaultSettings() {
     TotPar = 0;
     ParMode = Regular;
     CurPar_idx = 0;
-    for(uint8_t i=0;i<MAXPAR;i++){
+    for (uint8_t i = 0; i < MAXPAR; i++) {
         ParTime[i] = 0;
     }
 }
@@ -642,137 +642,90 @@ void SetDelay(SettingsMenu_t * m) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Par">
 
-TBool DeletePar(uint8_t Par_i) {
-    char msg[20];
-    sprintf(msg, "Delete Par%d ?", Par_i + 1);
-    while (Keypressed);
-    if (PopMsg(msg, 0) == KeyIn) {
-        for (uint8_t i = Par_i; i < TotPar; i++) {
-            ParTime[i] = ParTime[i + 1];
-            savePar(i);
-        }
-        TotPar--;
-        saveTotPar();
-        sprintf(msg, "Par%d Deleted", Par_i + 1);
-        PopMsg(msg, 200);
-        return True;
-    } else
-        return False;
+TBool EditPar(uint8_t par_index) {
+    NumberSelection_t b;
+    b.fmin = 0.1;
+    b.fmax = 100.0;
+    b.fvalue = ParTime[par_index] / 1000;
+    b.fold_value = b.fvalue;
+    sprintf(b.MenuTitle, "Par %d Settings ", par_index);
+    b.fstep = 0.1;
+    b.format = "%3.1f  ";
+    b.done = False;
+    do {
+        DisplayDouble(&b);
+        SelectDouble(&b);
+    } while (SettingsNotDone((&b)));
+    if (b.selected) {
+        ParTime[par_index] = (long) (b.fvalue * 1000);
+        if (b.fold_value != b.fvalue)
+            savePar(par_index);
+    }
+    return b.selected;
 }
 
-void edit_par(SettingsMenu_t * s) {
-    uint8_t i, j, k;
-    TBool Done = False;
-    char msg[15];
-    i = 10;
-    j = 0;
-    k = 0;
-    while (!Done) {
-        if (Keypressed) {
-            switch (Key) {
-                case KeyUp:
-                    if ((ParTime[s->menu - 1] + i) <= ((ParTime[s->menu])-(BuzzerParDuration))) {
-                        ParTime[s->menu - 1] += i;
-                    } else {
-                        DeletePar(s->menu - 1); //DeletePar will save if needed no need change
-                        Done = True;
-                    }
-                    break;
-                case KeyDw:
-                    if (TotPar > 1) {
-                        if ((ParTime[s->menu - 1] - i) >= ((ParTime[s->menu - 2]) + BuzzerParDuration)) {
-                            ParTime[s->menu - 1] -= i;
-                        } else {
-                            DeletePar(s->menu - 1);
-                            Done = True;
-                        }
-                    } else if (TotPar == 1) {
-                        if (ParTime[0] >= ((BuzzerStartDuration) + i)) {
-                            ParTime[0] -= i;
-                        } else {
-                            DeletePar(0);
-                            Done = True;
-                        }
-                    }
-                    break;
-                default: Done = True;
+void FillParSettings(SettingsMenu_t * m) {
+    uint8_t i = 0;
+    for (i = 0; i < TotPar; i++) {
+        sprintf(m->MenuItem[i], "Par %d: %3.1f", i + 1, (float) ParTime[i] / 1000);
+    }
+    if (i < MAXPAR)
+        strmycpy(m->MenuItem[i], "Add");
+    else
+        strmycpy(m->MenuItem[i], "Max Par reached");
+    strmycpy(m->MenuItem[++i], "Delete Last");
+    strmycpy(m->MenuItem[++i], "Delete All");
+    m->TotalMenuItems = i + 1;
+}
+
+void HandleParMenuSelection(SettingsMenu_t * m) {
+    if (m->selected) {
+        m->selected = False;
+        if (m->menu < (m->TotalMenuItems - 3)) {
+            EditPar(m->menu);
+        } else if (m->menu == (m->TotalMenuItems - 3)) {
+            // Add new par
+            if (m->menu < MAXPAR) {
+                TBool res = False;
+                
+                ParTime[TotPar] = 1000; // Default setting 1 second
+                res = EditPar(TotPar);
+                if(res){ // Roll back if not selected
+                    TotPar++;
+                }else {
+                    ParTime[TotPar] = 0;
+                }
             }
-
-            sprintf(msg, "%5.1f", (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
-            lcd_write_string(msg, 30, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
-            sprintf(msg, " Par %2d: %5.1f", s->menu, (float) ParTime[s->menu - 1] / 1000); //unit is 1mS
-            strmycpy(s->MenuItem[s->menu - 1], msg);
-
+        } else if (m->menu == (m->TotalMenuItems - 2)) {
+            // Delete last PAR
+            if (TotPar > 0) {
+                TotPar--;
+                ParTime[TotPar] = 0;
+            }
+        } else if (m->menu == (m->TotalMenuItems - 1)) {
+            // Clear PAR
+            for (uint8_t i = 0; i < TotPar; i++) {
+                ParTime[i] = 0;
+            }
+            TotPar = 0;
+            m->menu = 1;
         }
-        while ((Keypressed) && (k < 250)) {
-            __delay_ms(1);
-            k++;
-        }
-        k = 0;
-        if (Keypressed) j++;
-        if (j > 1) {
-            if (i * 2 < 255) i = i * 2;
-            else i = 255;
-            j = 0;
-        } //if after 500mS still pressed go faster
-        if (!Keypressed) {
-            i = 10;
-            j = 0;
-        } //if key not pressed go slow (again))
+        lcd_clear();
     }
 }
 
 void SetPar(SettingsMenu_t * m) {
-    char msg[15];
-
-    TBool changed;
-    uint8_t redraw, i;
-
-    //Main Screen
+    uint8_t oldTotPar = TotPar;
     InitSettingsMenuDefaults(m);
-    redraw = 2;
-    changed = False;
-    while (m->menu > 0) {
-        if (redraw > 0) {
-            i = 0;
-            TotPar = 0;
-            do {
-                //TODO: Check if this is not a cause of any problem
-                if ((ParTime[i] > 0) && (ParTime[i] < 100000)) {
-                    sprintf(msg, " Par %d: %5.02f", i + 1, (float) ParTime[i] / 1000); //unit is 1mS
-                    strmycpy(m->MenuItem[i], msg);
-                    TotPar++;
-                }
-                i++;
-            } while ((ParTime[i] > 0) && (ParTime[i] < 100000) && (i <= MAXPAR));
-
-            sprintf(m->MenuTitle, "Total Par=%d", TotPar);
-            sprintf(m->MenuItem[TotPar], " Par %d: Off", TotPar + 1);
-            m->TotalMenuItems = TotPar + 1;
-        }
+    strmycpy(m->MenuTitle, "Par Settings");
+    do {
+        FillParSettings(m);
         DisplaySettings(m);
-
-        SelectMenuItem(m);
-        if (m->menu > 0) {
-            if (m->menu == m->TotalMenuItems) {
-                if (TotPar > 0) {
-                    ParTime[m->menu - 1] = ParTime[m->menu - 2] + BuzzerParDuration;
-                    TotPar++;
-                } else {
-                    ParTime[0] = BuzzerStartDuration;
-                    TotPar = 1;
-                    changed = True;
-                    redraw = 1;
-                }
-            }
-            edit_par(m);
-        }
-    }
-    if (changed) {
+        SelectBinaryMenuItem(m);
+        HandleParMenuSelection(m);
+    } while (SettingsNotDone(m));
+    if (TotPar != oldTotPar) {
         saveTotPar();
-        for (i = 0; i < TotPar; i++)
-            savePar(i);
-        PopMsg("Par Saved", 200);
     }
 }
 // </editor-fold>
@@ -1421,8 +1374,8 @@ void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp
             (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
     lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
     line += MediumFont->height;
-    lcd_draw_fullsize_hline(line,LCD_MID_LINE_PAGE);
-    
+    lcd_draw_fullsize_hline(line, LCD_MID_LINE_PAGE);
+
     for (uint8_t i = UI_HEADER_END_LINE; i < line; i += PAGE_HEIGTH) {
         if (scroll_shots) {
             lcd_write_string(" ", 0, i, MediumFont, BLACK_OVER_WHITE);
@@ -1531,27 +1484,28 @@ void DoReview() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Diagnostics">
+
 void print_label_at_diagnostics_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
-    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y,UI_DIAG_GRID_START_LINE), SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y, UI_DIAG_GRID_START_LINE), SmallFont, BLACK_OVER_WHITE);
 }
 
 void print_stats() {
     char message[32];
-    for(uint8_t y=UI_DIAG_GRID_START_LINE;y<LCD_HEIGHT;y+=UI_FOOTER_GRID_HEIGH){
-        lcd_draw_fullsize_hgridline(y,LCD_MID_LINE_PAGE);
+    for (uint8_t y = UI_DIAG_GRID_START_LINE; y < LCD_HEIGHT; y += UI_FOOTER_GRID_HEIGH) {
+        lcd_draw_fullsize_hgridline(y, LCD_MID_LINE_PAGE);
     }
-    
+
     lcd_draw_vgrid_lines(UI_HEADER_END_LINE);
     // TODO: Implement some diagnostics
-    for(uint8_t x = 0;x<4;x++)
-        for(uint8_t y = 0;y<5;y++){
-            uint8_t p = UI_FOOTER_GRID_Y(y,UI_DIAG_GRID_START_LINE);
-            sprintf(message," %d %d,%d",PAGE(p),x,y);
-            print_label_at_diagnostics_grid(message,x,y);
-        }            
+    for (uint8_t x = 0; x < 4; x++)
+        for (uint8_t y = 0; y < 5; y++) {
+            uint8_t p = UI_FOOTER_GRID_Y(y, UI_DIAG_GRID_START_LINE);
+            sprintf(message, " %d %d,%d", PAGE(p), x, y);
+            print_label_at_diagnostics_grid(message, x, y);
+        }
 }
 
-void DoDiagnostics(){
+void DoDiagnostics() {
     SettingsMenu_t * s = &mx;
     s->selected = False;
     s->done = False;
@@ -1560,7 +1514,7 @@ void DoDiagnostics(){
         print_header();
         print_stats();
         SelectMenuItem(s);
-    } while(SettingsNotDone(s));
+    } while (SettingsNotDone(s));
 
 }
 // </editor-fold>
@@ -1623,28 +1577,29 @@ void print_batery_text_info() {
 uint8_t print_header() {
     print_time();
     print_batery_text_info();
-    lcd_draw_fullsize_hline(UI_HEADER_END_LINE-1,LCD_MID_LINE_PAGE);
+    lcd_draw_fullsize_hline(UI_HEADER_END_LINE - 1, LCD_MID_LINE_PAGE);
     return UI_HEADER_END_LINE;
 }
 
 
 // TODO: Implement
+
 void print_footer_grid() {
-    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE-1, LCD_BOT_LINE_PAGE);
-    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE-1 + UI_FOOTER_GRID_HEIGH,LCD_MID_LINE_PAGE);
-    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE-1 + UI_FOOTER_GRID_HEIGH*2,LCD_TOP_LINE_PAGE);
-    
+    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE - 1, LCD_BOT_LINE_PAGE);
+    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE - 1 + UI_FOOTER_GRID_HEIGH, LCD_MID_LINE_PAGE);
+    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE - 1 + UI_FOOTER_GRID_HEIGH * 2, LCD_TOP_LINE_PAGE);
+
     lcd_draw_vgrid_lines(UI_FOOTER_START_LINE);
 }
 
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
-//    lcd_clear_block_d(
-//            UI_FOOTER_GRID_X(grid_x),
-//            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE),
-//            UI_FOOTER_GRID_X(grid_x)+UI_FOOTER_GRID_WIDTH,
-//            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE)+UI_FOOTER_GRID_HEIGH
-//            );
-    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE), SmallFont, BLACK_OVER_WHITE);
+    //    lcd_clear_block_d(
+    //            UI_FOOTER_GRID_X(grid_x),
+    //            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE),
+    //            UI_FOOTER_GRID_X(grid_x)+UI_FOOTER_GRID_WIDTH,
+    //            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE)+UI_FOOTER_GRID_HEIGH
+    //            );
+    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y, UI_FOOTER_START_LINE), SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_footer() {
@@ -1691,7 +1646,7 @@ uint8_t print_footer() {
     print_label_at_footer_grid(message, 3, 1);
     sprintf(message, " KEY:0x%02X ", PORTB);
     print_label_at_footer_grid(message, 3, 0);
-//    sprintf(message, "CNT:0x%X ", contrast_value);
+    //    sprintf(message, "CNT:0x%X ", contrast_value);
     return line - UI_FOOTER_START_LINE;
 }
 
@@ -1741,7 +1696,7 @@ void DoCharging() {
                 break;
             default:
                 break;
-        }        
+        }
         charger_state_changed = false;
     }
 }
@@ -1960,7 +1915,7 @@ void main(void) {
     eeprom_init();
     //    getSettings();
     getDefaultSettings();
-//    getPar();
+    //    getPar();
     set_backlight(BackLightLevel);
     init_ms_timer0();
     initialize_rtc_timer();

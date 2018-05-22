@@ -237,7 +237,7 @@ uint8_t Filter;
 #define Filter_Address               128
 
 #define ParAddress                   200
-#define MAXPAR 15
+#define MAXPAR 12
 uint8_t TotPar = 0; // 1 based
 uint24_t ParTime[MAXPAR]; //in 1mS unit
 volatile uint8_t CurPar_idx = 0; //The par index

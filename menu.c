@@ -5,6 +5,7 @@
 
 void DisplayTime(TimeSelection_t * t) {
     char msg[10];
+    set_screen_title(t->MenuTitle);
     print_header();
     sprintf(msg, "%02d:%02d", t->hour, t->minute);
     lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
@@ -12,6 +13,7 @@ void DisplayTime(TimeSelection_t * t) {
 
 void DisplayDouble(NumberSelection_t* s) {
     char msg[10];
+    set_screen_title(s->MenuTitle);
     print_header();
     sprintf(msg, s->format, s->fvalue);
     lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
@@ -19,6 +21,7 @@ void DisplayDouble(NumberSelection_t* s) {
 
 void DisplayInteger(NumberSelection_t* s) {
     char msg[10];
+    set_screen_title(s->MenuTitle);
     print_header();
     sprintf(msg, s->format, s->value);
     lcd_write_string(msg, 3, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
@@ -27,6 +30,7 @@ void DisplayInteger(NumberSelection_t* s) {
 void DisplaySettings(SettingsMenu_t* sm) {
     uint8_t p, lineh;
     uint16_t i;
+    set_screen_title(sm->MenuTitle);
     print_header();
     p = UI_HEADER_END_LINE;
     lineh = MediumFont->height;
@@ -148,10 +152,13 @@ void SelectInteger(NumberSelection_t* sm) {
         case BackShort:
         case BackLong:
             sm->value = sm->old_value;
-            // Intentional failover to the next stage
+            sm->selected = True;
+            sm->done = True;
+            break;
         case OkShort:
         case OkLong:
             sm->done = True;
+            sm->selected = False;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
@@ -180,13 +187,17 @@ void SelectDouble(NumberSelection_t* sm) {
                 sm->fvalue -= sm->fstep;
             } else Beep();
             break;
-        case BackShort:
-        case BackLong:
-            sm->fvalue = sm->fold_value;
-            // Intentional failover to the next stage
         case OkShort:
         case OkLong:
             sm->done = True;
+            sm->selected = True;
+            break;
+        case BackShort:
+        case BackLong:
+            sm->selected = False;
+            sm->done = True;
+            sm->fvalue = sm->fold_value;
+            // Intentional failover to the next stage
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
@@ -243,9 +254,12 @@ void SelectTime(TimeSelection_t* ts) {
         case BackLong:
             ts->minute = ts->old_minute;
             ts->hour = ts->old_hour;
-            // Intentional failover to the next stage
+            ts->selected = False;
+            ts->done = True;
+            break;
         case OkShort:
         case OkLong:
+            ts->selected = True;
             ts->done = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;

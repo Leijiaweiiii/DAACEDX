@@ -52,6 +52,7 @@ void StartTimer() {
 
 void StopTimer() {
     lcd_clear();
+    CurPar_idx = 0;
     print_header();
     print_footer();
     update_shot_time_on_screen();
