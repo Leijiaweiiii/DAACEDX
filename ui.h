@@ -70,7 +70,7 @@ extern "C" {
 #define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;PowerOffTimer();}
 #define STATE_HANDLE_POWER_ON           {ui_state = TimerIdle;DoPowerOn();lcd_clear();StopTimer();}
 #define STATE_HANDLE_TIMER_IDLE         {ui_state = TimerIdle;lcd_clear();StopTimer();}
-#define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();DoReview();}
+#define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();}
 #define STATE_HANDLE_SETTINGS_SCREEN    {ui_state = SettingsScreen;lcd_clear();DoSettings();}
 #define STATE_HANDLE_COUNTDOWN          {ui_state = TimerCountdown;lcd_clear();StartTimer();}
 #ifdef	__cplusplus

@@ -176,7 +176,7 @@ void handle_review_screen() {
         case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
             break;
         default:
-            //All the rest ignoring
+            DoReview();
             break;
     }
     comandToHandle = None;
