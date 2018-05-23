@@ -19,7 +19,7 @@ extern "C" {
 #define MAXItemLenght       25
 #define MAXMenuTitleLength  25
 
-#define MENU_PAGE_SIZE  6
+#define MENU_PAGE_SIZE  8
 
     typedef struct {
         char MenuItem[MAXMenuItems][MAXItemLenght];
