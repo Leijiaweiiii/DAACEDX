@@ -592,7 +592,7 @@ void SetCustomDelay() {
         DisplayDouble(&n);
         SelectDouble(&n);
     } while (SettingsNotDone((&n)));
-    DelayTime = (time_t)(n.fvalue * 1000);
+    DelayTime = (time_t) (n.fvalue * 1000);
     SaveToEEPROM |= (n.fold_value != n.fvalue);
 }
 
@@ -1447,9 +1447,7 @@ void DoReview() {
     CurShootString = 0;
     CurShoot = 1;
     set_screen_title("Review");
-
-    //    getShootString(CurShootString);
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
+    lcd_clear();
     do {
         ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
         define_input_action();
@@ -1540,12 +1538,11 @@ void DetectInit(void) {
 }
 
 TBool Detect(void) {
-    switch (DetectMode) {
-        case Mic: return ADC_Read(ENVELOPE) > DetectThreshold;
-        case AuxA: return AUX_A;
-        case AuxB: return AUX_B;
-        default: return False;
-    }
+    TBool res = False;
+    res |= (AR_IS.Mic && (ADC_Read(ENVELOPE) > DetectThreshold));
+    res |= (AR_IS.A & AUX_A);
+    res |= (AR_IS.B & AUX_B);
+    return res;
 }
 
 uint8_t print_time() {

@@ -214,12 +214,7 @@ typedef enum {
     Instant, Fixed, Random, Custom
 } TdelTy;
 
-typedef enum {
-    Mic, AuxA, AuxB
-} TdetTy;
-
 TdelTy  DelayMode = Fixed;
-TdetTy  DetectMode = Mic;
 uint16_t DetectThreshold;
 time_t DelayTime = 3000;  // mS
 time_t countdown_start_time;
