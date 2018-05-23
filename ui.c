@@ -44,8 +44,6 @@ void PowerOffTimer() {
 void StartTimer() {
     lcd_clear_data_ram();
     CurPar_idx = 0;
-    if(TotPar > 0)
-        StartParTimer();
     StartCountdownTimer();
     DoMain();
 }
@@ -133,7 +131,7 @@ void HandleTimerEvents() {
         case TimerTimeout:STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
-            if(TotPar > 0)
+            if (TotPar > 0)
                 StartParTimer();
             PlayParSound();
             break;
@@ -218,6 +216,9 @@ void handle_countdown() {
         case CountdownExpired:
             ui_state = TimerListening;
             update_shot_time_on_screen();
+            
+            if (TotPar > 0)
+                StartParTimer();
             PlayStartSound();
             break;
         default:

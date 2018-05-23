@@ -653,6 +653,7 @@ TBool EditPar(uint8_t par_index) {
     b.fstep = 0.1;
     b.format = "%3.1f  ";
     b.done = False;
+    lcd_clear();
     do {
         DisplayDouble(&b);
         SelectDouble(&b);
