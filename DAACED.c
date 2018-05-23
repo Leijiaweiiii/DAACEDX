@@ -1564,8 +1564,7 @@ uint8_t old_bat_length = 0;
 void print_batery_text_info() {
     char message[32];
     sprintf(message,
-            " %s %d%%",
-            charger_text_state(),
+            "%dv",
             (battery_level > 100) ? 100 : battery_level);
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
@@ -1662,20 +1661,21 @@ void DoMain(void) {
 // </editor-fold>
 
 void DoPowerOff() {
-    PowerOFF;
     set_backlight(0);
     lcd_clear_data_ram();
+    LATEbits.LATE0 = 0;
 }
 
 void DoPowerOn() {
-    PowerON;
+    LATEbits.LATE0 = 1;
+    // TODO: Review power on sequence
     set_backlight(BackLightLevel);
 }
 
 void DoCharging() {
     char msg[10];
     if (charger_state_changed) {
-        PowerON;
+        LATEbits.LATE0 = 1;
         switch (charger_state) {
             case Charging:
                 set_backlight(2);
@@ -1692,7 +1692,7 @@ void DoCharging() {
             case NotCharging:
                 lcd_clear();
                 set_backlight(0);
-                PowerOFF;
+                DoPowerOff();
                 break;
             default:
                 break;
@@ -1735,6 +1735,7 @@ void PlayStartSound() {
 }
 
 void StartParTimer() {
+    timerEventToHandle = None;
     if (CurPar_idx < TotPar) {
         CurPar_idx++;
         ParNowCounting = true;
@@ -1914,7 +1915,7 @@ static void interrupt isr(void) {
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     PIC_init();
-    PowerON
+    LATEbits.LATE0 = 1;
     initialize_backlight();
     set_backlight(90);
     spi_init();

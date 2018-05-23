@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=DAACED.c DAACEDbitmap.c rtc.c lcd.c ui.c uart.c adc.c menu.c charger.c MyriadPro18pts_bold.c MyriadPro24pts_bold.c MyriadPro62pts_bold.c tahoma8pt.c TimesNewRoman12pt.c
+SOURCEFILES_QUOTED_IF_SPACED=DAACED.c DAACEDbitmap.c rtc.c lcd.c ui.c uart.c adc.c menu.c charger.c MyriadPro62pts_bold.c TimesNewRoman12pt.c bluetooth.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/DAACED.p1 ${OBJECTDIR}/DAACEDbitmap.p1 ${OBJECTDIR}/rtc.p1 ${OBJECTDIR}/lcd.p1 ${OBJECTDIR}/ui.p1 ${OBJECTDIR}/uart.p1 ${OBJECTDIR}/adc.p1 ${OBJECTDIR}/menu.p1 ${OBJECTDIR}/charger.p1 ${OBJECTDIR}/MyriadPro18pts_bold.p1 ${OBJECTDIR}/MyriadPro24pts_bold.p1 ${OBJECTDIR}/MyriadPro62pts_bold.p1 ${OBJECTDIR}/tahoma8pt.p1 ${OBJECTDIR}/TimesNewRoman12pt.p1
-POSSIBLE_DEPFILES=${OBJECTDIR}/DAACED.p1.d ${OBJECTDIR}/DAACEDbitmap.p1.d ${OBJECTDIR}/rtc.p1.d ${OBJECTDIR}/lcd.p1.d ${OBJECTDIR}/ui.p1.d ${OBJECTDIR}/uart.p1.d ${OBJECTDIR}/adc.p1.d ${OBJECTDIR}/menu.p1.d ${OBJECTDIR}/charger.p1.d ${OBJECTDIR}/MyriadPro18pts_bold.p1.d ${OBJECTDIR}/MyriadPro24pts_bold.p1.d ${OBJECTDIR}/MyriadPro62pts_bold.p1.d ${OBJECTDIR}/tahoma8pt.p1.d ${OBJECTDIR}/TimesNewRoman12pt.p1.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/DAACED.p1 ${OBJECTDIR}/DAACEDbitmap.p1 ${OBJECTDIR}/rtc.p1 ${OBJECTDIR}/lcd.p1 ${OBJECTDIR}/ui.p1 ${OBJECTDIR}/uart.p1 ${OBJECTDIR}/adc.p1 ${OBJECTDIR}/menu.p1 ${OBJECTDIR}/charger.p1 ${OBJECTDIR}/MyriadPro62pts_bold.p1 ${OBJECTDIR}/TimesNewRoman12pt.p1 ${OBJECTDIR}/bluetooth.p1
+POSSIBLE_DEPFILES=${OBJECTDIR}/DAACED.p1.d ${OBJECTDIR}/DAACEDbitmap.p1.d ${OBJECTDIR}/rtc.p1.d ${OBJECTDIR}/lcd.p1.d ${OBJECTDIR}/ui.p1.d ${OBJECTDIR}/uart.p1.d ${OBJECTDIR}/adc.p1.d ${OBJECTDIR}/menu.p1.d ${OBJECTDIR}/charger.p1.d ${OBJECTDIR}/MyriadPro62pts_bold.p1.d ${OBJECTDIR}/TimesNewRoman12pt.p1.d ${OBJECTDIR}/bluetooth.p1.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/DAACED.p1 ${OBJECTDIR}/DAACEDbitmap.p1 ${OBJECTDIR}/rtc.p1 ${OBJECTDIR}/lcd.p1 ${OBJECTDIR}/ui.p1 ${OBJECTDIR}/uart.p1 ${OBJECTDIR}/adc.p1 ${OBJECTDIR}/menu.p1 ${OBJECTDIR}/charger.p1 ${OBJECTDIR}/MyriadPro18pts_bold.p1 ${OBJECTDIR}/MyriadPro24pts_bold.p1 ${OBJECTDIR}/MyriadPro62pts_bold.p1 ${OBJECTDIR}/tahoma8pt.p1 ${OBJECTDIR}/TimesNewRoman12pt.p1
+OBJECTFILES=${OBJECTDIR}/DAACED.p1 ${OBJECTDIR}/DAACEDbitmap.p1 ${OBJECTDIR}/rtc.p1 ${OBJECTDIR}/lcd.p1 ${OBJECTDIR}/ui.p1 ${OBJECTDIR}/uart.p1 ${OBJECTDIR}/adc.p1 ${OBJECTDIR}/menu.p1 ${OBJECTDIR}/charger.p1 ${OBJECTDIR}/MyriadPro62pts_bold.p1 ${OBJECTDIR}/TimesNewRoman12pt.p1 ${OBJECTDIR}/bluetooth.p1
 
 # Source Files
-SOURCEFILES=DAACED.c DAACEDbitmap.c rtc.c lcd.c ui.c uart.c adc.c menu.c charger.c MyriadPro18pts_bold.c MyriadPro24pts_bold.c MyriadPro62pts_bold.c tahoma8pt.c TimesNewRoman12pt.c
+SOURCEFILES=DAACED.c DAACEDbitmap.c rtc.c lcd.c ui.c uart.c adc.c menu.c charger.c MyriadPro62pts_bold.c TimesNewRoman12pt.c bluetooth.c
 
 
 CFLAGS=
@@ -165,22 +165,6 @@ ${OBJECTDIR}/charger.p1: charger.c  nbproject/Makefile-${CND_CONF}.mk
 	@-${MV} ${OBJECTDIR}/charger.d ${OBJECTDIR}/charger.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/charger.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
-${OBJECTDIR}/MyriadPro18pts_bold.p1: MyriadPro18pts_bold.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/MyriadPro18pts_bold.p1.d 
-	@${RM} ${OBJECTDIR}/MyriadPro18pts_bold.p1 
-	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=pickit3  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/MyriadPro18pts_bold.p1  MyriadPro18pts_bold.c 
-	@-${MV} ${OBJECTDIR}/MyriadPro18pts_bold.d ${OBJECTDIR}/MyriadPro18pts_bold.p1.d 
-	@${FIXDEPS} ${OBJECTDIR}/MyriadPro18pts_bold.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
-	
-${OBJECTDIR}/MyriadPro24pts_bold.p1: MyriadPro24pts_bold.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/MyriadPro24pts_bold.p1.d 
-	@${RM} ${OBJECTDIR}/MyriadPro24pts_bold.p1 
-	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=pickit3  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/MyriadPro24pts_bold.p1  MyriadPro24pts_bold.c 
-	@-${MV} ${OBJECTDIR}/MyriadPro24pts_bold.d ${OBJECTDIR}/MyriadPro24pts_bold.p1.d 
-	@${FIXDEPS} ${OBJECTDIR}/MyriadPro24pts_bold.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
-	
 ${OBJECTDIR}/MyriadPro62pts_bold.p1: MyriadPro62pts_bold.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/MyriadPro62pts_bold.p1.d 
@@ -189,14 +173,6 @@ ${OBJECTDIR}/MyriadPro62pts_bold.p1: MyriadPro62pts_bold.c  nbproject/Makefile-$
 	@-${MV} ${OBJECTDIR}/MyriadPro62pts_bold.d ${OBJECTDIR}/MyriadPro62pts_bold.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/MyriadPro62pts_bold.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
-${OBJECTDIR}/tahoma8pt.p1: tahoma8pt.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/tahoma8pt.p1.d 
-	@${RM} ${OBJECTDIR}/tahoma8pt.p1 
-	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=pickit3  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/tahoma8pt.p1  tahoma8pt.c 
-	@-${MV} ${OBJECTDIR}/tahoma8pt.d ${OBJECTDIR}/tahoma8pt.p1.d 
-	@${FIXDEPS} ${OBJECTDIR}/tahoma8pt.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
-	
 ${OBJECTDIR}/TimesNewRoman12pt.p1: TimesNewRoman12pt.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/TimesNewRoman12pt.p1.d 
@@ -204,6 +180,14 @@ ${OBJECTDIR}/TimesNewRoman12pt.p1: TimesNewRoman12pt.c  nbproject/Makefile-${CND
 	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=pickit3  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/TimesNewRoman12pt.p1  TimesNewRoman12pt.c 
 	@-${MV} ${OBJECTDIR}/TimesNewRoman12pt.d ${OBJECTDIR}/TimesNewRoman12pt.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/TimesNewRoman12pt.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
+	
+${OBJECTDIR}/bluetooth.p1: bluetooth.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/bluetooth.p1.d 
+	@${RM} ${OBJECTDIR}/bluetooth.p1 
+	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  -D__DEBUG=1 --debugger=pickit3  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/bluetooth.p1  bluetooth.c 
+	@-${MV} ${OBJECTDIR}/bluetooth.d ${OBJECTDIR}/bluetooth.p1.d 
+	@${FIXDEPS} ${OBJECTDIR}/bluetooth.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
 else
 ${OBJECTDIR}/DAACED.p1: DAACED.c  nbproject/Makefile-${CND_CONF}.mk
@@ -278,22 +262,6 @@ ${OBJECTDIR}/charger.p1: charger.c  nbproject/Makefile-${CND_CONF}.mk
 	@-${MV} ${OBJECTDIR}/charger.d ${OBJECTDIR}/charger.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/charger.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
-${OBJECTDIR}/MyriadPro18pts_bold.p1: MyriadPro18pts_bold.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/MyriadPro18pts_bold.p1.d 
-	@${RM} ${OBJECTDIR}/MyriadPro18pts_bold.p1 
-	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/MyriadPro18pts_bold.p1  MyriadPro18pts_bold.c 
-	@-${MV} ${OBJECTDIR}/MyriadPro18pts_bold.d ${OBJECTDIR}/MyriadPro18pts_bold.p1.d 
-	@${FIXDEPS} ${OBJECTDIR}/MyriadPro18pts_bold.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
-	
-${OBJECTDIR}/MyriadPro24pts_bold.p1: MyriadPro24pts_bold.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/MyriadPro24pts_bold.p1.d 
-	@${RM} ${OBJECTDIR}/MyriadPro24pts_bold.p1 
-	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/MyriadPro24pts_bold.p1  MyriadPro24pts_bold.c 
-	@-${MV} ${OBJECTDIR}/MyriadPro24pts_bold.d ${OBJECTDIR}/MyriadPro24pts_bold.p1.d 
-	@${FIXDEPS} ${OBJECTDIR}/MyriadPro24pts_bold.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
-	
 ${OBJECTDIR}/MyriadPro62pts_bold.p1: MyriadPro62pts_bold.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/MyriadPro62pts_bold.p1.d 
@@ -302,14 +270,6 @@ ${OBJECTDIR}/MyriadPro62pts_bold.p1: MyriadPro62pts_bold.c  nbproject/Makefile-$
 	@-${MV} ${OBJECTDIR}/MyriadPro62pts_bold.d ${OBJECTDIR}/MyriadPro62pts_bold.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/MyriadPro62pts_bold.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
-${OBJECTDIR}/tahoma8pt.p1: tahoma8pt.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/tahoma8pt.p1.d 
-	@${RM} ${OBJECTDIR}/tahoma8pt.p1 
-	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/tahoma8pt.p1  tahoma8pt.c 
-	@-${MV} ${OBJECTDIR}/tahoma8pt.d ${OBJECTDIR}/tahoma8pt.p1.d 
-	@${FIXDEPS} ${OBJECTDIR}/tahoma8pt.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
-	
 ${OBJECTDIR}/TimesNewRoman12pt.p1: TimesNewRoman12pt.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/TimesNewRoman12pt.p1.d 
@@ -317,6 +277,14 @@ ${OBJECTDIR}/TimesNewRoman12pt.p1: TimesNewRoman12pt.c  nbproject/Makefile-${CND
 	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/TimesNewRoman12pt.p1  TimesNewRoman12pt.c 
 	@-${MV} ${OBJECTDIR}/TimesNewRoman12pt.d ${OBJECTDIR}/TimesNewRoman12pt.p1.d 
 	@${FIXDEPS} ${OBJECTDIR}/TimesNewRoman12pt.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
+	
+${OBJECTDIR}/bluetooth.p1: bluetooth.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/bluetooth.p1.d 
+	@${RM} ${OBJECTDIR}/bluetooth.p1 
+	${MP_CC} --pass1 $(MP_EXTRA_CC_PRE) --chip=$(MP_PROCESSOR_OPTION) -Q -G  --double=24 --float=24 --emi=wordwrite --opt=+asm,+asmfile,-speed,+space,-debug,+local --addrqual=ignore --mode=pro -P -N255 -V --warn=-5 --asmlist -DXPRJ_default=$(CND_CONF)  --summary=default,-psect,-class,+mem,-hex,-file --errata=+NVMREG --output=default,-inhx032 --runtime=default,+clear,+init,-keep,-no_startup,-download,+config,+clib,-plib $(COMPARISON_BUILD)  --output=-mcof,+elf:multilocs --stack=compiled:auto:auto:auto "--errformat=%f:%l: error: (%n) %s" "--warnformat=%f:%l: warning: (%n) %s" "--msgformat=%f:%l: advisory: (%n) %s"    -o${OBJECTDIR}/bluetooth.p1  bluetooth.c 
+	@-${MV} ${OBJECTDIR}/bluetooth.d ${OBJECTDIR}/bluetooth.p1.d 
+	@${FIXDEPS} ${OBJECTDIR}/bluetooth.p1.d $(SILENT) -rsi ${MP_CC_DIR}../  
 	
 endif
 

@@ -32,7 +32,7 @@ uint16_t contrast_value = 0x0135;
 #define LCD_MAX_ADDRESS         (0xA2)
 #define LCD_MAX_PAGES           (20)
 uint16_t contrast_value = 0x0125; // Empirical starting value
-#define UI_HEADER_END_LINE      (32)
+#define UI_HEADER_END_LINE      (24)
 #define UI_DIAG_GRID_START_LINE (39)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (112)
@@ -111,7 +111,8 @@ TBool orientation_change_enabled = false;
 #define PopX2       LCD_WIDTH*7/8
 #define PopY2       LCD_HEIGHT*3/4
 
-const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
+//const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
+const FONT_INFO *SmallFont = &timesNewRoman_12ptFontInfo;
 const FONT_INFO *MediumFont = &timesNewRoman_12ptFontInfo;
 //const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
 //const FONT_INFO *SmallFont = &myriadPro_18ptFontInfo;

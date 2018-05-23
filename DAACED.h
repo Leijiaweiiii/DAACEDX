@@ -25,6 +25,7 @@
 #include "ui.h"
 #include "adc.h"
 #include "charger.h"
+#include "bluetooth.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
@@ -141,10 +142,6 @@ unsigned char PortE_Data;
 #define BackLightON          {PortE_Data = PORTE ; PortE_Data &= 0xBF ; PORTE = PortE_Data;}
 #define BackLightOFF         {PortE_Data = PORTE ; PortE_Data |= 0x40 ; PORTE = PortE_Data;}
 
-TBool Powered;
-#define PowerON              {LATEbits.LATE0 = 1; Powered=True;}
-#define PowerOFF             {LATEbits.LATE0 = 0; Powered=False;}
-
 #define BuzzerPeriod          50            //[10uSec]  = 10/Freq
 #define BuzzerCycles          300           //Cycles
 #define DACdata               DAC1CON1
@@ -257,7 +254,7 @@ SettingsMenu_t ma; // Submenu for second level menu
 SettingsMenu_t mx; // Submenu for third level menu
 SettingsMenu_t SettingsMenu;
 
-uint8_t  battery_level;
+uint16_t  battery_level;
 // </editor-fold>
 
 void DoSettings();
