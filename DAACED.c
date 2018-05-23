@@ -1447,7 +1447,9 @@ void DoReview() {
     CurShootString = 0;
     CurShoot = 1;
     set_screen_title("Review");
-    lcd_clear();
+
+    //    getShootString(CurShootString);
+    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     do {
         ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
         define_input_action();
@@ -1798,11 +1800,7 @@ void update_screen_model() {
             }
             break;
         default:
-            if (rtc_time.unix_time_ms % 2) {
-                ADC_ENABLE_INTERRUPT_BATTERY;
-            } else {
-                ADC_ENABLE_INTERRUPT_ACCELEROMETR;
-            }
+
             //do nothing, we're stimm in ISR
             break;
     }
@@ -1822,6 +1820,18 @@ static void interrupt isr(void) {
         PIR6bits.TMR1GIF = 0;
         frames_count = 0;
         define_charger_state();
+        switch (ui_state) {
+            case TimerListening:
+            case TimerCountdown:
+                break;
+            default:
+                if (rtc_time.sec % 2) {
+                    ADC_ENABLE_INTERRUPT_BATTERY;
+                } else {
+                    ADC_ENABLE_INTERRUPT_ACCELEROMETR;
+                }
+                break;
+        }
     }
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
@@ -1829,24 +1839,24 @@ static void interrupt isr(void) {
 
         switch (ADPCH) {
             case ENVELOPE:
-                ADC_BUFFER_PUT((ADRESH << 8) | ADRESL);
+                ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
                 if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
                     UpdateShootNow();
                 }
                 break;
             case BATTERY:
             {
-                uint16_t battery = ((ADRESH << 8) | ADRESL);
+                uint16_t battery = ADC_SAMPLE_REG_16_BIT;
                 uint16_t battery_mV = battery*BAT_divider;
-                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
-                if (battery_level > 99) battery_level = 99;
+                battery_level = battery_mV;
+//                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
+                //                if (battery_level > 99) battery_level = 99;
             }
                 break;
             case ACCELEROMETER:
-                orientation = ((ADRESH << 8) | ADRESL) > ORIENTATION_INVERSE_THRESHOLD;
+                orientation = ADC_SAMPLE_REG_16_BIT > ORIENTATION_INVERSE_THRESHOLD;
                 break;
         }
-
     }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
