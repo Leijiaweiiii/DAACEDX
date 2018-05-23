@@ -647,7 +647,7 @@ TBool EditPar(uint8_t par_index) {
     NumberSelection_t b;
     b.fmin = 0.1;
     b.fmax = 100.0;
-    b.fvalue = ParTime[par_index] / 1000;
+    b.fvalue = (float) ParTime[par_index] / 1000;
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index);
     b.fstep = 0.1;
@@ -1447,9 +1447,7 @@ void DoReview() {
     CurShootString = 0;
     CurShoot = 1;
     set_screen_title("Review");
-
-    //    getShootString(CurShootString);
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
+    lcd_clear();
     do {
         ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
         define_input_action();
