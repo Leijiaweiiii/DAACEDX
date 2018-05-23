@@ -95,6 +95,8 @@ void SelectMenuItem(SettingsMenu_t* s) {
             break;
         case ReviewShort:ui_state = ReviewScreen;
             break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
+            break;
         default:
             break;
     }
@@ -127,6 +129,8 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
         case ReviewShort:ui_state = ReviewScreen;
+            break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             break;
@@ -166,6 +170,8 @@ void SelectInteger(NumberSelection_t* sm) {
             break;
         case ReviewShort:ui_state = ReviewScreen;
             break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
+            break;
         default:
             break;
     }
@@ -204,6 +210,8 @@ void SelectDouble(NumberSelection_t* sm) {
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
         case ReviewShort:ui_state = ReviewScreen;
+            break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             break;
@@ -268,29 +276,10 @@ void SelectTime(TimeSelection_t* ts) {
             break;
         case ReviewShort:ui_state = ReviewScreen;
             break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
+            break;
         default:
             break;
     }
     comandToHandle = None;
-}
-
-uint8_t PopMsg(const char* msg, uint16_t wait) {
-    //    uint16_t t = 0;
-    //    uint8_t Yo1 = PopY1 + ((PopY2 - (PopY1 + MediumFont->height)) >> 1);
-    //    uint8_t Xo1 = PopX1 + ((PopX2 - (PopX1 + lcd_string_lenght(msg, MediumFont))) >> 1);
-    //    lcd_fill_block(PopX1, PopY1, PopX2, PopY2);
-    //    lcd_write_string(msg, Xo1, Yo1, MediumFont, WHITE_OVER_BLACK);
-    //    //    if (wait == 0) {
-    //    //        while (!Keypressed);
-    //    //        return Key;
-    //    //    } else {
-    //    while (t < wait) {
-    //        __delay_ms(1);
-    //        t++;
-    //        //            if (Keypressed) return Key;
-    //    }
-    //        return Yo1;
-    //    }
-    // TODO: Handle popup with selection
-    return 0;
 }

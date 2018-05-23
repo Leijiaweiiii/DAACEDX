@@ -61,12 +61,14 @@ void StopTimer() {
 
 void handle_charger_connected() {
     switch (comandToHandle) {
+        case ReviewLong:
+        case OkLong:
+        case StartLong:STATE_HANDLE_POWER_ON;
+            break;
         case ChargerEvent:
             DoCharging();
             break;
         default:
-            PowerOFF;
-            ui_state = PowerOff;
             break;
     }
 }
@@ -77,9 +79,7 @@ void handle_power_off() {
         case OkLong:
         case StartLong:STATE_HANDLE_POWER_ON;
             break;
-        case ChargerEvent:
-            DoCharging();
-            ui_state = ChargerScreen;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             //do nothing - we're sleeping;
@@ -88,13 +88,14 @@ void handle_power_off() {
     comandToHandle = None;
 }
 
-void handle_timer_idle_shutdown(){
-    if(comandToHandle!=None){
+void handle_timer_idle_shutdown() {
+    if (comandToHandle != None) {
         timer_idle_last_action_time = rtc_time.unix_time_ms;
-    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time>=timer_idle_shutdown_timeout){
+    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_shutdown_timeout) {
         comandToHandle = StartLong;
     }
 }
+
 void handle_timer_idle() {
     set_screen_title("Timer Idle");
     update_shot_time_on_screen();
@@ -118,9 +119,7 @@ void handle_timer_idle() {
         case DownShort:
             lcd_decrease_contrast();
             break;
-        case ChargerEvent:
-            DoCharging();
-            ui_state = ChargerScreen;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             //All the rest ignoring
@@ -175,6 +174,8 @@ void handle_review_screen() {
             break;
         case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
             break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
+            break;
         default:
             DoReview();
             break;
@@ -189,6 +190,8 @@ void handle_settings_screen() {
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
+            break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             //All the rest ignoring
