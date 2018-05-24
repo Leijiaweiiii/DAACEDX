@@ -112,12 +112,12 @@ TBool orientation_change_enabled = false;
 #define PopY2       LCD_HEIGHT*3/4
 
 //const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
-const FONT_INFO *SmallFont = &timesNewRoman_12ptFontInfo;
-const FONT_INFO *MediumFont = &timesNewRoman_12ptFontInfo;
+const FONT_INFO *SmallFont = &squadaOne_20ptFontInfo;
+const FONT_INFO *MediumFont = &squadaOne_20ptFontInfo;
 //const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
 //const FONT_INFO *SmallFont = &myriadPro_18ptFontInfo;
 //const FONT_INFO *MediumFont = &myriadPro_24ptFontInfo;
-const FONT_INFO *BigFont = &myriadPro_62ptFontInfo;
+const FONT_INFO *BigFont = &squadaOne_62ptFontInfo;
 
 
 volatile uint8_t frames_count = 0;
