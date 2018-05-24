@@ -1641,7 +1641,7 @@ uint8_t print_footer() {
             );
     print_label_at_footer_grid(message, 2, 1);
 
-    sprintf(message, " FPS:%02d ", frames_count);
+    sprintf(message, "B:%04d ", adc_battery);
     print_label_at_footer_grid(message, 3, 1);
     sprintf(message, " K:%02X ", PORTB);
     print_label_at_footer_grid(message, 3, 0);
@@ -1845,8 +1845,8 @@ static void interrupt isr(void) {
                 break;
             case BATTERY:
             {
-                uint16_t battery = ADC_SAMPLE_REG_16_BIT;
-                uint16_t battery_mV = battery*BAT_divider;
+                adc_battery = ADC_SAMPLE_REG_16_BIT;
+                uint16_t battery_mV = adc_battery*BAT_divider;
                 battery_level = battery_mV;
 //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
                 //                if (battery_level > 99) battery_level = 99;

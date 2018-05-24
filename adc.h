@@ -42,7 +42,8 @@ uint8_t head_index = 0;
 TBool AdcDetect();
 uint16_t median_v = 0;
 uint16_t median();
-uint16_t cma_n = 0;
+volatile uint16_t cma_n = 0;
+volatile uint16_t adc_battery = 0;
 uint16_t MeanValue();
 #define ADC_CMA_MEMORY_FACTOR       16
 #define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
