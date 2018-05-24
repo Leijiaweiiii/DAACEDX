@@ -32,7 +32,7 @@ uint16_t contrast_value = 0x0135;
 #define LCD_MAX_ADDRESS         (0xA2)
 #define LCD_MAX_PAGES           (20)
 uint16_t contrast_value = 0x0125; // Empirical starting value
-#define UI_HEADER_END_LINE      (24)
+#define UI_HEADER_END_LINE      (32)
 #define UI_DIAG_GRID_START_LINE (39)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (112)
