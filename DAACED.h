@@ -113,7 +113,7 @@ uint8_t find_set_bit_position(uint8_t n);
 
 // <editor-fold defaultstate="collapsed" desc="Disp&Keys">
 #define Bot                  LCD_HEIGHT-30
-#define SWAP_KEYS
+#undef SWAP_KEYS
 #ifndef SWAP_KEYS
 #define Key                  (PORTB & 0x3F)
 #define KeySt                 0x02  //Start

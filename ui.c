@@ -154,7 +154,8 @@ void handle_timer_listening() {
         case StartShort:
             if (AutoStart) STATE_HANDLE_COUNTDOWN;
             break;
-        case ReviewShort:STATE_HANDLE_TIMER_IDLE;
+        case ReviewLong:
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
             break;
         default:
             // All the rest keys handled inside the next handler.
@@ -232,10 +233,10 @@ void handle_countdown() {
 
 TBool is_long_press() {
     //TODO: try save memory taking lower byte to save memory...
-    time_t press_time = rtc_time.sec;
+    time_t press_time = rtc_time.msec;
     time_t duration = 0;
     do {
-        duration = rtc_time.sec - press_time;
+        duration = rtc_time.msec - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);

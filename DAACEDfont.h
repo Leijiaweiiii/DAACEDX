@@ -118,4 +118,24 @@ extern const uint_8 myriadPro_62ptBitmaps[];
 extern const FONT_INFO myriadPro_62ptFontInfo;
 extern const FONT_CHAR_INFO myriadPro_62ptDescriptors[];
 
+/* Font data for Squada One 20pt */
+extern const uint_8 squadaOne_20ptBitmaps[];
+extern const FONT_INFO squadaOne_20ptFontInfo;
+extern const FONT_CHAR_INFO squadaOne_20ptDescriptors[];
+
+/* Font data for Squada One 26pt */
+extern const uint_8 squadaOne_26ptBitmaps[];
+extern const FONT_INFO squadaOne_26ptFontInfo;
+extern const FONT_CHAR_INFO squadaOne_26ptDescriptors[];
+
+/* Font data for Squada One 62pt */
+extern const uint_8 squadaOne_62ptBitmaps[];
+extern const FONT_INFO squadaOne_62ptFontInfo;
+extern const FONT_CHAR_INFO squadaOne_62ptDescriptors[];
+
+/* Font data for Squada One 72pt */
+extern const uint_8 squadaOne_72ptBitmaps[];
+extern const FONT_INFO squadaOne_72ptFontInfo;
+extern const FONT_CHAR_INFO squadaOne_72ptDescriptors[];
+
 #endif // _FONT_H_

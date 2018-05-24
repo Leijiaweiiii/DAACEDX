@@ -736,10 +736,10 @@ void SetPar(SettingsMenu_t * m) {
 void SetBacklight() {//PWM Backlite
     NumberSelection_t b;
     strmycpy(b.MenuTitle, "Backlight");
-    b.max = 99;
+    b.max = 10;
     b.min = 1;
     b.step = 1;
-    b.value = BackLightLevel;
+    b.value = BackLightLevel/10;
     b.old_value = b.value;
     b.format = "%u";
     b.done = False;
@@ -748,7 +748,7 @@ void SetBacklight() {//PWM Backlite
         SelectInteger(&b);
         set_backlight(b.value);
     } while (SettingsNotDone((&b)));
-    BackLightLevel = b.value;
+    BackLightLevel = b.value * 10;
     set_backlight(BackLightLevel);
     SaveToEEPROM != (b.value != b.old_value);
 }
@@ -889,7 +889,7 @@ void SetFilter() {
     NumberSelection_t f;
     strmycpy(f.MenuTitle, "Filter");
     f.min = 10;
-    f.max = 100;
+    f.max = 200;
     f.step = 10;
     f.value = Filter;
     f.old_value = f.value;
@@ -1348,7 +1348,7 @@ void DoSettings(void) {
             SettingsMenu.selected = False;
             lcd_clear();
         }
-    } while (ui_state == SettingsScreen);
+    } while (SettingsNotDone((&SettingsMenu)));
     if (SaveToEEPROM) {
         saveSettings();
         SaveToEEPROM = False;
@@ -1605,7 +1605,7 @@ uint8_t print_footer() {
     //    print_stats();
     uint8_t line = UI_FOOTER_START_LINE + 2;
     char message[20];
-    print_footer_grid();
+//    print_footer_grid();
     switch (DelayMode) {
         case Instant:sprintf(message, " Instant");
             break;
@@ -1643,7 +1643,7 @@ uint8_t print_footer() {
 
     sprintf(message, " FPS:%02d ", frames_count);
     print_label_at_footer_grid(message, 3, 1);
-    sprintf(message, " KEY:0x%02X ", PORTB);
+    sprintf(message, " K:%02X ", PORTB);
     print_label_at_footer_grid(message, 3, 0);
     //    sprintf(message, "CNT:0x%X ", contrast_value);
     return line - UI_FOOTER_START_LINE;
