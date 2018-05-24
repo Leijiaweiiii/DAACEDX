@@ -77,14 +77,15 @@ uint8_t get_time_source() {
 }
 
 void initialize_rtc_timer() {
-    uint8_t init_timeout = 0;
+    uint16_t init_timeout = 0;
     // Real time counter will count 2 seconds forever.
     // Timer1 for sync
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
-    OSCENbits.EXTOEN = 1; // Reference Oscillator Manual Request Enable bit.
-    OSCENbits.SOSCEN = 0;
-    while (!OSCSTATbits.EXTOR) {
+    OSCENbits.SOSCEN = 1;
+    OSCENbits.EXTOEN = 0;
+    init_timeout = 0;
+    while (!OSCSTATbits.SOR) {
         init_timeout++;
         if (init_timeout == 0) {
             break;
@@ -92,22 +93,6 @@ void initialize_rtc_timer() {
         Delay(2);
     }
 
-    if (!OSCSTATbits.EXTOR) {
-        OSCENbits.SOSCEN = 1;
-        OSCENbits.EXTOEN = 0;
-        init_timeout = 0;
-        while (!OSCSTATbits.SOR) {
-            init_timeout++;
-            if (init_timeout == 0) {
-                break;
-            }
-            Delay(2);
-        }
-    }
-//    if (OSCSTATbits.EXTOR) {
-//        TMR1CLKbits.CS = 0b0111; // TIMER1 clock source = 32.768KHz Reference Oscillator.
-//        OSCENbits.SOSCEN = 0;
-//    } else
     if (OSCSTATbits.SOR) {
         TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
         OSCENbits.EXTOEN = 0;

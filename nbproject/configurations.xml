@@ -35,8 +35,8 @@
       <itemPath>menu.c</itemPath>
       <itemPath>charger.c</itemPath>
       <itemPath>bluetooth.c</itemPath>
-      <itemPath>SquadaOne_20pt.c</itemPath>
-      <itemPath>SquadaOne_62pt.c</itemPath>
+      <itemPath>TimesNewRoman12pt.c</itemPath>
+      <itemPath>MyriadPro62pts_bold.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

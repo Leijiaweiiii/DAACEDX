@@ -233,10 +233,10 @@ void handle_countdown() {
 
 TBool is_long_press() {
     //TODO: try save memory taking lower byte to save memory...
-    time_t press_time = rtc_time.msec;
+    time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
     do {
-        duration = rtc_time.msec - press_time;
+        duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
@@ -245,12 +245,10 @@ TBool is_long_press() {
 }
 
 TBool is_long_press_repeatable() {
-    time_t press_time = rtc_time.sec;
+    time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
-    KeyReleased = false; // Mark key released only here to avoid double sensing of key press
     do {
-        duration = rtc_time.sec - press_time;
-        //        delay_rtc_ms(100);
+        duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
