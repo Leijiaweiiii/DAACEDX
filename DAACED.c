@@ -1711,7 +1711,10 @@ void StartCountdownTimer() {
             break;
         case Fixed: DelayTime = 3000;
             break;
-        case Random: DelayTime = (5 * DelayTime) % 4999;
+        case Random:
+            if (DelayTime < 500)
+                DelayTime = 1134;
+            DelayTime = (5 * DelayTime) % 3199;
             break;
         case Custom: DelayTime = eeprom_read_wdata(DelayTime_Address); //TODO: read model once at the power on
             //Read again in case was changed from other mode
