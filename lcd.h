@@ -11,7 +11,7 @@
 //#define SMALL_LCD
 #undef SMALL_LCD
 #define LCD_DIRECT_ACCESS
-#define UI_FOOTER_GRID_H_CELLS  4
+#define UI_FOOTER_GRID_H_CELLS  3
 #define UI_FOOTER_GRID_V_CELLS  2
 #ifdef SMALL_LCD
 #define MSB_FIRST
@@ -36,7 +36,7 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define UI_DIAG_GRID_START_LINE (39)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (112)
-#define UI_FOOTER_GRID_WIDTH    (60)
+#define UI_FOOTER_GRID_WIDTH    (80)
 #define UI_FOOTER_GRID_HEIGH    (24)
 #define Y_OFFSET                (0)
 #define UI_CHARGING_LBL_X       (64)
@@ -45,7 +45,7 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 
 
 #define UI_FOOTER_GRID_X(x)     (x*UI_FOOTER_GRID_WIDTH + 2)
-#define UI_FOOTER_GRID_Y(x,y)     (y+x*UI_FOOTER_GRID_HEIGH)
+#define UI_FOOTER_GRID_Y(x,y)   (y+x*UI_FOOTER_GRID_HEIGH)
 #define LCD_BLACK_PAGE          0xFF
 #define LCD_WHITE_PAGE          0x00
 #define LCD_TOP_LINE_PAGE       0xC0

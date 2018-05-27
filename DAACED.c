@@ -431,17 +431,6 @@ void stop_sinus() {
 
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="Small Routines">
-
-void TestBattery(void) {
-    if (ui_state == TimerListening) return; // Don't measure anything when testing shots
-    uint16_t battery = ADC_Read(BATTERY);
-    uint16_t battery_mV = battery*BAT_divider;
-    battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
-    if (battery_level > 99) battery_level = 99;
-}
-// </editor-fold>
-
 // <editor-fold defaultstate="collapsed" desc="Settings Display">
 
 uint8_t SettingsTitle(SettingsMenu_t* sm) {
@@ -1564,8 +1553,8 @@ uint8_t old_bat_length = 0;
 void print_batery_text_info() {
     char message[32];
     sprintf(message,
-            "%dv",
-            (battery_level > 100) ? 100 : battery_level);
+            "%d",
+            battery_level);
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
         lcd_clear_block(LCD_WIDTH - 10 - old_bat_length, 0, LCD_WIDTH - 8, SmallFont->height + 1);
@@ -1580,32 +1569,13 @@ uint8_t print_header() {
     return UI_HEADER_END_LINE;
 }
 
-
-// TODO: Implement
-
-void print_footer_grid() {
-    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE - 1, LCD_BOT_LINE_PAGE);
-    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE - 1 + UI_FOOTER_GRID_HEIGH, LCD_MID_LINE_PAGE);
-    lcd_draw_fullsize_hgridline(UI_FOOTER_START_LINE - 1 + UI_FOOTER_GRID_HEIGH * 2, LCD_TOP_LINE_PAGE);
-
-    lcd_draw_vgrid_lines(UI_FOOTER_START_LINE);
-}
-
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
-    //    lcd_clear_block_d(
-    //            UI_FOOTER_GRID_X(grid_x),
-    //            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE),
-    //            UI_FOOTER_GRID_X(grid_x)+UI_FOOTER_GRID_WIDTH,
-    //            UI_FOOTER_GRID_Y(grid_y,UI_FOOTER_START_LINE)+UI_FOOTER_GRID_HEIGH
-    //            );
     lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y, UI_FOOTER_START_LINE), SmallFont, BLACK_OVER_WHITE);
 }
 
 uint8_t print_footer() {
-    //    print_stats();
     uint8_t line = UI_FOOTER_START_LINE + 2;
     char message[20];
-//    print_footer_grid();
     switch (DelayMode) {
         case Instant:sprintf(message, " Instant");
             break;
@@ -1623,7 +1593,6 @@ uint8_t print_footer() {
 
     if (TotPar > 0) {
         sprintf(message, "Par %d:%3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
-        //    sprintf(message, "ADC: %d   ", ADC_LATEST_VALUE);
     } else {
         sprintf(message, " Par: Off");
     }
@@ -1640,12 +1609,6 @@ uint8_t print_footer() {
             (AR_IS.BT) ? "BT" : " "
             );
     print_label_at_footer_grid(message, 2, 1);
-
-    sprintf(message, "B:%04d ", adc_battery);
-    print_label_at_footer_grid(message, 3, 1);
-    sprintf(message, " K:%02X ", PORTB);
-    print_label_at_footer_grid(message, 3, 0);
-    //    sprintf(message, "CNT:0x%X ", contrast_value);
     return line - UI_FOOTER_START_LINE;
 }
 
@@ -1706,8 +1669,7 @@ void clear_timer_area() {
 }
 
 void update_shot_time_on_screen() {
-    //    clear_timer_area();
-    uint8_t c = ShootString.TotShoots; // Declare for code ease. TODO: Clean after
+    uint8_t c = ShootString.TotShoots;
     time_t t = 0, dt = 0;
     switch (c) {
         case 0:
@@ -1935,6 +1897,7 @@ void main(void) {
 
     lcd_clear_data_ram();
     while (True) {
+        //TODO: Integrate watchdog timer
         handle_rotation();
         handle_ui();
         //          lcd_demo();

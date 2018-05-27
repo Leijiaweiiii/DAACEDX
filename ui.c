@@ -5,14 +5,14 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
     double s;
     uint8_t x_pos = 0;
-    uint8_t y_pos = UI_HEADER_END_LINE+ BigFont->height;
+    uint8_t y_pos = UI_HEADER_END_LINE + BigFont->height;
     sprintf(message, "#%03d", shot_no);
     lcd_write_string(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
-    x_pos = lcd_string_lenght(message, SmallFont) + 7;
+
     s = 0.001 * split;
     sprintf(message, "Split %.2f", s);
-
+    x_pos = LCD_WIDTH - lcd_string_lenght(message, SmallFont);
     lcd_write_string(
             message,
             x_pos,
@@ -20,18 +20,18 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
             BLACK_OVER_WHITE
             );
 }
+
 uint8_t old_time_str_len = 0;
 
 void print_big_time_label(time_t t) {
     char message[16];
-    sprintf(message, "%3.02f  ", ((float) t) / 1000);
+    sprintf(message, "%3.02f", ((float) t) / 1000);
     uint8_t len = lcd_string_lenght(message, BigFont);
     if (len < old_time_str_len)
-        lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
+        lcd_clear_block(LCD_WIDTH-old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
     old_time_str_len = len;
-    lcd_write_string(message, 0, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
-
 void update_countdown_time_on_screen() {
     time_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder / 100 * 100);
@@ -218,7 +218,7 @@ void handle_countdown() {
         case CountdownExpired:
             ui_state = TimerListening;
             update_shot_time_on_screen();
-            
+
             if (TotPar > 0)
                 StartParTimer();
             PlayStartSound();

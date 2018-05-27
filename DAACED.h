@@ -195,7 +195,6 @@ struct tShoot
                                   //the order is from the one matked 1 up till last address
                                   //then the next will be at starting address (cyclic)
     uint8_t TotShoots;            //Total shoots in current string
-
 } ShootString;
 
 //ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
@@ -276,5 +275,6 @@ TBool Detect();
 void UpdateShootNow();
 void DoAdcGraph();
 void DoDiagnostics();
+void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
 
 #endif /*  _DAACED_H_ */
