@@ -97,7 +97,7 @@ void lcd_update_boundingbox(UpdateBoundary * box, uint8_t x_min, uint8_t y_min, 
 
 uint8_t update_page(LCDPage * page, uint8_t position, uint8_t polarity) {
     uint8_t p = page->PAGE;
-    switch (position % PAGE_HEIGTH) {
+    switch (position % LCD_PAGE_HEIGTH) {
 #ifdef MSB_FIRST
         case 0:
             page->p0 = polarity;
@@ -239,7 +239,7 @@ void lcd_refresh(UpdateBoundary * box) {
     // Don't even try to update unchanged box
     if (!box->changed) return;
 
-    for (page = box->min_y / PAGE_HEIGTH; page < box->max_y / PAGE_HEIGTH; page = page + 1) {
+    for (page = box->min_y / LCD_PAGE_HEIGTH; page < box->max_y / LCD_PAGE_HEIGTH; page = page + 1) {
         lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
         lcd_send_command(CMD_PAGE_ADD); // Row address.
         lcd_send_data(page + Y_OFFSET); // Start row address.

@@ -56,11 +56,11 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define LCD_GRAPH_START_PAGE    Y_OFFSET+3
 
 
-#define PAGE_HEIGTH              (8)
+#define LCD_PAGE_HEIGTH              (8)
 
-#define PAGE(x)                 (x/PAGE_HEIGTH + Y_OFFSET)
+#define PAGE(x)                 (x/LCD_PAGE_HEIGTH + Y_OFFSET)
 
-#define START_OF_PAGE(x)        (x%PAGE_HEIGTH == 0)
+#define START_OF_PAGE(x)        (x%LCD_PAGE_HEIGTH == 0)
 #define BLACK_OVER_WHITE        (0x01)
 #define WHITE_OVER_BLACK        (0x00)
 
