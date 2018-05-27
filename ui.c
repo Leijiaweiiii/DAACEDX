@@ -126,7 +126,9 @@ void handle_timer_idle() {
 
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
-        case TimerTimeout:STATE_HANDLE_TIMER_IDLE;
+        case TimerTimeout:
+            saveShootString();
+            STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
             if (TotPar > 0)
@@ -146,13 +148,19 @@ void handle_timer_listening() {
     //    DoAdcGraph();
     print_footer();
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:
+            saveShootString();
+            STATE_HANDLE_POWER_OFF;
             break;
         case StartShort:
-            if (AutoStart) STATE_HANDLE_COUNTDOWN;
+            if (AutoStart) {
+                STATE_HANDLE_COUNTDOWN;
+            } else saveShootString();
             break;
         case ReviewLong:
-        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
+        case ReviewShort:
+            saveShootString();
+            STATE_HANDLE_REVIEW_SCREEN;
             break;
         default:
             // All the rest keys handled inside the next handler.

@@ -204,7 +204,7 @@ time_t  measurement_start_time_msec;        // Reference time for counting shppt
 uint8_t  CurShoot;                //The current shoot of the displayed string
 uint16_t CurShootString,          //Currently displayed string number 0..29
          CurrStringStartAddress;
-#define  Size_of_ShootString        302  // sizeof(ShootString)  did not work
+#define  Size_of_ShootString        336  // sizeof(ShootString)  did not work
 #define SHOTS_ON_REVIEW_SCREEN      3
 
 typedef enum {
@@ -277,5 +277,5 @@ void UpdateShootNow();
 void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
-
+void saveShootString(void);
 #endif /*  _DAACED_H_ */
