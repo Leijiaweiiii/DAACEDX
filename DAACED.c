@@ -785,26 +785,26 @@ void SetBeepTime(TBool Par) {
     NumberSelection_t d;
     InitSettingsNumberDefaults((&d));
     if (Par) {
-        d.value = BuzzerParDuration;
-        strmycpy(d.MenuTitle, "Par Duration ms");
+        d.fvalue = (float)BuzzerParDuration/1000;
+        strmycpy(d.MenuTitle, "Par Duration");
     } else {
-        d.value = BuzzerStartDuration;
-        strmycpy(d.MenuTitle, "Start Duration ms");
+        d.fvalue = (float)BuzzerStartDuration/1000;
+        strmycpy(d.MenuTitle, "Start Duration");
     }
-    d.min = 50;
-    d.max = 1000;
-    d.step = 50;
-    d.old_value = d.value;
+    d.fmin = 0.050;
+    d.fmax = 1.0;
+    d.fstep = 0.050;
+    d.fold_value = d.fvalue;
     d.done = False;
-    d.format = "%4d  ";
+    d.format = " %1.2f ";
     do {
-        DisplayInteger(&d);
-        SelectInteger(&d);
+        DisplayDouble(&d);
+        SelectDouble(&d);
     } while (SettingsNotDone((&d)));
 
-    if (Par) BuzzerParDuration = d.value;
-    else BuzzerStartDuration = d.value;
-    SaveToEEPROM |= (d.value != d.old_value);
+    if (Par) BuzzerParDuration = (int)(d.fvalue * 1000);
+    else BuzzerStartDuration = (int)(d.fvalue * 1000);
+    SaveToEEPROM |= (d.fvalue != d.fold_value);
 }
 
 void SetBeep(SettingsMenu_t * m) {
