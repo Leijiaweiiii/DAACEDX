@@ -727,8 +727,8 @@ void SetPar(SettingsMenu_t * m) {
 void SetBacklight() {//PWM Backlite
     NumberSelection_t b;
     strmycpy(b.MenuTitle, "Backlight");
-    b.max = 10;
-    b.min = 1;
+    b.max = 9;
+    b.min = 0;
     b.step = 1;
     b.value = BackLightLevel / 10;
     b.old_value = b.value;
@@ -737,7 +737,7 @@ void SetBacklight() {//PWM Backlite
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        set_backlight(b.value);
+        set_backlight(b.value*10);
     } while (SettingsNotDone((&b)));
     BackLightLevel = b.value * 10;
     set_backlight(BackLightLevel);
