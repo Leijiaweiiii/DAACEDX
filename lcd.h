@@ -41,6 +41,7 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define Y_OFFSET                (0)
 #define UI_CHARGING_LBL_X       (64)
 #define UI_CHARGING_LBL_Y       (64)
+#define UI_NUMBER_SELECTION_COLUMN ()
 #endif
 
 

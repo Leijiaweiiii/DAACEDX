@@ -569,14 +569,15 @@ TBool getShootString(uint8_t ShootStrNum) {
 
 void SetCustomDelay() {
     NumberSelection_t n;
-    // TODO: Check if static strmycpy may be replaced with assignment
     strmycpy(n.MenuTitle, "Custom Delay");
+    InitSettingsNumberDefaults((&n));
     n.fmin = 0.1;
     n.fmax = 10.0;
     n.fstep = 0.1;
     n.fvalue = (double) DelayTime / 1000;
     n.fold_value = n.fvalue;
     n.format = "%2.1f";
+    lcd_clear();
     do {
         DisplayDouble(&n);
         SelectDouble(&n);
@@ -624,6 +625,7 @@ void SetDelay(SettingsMenu_t * m) {
                     break;
                 case 3: DelayMode = Custom;
                     SetCustomDelay();
+                    lcd_clear();
                     break;
             }
         }
@@ -785,10 +787,10 @@ void SetBeepTime(TBool Par) {
     NumberSelection_t d;
     InitSettingsNumberDefaults((&d));
     if (Par) {
-        d.fvalue = (float)BuzzerParDuration/1000;
+        d.fvalue = (float) BuzzerParDuration / 1000;
         strmycpy(d.MenuTitle, "Par Duration");
     } else {
-        d.fvalue = (float)BuzzerStartDuration/1000;
+        d.fvalue = (float) BuzzerStartDuration / 1000;
         strmycpy(d.MenuTitle, "Start Duration");
     }
     d.fmin = 0.050;
@@ -802,8 +804,8 @@ void SetBeepTime(TBool Par) {
         SelectDouble(&d);
     } while (SettingsNotDone((&d)));
 
-    if (Par) BuzzerParDuration = (int)(d.fvalue * 1000);
-    else BuzzerStartDuration = (int)(d.fvalue * 1000);
+    if (Par) BuzzerParDuration = (int) (d.fvalue * 1000);
+    else BuzzerStartDuration = (int) (d.fvalue * 1000);
     SaveToEEPROM |= (d.fvalue != d.fold_value);
 }
 
@@ -1335,6 +1337,7 @@ void DoSettings(void) {
         if (SettingsMenu.selected) {
             DoSet(SettingsMenu.menu);
             SettingsMenu.selected = False;
+            SettingsMenu.done = False;
             lcd_clear();
         }
     } while (SettingsNotDone((&SettingsMenu)));

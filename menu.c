@@ -71,7 +71,7 @@ void decrement_menu_index(SettingsMenu_t * s) {
         s->page = ItemToPage(s->menu);
     } else Beep();
     s->redraw |= (oldPage != s->page);
-        
+
 }
 
 void increment_menu_index(SettingsMenu_t * s) {
@@ -197,16 +197,28 @@ void SelectDouble(NumberSelection_t* sm) {
     define_input_action();
     switch (comandToHandle) {
         case UpShort:
-        case UpLong:
             if (sm->fvalue < sm->fmax) {
                 sm->fvalue += sm->fstep;
             } else Beep();
             break;
+        case UpLong:
+            for (uint8_t i = 0; i < 5; i++) {
+                if (sm->fvalue < sm->fmax) {
+                    sm->fvalue += sm->fstep;
+                } else Beep();
+            }
+            break;
         case DownShort:
-        case DownLong:
             if (sm->fvalue > sm->fmin) {
                 sm->fvalue -= sm->fstep;
             } else Beep();
+            break;
+        case DownLong:
+            for (uint8_t i = 0; i < 5; i++) {
+            if (sm->fvalue > sm->fmin) {
+                sm->fvalue -= sm->fstep;
+            } else Beep();
+            }
             break;
         case OkShort:
         case OkLong:
