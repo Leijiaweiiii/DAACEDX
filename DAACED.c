@@ -1538,14 +1538,14 @@ TBool Detect(void) {
 uint8_t print_time() {
     char message[30];
     sprintf(message,
-            "%02d%s%02d %c %s",
+            "%02d%s%02d",
             get_hour(),
             (rtc_time.sec % 4) ? ":" : ".",
             //            ":",
-            get_minute(),
-            get_time_source(),
-            ScreenTitle);
+            get_minute());
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
+    sprintf(message, "%s",ScreenTitle);
+    lcd_write_string(message, 60, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
 uint8_t old_bat_length = 0;
