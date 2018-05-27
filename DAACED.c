@@ -728,7 +728,7 @@ void SetBacklight() {//PWM Backlite
     b.max = 10;
     b.min = 1;
     b.step = 1;
-    b.value = BackLightLevel/10;
+    b.value = BackLightLevel / 10;
     b.old_value = b.value;
     b.format = "%u";
     b.done = False;
@@ -1350,70 +1350,70 @@ void DoSettings(void) {
 #define REVIEW_SHOT_FORMAT      "#%2d: %3.2f "
 #define REVIEW_SPLIT_FORMAT     "} %3.2f "
 
-void ReviewDisplay(uint8_t battery, uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_shots) {
+void ReviewDisplay(uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_shots) {
     uint8_t line = UI_HEADER_END_LINE;
     char message[20];
     // We're assuming here that Medium font has even number of bytes heigh
-    uint8_t halfline = (MediumFont->height / 2);
+    uint8_t halfline = 16;
     print_header();
 
     //String line
-
-    line += halfline;
+    line += LCD_PAGE_HEIGTH;
     sprintf(message, "Str#%02d/%02d - %3.2f ",
             CurShootStringDisp,
             ShootString.TotShoots,
             (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
     lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
     line += MediumFont->height;
-    lcd_draw_fullsize_hline(line, LCD_MID_LINE_PAGE);
+    lcd_draw_fullsize_hline(line, LCD_TOP_LINE_PAGE);
 
-    for (uint8_t i = UI_HEADER_END_LINE; i < line; i += PAGE_HEIGTH) {
+    for (uint8_t i = UI_HEADER_END_LINE; i < line; i += LCD_PAGE_HEIGTH) {
         if (scroll_shots) {
             lcd_write_string(" ", 0, i, MediumFont, BLACK_OVER_WHITE);
         } else {
-            lcd_write_string("|", 1, i, MediumFont, BLACK_OVER_WHITE);
+            lcd_write_string("|", 0, i, MediumFont, BLACK_OVER_WHITE);
         }
     }
 
-    line += MediumFont->height;
+    line += LCD_PAGE_HEIGTH;
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     for (int8_t i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
-        if (ShootString.ShootTime[CurShoot + i] > 0) {
-            if (scroll_shots) {
-                lcd_write_string("|", 1, line, MediumFont, BLACK_OVER_WHITE);
-            } else {
-                lcd_write_string(" ", 0, line, MediumFont, BLACK_OVER_WHITE);
-            }
-            sprintf(message,
-                    REVIEW_SHOT_FORMAT,
-                    CurShoot + i,
-                    (float) ShootString.ShootTime[CurShoot + i] / 1000
-                    );
-            lcd_write_string(message, 5, line, MediumFont, (i != 1)& 0x01);
-            line += halfline;
 
-            // Don't print last diff at half line
-            if (i < SHOTS_ON_REVIEW_SCREEN - 1) {
-                sprintf(message,
-                        REVIEW_SPLIT_FORMAT,
-                        (float) (ShootString.ShootTime[CurShoot + i + 1] - ShootString.ShootTime[CurShoot + i]) / 1000);
-                lcd_write_string(message, 100, line, MediumFont, BLACK_OVER_WHITE);
-            }
-            line += halfline;
+        if (scroll_shots) {
+            lcd_write_string("|", 0, line, MediumFont, BLACK_OVER_WHITE);
+            lcd_write_string("|", 0, line + halfline, MediumFont, BLACK_OVER_WHITE);
+        } else {
+            lcd_write_string(" ", 0, line, MediumFont, BLACK_OVER_WHITE);
+            lcd_write_string(" ", 0, line + halfline, MediumFont, BLACK_OVER_WHITE);
         }
+        sprintf(message,
+                REVIEW_SHOT_FORMAT,
+                CurShoot + i + 1,
+                (float) ShootString.ShootTime[CurShoot + i] / 1000
+                );
+        lcd_write_string(message, 40, line, MediumFont, (i != 1)& 0x01);
+        line += halfline;
+
+        // Don't print last diff at half line
+        if (i < SHOTS_ON_REVIEW_SCREEN - 1) {
+            sprintf(message,
+                    REVIEW_SPLIT_FORMAT,
+                    (float) (ShootString.ShootTime[CurShoot + i + 1] - ShootString.ShootTime[CurShoot + i]) / 1000);
+            lcd_write_string(message, 140, line, MediumFont, BLACK_OVER_WHITE);
+        }
+        line += halfline;
     }
 }
 
 void review_scroll_shot_up() {
-    if (CurShoot > 1) {
+    if (CurShoot > 0) {
         CurShoot--;
     } else Beep();
 }
 
 void review_scroll_shot_down() {
-    if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN + 1) {
+    if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN) {
         CurShoot++;
     } else Beep();
 }
@@ -1426,7 +1426,7 @@ void review_previous_string() {
 }
 
 void review_next_string() {
-    if (CurShootString < 30) {
+    if (CurShootString < MAXSHOOTSTRINGS) {
         CurShootString++;
         getShootString(CurShootString);
     } else Beep();
@@ -1435,11 +1435,11 @@ void review_next_string() {
 void DoReview() {
     TBool scroll_shots = True;
     CurShootString = 0;
-    CurShoot = 1;
+    CurShoot = 0;
     set_screen_title("Review");
     lcd_clear();
     do {
-        ReviewDisplay(battery_level, CurShoot, CurShootString + 1, scroll_shots);
+        ReviewDisplay(CurShoot, CurShootString + 1, scroll_shots);
         define_input_action();
         switch (comandToHandle) {
             case UpShort:
@@ -1810,7 +1810,7 @@ static void interrupt isr(void) {
                 adc_battery = ADC_SAMPLE_REG_16_BIT;
                 uint16_t battery_mV = adc_battery*BAT_divider;
                 battery_level = battery_mV;
-//                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
+                //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
                 //                if (battery_level > 99) battery_level = 99;
             }
                 break;

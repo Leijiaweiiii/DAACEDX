@@ -187,7 +187,8 @@ time_t CustomCDtime=5*60*1000; // 5 min in ms
 TBool   SaveToEEPROM;
 #define BT_Address                   112
 
-#define MAXSHOOT    100//100
+#define MAXSHOOTSTRINGS    30
+#define MAXSHOOT    100
 struct tShoot
 {
     time_t ShootTime[MAXSHOOT]; //in 1mS unit
@@ -204,7 +205,7 @@ uint8_t  CurShoot;                //The current shoot of the displayed string
 uint16_t CurShootString,          //Currently displayed string number 0..29
          CurrStringStartAddress;
 #define  Size_of_ShootString        302  // sizeof(ShootString)  did not work
-#define SHOTS_ON_REVIEW_SCREEN      4
+#define SHOTS_ON_REVIEW_SCREEN      3
 
 typedef enum {
     Instant, Fixed, Random, Custom
