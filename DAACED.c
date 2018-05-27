@@ -1347,6 +1347,8 @@ void DoSettings(void) {
     }
     if(ui_state == SettingsScreen){
         STATE_HANDLE_TIMER_IDLE;
+    } else {
+        lcd_clear();
     }
 }
 // </editor-fold>
