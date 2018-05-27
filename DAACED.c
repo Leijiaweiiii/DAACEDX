@@ -1345,7 +1345,9 @@ void DoSettings(void) {
         saveSettings();
         SaveToEEPROM = False;
     }
-    lcd_clear();
+    if(ui_state == SettingsScreen){
+        STATE_HANDLE_TIMER_IDLE;
+    }
 }
 // </editor-fold>
 // </editor-fold>
