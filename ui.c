@@ -3,15 +3,12 @@
 
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
-    double s;
     uint8_t x_pos = 0;
     uint8_t y_pos = UI_HEADER_END_LINE + BigFont->height;
-    sprintf(message, "#%03d", shot_no);
+    sprintf(message, "#%03d ", shot_no);
     lcd_write_string(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
-
-    s = 0.001 * split;
-    sprintf(message, "Split %.2f", s);
+    sprintf(message, "  Split %3.2f", (float)split/1000);
     x_pos = LCD_WIDTH - lcd_string_lenght(message, SmallFont);
     lcd_write_string(
             message,
