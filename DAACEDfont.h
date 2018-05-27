@@ -15,7 +15,7 @@ typedef struct FONT_CHAR_INFO {
 
 typedef struct FONT_INFO {
     uint_8 height; // Character height in pixel, all characters have same height
-    uint8_t character_spacing; // Space in pixels between characters.
+    uint_8 character_spacing; // Space in pixels between characters.
     char char_start; // First character
     char char_end; // Last character
     const FONT_CHAR_INFO* char_descriptors; // descriptor for each character

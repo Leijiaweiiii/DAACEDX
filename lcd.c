@@ -383,11 +383,11 @@ void lcd_clear_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y
 }
 #endif
 
-uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
-    uint8_t strlng = 0;
+uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
+    uint16_t strlng = 0;
     if (str_ptr == NULL) return 0;
     while (*str_ptr) {
-        strlng += font->char_descriptors[*str_ptr].width;
+        strlng += font->char_descriptors[*str_ptr - font->char_start].width;
         strlng += font->character_spacing;
         ++str_ptr;
     }

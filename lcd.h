@@ -245,7 +245,7 @@ void spi_init();
 #ifndef LCD_DIRECT_ACCESS
 void lcd_refresh(UpdateBoundary * box);
 #endif
-uint8_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font);
+uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font);
 void lcd_init();
 void lcd_clear();
 //void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity);
