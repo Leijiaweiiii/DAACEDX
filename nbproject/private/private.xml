@@ -3,21 +3,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/navado/workspace/daa/DAACED.X/ui.h</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/rtc.h</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/DAACED.h</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/DAACEDfont.h</file>
             <file>file:/home/navado/workspace/daa/DAACED.X/adc.h</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/menu.h</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/lcd.h</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/ui.h</file>
             <file>file:/home/navado/workspace/daa/DAACED.X/DAACED.c</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/lcd.c</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/lcd.h</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/PatuaOne_62pt.c</file>
             <file>file:/home/navado/workspace/daa/DAACED.X/menu.c</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/DAACEDfont.h</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/menu.h</file>
             <file>file:/home/navado/workspace/daa/DAACED.X/ui.c</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/TimesNewRoman12pt.c</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/rtc.c</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/SquadaOne_20pt.c</file>
-            <file>file:/home/navado/workspace/daa/DAACED.X/SquadaOne_62pt.c</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/charger.c</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/lcd.c</file>
+            <file>file:/home/navado/workspace/daa/DAACED.X/DAACED.h</file>
         </group>
     </open-files>
 </project-private>

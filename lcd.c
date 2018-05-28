@@ -634,7 +634,7 @@ void lcd_clear() {
     //    memset(lcd_buffer, 0, sizeof (lcd_buffer));
     //    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
     //    lcd_refresh(&full_screen_update_boundary);
-    lcd_clear_data_ram();
+    lcd_clear_block_d(0,0,LCD_WIDTH,LCD_HEIGHT);
 }
 
 void lcd_increase_contrast() {

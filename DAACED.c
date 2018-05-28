@@ -1329,7 +1329,7 @@ void DoSettings(void) {
     SettingsTitle(&SettingsMenu);
     SaveToEEPROM = False;
 
-    lcd_clear_data_ram();
+    lcd_clear();
     do {
         handle_rotation();
         print_header();
@@ -1609,7 +1609,7 @@ void DoMain(void) {
 
 void DoPowerOff() {
     set_backlight(0);
-    lcd_clear_data_ram();
+    lcd_clear();
     LATEbits.LATE0 = 0;
 }
 
@@ -1881,7 +1881,7 @@ void main(void) {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
 
-    lcd_clear_data_ram();
+    lcd_clear();
     while (True) {
         //TODO: Integrate watchdog timer
         handle_rotation();

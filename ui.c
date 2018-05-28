@@ -40,7 +40,7 @@ void PowerOffTimer() {
 }
 
 void StartTimer() {
-    lcd_clear_data_ram();
+    lcd_clear();
     CurPar_idx = 0;
     StartCountdownTimer();
     DoMain();
