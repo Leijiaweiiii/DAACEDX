@@ -11,7 +11,7 @@
 //#define SMALL_LCD
 #undef SMALL_LCD
 #define LCD_DIRECT_ACCESS
-#define UI_FOOTER_GRID_H_CELLS  3
+#define UI_FOOTER_GRID_H_CELLS  2
 #define UI_FOOTER_GRID_V_CELLS  2
 #ifdef SMALL_LCD
 #define MSB_FIRST
@@ -36,7 +36,7 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define UI_DIAG_GRID_START_LINE (39)
 #define UI_COUNTER_START_PIXEL  (0)
 #define UI_FOOTER_START_LINE    (112)
-#define UI_FOOTER_GRID_WIDTH    (80)
+#define UI_FOOTER_GRID_WIDTH    (130)
 #define UI_FOOTER_GRID_HEIGH    (24)
 #define Y_OFFSET                (0)
 #define UI_CHARGING_LBL_X       (64)
@@ -112,13 +112,9 @@ TBool orientation_change_enabled = false;
 #define PopX2       LCD_WIDTH*7/8
 #define PopY2       LCD_HEIGHT*3/4
 
-//const FONT_INFO *SmallFont = &tahoma_8ptFontInfo;
-const FONT_INFO *SmallFont = &squadaOne_20ptFontInfo;
-const FONT_INFO *MediumFont = &squadaOne_20ptFontInfo;
-//const FONT_INFO *BigFont = &robotoCondensed_20ptFontInfo;
-//const FONT_INFO *SmallFont = &myriadPro_18ptFontInfo;
-//const FONT_INFO *MediumFont = &myriadPro_24ptFontInfo;
-const FONT_INFO *BigFont = &squadaOne_62ptFontInfo;
+const FONT_INFO *SmallFont = &patuaOne_16ptFontInfo;
+const FONT_INFO *MediumFont = &patuaOne_22ptFontInfo;
+const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 
 
 volatile uint8_t frames_count = 0;

@@ -269,7 +269,7 @@ void StartParTimer();
 void PlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header();
-uint8_t print_footer();
+void print_footer();
 uint8_t print_time();
 void handle_rotation();
 TBool Detect();

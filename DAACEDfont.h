@@ -138,4 +138,24 @@ extern const uint_8 squadaOne_72ptBitmaps[];
 extern const FONT_INFO squadaOne_72ptFontInfo;
 extern const FONT_CHAR_INFO squadaOne_72ptDescriptors[];
 
+/* Font data for Patua One 16pt */
+extern const uint_8 patuaOne_16ptBitmaps[];
+extern const FONT_INFO patuaOne_16ptFontInfo;
+extern const FONT_CHAR_INFO patuaOne_16ptDescriptors[];
+
+/* Font data for Patua One 22pt */
+extern const uint_8 patuaOne_22ptBitmaps[];
+extern const FONT_INFO patuaOne_22ptFontInfo;
+extern const FONT_CHAR_INFO patuaOne_22ptDescriptors[];
+
+/* Font data for Patua One 54pt */
+extern const uint_8 patuaOne_54ptBitmaps[];
+extern const FONT_INFO patuaOne_54ptFontInfo;
+extern const FONT_CHAR_INFO patuaOne_54ptDescriptors[];
+
+/* Font data for Patua One 62pt */
+extern const uint_8 patuaOne_62ptBitmaps[];
+extern const FONT_INFO patuaOne_62ptFontInfo;
+extern const FONT_CHAR_INFO patuaOne_62ptDescriptors[];
+
 #endif // _FONT_H_

@@ -18,7 +18,7 @@ void display_big_font_label(const char * msg) {
 }
 
 void DisplayTime(TimeSelection_t * t) {
-    char msg[10];
+    char msg[16];
     set_screen_title(t->MenuTitle);
     print_header();
     sprintf(msg, "%02d:%02d", t->hour, t->minute);
@@ -26,7 +26,7 @@ void DisplayTime(TimeSelection_t * t) {
 }
 
 void DisplayDouble(NumberSelection_t* s) {
-    char msg[10];
+    char msg[16];
     set_screen_title(s->MenuTitle);
     print_header();
     sprintf(msg, s->format, s->fvalue);
@@ -34,7 +34,7 @@ void DisplayDouble(NumberSelection_t* s) {
 }
 
 void DisplayInteger(NumberSelection_t* s) {
-    char msg[10];
+    char msg[16];
 
     set_screen_title(s->MenuTitle);
     print_header();
@@ -48,17 +48,18 @@ void DisplaySettings(SettingsMenu_t* sm) {
     set_screen_title(sm->MenuTitle);
     print_header();
     p = UI_HEADER_END_LINE;
-    lineh = MediumFont->height;
+    lineh = SmallFont->height;
     if (sm->redraw) {
         lcd_clear();
         sm->redraw = False;
     }
 
+    // TODO: Move page calculations here to handle menu changes during menu operation
     for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
         if (sm->menu == i) {
-            lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, WHITE_OVER_BLACK);
+            lcd_write_string(sm->MenuItem[i], 3, p, SmallFont, WHITE_OVER_BLACK);
         } else {
-            lcd_write_string(sm->MenuItem[i], 3, p, MediumFont, BLACK_OVER_WHITE);
+            lcd_write_string(sm->MenuItem[i], 3, p, SmallFont, BLACK_OVER_WHITE);
         }
         p += lineh;
     }

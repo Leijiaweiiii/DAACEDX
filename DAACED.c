@@ -576,7 +576,7 @@ void SetCustomDelay() {
     n.fstep = 0.1;
     n.fvalue = (double) DelayTime / 1000;
     n.fold_value = n.fvalue;
-    n.format = "%2.1f";
+    n.format = " %2.1fs ";
     lcd_clear();
     do {
         DisplayDouble(&n);
@@ -590,7 +590,7 @@ void SetDelay(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     strmycpy(m->MenuTitle, "Delay");
     strmycpy(m->MenuItem[0], " Instant ");
-    strmycpy(m->MenuItem[1], " Fixed 3sec. ");
+    strmycpy(m->MenuItem[1], " 3.0 sec. ");
     strmycpy(m->MenuItem[2], " Random");
     strmycpy(m->MenuItem[3], " Custom ");
     m->TotalMenuItems = 4;
@@ -642,7 +642,7 @@ TBool EditPar(uint8_t par_index) {
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index);
     b.fstep = 0.1;
-    b.format = "%3.1f  ";
+    b.format = " %3.1fs ";
     b.done = False;
     lcd_clear();
     do {
@@ -660,14 +660,14 @@ TBool EditPar(uint8_t par_index) {
 void FillParSettings(SettingsMenu_t * m) {
     uint8_t i = 0;
     for (i = 0; i < TotPar; i++) {
-        sprintf(m->MenuItem[i], "Par %d: %3.1f", i + 1, (float) ParTime[i] / 1000);
+        sprintf(m->MenuItem[i], "Par %d: %3.1fs  ", i + 1, (float) ParTime[i] / 1000);
     }
     if (i < MAXPAR)
-        strmycpy(m->MenuItem[i], "Add");
+        strmycpy(m->MenuItem[i], "Add ");
     else
-        strmycpy(m->MenuItem[i], "Max Par reached");
-    strmycpy(m->MenuItem[++i], "Delete Last");
-    strmycpy(m->MenuItem[++i], "Delete All");
+        strmycpy(m->MenuItem[i], "Max Par reached ");
+    strmycpy(m->MenuItem[++i], "Delete Last ");
+    strmycpy(m->MenuItem[++i], "Delete All ");
     m->TotalMenuItems = i + 1;
 }
 
@@ -702,6 +702,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             }
             TotPar = 0;
             m->menu = 1;
+            m->page = 1;
         }
         lcd_clear();
     }
@@ -710,7 +711,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
 void SetPar(SettingsMenu_t * m) {
     uint8_t oldTotPar = TotPar;
     InitSettingsMenuDefaults(m);
-    strmycpy(m->MenuTitle, "Par Settings");
+    strmycpy(m->MenuTitle, "Par Settings ");
     do {
         FillParSettings(m);
         DisplaySettings(m);
@@ -724,9 +725,9 @@ void SetPar(SettingsMenu_t * m) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Backlight">
 
-void SetBacklight() {//PWM Backlite
+void SetBacklight() {//PWM Backlight
     NumberSelection_t b;
-    strmycpy(b.MenuTitle, "Backlight");
+    strmycpy(b.MenuTitle, "Backlight ");
     b.max = 9;
     b.min = 0;
     b.step = 1;
@@ -737,7 +738,7 @@ void SetBacklight() {//PWM Backlite
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        set_backlight(b.value*10);
+        set_backlight(b.value * 10);
     } while (SettingsNotDone((&b)));
     BackLightLevel = b.value * 10;
     set_backlight(BackLightLevel);
@@ -748,20 +749,20 @@ void SetBacklight() {//PWM Backlite
 
 void SetBeepFreq() {
     NumberSelection_t b;
-    b.min = 800;
-    b.max = 3000;
-    b.value = BuzzerFrequency;
-    b.old_value = b.value;
+    b.fmin = 0.8;
+    b.fmax = 3.0;
+    b.fvalue = (float) BuzzerFrequency / 1000;
+    b.fold_value = b.fvalue;
     strmycpy(b.MenuTitle, "Tone");
-    b.step = 100;
-    b.format = "%u";
+    b.fstep = 0.1;
+    b.format = "%1.1fK";
     b.done = False;
     do {
-        DisplayInteger(&b);
-        SelectInteger(&b);
+        DisplayDouble(&b);
+        SelectDouble(&b);
     } while (SettingsNotDone((&b)));
-    BuzzerFrequency = b.value;
-    SaveToEEPROM |= (b.value != b.old_value);
+    BuzzerFrequency = (uint8_t) b.fvalue / 1000;
+    SaveToEEPROM |= (b.fvalue != b.fold_value);
 }
 
 void SetBeepLevel() {
@@ -771,7 +772,7 @@ void SetBeepLevel() {
     b.min = 0;
     b.max = 99;
     b.step = 1;
-    b.format = "%02u ";
+    b.format = " %02d ";
     b.value = BuzzerLevel;
     b.old_value = b.value;
     b.done = False;
@@ -788,17 +789,17 @@ void SetBeepTime(TBool Par) {
     InitSettingsNumberDefaults((&d));
     if (Par) {
         d.fvalue = (float) BuzzerParDuration / 1000;
-        strmycpy(d.MenuTitle, "Par Duration");
+        strmycpy(d.MenuTitle, "Par Duration ");
     } else {
         d.fvalue = (float) BuzzerStartDuration / 1000;
-        strmycpy(d.MenuTitle, "Start Duration");
+        strmycpy(d.MenuTitle, "Start Duration ");
     }
     d.fmin = 0.050;
     d.fmax = 1.0;
     d.fstep = 0.050;
     d.fold_value = d.fvalue;
     d.done = False;
-    d.format = " %1.2f ";
+    d.format = " %1.2fs ";
     do {
         DisplayDouble(&d);
         SelectDouble(&d);
@@ -812,7 +813,7 @@ void SetBeepTime(TBool Par) {
 void SetBeep(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
 
-    strmycpy(m->MenuTitle, "Beep");
+    strmycpy(m->MenuTitle, "Beep ");
     strmycpy(m->MenuItem[0], " Frequency ");
     strmycpy(m->MenuItem[1], " Loudness ");
     strmycpy(m->MenuItem[2], " Par Duration ");
@@ -879,19 +880,19 @@ void SetFilter() {
     if (Filter > 100) Filter = 100;
     NumberSelection_t f;
     strmycpy(f.MenuTitle, "Filter");
-    f.min = 10;
-    f.max = 200;
-    f.step = 10;
-    f.value = Filter;
-    f.old_value = f.value;
+    f.fmin = 0.01;
+    f.fmax = 0.2;
+    f.fstep = 0.01;
+    f.fvalue = (float) Filter / 1000;
+    f.fold_value = f.value;
     f.done = False;
-    f.format = "%3d";
+    f.format = " %1.2fs ";
     do {
-        DisplayInteger(&f);
-        SelectInteger(&f);
-    } while (!f.done);
-    Filter = f.value;
-    SaveToEEPROM |= (f.value != f.old_value);
+        DisplayDouble(&f);
+        SelectDouble(&f);
+    } while (SettingsNotDone((&f)));
+    Filter = (uint8_t) (f.fvalue * 1000);
+    SaveToEEPROM |= (f.fvalue != f.fold_value);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
@@ -1302,7 +1303,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
 
     SettingsMenu->TotalMenuItems = 15;
 
-    strmycpy(SettingsMenu->MenuTitle, "Settings");
+    strmycpy(SettingsMenu->MenuTitle, " Settings ");
     strmycpy(SettingsMenu->MenuItem[0], " 1 Delay ");
     strmycpy(SettingsMenu->MenuItem[1], " 2 Par ");
     strmycpy(SettingsMenu->MenuItem[2], " 3 Buzzer ");
@@ -1345,7 +1346,7 @@ void DoSettings(void) {
         saveSettings();
         SaveToEEPROM = False;
     }
-    if(ui_state == SettingsScreen){
+    if (ui_state == SettingsScreen) {
         STATE_HANDLE_TIMER_IDLE;
     } else {
         lcd_clear();
@@ -1354,52 +1355,30 @@ void DoSettings(void) {
 // </editor-fold>
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ReviewMenu">
-#define REVIEW_SHOT_FORMAT      "#%2d: %3.2f "
-#define REVIEW_SPLIT_FORMAT     "} %3.2f "
+#define REVIEW_SHOT_FORMAT      "%2d: %3.2f "
+#define REVIEW_SPLIT_FORMAT     "} %3.2f"
+TBool reviewChanged = True;
 
-void ReviewDisplay(uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_shots) {
+void ReviewDisplay(uint8_t CurShoot, uint8_t CurShootStringDisp) {
     uint8_t line = UI_HEADER_END_LINE;
     char message[20];
     // We're assuming here that Medium font has even number of bytes heigh
     uint8_t halfline = 16;
-    print_header();
-
-    //String line
-    line += LCD_PAGE_HEIGTH;
-    sprintf(message, "Str#%02d/%02d - %3.2f ",
-            CurShootStringDisp,
-            ShootString.TotShoots,
-            (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
-    lcd_write_string(message, 12, line, MediumFont, BLACK_OVER_WHITE);
-    line += MediumFont->height;
-    lcd_draw_fullsize_hline(line, LCD_TOP_LINE_PAGE);
-
-    for (uint8_t i = UI_HEADER_END_LINE; i < line; i += LCD_PAGE_HEIGTH) {
-        if (scroll_shots) {
-            lcd_write_string(" ", 0, i, MediumFont, BLACK_OVER_WHITE);
-        } else {
-            lcd_write_string("|", 0, i, MediumFont, BLACK_OVER_WHITE);
-        }
+    if (reviewChanged) {
+        lcd_clear();
     }
 
-    line += LCD_PAGE_HEIGTH;
+    print_header();
+
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
-    for (int8_t i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
-
-        if (scroll_shots) {
-            lcd_write_string("|", 0, line, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string("|", 0, line + halfline, MediumFont, BLACK_OVER_WHITE);
-        } else {
-            lcd_write_string(" ", 0, line, MediumFont, BLACK_OVER_WHITE);
-            lcd_write_string(" ", 0, line + halfline, MediumFont, BLACK_OVER_WHITE);
-        }
+    for (uint8_t i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
         sprintf(message,
                 REVIEW_SHOT_FORMAT,
                 CurShoot + i + 1,
                 (float) ShootString.ShootTime[CurShoot + i] / 1000
                 );
-        lcd_write_string(message, 40, line, MediumFont, (i != 1)& 0x01);
+        lcd_write_string(message, 5, line, MediumFont, (i != 1)& 0x01);
         line += halfline;
 
         // Don't print last diff at half line
@@ -1411,17 +1390,31 @@ void ReviewDisplay(uint8_t CurShoot, uint8_t CurShootStringDisp, TBool scroll_sh
         }
         line += halfline;
     }
+    if (reviewChanged) {
+        reviewChanged = False;
+        lcd_fill_block(0, line, LCD_WIDTH, LCD_HEIGHT);
+    }
+
+
+    //String line
+    sprintf(message, "Str %2d:%2d %3.2f ",
+            CurShootStringDisp,
+            ShootString.TotShoots,
+            (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
+    lcd_write_string(message, 12, line, MediumFont, WHITE_OVER_BLACK);
 }
 
 void review_scroll_shot_up() {
     if (CurShoot > 0) {
         CurShoot--;
+        reviewChanged = True;
     } else Beep();
 }
 
 void review_scroll_shot_down() {
     if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN) {
         CurShoot++;
+        reviewChanged = True;
     } else Beep();
 }
 
@@ -1429,6 +1422,7 @@ void review_previous_string() {
     if (CurShootString > 0) {
         CurShootString--;
         getShootString(CurShootString);
+        reviewChanged = True;
     } else Beep();
 }
 
@@ -1436,35 +1430,31 @@ void review_next_string() {
     if (CurShootString < MAXSHOOTSTRINGS) {
         CurShootString++;
         getShootString(CurShootString);
+        reviewChanged = True;
     } else Beep();
 }
 
 void DoReview() {
-    TBool scroll_shots = True;
     CurShootString = 0;
     CurShoot = 0;
     set_screen_title("Review");
     lcd_clear();
     do {
-        ReviewDisplay(CurShoot, CurShootString + 1, scroll_shots);
+        ReviewDisplay(CurShoot, CurShootString + 1);
         define_input_action();
         switch (comandToHandle) {
             case UpShort:
-                if (scroll_shots)
-                    review_scroll_shot_up();
-                else
-                    review_next_string();
+                review_scroll_shot_up();
                 break;
             case ReviewShort:
             case DownShort:
-                if (scroll_shots)
-                    review_scroll_shot_down();
-                else
-                    review_previous_string();
+                review_scroll_shot_down();
                 break;
             case BackShort:
+                review_next_string();
+                break;
             case OkShort:
-                scroll_shots = !scroll_shots;
+                review_previous_string();
                 break;
             case StartLong:STATE_HANDLE_POWER_OFF;
                 break;
@@ -1545,13 +1535,12 @@ TBool Detect(void) {
 uint8_t print_time() {
     char message[30];
     sprintf(message,
-            "%02d%s%02d",
+            "%02d%s%02d ",
             get_hour(),
             (rtc_time.sec % 4) ? ":" : ".",
-            //            ":",
             get_minute());
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
-    sprintf(message, "%s",ScreenTitle);
+    sprintf(message, "%s", ScreenTitle);
     lcd_write_string(message, 60, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
@@ -1577,46 +1566,34 @@ uint8_t print_header() {
 }
 
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
-    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y, UI_FOOTER_START_LINE), SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y, UI_FOOTER_START_LINE), SmallFont, WHITE_OVER_BLACK);
 }
 
-uint8_t print_footer() {
-    uint8_t line = UI_FOOTER_START_LINE + 2;
+void print_footer() {
     char message[20];
+    lcd_fill_block(0, UI_FOOTER_START_LINE, LCD_WIDTH, LCD_HEIGHT);
+    sprintf(message, " 1st: %3.2f", (float) ShootString.ShootTime[0] / 1000);
+    print_label_at_footer_grid(message, 0, 0);
+    sprintf(message, " Shots: %2d", ShootString.TotShoots);
+    print_label_at_footer_grid(message, 1, 0);
     switch (DelayMode) {
-        case Instant:sprintf(message, " Instant");
+        case Instant:sprintf(message, " Delay: 0.0s");
             break;
-        case Fixed: sprintf(message, " Fixed");
+        case Fixed: sprintf(message, " Delay: 3.0s");
             break;
-        case Random: sprintf(message, " Random");
+        case Random: sprintf(message, " Delay: RND");
             break;
-        case Custom: sprintf(message, " Custom");
+        case Custom: sprintf(message, " Delay: %1.1fs", (float) DelayTime / 1000);
             break;
     }
-    print_label_at_footer_grid(message, 0, 0);
-    if (AR_IS.Mic) sprintf(message, "  Mic: %d", Sensitivity);
-    else sprintf(message, " Mic: Off");
-    print_label_at_footer_grid(message, 1, 0);
+    print_label_at_footer_grid(message, 0, 1);
 
     if (TotPar > 0) {
         sprintf(message, "Par %d:%3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
     } else {
         sprintf(message, " Par: Off");
     }
-    print_label_at_footer_grid(message, 0, 1);
-    if (AR_IS.Aux) print_label_at_footer_grid(" Aux: ON", 1, 1);
-    else print_label_at_footer_grid(" Aux: Off", 1, 1);
-
-    sprintf(message, " Buz:%d", BuzzerLevel);
-    print_label_at_footer_grid(message, 2, 0);
-
-    sprintf(message, " %s %s %s",
-            (AR_IS.A) ? "A" : " ",
-            (AR_IS.B) ? "B" : " ",
-            (AR_IS.BT) ? "BT" : " "
-            );
-    print_label_at_footer_grid(message, 2, 1);
-    return line - UI_FOOTER_START_LINE;
+    print_label_at_footer_grid(message, 1, 1);
 }
 
 void DoMain(void) {
@@ -1691,7 +1668,6 @@ void update_shot_time_on_screen() {
             dt = t - ShootString.ShootTime[c - 2];
             break;
     }
-    print_line_with_shots_and_split(c, dt);
     print_big_time_label(t);
 }
 

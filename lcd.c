@@ -396,7 +396,7 @@ uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
 
 void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     if (str_ptr == NULL) return;
-
+    //TODO: There is a bug that prints bright pages at spacing when polarity is WHITE_OVER_BLACK
     while (*str_ptr) {
         x_pos += lcd_write_char_d(*str_ptr, x_pos, y_pos, font, polarity);
         ++str_ptr;
@@ -689,7 +689,7 @@ void lcd_set_orientation() {
     if (orientation == ORIENTATION_NORMAL)
         lcd_send_data(LCD_ORIENTATION_NORMAL);
     else
-        lcd_send_command(LCD_ORIENTATION_INVERTED);
+        lcd_send_data(LCD_ORIENTATION_INVERTED);
 }
 
 void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {
