@@ -35,7 +35,6 @@ void update_countdown_time_on_screen() {
 }
 
 void PowerOffTimer() {
-    set_screen_title("Power Off");
     DoPowerOff();
 }
 
@@ -43,7 +42,6 @@ void StartTimer() {
     lcd_clear();
     CurPar_idx = 0;
     StartCountdownTimer();
-    DoMain();
 }
 
 void StopTimer() {
@@ -93,7 +91,17 @@ void handle_timer_idle_shutdown() {
 }
 
 void handle_timer_idle() {
-    set_screen_title("Timer Idle");
+    switch(InputType){
+        case Microphone:
+            set_screen_title("Microphone ");
+            break;
+        case A_and_B_single:
+            set_screen_title("A+B single ");
+            break;
+        case A_or_B_multiple:
+            set_screen_title("A/B multi ");
+            break;
+    }
     update_shot_time_on_screen();
     print_header();
     print_footer();
@@ -141,9 +149,7 @@ void HandleTimerEvents() {
 }
 
 void handle_timer_listening() {
-    set_screen_title("Listening");
     update_shot_time_on_screen();
-
     print_header();
     //    DoAdcGraph();
     print_footer();
@@ -207,7 +213,6 @@ void handle_settings_screen() {
 }
 
 void handle_countdown() {
-    set_screen_title("All Set");
     print_footer();
     print_header();
     update_countdown_time_on_screen();
@@ -226,6 +231,7 @@ void handle_countdown() {
 
             if (TotPar > 0)
                 StartParTimer();
+            DoMain();
             PlayStartSound();
             break;
         default:
@@ -245,7 +251,7 @@ TBool is_long_press() {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
-    KeyReleased = true; // Mark key released only here to avoid double sensing of key press
+    InputFlags.KEY_RELEASED =True; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
@@ -262,8 +268,8 @@ TBool is_long_press_repeatable() {
 }
 
 void define_input_action() {
-    if (KeyReleased && Keypressed) {
-        KeyReleased = false;
+    if (InputFlags.KEY_RELEASED && Keypressed) {
+        InputFlags.KEY_RELEASED = False;
         switch (Key) {
             case KeyRw:
                 if (is_long_press())

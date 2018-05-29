@@ -1209,44 +1209,30 @@ void SetTilt(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="Input">
 
 void UpdateIS(SettingsMenu_t * sm) {
-    if (AR_IS.Mic) strmycpy(sm->MenuItem[0], " Microphone: ON ");
-    else strmycpy(sm->MenuItem[0], " Microphone: OFF");
-    if (AR_IS.A) strmycpy(sm->MenuItem[1], " A: ON ");
-    else strmycpy(sm->MenuItem[1], " A: OFF ");
-    if (AR_IS.B) strmycpy(sm->MenuItem[2], " B: ON ");
-    else strmycpy(sm->MenuItem[2], " B: OFF ");
+    strmycpy(sm->MenuItem[Microphone], " Microphone ");
+    strmycpy(sm->MenuItem[A_or_B_multiple], " A or B (multiple) ");
+    strmycpy(sm->MenuItem[A_and_B_single], " A and B (single) ");
+    sm->TotalMenuItems = 3;
 }
 
 void SetInput(SettingsMenu_t * m) {
     uint8_t orgset;
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 3;
     strmycpy(m->MenuTitle, "Input");
     UpdateIS(m);
     DisplaySettings(m);
-    orgset = AR_IS.AR_IS;
+    orgset = InputType;
+    m->menu = InputType;
 
     do {
         DisplaySettings(m);
-        SelectBinaryMenuItem(m);
-        if (m->selected) {
-            switch (m->menu) {
-                case 0:
-                    AR_IS.Mic = !AR_IS.Mic;
-                    break;
-                case 1:
-                    AR_IS.A = !AR_IS.A;
-                    break;
-                case 2:
-                    AR_IS.B = !AR_IS.B;
-                    break;
-            }
-            UpdateIS(m);
-            m->selected = False;
-        }
-    } while (SettingsNotDone(m));
+        SelectMenuItem(m);
 
-    SaveToEEPROM |= (AR_IS.AR_IS != orgset);
+    } while (SettingsNotDone(m));
+    if (m->selected) {
+        InputType = m->menu;
+    }
+    SaveToEEPROM |= (InputType != orgset);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
@@ -1525,10 +1511,11 @@ void DetectInit(void) {
 }
 
 TBool Detect(void) {
+
     TBool res = False;
     res |= (AR_IS.Mic && (ADC_Read(ENVELOPE) > DetectThreshold));
-    res |= (AR_IS.A & AUX_A);
-    res |= (AR_IS.B & AUX_B);
+    res |= (AR_IS.A_or_B_multiple & AUX_A);
+    res |= (AR_IS.A_and_B_single & AUX_B);
     return res;
 }
 
@@ -1603,7 +1590,7 @@ void DoMain(void) {
     for (int i = 0; i < MAXSHOOT; i++)
         ShootString.ShootTime[i] = 0;
     DetectInit();
-    //    DoOldMain();
+    
 }
 // </editor-fold>
 
@@ -1670,11 +1657,27 @@ void update_shot_time_on_screen() {
 }
 
 void PlayParSound() {
+    if (InputType == Microphone) {
+        AUX_A = 1;
+        AUX_B = 1;
+    }
     generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
+    if (InputType == Microphone) {
+        AUX_A = 0;
+        AUX_B = 0;
+    }
 }
 
 void PlayStartSound() {
+    if (InputType == Microphone) {
+        AUX_A = 1;
+        AUX_B = 1;
+    }
     generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerStartDuration);
+    if (InputType == Microphone) {
+        AUX_A = 0;
+        AUX_B = 0;
+    }
 }
 
 void StartParTimer() {
@@ -1704,7 +1707,7 @@ void StartCountdownTimer() {
     countdown_start_time = rtc_time.unix_time_ms;
 }
 
-void UpdateShot(time_t now) {
+void UpdateShot(time_t now, ShotInput_t input) {
     time_t dt, ddt;
     dt = now - measurement_start_time_msec;
     if (ShootString.TotShoots == 0) {
@@ -1722,15 +1725,31 @@ void UpdateShot(time_t now) {
     }
 }
 
-void UpdateShootNow() {
-    UpdateShot(rtc_time.unix_time_ms);
+void UpdateShootNow(ShotInput_t input) {
+    UpdateShot(rtc_time.unix_time_ms, input);
 }
 
 void update_screen_model() {
     time_t now = rtc_time.unix_time_ms;
     switch (ui_state) {
         case TimerListening:
-            ADC_ENABLE_INTERRUPT_ENVELOPE;
+            if (now - measurement_start_time_msec >= MAX_MEASUREMENT_TIME) {
+                timerEventToHandle = TimerTimeout;
+            }
+            switch (InputType) {
+                case Microphone:
+                    ADC_ENABLE_INTERRUPT_ENVELOPE;
+                    break;
+                case A_or_B_multiple:
+                    if (AUX_A) UpdateShootNow(A);
+                    else if (AUX_B) UpdateShootNow(B);
+                    break;
+                case A_and_B_single:
+                    if (AUX_A) UpdateShootNow(A);
+                    else if (AUX_B) UpdateShootNow(B);
+                    timerEventToHandle = TimerTimeout;
+                    break;
+            }
             if (ParNowCounting) {
                 // Software "interrupt" emulation
                 if (now - parStartTime_ms >= ParTime[CurPar_idx]) {
@@ -1786,7 +1805,7 @@ static void interrupt isr(void) {
             case ENVELOPE:
                 ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
                 if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
-                    UpdateShootNow();
+                    UpdateShootNow(Microphone);
                 }
                 break;
             case BATTERY:
@@ -1807,7 +1826,7 @@ static void interrupt isr(void) {
         PIR0bits.TMR0IF = 0;
         update_rtc_time;
         if (!Keypressed) {//Assignment will not work because of not native boolean
-            KeyReleased = true;
+            InputFlags.KEY_RELEASED = True;
         }
         update_screen_model();
     }

@@ -130,7 +130,6 @@ uint8_t find_set_bit_position(uint8_t n);
 #define KeyInUp               0x30  //Enter+^
 
 #define Keypressed           (Key>0)
-TBool   KeyReleased   = true;
 #define Exit                 (Key==KeyBk)
 #define Select               (Key==KeyIn)
 #define Start                (Key==KeySt)
@@ -150,28 +149,57 @@ unsigned char PortE_Data;
 
 // <editor-fold defaultstate="collapsed" desc="Data Model">
 
-typedef union{
+typedef union {
     uint8_t AR_IS;
-    struct{
-        unsigned AutoRotate :1;
-        unsigned Mic        :1;
-        unsigned A          :1;
-        unsigned B          :1;
-        unsigned Autostart  :1;
-        unsigned BT         :1;
-        unsigned Aux         :1;
+
+    struct {
+        unsigned AutoRotate : 1;
+        unsigned Mic : 1;
+        unsigned A_or_B_multiple : 1;
+        unsigned A_and_B_single : 1;
+        unsigned Autostart : 1;
+        unsigned BT : 1;
+        unsigned Aux : 1;
     };
-    
-}AR_IS_T;
+
+} AR_IS_T;
 AR_IS_T AR_IS;
+
+union {
+    uint8_t byte;
+
+    struct {
+        unsigned A_RELEASED : 1;
+        unsigned B_RELEASED : 1;
+        unsigned KEY_RELEASED : 1;
+    };
+} InputFlags;
+
+typedef enum {
+    Mic = 0,
+    A = 1,
+    B = 2
+} ShotInput_t;
+
+typedef enum {
+    Microphone = 0,
+    A_or_B_multiple = 1,
+    A_and_B_single = 2
+} InputMode_t;
+InputMode_t InputType = Microphone;
+
+typedef struct {
+    InputMode_t input;
+    TBool detected;
+} DetectionResult_t;
 
 #define AutoStart AR_IS.Autostart
 #define Autorotate AR_IS.AutoRotate
 #define AR_IS_Address                100
-uint16_t BuzzerFrequency=2000;
-uint16_t BuzzerParDuration=200;
-uint16_t BuzzerStartDuration=200;
-uint8_t BuzzerLevel=2;
+uint16_t BuzzerFrequency = 2000;
+uint16_t BuzzerParDuration = 200;
+uint16_t BuzzerStartDuration = 200;
+uint8_t BuzzerLevel = 2;
 // Automatic shutdown after timeout 20 minutes
 time_t timer_idle_shutdown_timeout = 1200000;
 time_t timer_idle_last_action_time;
@@ -179,31 +207,32 @@ time_t timer_idle_last_action_time;
 #define BuzzerFrequency_Address      104
 #define BuzzerParDuration_Address    106
 #define BuzzerLevel_Address          108
-time_t CustomCDtime=5*60*1000; // 5 min in ms
+time_t CustomCDtime = 5 * 60 * 1000; // 5 min in ms
 // TODO: Review storage size for all the data
 #define CustomCDtime_Address         110
 
 
-TBool   SaveToEEPROM;
+TBool SaveToEEPROM;
 #define BT_Address                   112
 
 #define MAXSHOOTSTRINGS    30
 #define MAXSHOOT    100
-struct tShoot
-{
+
+struct tShoot {
     time_t ShootTime[MAXSHOOT]; //in 1mS unit
-    uint8_t  ShootStringMark;     //The first ShootString is marked 1 , other are 0
-                                  //the order is from the one matked 1 up till last address
-                                  //then the next will be at starting address (cyclic)
-    uint8_t TotShoots;            //Total shoots in current string
+    uint8_t ShootStringMark; //The first ShootString is marked 1 , other are 0
+    //the order is from the one matked 1 up till last address
+    //then the next will be at starting address (cyclic)
+    uint8_t TotShoots; //Total shoots in current string
 } ShootString;
 
 //ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
-time_t  measurement_start_time_msec;        // Reference time for counting shppt.
-                                    // Should be set to RTC before beep starts
-uint8_t  CurShoot;                //The current shoot of the displayed string
-uint16_t CurShootString,          //Currently displayed string number 0..29
-         CurrStringStartAddress;
+time_t measurement_start_time_msec; // Reference time for counting shppt.
+// Should be set to RTC before beep starts
+#define MAX_MEASUREMENT_TIME    999000
+uint8_t CurShoot; //The current shoot of the displayed string
+uint16_t CurShootString, //Currently displayed string number 0..29
+CurrStringStartAddress;
 #define  Size_of_ShootString        336  // sizeof(ShootString)  did not work
 #define SHOTS_ON_REVIEW_SCREEN      3
 
@@ -211,9 +240,9 @@ typedef enum {
     Instant, Fixed, Random, Custom
 } TdelTy;
 
-TdelTy  DelayMode = Fixed;
+TdelTy DelayMode = Fixed;
 uint16_t DetectThreshold;
-time_t DelayTime = 3000;  // mS
+time_t DelayTime = 3000; // mS
 time_t countdown_start_time;
 #define Delay_Address                118
 #define DelayTime_Address            120
@@ -223,7 +252,7 @@ uint8_t Sensitivity;
 
 #define AutoStart_Address            124
 
-uint8_t BackLightLevel=10;
+uint8_t BackLightLevel = 10;
 #define BackLightLevel_Address       126
 uint8_t Filter;
 #define Filter_Address               128
@@ -236,15 +265,15 @@ volatile uint8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
-typedef enum{
+typedef enum {
     Regular = 0,
-            Practical = 1,
-            Barricade = 2,
-            FallingPlate = 3,
-            NRA_PPC_A = 4,
-            NRA_PPC_B = 5,
-            NRA_PPC_C = 6,
-            NRA_PPC_D = 7
+    Practical = 1,
+    Barricade = 2,
+    FallingPlate = 3,
+    NRA_PPC_A = 4,
+    NRA_PPC_B = 5,
+    NRA_PPC_C = 6,
+    NRA_PPC_D = 7
 } ParMode_t;
 ParMode_t ParMode = Regular;
 #define ShootStringStartAddress     1000
@@ -254,7 +283,7 @@ SettingsMenu_t ma; // Submenu for second level menu
 SettingsMenu_t mx; // Submenu for third level menu
 SettingsMenu_t SettingsMenu;
 
-uint16_t  battery_level;
+uint16_t battery_level;
 // </editor-fold>
 
 void DoSettings();
@@ -272,8 +301,7 @@ uint8_t print_header();
 void print_footer();
 uint8_t print_time();
 void handle_rotation();
-TBool Detect();
-void UpdateShootNow();
+void UpdateShootNow(ShotInput_t input);
 void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
