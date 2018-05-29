@@ -1637,9 +1637,7 @@ void DoCharging() {
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 break;
             case NotCharging:
-                lcd_clear();
-                set_backlight(0);
-                DoPowerOff();
+                STATE_HANDLE_POWER_OFF;
                 break;
             default:
                 break;
