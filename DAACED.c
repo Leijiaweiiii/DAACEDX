@@ -212,152 +212,6 @@ uint8_t find_set_bit_position(uint8_t n) {
 }
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="EEPROM Functions">
-// Helper functions.
-
-void eeprom_spi_init() {
-    EEPROM_CS_INIT();
-    EEPROM_HOLD_INIT();
-    EEPROM_WP_INIT();
-
-    EEPROM_CS_DESELECT();
-    EEPROM_HOLD_DIS();
-    EEPROM_WP_DIS();
-
-    RD7PPS = 0x1C; // SPI2 dataout (RD7)
-    SSP2DATPPS = 0x1D; // SPI2 datain.
-    RD6PPS = 0x1B; // SPI2 clock.
-
-    SSP2STAT &= 0x3F;
-    SSP2CON1 = 0x00; // power on state.
-    SSP2CON1bits.SSPM = 0b0010;
-    SSP2STATbits.SMP = 0;
-
-    SSP2CON1bits.CKP = 1;
-    SSP2STATbits.CKE = 0;
-    SSP2CON1bits.SSPEN = 1;
-    SSP2CON1bits.WCOL = 0;
-}
-
-uint8_t eeprom_spi_write(uint8_t data) {
-    uint8_t temp_var = SSP2BUF; // Clear buffer.
-    UNUSED(temp_var);
-    PIR3bits.SSP2IF = 0; // Clear interrupt flag bit
-    SSP2CON1bits.WCOL = 0; // Clear write collision bit if any collision occurs
-    SSP2BUF = data;
-    while (SSP2STATbits.BF == 0);
-    PIR3bits.SSP2IF = 0; // clear interrupt flag bit
-    return SSP2BUF;
-}
-
-void eeprom_init() {
-    eeprom_spi_init();
-}
-
-void eeprom_write_data(uint16_t address, uint8_t data) {
-    eeprom_busy_wait();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRSR);
-    eeprom_spi_write(0x02); // Enable Write Latch.
-    EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WREN);
-    EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRITE);
-    eeprom_spi_write(address >> 8);
-    eeprom_spi_write(address & 0xFF);
-    eeprom_spi_write(data);
-    EEPROM_CS_DESELECT();
-}
-
-void eeprom_write_wdata(uint16_t address, uint16_t data) {
-    eeprom_write_data(address, data & 0xFF);
-    eeprom_write_data(address + 1, (data >> 8) & 0xFF);
-}
-
-void eeprom_write_tdata(uint16_t address, uint24_t data) {
-    eeprom_write_data(address, data & 0xFF);
-    eeprom_write_data(address + 1, (data >> 8) & 0xFF);
-    eeprom_write_data(address + 2, (data >> 16) & 0xFF);
-}
-
-uint8_t eeprom_read_data(uint16_t address) {
-    uint8_t read_data;
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(address >> 8);
-    eeprom_spi_write(address & 0xFF);
-    read_data = eeprom_spi_write(0x00);
-    EEPROM_CS_DESELECT();
-    return (read_data);
-}
-
-uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes) {
-    uint16_t index;
-
-    if (address > EEPROM_MAX_SIZE) return 0;
-    eeprom_busy_wait();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(address >> 8);
-    eeprom_spi_write(address & 0xFF);
-    for (index = 0; index < no_of_bytes; index++) {
-        if (address + index > EEPROM_MAX_SIZE) return (index);
-        data[index] = eeprom_spi_write(0x00);
-    }
-    EEPROM_CS_DESELECT();
-    return (index);
-}
-
-uint16_t eeprom_read_wdata(uint16_t address) {
-    uint8_t read_least, read_most;
-    if (address + 1 > EEPROM_MAX_SIZE) return 0;
-    eeprom_busy_wait();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(address >> 8);
-    eeprom_spi_write(address & 0xFF);
-    read_least = eeprom_spi_write(0x00);
-    read_most = eeprom_spi_write(0x00);
-    EEPROM_CS_DESELECT();
-    return (read_most << 8)+read_least;
-}
-
-uint24_t eeprom_read_tdata(uint16_t address) {
-    uint8_t read_least, read_mid, read_most;
-    if (address + 1 > EEPROM_MAX_SIZE) return 0;
-    eeprom_busy_wait();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(address >> 8);
-    eeprom_spi_write(address & 0xFF);
-    read_least = eeprom_spi_write(0x00);
-    read_mid = eeprom_spi_write(0x00);
-    read_most = eeprom_spi_write(0x00);
-    EEPROM_CS_DESELECT();
-    return (read_most << 16)+(read_mid << 8) + read_least;
-}
-
-void eeprom_busy_wait() {
-    while (eeprom_read_status_reg() & 0x01);
-}
-
-uint8_t eeprom_read_status_reg() {
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_RDSR);
-    uint8_t status_reg = eeprom_spi_write(0x00);
-    EEPROM_CS_DESELECT();
-    return status_reg;
-}
-// </editor-fold>
-
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
 uint8_t sinus_table[32] = {0x10, // 11.25
     0x13, // 22.50
@@ -520,28 +374,19 @@ uint16_t findCurrStringAddress() {
         data = eeprom_read_data(add);
         if (data == 1)
             CurrStringStartAddress = add;
-        else add += sizeof (ShootString);
-    } while ((data != 1) && (add < (ShootStringStartAddress + 30 * sizeof (ShootString))));
+        else add += Size_of_ShootString;
+    } while ((data != 1) && (add < (ShootStringStartAddress + 30 * Size_of_ShootString)));
     return CurrStringStartAddress;
 }
 
 void saveShootString(void) {
     uint16_t Address;
     // current string is overwritten over the older string
-
     findCurrStringAddress(); // the address of stored shoot string 0
     if (ShootStringStartAddress == CurrStringStartAddress)
         Address = ShootStringStartAddress + (29 * Size_of_ShootString);
     else Address = (CurrStringStartAddress - Size_of_ShootString);
-    eeprom_write_data(CurrStringStartAddress, 0); //No longer current
-    eeprom_write_data(Address, 1); //Mark current string
-    Address++;
-    eeprom_write_data(Address, ShootString.TotShoots);
-    Address++;
-    for (uint8_t i = 0; i < ShootString.TotShoots; i++) {
-        eeprom_write_tdata(Address, ShootString.ShootTime[i]);
-        Address += 3;
-    }
+    eeprom_write_array(Address,ShootString.data,Size_of_ShootString);
 }
 
 TBool getShootString(uint8_t ShootStrNum) {
@@ -551,15 +396,8 @@ TBool getShootString(uint8_t ShootStrNum) {
     uint16_t StrBeforeCurr = ((CurrStringStartAddress - ShootStringStartAddress) / Size_of_ShootString);
     if ((30 - StrBeforeCurr) > ShootStrNum) Address = CurrStringStartAddress + (ShootStrNum * Size_of_ShootString);
     else Address = ShootStringStartAddress + (((ShootStrNum + StrBeforeCurr) - 30) * Size_of_ShootString);
-    uint8_t mark = eeprom_read_data(Address);
-    Address++;
-    ShootString.TotShoots = eeprom_read_data(Address);
-    Address++;
-    for (uint8_t i = 0; i < ShootString.TotShoots; i++) {
-        ShootString.ShootTime[i] = eeprom_read_tdata(Address);
-        Address += 3;
-    }
-    return (((ShootStrNum == 0) && (mark == 1)) || ((ShootStrNum > 0) && ((mark == 0))));
+    eeprom_read_array(Address,ShootString.data,Size_of_ShootString);
+    return True;
 }
 // </editor-fold>
 

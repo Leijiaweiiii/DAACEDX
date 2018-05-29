@@ -26,6 +26,7 @@
 #include "adc.h"
 #include "charger.h"
 #include "bluetooth.h"
+#include "eeprom.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
@@ -38,56 +39,6 @@ void sinus_dac_init();
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
 void start_sinus(uint16_t frequency);
 void stop_sinus();
-// </editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="EEPROM">
-// TODO Remove
-
-// <editor-fold defaultstate="collapsed" desc="EEPROM Specificaion">
-/* EEPROM specification */
-#define EEPROM_PAGE_SIZE    (64)
-#define EEPROM_MAX_SIZE     (0x8000)
-
-/* Instructions */
-#define CMD_WREN            (0x06)
-#define CMD_WRDI            (0x04)
-#define CMD_RDSR            (0x05)
-#define CMD_WRSR            (0x01)
-#define CMD_READ            (0x03)
-#define CMD_WRITE           (0x02)
-//</editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="EEPROM Hardware Interface">
-#define EEPROM_CS_INIT()        (TRISFbits.TRISF0 = 0)
-
-#define EEPROM_CS_SELECT()      (LATFbits.LATF0 = 0)
-#define EEPROM_CS_DESELECT()    (LATFbits.LATF0 = 1)
-
-#define EEPROM_HOLD_INIT()      (TRISFbits.TRISF2 = 0)
-
-#define EEPROM_HOLD_EN()        (LATFbits.LATF2 = 0)
-#define EEPROM_HOLD_DIS()       (LATFbits.LATF2 = 1)
-
-#define EEPROM_WP_INIT()        (TRISFbits.TRISF1 = 0)
-
-#define EEPROM_WP_EN()          (LATFbits.LATF1 = 0)
-#define EEPROM_WP_DIS()         (LATFbits.LATF1 = 1)
-//</editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="EEPROM Helper Functions">
-void eeprom_spi_init();
-uint8_t eeprom_spi_write(uint8_t data);
-//</editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="EEPROM Functions">
-void eeprom_init();
-void eeprom_write_data(uint16_t address, uint8_t data);
-uint8_t eeprom_read_data(uint16_t address);
-uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes);
-void eeprom_busy_wait();
-uint8_t eeprom_read_status_reg();
-//</editor-fold>
-
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Backlight PWM functions">
@@ -217,14 +168,18 @@ TBool SaveToEEPROM;
 
 #define MAXSHOOTSTRINGS    30
 #define MAXSHOOT    100
+// Aligned to 64byte pages, in the reality we need less
+#define  Size_of_ShootString        (448)
 
-struct tShoot {
-    time_t ShootTime[MAXSHOOT]; //in 1mS unit
-    uint8_t ShootStringMark; //The first ShootString is marked 1 , other are 0
-    //the order is from the one matked 1 up till last address
-    //then the next will be at starting address (cyclic)
-    uint8_t TotShoots; //Total shoots in current string
-} ShootString;
+typedef union {
+    uint8_t data[Size_of_ShootString];
+    struct {
+        uint8_t ShootStringMark; //The most recent string has maximal value in the mark
+        uint8_t TotShoots; //Total shoots in current string
+        time_t ShootTime[MAXSHOOT]; //in 1mS unit
+    };
+} ShootString_t;
+ShootString_t ShootString;
 
 //ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
 time_t measurement_start_time_msec; // Reference time for counting shppt.
@@ -233,7 +188,7 @@ time_t measurement_start_time_msec; // Reference time for counting shppt.
 uint8_t CurShoot; //The current shoot of the displayed string
 uint16_t CurShootString, //Currently displayed string number 0..29
 CurrStringStartAddress;
-#define  Size_of_ShootString        336  // sizeof(ShootString)  did not work
+
 #define SHOTS_ON_REVIEW_SCREEN      3
 
 typedef enum {
