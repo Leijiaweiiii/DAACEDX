@@ -1342,11 +1342,14 @@ void DoSettings(void) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ReviewMenu">
 #define REVIEW_SHOT_FORMAT      "%2d: %3.2f "
-#define REVIEW_SPLIT_FORMAT     "} %3.2f"
+#define REVIEW_TOTAL_SHOT_FORMAT      " %2d / %3.2fs "
+#define REVIEW_SPLIT_FORMAT     "]%3.2f"
 TBool reviewChanged = True;
 
-void ReviewDisplay(uint8_t CurShoot, uint8_t CurShootStringDisp) {
+void ReviewDisplay() {
     uint8_t line = UI_HEADER_END_LINE;
+    uint8_t col, i, page_start, page_size;
+    TBool first_page;
     char message[20];
     // We're assuming here that Medium font has even number of bytes heigh
     uint8_t halfline = 16;
@@ -1354,54 +1357,81 @@ void ReviewDisplay(uint8_t CurShoot, uint8_t CurShootStringDisp) {
         lcd_clear();
     }
 
-    print_header();
 
+    // Stat line
+    sprintf(ScreenTitle,
+            REVIEW_TOTAL_SHOT_FORMAT,
+            ShootString.TotShoots,
+            (float) ShootString.ShootTime[ShootString.TotShoots - 1] / 1000
+            );
+    print_header();
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
-    for (uint8_t i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
+    for (i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
+        uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
+        uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
         sprintf(message,
                 REVIEW_SHOT_FORMAT,
-                CurShoot + i + 1,
-                (float) ShootString.ShootTime[CurShoot + i] / 1000
+                curr_index + 1,
+                (float) ShootString.ShootTime[curr_index] / 1000
                 );
-        lcd_write_string(message, 5, line, MediumFont, (i != 1)& 0x01);
+        lcd_write_string(message, 5, line, MediumFont, (i != 1)&0x01);
         line += halfline;
 
-        // Don't print last diff at half line
-        if (i < SHOTS_ON_REVIEW_SCREEN - 1) {
+        // Don't print last diff at half line and not the latest
+        if (i < SHOTS_ON_REVIEW_SCREEN - 1 &&
+                //                curr_index != 0 &&
+                curr_index != ShootString.TotShoots - 1) {
             sprintf(message,
                     REVIEW_SPLIT_FORMAT,
-                    (float) (ShootString.ShootTime[CurShoot + i + 1] - ShootString.ShootTime[CurShoot + i]) / 1000);
-            lcd_write_string(message, 140, line, MediumFont, BLACK_OVER_WHITE);
+                    (float) (ShootString.ShootTime[subtrahend_index] - ShootString.ShootTime[curr_index]) / 1000);
+            lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
     }
     if (reviewChanged) {
         reviewChanged = False;
-        lcd_fill_block(0, line, LCD_WIDTH, LCD_HEIGHT);
+        lcd_fill_block(0, line, LCD_WIDTH, LCD_HEIGHT - 8);
     }
-
-
     //String line
-    sprintf(message, "Str %2d:%2d %3.2f ",
-            CurShootStringDisp,
-            ShootString.TotShoots,
-            (float) ShootString.ShootTime[ShootString.TotShoots] / 1000);
-    lcd_write_string(message, 12, line, MediumFont, WHITE_OVER_BLACK);
+    if (CurShootString < 10)
+        page_size = 10;
+    else
+        page_size = 5;
+    first_page = (CurShootString / page_size == 0);
+    sprintf(message, "String %s", first_page ? "" : "<");
+    col = 4;
+    lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
+    col += lcd_string_lenght(message, SmallFont);
+    col += first_page ? 0 : 3;
+    page_start = page_size * (CurShootString / page_size);
+    for (i = 0; i < page_size; i++) {
+        // Rounding to a page
+        sprintf(message, "%d", page_start + i + 1);
+        lcd_write_string(message, col, line, SmallFont, CurShootString % page_size == i);
+        col += lcd_string_lenght(message, SmallFont) + 3;
+    }
+    sprintf(message, "%s", page_start + page_size < MAXSHOOTSTRINGS ? ">" : "");
+    lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
 }
 
 void review_scroll_shot_up() {
     if (CurShoot > 0) {
         CurShoot--;
-        reviewChanged = True;
-    } else Beep();
+    } else {
+        CurShoot = ShootString.TotShoots;
+    }
+    reviewChanged = True;
 }
 
 void review_scroll_shot_down() {
-    if (CurShoot < ShootString.TotShoots - SHOTS_ON_REVIEW_SCREEN) {
+    if (CurShoot < ShootString.TotShoots) {
         CurShoot++;
-        reviewChanged = True;
-    } else Beep();
+
+    } else {
+        CurShoot = 1;
+    }
+    reviewChanged = True;
 }
 
 void review_previous_string() {
@@ -1413,7 +1443,7 @@ void review_previous_string() {
 }
 
 void review_next_string() {
-    if (CurShootString < MAXSHOOTSTRINGS) {
+    if (CurShootString < MAXSHOOTSTRINGS - 1) {
         CurShootString++;
         getShootString(CurShootString);
         reviewChanged = True;
@@ -1422,11 +1452,10 @@ void review_next_string() {
 
 void DoReview() {
     CurShootString = 0;
-    CurShoot = 0;
-    set_screen_title("Review");
-    lcd_clear();
+    CurShoot = ShootString.TotShoots - 1;
+    reviewChanged = True;
     do {
-        ReviewDisplay(CurShoot, CurShootString + 1);
+        ReviewDisplay();
         define_input_action();
         switch (comandToHandle) {
             case UpShort:
@@ -1510,15 +1539,6 @@ void DetectInit(void) {
     DetectThreshold = Mean + threshold_offsets[Sensitivity - 1];
 }
 
-TBool Detect(void) {
-
-    TBool res = False;
-    res |= (AR_IS.Mic && (ADC_Read(ENVELOPE) > DetectThreshold));
-    res |= (AR_IS.A_or_B_multiple & AUX_A);
-    res |= (AR_IS.A_and_B_single & AUX_B);
-    return res;
-}
-
 uint8_t print_time() {
     char message[30];
     sprintf(message,
@@ -1590,7 +1610,7 @@ void DoMain(void) {
     for (int i = 0; i < MAXSHOOT; i++)
         ShootString.ShootTime[i] = 0;
     DetectInit();
-    
+
 }
 // </editor-fold>
 
