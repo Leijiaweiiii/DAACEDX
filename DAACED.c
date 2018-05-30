@@ -1665,11 +1665,7 @@ static void interrupt isr(void) {
             case TimerCountdown:
                 break;
             default:
-                if (rtc_time.sec % 2) {
                     ADC_ENABLE_INTERRUPT_BATTERY;
-                } else {
-                    ADC_ENABLE_INTERRUPT_ACCELEROMETR;
-                }
                 break;
         }
     }
@@ -1691,10 +1687,14 @@ static void interrupt isr(void) {
                 battery_level = battery_mV;
                 //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
                 //                if (battery_level > 99) battery_level = 99;
+                // Trigger measurement of orientation
+                ADC_ENABLE_INTERRUPT_ACCELEROMETR;
             }
                 break;
-            case ACCELEROMETER:
-                orientation = ADC_SAMPLE_REG_16_BIT > ORIENTATION_INVERSE_THRESHOLD;
+            case ACCELEROMETER:{
+                uint16_t a = ADC_SAMPLE_REG_16_BIT;
+                orientation =  (a > ORIENTATION_INVERSE_THRESHOLD);
+            }
                 break;
         }
     }

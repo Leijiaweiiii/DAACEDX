@@ -685,11 +685,13 @@ void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_
 }
 
 void lcd_set_orientation() {
+    lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    if (orientation == ORIENTATION_NORMAL)
+    if (orientation == ORIENTATION_NORMAL){
         lcd_send_data(LCD_ORIENTATION_NORMAL);
-    else
+    } else{
         lcd_send_data(LCD_ORIENTATION_INVERTED);
+    }
 }
 
 void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {

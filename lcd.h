@@ -153,8 +153,8 @@ volatile uint8_t frames_count = 0;
 #define LCD_ORIENTATION_NORMAL  (0x01)
 #define LCD_ORIENTATION_INVERTED (0x10)
 #else
-#define LCD_ORIENTATION_NORMAL  (0x00)
-#define LCD_ORIENTATION_INVERTED (0x11)
+#define LCD_ORIENTATION_NORMAL   (0b00000000)
+#define LCD_ORIENTATION_INVERTED (0b00000011)
 #endif
 #define CMD_WRITE_DATA          (0x5C)
 #define CMD_READ_DATA           (0x5D)
