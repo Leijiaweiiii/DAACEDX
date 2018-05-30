@@ -366,37 +366,47 @@ void getPar() {
         ParTime[i] = eeprom_read_tdata(ParAddress + (i * 3) + 1);
 }
 
-uint16_t findCurrStringAddress() {
-    uint16_t add = ShootStringStartAddress;
-    CurrStringStartAddress = 0;
-    uint8_t data;
-    do {
-        data = eeprom_read_data(add);
-        if (data == 1)
-            CurrStringStartAddress = add;
-        else add += Size_of_ShootString;
-    } while ((data != 1) && (add < (ShootStringStartAddress + 30 * Size_of_ShootString)));
-    return CurrStringStartAddress;
+uint16_t findStringAddress(uint8_t index_in_eeprom) {
+    return ShootStringStartAddress + index_in_eeprom*Size_of_ShootString;
 }
+
+uint8_t findCurStringMark() {
+    uint16_t addr = ShootStringStartAddress;
+    uint8_t i = 0, maxindex = 0, minindex = 0;
+    uint8_t marks[MAXSHOOTSTRINGS];
+    for (i = 0; i < MAXSHOOTSTRINGS; i++) {
+        addr = findStringAddress(i);
+        marks[i] = eeprom_read_data(addr);
+        if (marks[i] == max(marks[maxindex], marks[i]))
+            maxindex = i;
+    }
+    // TODO: Verify implementation
+    return marks[maxindex];
+}
+
+void defineLatestStringAddress() {
+    CurrShotStringMark = findCurStringMark();
+    CurrStringStartAddress = findStringAddress(ShootString.ShootStringMark % MAXSHOOTSTRINGS);
+}
+
+// increments the string position, based on the current mark
 
 void saveShootString(void) {
+    // Don't save empty strings
+    if (ShootString.TotShoots == 0)
+        return;
     uint16_t Address;
-    // current string is overwritten over the older string
-    findCurrStringAddress(); // the address of stored shoot string 0
-    if (ShootStringStartAddress == CurrStringStartAddress)
-        Address = ShootStringStartAddress + (29 * Size_of_ShootString);
-    else Address = (CurrStringStartAddress - Size_of_ShootString);
-    eeprom_write_array(Address,ShootString.data,Size_of_ShootString);
+    ShootString.ShootStringMark = (CurrShotStringMark + 1) % MAXSHOTSTRINGMARK;
+    Address = findStringAddress(ShootString.ShootStringMark % MAXSHOOTSTRINGS);
+    eeprom_write_array(Address, ShootString.data, Size_of_ShootString);
+    CurrStringStartAddress = Address;
+    CurrShotStringMark = ShootString.ShootStringMark;
 }
 
-TBool getShootString(uint8_t ShootStrNum) {
+TBool getShootString(uint8_t offset) {
     uint16_t Address;
-
-    findCurrStringAddress(); // the address of shoot string 0
-    uint16_t StrBeforeCurr = ((CurrStringStartAddress - ShootStringStartAddress) / Size_of_ShootString);
-    if ((30 - StrBeforeCurr) > ShootStrNum) Address = CurrStringStartAddress + (ShootStrNum * Size_of_ShootString);
-    else Address = ShootStringStartAddress + (((ShootStrNum + StrBeforeCurr) - 30) * Size_of_ShootString);
-    eeprom_read_array(Address,ShootString.data,Size_of_ShootString);
+    Address = findStringAddress((CurrShotStringMark + offset) % MAXSHOOTSTRINGS);
+    eeprom_read_array(Address, ShootString.data, Size_of_ShootString);
     return True;
 }
 // </editor-fold>
@@ -1237,7 +1247,7 @@ void ReviewDisplay() {
     else
         page_size = 5;
     first_page = (CurShootString / page_size == 0);
-    sprintf(message, "String %s", first_page ? "" : "<");
+    sprintf(message, "String<");
     col = 4;
     lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
     col += lcd_string_lenght(message, SmallFont);
@@ -1249,7 +1259,7 @@ void ReviewDisplay() {
         lcd_write_string(message, col, line, SmallFont, CurShootString % page_size == i);
         col += lcd_string_lenght(message, SmallFont) + 3;
     }
-    sprintf(message, "%s", page_start + page_size < MAXSHOOTSTRINGS ? ">" : "");
+    sprintf(message, ">");
     lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
 }
 
@@ -1265,7 +1275,6 @@ void review_scroll_shot_up() {
 void review_scroll_shot_down() {
     if (CurShoot < ShootString.TotShoots) {
         CurShoot++;
-
     } else {
         CurShoot = 1;
     }
@@ -1275,23 +1284,31 @@ void review_scroll_shot_down() {
 void review_previous_string() {
     if (CurShootString > 0) {
         CurShootString--;
-        getShootString(CurShootString);
-        reviewChanged = True;
-    } else Beep();
+
+    } else {
+        CurShootString = MAXSHOOTSTRINGS - 1;
+    }
+    getShootString(CurShootString);
+    reviewChanged = True;
+    CurShoot = ShootString.TotShoots - 1;
 }
 
 void review_next_string() {
     if (CurShootString < MAXSHOOTSTRINGS - 1) {
         CurShootString++;
-        getShootString(CurShootString);
-        reviewChanged = True;
-    } else Beep();
+    } else {
+        CurShootString = 0;
+    }
+    getShootString(CurShootString);
+    reviewChanged = True;
+    CurShoot = ShootString.TotShoots - 1;
 }
 
 void DoReview() {
     CurShootString = 0;
     CurShoot = ShootString.TotShoots - 1;
     reviewChanged = True;
+    defineLatestStringAddress(); // the address of shoot string 0
     do {
         ReviewDisplay();
         define_input_action();
@@ -1748,6 +1765,8 @@ void main(void) {
     //    getSettings();
     getDefaultSettings();
     //    getPar();
+    defineLatestStringAddress();
+    getShootString(0);
     set_backlight(BackLightLevel);
     init_ms_timer0();
     initialize_rtc_timer();
@@ -1755,16 +1774,13 @@ void main(void) {
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
-
+//    eeprom_clear_block(0x0, EEPROM_MAX_SIZE);
     lcd_clear();
     while (True) {
         //TODO: Integrate watchdog timer
         handle_rotation();
         handle_ui();
-        //          lcd_demo();
         frames_count++;
     }
-    //        DoAdcGraph();
-
     // </editor-fold>
 }

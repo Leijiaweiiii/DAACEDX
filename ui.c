@@ -160,8 +160,9 @@ void handle_timer_listening() {
             break;
         case StartShort:
             if (AutoStart) {
+                saveShootString();
                 STATE_HANDLE_COUNTDOWN;
-            } else saveShootString();
+            }
             break;
         case ReviewLong:
         case ReviewShort:

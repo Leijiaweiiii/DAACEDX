@@ -166,17 +166,29 @@ time_t CustomCDtime = 5 * 60 * 1000; // 5 min in ms
 TBool SaveToEEPROM;
 #define BT_Address                   112
 
-#define MAXSHOOTSTRINGS    30
-#define MAXSHOOT    100
-// Aligned to 64byte pages, in the reality we need less
-#define  Size_of_ShootString        (448)
+// This should be changed carefully.
+// Saving to EEPROM strongly depends on these values
+#define MAXSHOOTSTRINGS              (30)
+#define MAXSHOTSTRINGMARK            (240)
+#define MAXSHOOT                     (100)
+#define  Size_of_ShootString         (303)
+#define ShootStringStartAddress     (0x0B80)
 
 typedef union {
     uint8_t data[Size_of_ShootString];
     struct {
         uint8_t ShootStringMark; //The most recent string has maximal value in the mark
         uint8_t TotShoots; //Total shoots in current string
-        time_t ShootTime[MAXSHOOT]; //in 1mS unit
+        union{
+            uint8_t is_flags;
+            struct{
+                unsigned is_mic :1;
+                unsigned is_a   :1;
+                unsigned is_b   :1;
+                unsigned unused :5;
+            };
+        };
+        uint24_t ShootTime[MAXSHOOT]; //in 1mS unit
     };
 } ShootString_t;
 ShootString_t ShootString;
@@ -186,8 +198,9 @@ time_t measurement_start_time_msec; // Reference time for counting shppt.
 // Should be set to RTC before beep starts
 #define MAX_MEASUREMENT_TIME    999000
 uint8_t CurShoot; //The current shoot of the displayed string
-uint16_t CurShootString, //Currently displayed string number 0..29
-CurrStringStartAddress;
+uint8_t CurShootString; //Currently displayed string number 0..29
+uint16_t CurrStringStartAddress;
+uint8_t CurrShotStringMark;
 
 #define SHOTS_ON_REVIEW_SCREEN      3
 
@@ -231,7 +244,7 @@ typedef enum {
     NRA_PPC_D = 7
 } ParMode_t;
 ParMode_t ParMode = Regular;
-#define ShootStringStartAddress     1000
+
 
 #include "menu.h"
 SettingsMenu_t ma; // Submenu for second level menu

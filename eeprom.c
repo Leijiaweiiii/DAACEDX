@@ -62,26 +62,15 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
     EEPROM_CS_DESELECT();
 }
 
-// Page is 64 byte here. So the data is written page by page and the reminder to incomplete page
-void eeprom_write_array(uint16_t address, uint8_t * data, uint16_t size) {
-    for (uint8_t page = 0; page < size / EEPROM_PAGE_SIZE + 1; page++) {
-        uint8_t bytes_to_write = min(EEPROM_PAGE_SIZE, size - page * EEPROM_PAGE_SIZE);
-        eeprom_busy_wait();
-        EEPROM_CS_SELECT();
-        eeprom_spi_write(CMD_WRSR);
-        eeprom_spi_write(0x02); // Enable Write Latch.
-        EEPROM_CS_DESELECT();
+void eeprom_clear_block(uint16_t start_address, uint16_t size) {
+    for (uint16_t i = 0; i < size; i++) {
+        eeprom_write_data(start_address + i, 0x00);
+    }
+}
 
-        EEPROM_CS_SELECT();
-        eeprom_spi_write(CMD_WREN);
-        EEPROM_CS_DESELECT();
-        EEPROM_CS_SELECT();
-        eeprom_spi_write(CMD_WRITE);
-        eeprom_spi_write(MSB(address));
-        eeprom_spi_write(LSB(address));
-        for (uint8_t i = 0; i < bytes_to_write; i++)
-            eeprom_spi_write(data);
-        EEPROM_CS_DESELECT();
+void eeprom_write_array(uint16_t address, uint8_t * data, uint16_t size) {
+    for (uint16_t i = 0; i < size; i++) {
+        eeprom_write_data(address + i, data[i]);
     }
 }
 
@@ -137,7 +126,7 @@ uint16_t eeprom_read_wdata(uint16_t address) {
     read_least = eeprom_spi_write(0x00);
     read_most = eeprom_spi_write(0x00);
     EEPROM_CS_DESELECT();
-    return (read_most << 8)|read_least;
+    return (read_most << 8) | read_least;
 }
 
 uint24_t eeprom_read_tdata(uint16_t address) {
@@ -153,7 +142,7 @@ uint24_t eeprom_read_tdata(uint16_t address) {
     read_mid = eeprom_spi_write(0x00);
     read_most = eeprom_spi_write(0x00);
     EEPROM_CS_DESELECT();
-    return (read_most << 16)|(read_mid << 8) | read_least;
+    return (read_most << 16) | (read_mid << 8) | read_least;
 }
 
 void eeprom_busy_wait() {

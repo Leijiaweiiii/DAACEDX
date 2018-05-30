@@ -63,6 +63,7 @@ void eeprom_write_wdata(uint16_t address, uint16_t data);
 void eeprom_write_tdata(uint16_t address, uint24_t data);
 uint16_t eeprom_read_wdata(uint16_t address);
 uint24_t eeprom_read_tdata(uint16_t address);
+void eeprom_clear_block(uint16_t start_address,uint16_t size);
 //</editor-fold>
 
 
