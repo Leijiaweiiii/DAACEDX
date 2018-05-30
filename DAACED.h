@@ -127,9 +127,9 @@ union {
 } InputFlags;
 
 typedef enum {
-    Mic = 0,
-    A = 1,
-    B = 2
+    Mic =   0b0001,
+    A =     0b0010,
+    B =     0b0100
 } ShotInput_t;
 
 typedef enum {
@@ -171,15 +171,10 @@ TBool SaveToEEPROM;
 #define MAXSHOOTSTRINGS              (30)
 #define MAXSHOTSTRINGMARK            (240)
 #define MAXSHOOT                     (100)
-#define  Size_of_ShootString         (303)
+#define  Size_of_ShootString         (402)
 #define ShootStringStartAddress     (0x0B80)
-
-typedef union {
-    uint8_t data[Size_of_ShootString];
-    struct {
-        uint8_t ShootStringMark; //The most recent string has maximal value in the mark
-        uint8_t TotShoots; //Total shoots in current string
-        union{
+typedef struct{
+    union{
             uint8_t is_flags;
             struct{
                 unsigned is_mic :1;
@@ -188,7 +183,15 @@ typedef union {
                 unsigned unused :5;
             };
         };
-        uint24_t ShootTime[MAXSHOOT]; //in 1mS unit
+        uint24_t dt;
+} shot_t;
+typedef union {
+    uint8_t data[Size_of_ShootString];
+    struct {
+        uint8_t ShootStringMark; //The most recent string has maximal value in the mark
+        uint8_t TotShoots; //Total shoots in current string
+        
+        shot_t shots[MAXSHOOT]; //in 1mS unit
     };
 } ShootString_t;
 ShootString_t ShootString;

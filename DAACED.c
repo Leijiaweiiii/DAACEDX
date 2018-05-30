@@ -396,7 +396,7 @@ void saveShootString(void) {
     if (ShootString.TotShoots == 0)
         return;
     uint16_t Address;
-    ShootString.ShootStringMark = (CurrShotStringMark + 1) % MAXSHOTSTRINGMARK;
+    ShootString.ShootStringMark = (CurrShotStringMark - 1) % MAXSHOTSTRINGMARK;
     Address = findStringAddress(ShootString.ShootStringMark % MAXSHOOTSTRINGS);
     eeprom_write_array(Address, ShootString.data, Size_of_ShootString);
     CurrStringStartAddress = Address;
@@ -1210,7 +1210,7 @@ void ReviewDisplay() {
     sprintf(ScreenTitle,
             REVIEW_TOTAL_SHOT_FORMAT,
             ShootString.TotShoots,
-            (float) ShootString.ShootTime[ShootString.TotShoots - 1] / 1000
+            (float) ShootString.shots[ShootString.TotShoots - 1].dt / 1000
             );
     print_header();
     //Shoot lines
@@ -1221,7 +1221,7 @@ void ReviewDisplay() {
         sprintf(message,
                 REVIEW_SHOT_FORMAT,
                 curr_index + 1,
-                (float) ShootString.ShootTime[curr_index] / 1000
+                (float) ShootString.shots[curr_index].dt / 1000
                 );
         lcd_write_string(message, 5, line, MediumFont, (i != 1)&0x01);
         line += halfline;
@@ -1232,7 +1232,7 @@ void ReviewDisplay() {
                 curr_index != ShootString.TotShoots - 1) {
             sprintf(message,
                     REVIEW_SPLIT_FORMAT,
-                    (float) (ShootString.ShootTime[subtrahend_index] - ShootString.ShootTime[curr_index]) / 1000);
+                    (float) (ShootString.shots[subtrahend_index].dt - ShootString.shots[curr_index].dt) / 1000);
             lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
@@ -1434,7 +1434,7 @@ void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uin
 void print_footer() {
     char message[20];
     lcd_fill_block(0, UI_FOOTER_START_LINE, LCD_WIDTH, LCD_HEIGHT);
-    sprintf(message, " 1st: %3.2f", (float) ShootString.ShootTime[0] / 1000);
+    sprintf(message, " 1st: %3.2f", (float) ShootString.shots[0].dt / 1000);
     print_label_at_footer_grid(message, 0, 0);
     sprintf(message, " Shots: %2d", ShootString.TotShoots);
     print_label_at_footer_grid(message, 1, 0);
@@ -1460,10 +1460,10 @@ void print_footer() {
 
 void DoMain(void) {
     measurement_start_time_msec = rtc_time.unix_time_ms;
-    ShootString.ShootStringMark = 1;
-    ShootString.TotShoots = 0;
-    for (int i = 0; i < MAXSHOOT; i++)
-        ShootString.ShootTime[i] = 0;
+    ShootString.ShootStringMark = CurrShotStringMark;
+    for (uint16_t i = 1; i < Size_of_ShootString; i++){
+        ShootString.data[i] = 0;
+    }
     DetectInit();
 
 }
@@ -1520,12 +1520,12 @@ void update_shot_time_on_screen() {
             t = 0;
             break;
         case 1:
-            t = ShootString.ShootTime[c - 1];
+            t = ShootString.shots[c - 1].dt;
             dt = t;
             break;
         default:
-            t = ShootString.ShootTime[c - 1];
-            dt = t - ShootString.ShootTime[c - 2];
+            t = ShootString.shots[c - 1].dt;
+            dt = t - ShootString.shots[c - 2].dt;
             break;
     }
     print_big_time_label(t);
@@ -1588,12 +1588,13 @@ void UpdateShot(time_t now, ShotInput_t input) {
     if (ShootString.TotShoots == 0) {
         ddt = 0;
     } else {
-        ddt = ShootString.ShootTime[ShootString.TotShoots - 1];
+        ddt = ShootString.shots[ShootString.TotShoots - 1].dt;
     }
     ddt = dt - ddt;
     //Don't count shoots less than Filter
     if (ddt > Filter) {
-        ShootString.ShootTime[ShootString.TotShoots] = dt;
+        ShootString.shots[ShootString.TotShoots].dt = dt;
+        ShootString.shots[ShootString.TotShoots].is_flags = input;
         ShootString.TotShoots++;
         if (ShootString.TotShoots >= MAXSHOOT)
             timerEventToHandle = TimerTimeout;
