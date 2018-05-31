@@ -22,12 +22,13 @@ uint8_t old_time_str_len = 0;
 
 void print_big_time_label(time_t t) {
     char message[16];
-    sprintf(message, "%3.02f", ((float) t) / 1000);
-    uint8_t len = lcd_string_lenght(message, BigFont);
+    float tf = ((float) t) / 1000;
+    sprintf(message, "%03.02f", tf);
+    uint8_t len = lcd_string_lenght(message, MediumFont);
     if (len < old_time_str_len)
-        lcd_clear_block(LCD_WIDTH-old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
+        lcd_clear_block(LCD_WIDTH-old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, MediumFont->height + UI_HEADER_END_LINE);
     old_time_str_len = len;
-    lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, MediumFont, BLACK_OVER_WHITE);
 }
 void update_countdown_time_on_screen() {
     time_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
@@ -135,7 +136,7 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-            saveShootString();
+//            saveShootString();
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:

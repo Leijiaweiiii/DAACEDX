@@ -398,15 +398,15 @@ void saveShootString(void) {
     uint16_t Address;
     ShootString.ShootStringMark = (CurrShotStringMark - 1) % MAXSHOTSTRINGMARK;
     Address = findStringAddress(ShootString.ShootStringMark % MAXSHOOTSTRINGS);
-    eeprom_write_array(Address, ShootString.data, Size_of_ShootString);
+    eeprom_write_array(ShootStringStartAddress, ShootString.data, ShootString.TotShoots + 2);
     CurrStringStartAddress = Address;
     CurrShotStringMark = ShootString.ShootStringMark;
 }
 
 TBool getShootString(uint8_t offset) {
     uint16_t Address;
-    Address = findStringAddress((CurrShotStringMark + offset) % MAXSHOOTSTRINGS);
-    eeprom_read_array(Address, ShootString.data, Size_of_ShootString);
+    Address = findStringAddress((CurrShotStringMark - offset) % MAXSHOOTSTRINGS);
+    eeprom_read_array(ShootStringStartAddress, ShootString.data, Size_of_ShootString);
     return True;
 }
 // </editor-fold>
@@ -1338,6 +1338,8 @@ void DoReview() {
         comandToHandle = None;
 
     } while (ui_state == ReviewScreen);
+    defineLatestStringAddress();
+    getShootString(0);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Diagnostics">
@@ -1448,6 +1450,7 @@ void print_footer() {
         case Custom: sprintf(message, " Delay: %1.1fs", (float) DelayTime / 1000);
             break;
     }
+//    sprintf(message,"t:%ds",rtc_time.sec);
     print_label_at_footer_grid(message, 0, 1);
 
     if (TotPar > 0) {
@@ -1623,6 +1626,7 @@ void update_screen_model() {
                 case A_and_B_single:
                     if (AUX_A) UpdateShootNow(A);
                     else if (AUX_B) UpdateShootNow(B);
+                    // TODO: Fix This should capture only one of A and one of B
                     timerEventToHandle = TimerTimeout;
                     break;
             }
@@ -1641,7 +1645,7 @@ void update_screen_model() {
             break;
         default:
 
-            //do nothing, we're stimm in ISR
+            //do nothing, we're in ISR
             break;
     }
 }
