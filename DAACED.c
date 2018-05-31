@@ -1378,7 +1378,7 @@ void DoDiagnostics() {
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
 
 #define DETECT_THRESHOLD_LEVELS 10
-uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {/*220, 190, 160, */148, 124, 104, 87, 73, 61, 51, 43, 36, 33};
+uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {/*220, 190, 160, */140, 120, 104, 87, 73, 61, 51, 42, 33, 15};
 
 void DetectInit(void) {
     uint16_t Mean = 0;
