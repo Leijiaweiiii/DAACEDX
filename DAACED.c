@@ -1476,10 +1476,13 @@ void DoPowerOff() {
     set_backlight(0);
     lcd_clear();
     LATEbits.LATE0 = 0;
+    // TODO: Implement SLEEP mode when powering off
+    OSCFRQ = 0b00000000; // 1MHz clock for power saving
 }
 
 void DoPowerOn() {
     LATEbits.LATE0 = 1;
+    OSCFRQ = 0b00001000; // Switch back to 64MHz
     // TODO: Review power on sequence
     set_backlight(BackLightLevel);
 }
