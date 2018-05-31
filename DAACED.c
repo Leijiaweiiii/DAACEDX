@@ -1135,24 +1135,24 @@ void DoSet(uint8_t menu) {
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
 
-    SettingsMenu->TotalMenuItems = 15;
+    SettingsMenu->TotalMenuItems = 14;
 
     strmycpy(SettingsMenu->MenuTitle, " Settings ");
-    strmycpy(SettingsMenu->MenuItem[0], " 1 Delay ");
-    strmycpy(SettingsMenu->MenuItem[1], " 2 Par ");
-    strmycpy(SettingsMenu->MenuItem[2], " 3 Buzzer ");
-    strmycpy(SettingsMenu->MenuItem[3], " 4 Auto Start ");
-    strmycpy(SettingsMenu->MenuItem[4], " 5 Timer Mode ");
-    strmycpy(SettingsMenu->MenuItem[5], " 6 Clock ");
-    strmycpy(SettingsMenu->MenuItem[6], " 7 Countdown ");
-    strmycpy(SettingsMenu->MenuItem[7], " 8 Tilt ");
-    strmycpy(SettingsMenu->MenuItem[8], " 9 Backlight ");
-    strmycpy(SettingsMenu->MenuItem[9], " 10 Sensitivity ");
-    strmycpy(SettingsMenu->MenuItem[10], " 11 Filter ");
-    strmycpy(SettingsMenu->MenuItem[11], " 12 Input ");
-    strmycpy(SettingsMenu->MenuItem[12], " 13 Bluetooth ");
-    strmycpy(SettingsMenu->MenuItem[13], " 14 Reset Settings ");
-    strmycpy(SettingsMenu->MenuItem[14], " 15 Diagnostics ");
+    strmycpy(SettingsMenu->MenuItem[0], " Delay ");
+    strmycpy(SettingsMenu->MenuItem[1], " Par ");
+    strmycpy(SettingsMenu->MenuItem[2], " Buzzer ");
+    strmycpy(SettingsMenu->MenuItem[3], " Auto Start ");
+    strmycpy(SettingsMenu->MenuItem[4], " Timer Mode ");
+    strmycpy(SettingsMenu->MenuItem[5], " Clock ");
+    strmycpy(SettingsMenu->MenuItem[6], " Countdown ");
+    strmycpy(SettingsMenu->MenuItem[7], " Tilt ");
+    strmycpy(SettingsMenu->MenuItem[8], " Backlight ");
+    strmycpy(SettingsMenu->MenuItem[9], " Sensitivity ");
+    strmycpy(SettingsMenu->MenuItem[10], " Filter ");
+    strmycpy(SettingsMenu->MenuItem[11], " Input ");
+    strmycpy(SettingsMenu->MenuItem[12], " Bluetooth ");
+    strmycpy(SettingsMenu->MenuItem[13], " Reset Settings ");
+    strmycpy(SettingsMenu->MenuItem[14], " Diagnostics ");
 }
 
 void DoSettings(void) {
@@ -1168,7 +1168,7 @@ void DoSettings(void) {
         handle_rotation();
         print_header();
         DisplaySettings(&SettingsMenu);
-        SelectMenuItem(&SettingsMenu);
+        SelectMenuItemCircular(&SettingsMenu);
         if (SettingsMenu.selected) {
             DoSet(SettingsMenu.menu);
             SettingsMenu.selected = False;

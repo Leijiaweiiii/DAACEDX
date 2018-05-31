@@ -84,6 +84,29 @@ void increment_menu_index(SettingsMenu_t * s) {
     s->redraw |= (oldPage != s->page);
 }
 
+void decrement_menu_index_inf(SettingsMenu_t * s) {
+    uint8_t oldPage = s->page;
+    if (s->menu > 0) {
+        s->menu--;
+    } else {
+        s->menu = s->TotalMenuItems - 1;
+    }
+    s->page = ItemToPage(s->menu);
+    s->redraw |= (oldPage != s->page);
+
+}
+
+void increment_menu_index_inf(SettingsMenu_t * s) {
+    uint8_t oldPage = s->page;
+    if (s->menu < s->TotalMenuItems - 1) {
+        s->menu++;
+    } else {
+        s->menu = 0;
+    }
+    s->page = ItemToPage(s->menu);
+    s->redraw |= (oldPage != s->page);
+}
+
 void SelectMenuItem(SettingsMenu_t* s) {
     define_input_action();
     switch (comandToHandle) {
@@ -129,6 +152,41 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
         case DownShort:
         case DownLong:
             increment_menu_index(s);
+            break;
+        case OkShort:
+        case OkLong:
+            s->selected = True;
+            s->done = False;
+            break;
+        case BackShort:
+        case BackLong:
+            s->selected = False;
+            s->done = True;
+            break;
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;
+            break;
+        case ReviewShort:ui_state = ReviewScreen;
+            break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
+            break;
+        default:
+            break;
+    }
+    comandToHandle = None;
+}
+
+void SelectMenuItemCircular(SettingsMenu_t* s) {
+    define_input_action();
+    switch (comandToHandle) {
+        case UpShort:
+        case UpLong:
+            decrement_menu_index_inf(s);
+            break;
+        case DownShort:
+        case DownLong:
+            increment_menu_index_inf(s);
             break;
         case OkShort:
         case OkLong:

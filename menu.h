@@ -103,6 +103,7 @@ extern "C" {
     uint8_t PopMsg(const char* msg, uint16_t wait);
     void SelectMenuItem(SettingsMenu_t* s);
     void SelectBinaryMenuItem(SettingsMenu_t* s);
+    void SelectMenuItemCircular(SettingsMenu_t* s);
     void DisplaySettings(SettingsMenu_t* s);
     void SelectInteger(NumberSelection_t* s);
     void SelectDouble(NumberSelection_t* s);
