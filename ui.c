@@ -20,19 +20,24 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
 
 uint8_t old_time_str_len = 0;
 
-void print_big_time_label(time_t t) {
+void print_big_time_label(uint24_t t) {
     char message[16];
-    float tf = ((float) t) / 1000;
-    sprintf(message, "%03.02f", tf);
-    uint8_t len = lcd_string_lenght(message, MediumFont);
+    float tf;
+    if(t>MAX_MEASUREMENT_TIME)
+        tf=999.0;
+    else
+        tf = ((float) t) / 1000;
+    sprintf(message, "%3.02f", tf);
+    uint8_t len = lcd_string_lenght(message, BigFont);
     if (len < old_time_str_len)
-        lcd_clear_block(LCD_WIDTH-old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, MediumFont->height + UI_HEADER_END_LINE);
+        lcd_clear_block(LCD_WIDTH-old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
     old_time_str_len = len;
-    lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, MediumFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
+
 void update_countdown_time_on_screen() {
-    time_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
-    print_big_time_label(reminder / 100 * 100);
+    uint24_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
+    print_big_time_label(reminder);
 }
 
 void PowerOffTimer() {

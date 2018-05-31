@@ -1517,7 +1517,7 @@ void clear_timer_area() {
 
 void update_shot_time_on_screen() {
     uint8_t c = ShootString.TotShoots;
-    time_t t = 0, dt = 0;
+    uint24_t t = 0, dt = 0;
     switch (c) {
         case 0:
             t = 0;
