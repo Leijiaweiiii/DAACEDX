@@ -297,6 +297,11 @@ uint8_t SettingsTitle(SettingsMenu_t* sm) {
 
 // <editor-fold defaultstate="collapsed" desc="Save and retrive DATA">
 
+void clearHistory() {
+    lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+    eeprom_clear_block(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
+}
+
 void saveSettings() {
     eeprom_write_array(SettingsStartAddress, Settings.data, SettingsDataSize);
 }
@@ -306,6 +311,7 @@ void getSettings() {
 }
 
 void getDefaultSettings() {
+    Settings.version = FW_VERSION;
     Settings.Sensitivity = 5;
     Settings.Filter = 70;
     Settings.AR_IS.Autostart = 1;
@@ -385,7 +391,7 @@ TBool getShootString(uint8_t offset) {
     uint16_t addr;
     int8_t index;
     index = findCurStringIndex();
-    if(index >= offset)
+    if (index >= offset)
         index -= offset;
     else
         index = MAXSHOOTSTRINGS - offset + index;
@@ -1089,8 +1095,7 @@ void DoSet(uint8_t menu) {
             break;
         case 14:
             //            DoDiagnostics();
-            lcd_write_string("Please wait", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-            eeprom_clear_block(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
+            clearHistory();
             break;
     }
 }
@@ -1725,14 +1730,19 @@ void main(void) {
     lcd_init();
     ADC_init();
     eeprom_init();
-    getSettings();
-    //    getDefaultSettings();
-    //    saveSettings();
-    getShootString(0);
-    set_backlight(Settings.BackLightLevel);
     init_ms_timer0();
     initialize_rtc_timer();
     ei();
+    getSettings();
+    if (Settings.version != FW_VERSION) {
+        clearHistory();
+        getDefaultSettings();
+        saveSettings();
+    }
+    set_backlight(Settings.BackLightLevel);
+    getShootString(0);
+
+
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">

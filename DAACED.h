@@ -215,7 +215,7 @@ time_t parStartTime_ms;
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-#define SettingsDataSize            (101)
+#define SettingsDataSize            (102)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -223,6 +223,7 @@ typedef union {
     uint8_t data[SettingsDataSize];
 
     struct {
+        uint8_t version;
         AR_IS_T AR_IS;
         uint8_t DelayMode;
         uint8_t BuzzerLevel;
@@ -240,7 +241,7 @@ typedef union {
         uint24_t ParTime[MAXPAR]; //in 1mS unit
     };
 } Settings_t;
-Settings_t Settings;
+volatile Settings_t Settings;
 
 #include "menu.h"
 SettingsMenu_t ma; // Submenu for second level menu
