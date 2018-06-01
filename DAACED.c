@@ -384,9 +384,11 @@ void saveShootString(void) {
 TBool getShootString(uint8_t offset) {
     uint16_t addr;
     int8_t index;
-    index = findCurStringIndex() - offset;
-    if(index < 0)
-        index = MAXSHOOTSTRINGS - index;
+    index = findCurStringIndex();
+    if(index >= offset)
+        index -= offset;
+    else
+        index = MAXSHOOTSTRINGS - offset + index;
     addr = findStringAddress(index);
     eeprom_read_array(addr, ShootString.data, Size_of_ShootString);
     return True;
@@ -1240,7 +1242,6 @@ void review_scroll_shot_down() {
 void review_previous_string() {
     if (CurShootString > 0) {
         CurShootString--;
-
     } else {
         CurShootString = MAXSHOOTSTRINGS - 1;
     }
