@@ -550,20 +550,20 @@ void SetPar(SettingsMenu_t * m) {
 void SetBacklight() {//PWM Backlight
     NumberSelection_t b;
     strmycpy(b.MenuTitle, "Backlight ");
-    b.max = 9;
+    b.max = 10;
     b.min = 0;
     b.step = 1;
-    b.value = Settings.BackLightLevel / 10;
+    b.value = Settings.BackLightLevel;
     b.old_value = b.value;
     b.format = "%u";
     b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        set_backlight(b.value * 10);
+        set_backlight(b.value);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.BackLightLevel = b.value * 10;
+        Settings.BackLightLevel = b.value;
         set_backlight(Settings.BackLightLevel);
         if (b.value != b.old_value) {
             saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
@@ -1725,7 +1725,7 @@ void main(void) {
     PIC_init();
     LATEbits.LATE0 = 1;
     initialize_backlight();
-    set_backlight(90);
+    set_backlight(20);
     spi_init();
     lcd_init();
     ADC_init();
