@@ -1082,7 +1082,8 @@ void DoSet(uint8_t menu) {
             getDefaultSettings();
             break;
         case 14:
-            DoDiagnostics();
+//            DoDiagnostics();
+            eeprom_clear_block(ShootStringStartAddress,EEPROM_MAX_SIZE-ShootStringStartAddress);
             break;
     }
 }
@@ -1090,7 +1091,7 @@ void DoSet(uint8_t menu) {
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
 
-    SettingsMenu->TotalMenuItems = 14;
+    SettingsMenu->TotalMenuItems = 15;
 
     strmycpy(SettingsMenu->MenuTitle, " Settings ");
     strmycpy(SettingsMenu->MenuItem[0], " Delay ");
@@ -1107,7 +1108,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     strmycpy(SettingsMenu->MenuItem[11], " Input ");
     strmycpy(SettingsMenu->MenuItem[12], " Bluetooth ");
     strmycpy(SettingsMenu->MenuItem[13], " Reset Settings ");
-    strmycpy(SettingsMenu->MenuItem[14], " Diagnostics ");
+    strmycpy(SettingsMenu->MenuItem[14], " Clear History ");
 }
 
 void DoSettings(void) {
@@ -1722,9 +1723,9 @@ void main(void) {
     lcd_init();
     ADC_init();
     eeprom_init();
-        getSettings();
-//    getDefaultSettings();
-
+    getSettings();
+    //    getDefaultSettings();
+    //    saveSettings();
     defineLatestStringAddress();
     getShootString(0);
     set_backlight(Settings.BackLightLevel);
