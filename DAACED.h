@@ -114,7 +114,6 @@ typedef union {
     };
 
 } AR_IS_T;
-AR_IS_T AR_IS;
 
 union {
     uint8_t byte;
@@ -127,70 +126,56 @@ union {
 } InputFlags;
 
 typedef enum {
-    Mic =   0b0001,
-    A =     0b0010,
-    B =     0b0100
+    Mic = 0b0001,
+    A = 0b0010,
+    B = 0b0100
 } ShotInput_t;
 
-typedef enum {
-    Microphone = 0,
-    A_or_B_multiple = 1,
-    A_and_B_single = 2
-} InputMode_t;
-InputMode_t InputType = Microphone;
+#define Microphone 0
+#define A_or_B_multiple 1
+#define A_and_B_single 2
+
 
 typedef struct {
-    InputMode_t input;
+    uint8_t input;
     TBool detected;
 } DetectionResult_t;
 
-#define AutoStart AR_IS.Autostart
-#define Autorotate AR_IS.AutoRotate
-#define AR_IS_Address                100
-uint16_t BuzzerFrequency = 2000;
-uint16_t BuzzerParDuration = 200;
-uint16_t BuzzerStartDuration = 200;
-uint8_t BuzzerLevel = 2;
+#define AutoStart Settings.AR_IS.Autostart
+#define Autorotate Settings.AR_IS.AutoRotate
 // Automatic shutdown after timeout 20 minutes
 time_t timer_idle_shutdown_timeout = 1200000;
 time_t timer_idle_last_action_time;
-#define BuzzerStartDuration_Address  102
-#define BuzzerFrequency_Address      104
-#define BuzzerParDuration_Address    106
-#define BuzzerLevel_Address          108
-time_t CustomCDtime = 5 * 60 * 1000; // 5 min in ms
-// TODO: Review storage size for all the data
-#define CustomCDtime_Address         110
-
-
-TBool SaveToEEPROM;
-#define BT_Address                   112
 
 // This should be changed carefully.
 // Saving to EEPROM strongly depends on these values
 #define MAXSHOOTSTRINGS              (30)
 #define MAXSHOTSTRINGMARK            (240)
 #define MAXSHOOT                     (100)
-#define  Size_of_ShootString         (402)
-#define ShootStringStartAddress     (0x0B80)
-typedef struct{
-    union{
-            uint8_t is_flags;
-            struct{
-                unsigned is_mic :1;
-                unsigned is_a   :1;
-                unsigned is_b   :1;
-                unsigned unused :5;
-            };
+#define Size_of_ShootString         (402)
+
+typedef struct {
+
+    union {
+        uint8_t is_flags;
+
+        struct {
+            unsigned is_mic : 1;
+            unsigned is_a : 1;
+            unsigned is_b : 1;
+            unsigned unused : 5;
         };
-        uint24_t dt;
+    };
+    uint24_t dt;
 } shot_t;
+
 typedef union {
     uint8_t data[Size_of_ShootString];
+
     struct {
         uint8_t ShootStringMark; //The most recent string has maximal value in the mark
         uint8_t TotShoots; //Total shoots in current string
-        
+
         shot_t shots[MAXSHOOT]; //in 1mS unit
     };
 } ShootString_t;
@@ -207,47 +192,59 @@ uint8_t CurrShotStringMark;
 
 #define SHOTS_ON_REVIEW_SCREEN      3
 
-typedef enum {
-    Instant, Fixed, Random, Custom
-} TdelTy;
 
-TdelTy DelayMode = Fixed;
+#define DELAY_MODE_Instant 0
+#define DELAY_MODE_Fixed 1
+#define DELAY_MODE_Random 2
+#define DELAY_MODE_Custom 3
+
+//uint8_t DelayMode = DELAY_MODE_Fixed;
 uint16_t DetectThreshold;
-time_t DelayTime = 3000; // mS
 time_t countdown_start_time;
-#define Delay_Address                118
-#define DelayTime_Address            120
 
-uint8_t Sensitivity;
-#define Sensitivity_Address          122
-
-#define AutoStart_Address            124
-
-uint8_t BackLightLevel = 10;
-#define BackLightLevel_Address       126
-uint8_t Filter;
-#define Filter_Address               128
-
-#define ParAddress                   200
 #define MAXPAR 12
-uint8_t TotPar = 0; // 1 based
-uint24_t ParTime[MAXPAR]; //in 1mS unit
 volatile uint8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
-typedef enum {
-    Regular = 0,
-    Practical = 1,
-    Barricade = 2,
-    FallingPlate = 3,
-    NRA_PPC_A = 4,
-    NRA_PPC_B = 5,
-    NRA_PPC_C = 6,
-    NRA_PPC_D = 7
-} ParMode_t;
-ParMode_t ParMode = Regular;
+#define ParMode_Regular 0
+#define ParMode_Practical 1
+#define ParMode_Barricade 2
+#define ParMode_FallingPlate 3
+#define ParMode_NRA_PPC_A 4
+#define ParMode_NRA_PPC_B 5
+#define ParMode_NRA_PPC_C 6
+#define ParMode_NRA_PPC_D 7
+//uint8_t ParMode = ParMode_Regular;
 
+#define ShootStringStartAddress     (0x0B80)
+#define SettingsStartAddress        (0x0100)
+#define SettingsDataSize            (23+3*MAXPAR)
+#define SettingsOffsetOfField(s,f)  (&(f)-&(s))
+#define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
+
+typedef union {
+    uint8_t data[SettingsDataSize];
+
+    struct {
+        AR_IS_T AR_IS;
+        uint8_t DelayMode;
+        uint8_t BuzzerLevel;
+        uint8_t Sensitivity;
+        uint8_t BackLightLevel;
+        uint8_t Filter;
+        uint8_t ParMode;
+        uint8_t TotPar; // 1 based
+        uint8_t InputType;
+        uint16_t BuzzerFrequency;
+        uint16_t BuzzerParDuration;
+        uint16_t BuzzerStartDuration;
+        time_t DelayTime; // mS
+        time_t CustomCDtime;
+        uint24_t ParTime[MAXPAR]; //in 1mS unit
+    };
+} Settings_t;
+Settings_t Settings;
 
 #include "menu.h"
 SettingsMenu_t ma; // Submenu for second level menu

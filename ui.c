@@ -36,7 +36,7 @@ void print_big_time_label(uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    uint24_t reminder = DelayTime - rtc_time.unix_time_ms + countdown_start_time;
+    uint24_t reminder =Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
 
@@ -97,7 +97,7 @@ void handle_timer_idle_shutdown() {
 }
 
 void handle_timer_idle() {
-    switch(InputType){
+    switch(Settings.InputType){
         case Microphone:
             set_screen_title("Microphone ");
             break;
@@ -145,7 +145,7 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
-            if (TotPar > 0)
+            if (Settings.TotPar > 0)
                 StartParTimer();
             PlayParSound();
             break;
@@ -236,7 +236,7 @@ void handle_countdown() {
             ui_state = TimerListening;
             update_shot_time_on_screen();
 
-            if (TotPar > 0)
+            if (Settings.TotPar > 0)
                 StartParTimer();
             DoMain();
             PlayStartSound();

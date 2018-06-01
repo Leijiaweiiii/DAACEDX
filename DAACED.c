@@ -298,72 +298,51 @@ uint8_t SettingsTitle(SettingsMenu_t* sm) {
 // <editor-fold defaultstate="collapsed" desc="Save and retrive DATA">
 
 void saveSettings() {
-    eeprom_write_wdata(Sensitivity_Address, Sensitivity);
-    eeprom_write_wdata(Filter_Address, Filter);
-    eeprom_write_wdata(AutoStart_Address, AutoStart);
-    eeprom_write_wdata(AR_IS_Address, AR_IS.AR_IS);
-    eeprom_write_wdata(BuzzerFrequency_Address, BuzzerFrequency);
-    eeprom_write_wdata(BuzzerParDuration_Address, BuzzerParDuration);
-    eeprom_write_wdata(BuzzerStartDuration_Address, BuzzerStartDuration);
-    eeprom_write_wdata(BuzzerLevel_Address, BuzzerLevel);
-    eeprom_write_wdata(CustomCDtime_Address, CustomCDtime);
-    //    eeprom_write_wdata(BT_Address, BT);
-    eeprom_write_wdata(Delay_Address, DelayMode);
-    eeprom_write_wdata(DelayTime_Address, DelayTime);
-    eeprom_write_wdata(BackLightLevel_Address, BackLightLevel);
+    eeprom_write_array(SettingsStartAddress, Settings.data, SettingsDataSize);
 }
 
 void getSettings() {
-    Sensitivity = eeprom_read_wdata(Sensitivity_Address);
-    Filter = eeprom_read_wdata(Filter_Address);
-    //    AutoStart = eeprom_read_wdata(AutoStart_Address);
-    AR_IS.AR_IS = eeprom_read_wdata(AR_IS_Address);
-    BuzzerFrequency = eeprom_read_wdata(BuzzerFrequency_Address);
-    BuzzerParDuration = eeprom_read_wdata(BuzzerParDuration_Address);
-    BuzzerStartDuration = eeprom_read_wdata(BuzzerStartDuration_Address);
-    BuzzerLevel = eeprom_read_wdata(BuzzerLevel_Address);
-    CustomCDtime = eeprom_read_wdata(CustomCDtime_Address);
-    //    BT = eeprom_read_wdata(BT_Address);
-    DelayMode = eeprom_read_wdata(Delay_Address);
-    DelayTime = eeprom_read_wdata(DelayTime_Address);
-    BackLightLevel = eeprom_read_wdata(BackLightLevel_Address);
+    eeprom_read_array(SettingsStartAddress, Settings.data, SettingsDataSize);
 }
 
 void getDefaultSettings() {
-    Sensitivity = 5;
-    Filter = 70;
-    AR_IS.Autostart = 1;
-    AR_IS.Mic = 1;
-    AR_IS.AutoRotate = 0;
-    AR_IS.BT = 1;
-    BuzzerFrequency = 1500;
-    BuzzerParDuration = 200;
-    BuzzerStartDuration = 300;
-    BuzzerLevel = 1;
-    CustomCDtime = 2000;
-    DelayMode = Fixed;
-    DelayTime = 3000;
-    BackLightLevel = 2;
-    TotPar = 0;
-    ParMode = Regular;
+    Settings.Sensitivity = 5;
+    Settings.Filter = 70;
+    Settings.AR_IS.Autostart = 1;
+    Settings.AR_IS.Mic = 1;
+    Settings.AR_IS.AutoRotate = 0;
+    Settings.AR_IS.BT = 1;
+    Settings.BuzzerFrequency = 1500;
+    Settings.BuzzerParDuration = 200;
+    Settings.BuzzerStartDuration = 300;
+    Settings.BuzzerLevel = 1;
+    Settings.CustomCDtime = 2000;
+    Settings.DelayMode = DELAY_MODE_Fixed;
+    Settings.DelayTime = 3000;
+    Settings.BackLightLevel = 2;
+    Settings.TotPar = 0;
+    Settings.ParMode = ParMode_Regular;
     CurPar_idx = 0;
     for (uint8_t i = 0; i < MAXPAR; i++) {
-        ParTime[i] = 0;
+        Settings.ParTime[i] = 0;
     }
 }
 
-void savePar(uint8_t i) {
-    eeprom_write_tdata(ParAddress + (i * 3) + 1, ParTime[i]);
+void saveSettingsField(Settings_t * s, void * f, size_t l) {
+    uint8_t offset = f - s;
+    eeprom_write_array(SettingsStartAddress + offset, s->data + offset, l);
 }
 
-void saveTotPar() {
-    eeprom_write_data(ParAddress, TotPar);
+void savePar(uint8_t par_index) {
+    uint8_t offset = (&(Settings.ParTime))-(&Settings) + par_index;
+    eeprom_write_array(SettingsStartAddress + offset, Settings.data + offset, 3);
 }
 
-void getPar() {
-    TotPar = eeprom_read_data(ParAddress);
-    for (uint8_t i = 0; i < TotPar; i++)
-        ParTime[i] = eeprom_read_tdata(ParAddress + (i * 3) + 1);
+void restorePar() {
+    uint8_t offset = (&(Settings.ParTime))-(&Settings);
+    eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, MAXPAR);
+    offset = (&(Settings.TotPar))-(&Settings);
+    Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
 }
 
 uint16_t findStringAddress(uint8_t index_in_eeprom) {
@@ -422,7 +401,7 @@ void SetCustomDelay() {
     n.fmin = 0.1;
     n.fmax = 10.0;
     n.fstep = 0.1;
-    n.fvalue = (double) DelayTime / 1000;
+    n.fvalue = (float) Settings.DelayTime / 1000;
     n.fold_value = n.fvalue;
     n.format = " %2.1fs ";
     lcd_clear();
@@ -430,54 +409,38 @@ void SetCustomDelay() {
         DisplayDouble(&n);
         SelectDouble(&n);
     } while (SettingsNotDone((&n)));
-    DelayTime = (time_t) (n.fvalue * 1000);
-    SaveToEEPROM |= (n.fold_value != n.fvalue);
+    Settings.DelayTime = (time_t) (n.fvalue * 1000);
+    if (n.fold_value != n.fvalue) {
+        saveSettingsField(&Settings, &(Settings.DelayTime), 4);
+    }
 }
 
 void SetDelay(SettingsMenu_t * m) {
+    uint8_t oldValue = Settings.DelayMode;
     InitSettingsMenuDefaults(m);
     strmycpy(m->MenuTitle, "Delay");
-    strmycpy(m->MenuItem[0], " Instant ");
-    strmycpy(m->MenuItem[1], " 3.0 sec. ");
-    strmycpy(m->MenuItem[2], " Random");
-    strmycpy(m->MenuItem[3], " Custom ");
+    strmycpy(m->MenuItem[DELAY_MODE_Instant], " Instant ");
+    strmycpy(m->MenuItem[DELAY_MODE_Fixed], " 3.0 sec. ");
+    strmycpy(m->MenuItem[DELAY_MODE_Random], " Random");
+    strmycpy(m->MenuItem[DELAY_MODE_Custom], " Custom ");
     m->TotalMenuItems = 4;
-    switch (DelayMode) {
-        case Instant: m->menu = 0;
-            break;
-        case Fixed: m->menu = 1;
-            break;
-        case Random: m->menu = 2;
-            break;
-        case Custom: m->menu = 3;
-            break;
-        default: m->menu = 1;
-            break;
-    }
+    m->menu = Settings.DelayMode;
 
     do {
         DisplaySettings(m);
-        SelectBinaryMenuItem(m);
-        if (m->selected) {
-            m->selected = False;
-            switch (m->menu) {
-                case 0: DelayMode = Instant;
-                    SaveToEEPROM = True;
-                    break;
-                case 1: DelayMode = Fixed;
-                    DelayTime = 30;
-                    SaveToEEPROM = True;
-                    break;
-                case 2: DelayMode = Random;
-                    SaveToEEPROM = True;
-                    break;
-                case 3: DelayMode = Custom;
-                    SetCustomDelay();
-                    lcd_clear();
-                    break;
-            }
-        }
+        SelectMenuItem(m);
+
     } while (SettingsNotDone(m));
+    if (m->selected) {
+        Settings.DelayMode = m->menu;
+        if (Settings.DelayMode == DELAY_MODE_Custom) {
+            SetCustomDelay();
+            lcd_clear();
+        }
+        if (Settings.DelayMode != oldValue) {
+            saveSettingsField(&Settings, &(Settings.DelayMode), 1);
+        }
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Par">
@@ -486,7 +449,7 @@ TBool EditPar(uint8_t par_index) {
     NumberSelection_t b;
     b.fmin = 0.1;
     b.fmax = 100.0;
-    b.fvalue = (float) ParTime[par_index] / 1000;
+    b.fvalue = (float) (Settings.ParTime[par_index]) / 1000;
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index);
     b.fstep = 0.1;
@@ -498,7 +461,7 @@ TBool EditPar(uint8_t par_index) {
         SelectDouble(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        ParTime[par_index] = (long) (b.fvalue * 1000);
+        Settings.ParTime[par_index] = (long) (b.fvalue * 1000);
         if (b.fold_value != b.fvalue)
             savePar(par_index);
     }
@@ -507,8 +470,8 @@ TBool EditPar(uint8_t par_index) {
 
 void FillParSettings(SettingsMenu_t * m) {
     uint8_t i = 0;
-    for (i = 0; i < TotPar; i++) {
-        sprintf(m->MenuItem[i], "Par %d: %3.1fs  ", i + 1, (float) ParTime[i] / 1000);
+    for (i = 0; i < Settings.TotPar; i++) {
+        sprintf(m->MenuItem[i], "Par %d: %3.1fs  ", i + 1, (float) (Settings.ParTime[i]) / 1000);
     }
     if (i < MAXPAR)
         strmycpy(m->MenuItem[i], "Add ");
@@ -529,26 +492,26 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             if (m->menu < MAXPAR) {
                 TBool res = False;
 
-                ParTime[TotPar] = 1000; // Default setting 1 second
-                res = EditPar(TotPar);
+                Settings.ParTime[Settings.TotPar] = 1000; // Default setting 1 second
+                res = EditPar(Settings.TotPar);
                 if (res) { // Roll back if not selected
-                    TotPar++;
+                    Settings.TotPar++;
                 } else {
-                    ParTime[TotPar] = 0;
+                    Settings.ParTime[Settings.TotPar] = 0;
                 }
             }
         } else if (m->menu == (m->TotalMenuItems - 2)) {
             // Delete last PAR
-            if (TotPar > 0) {
-                TotPar--;
-                ParTime[TotPar] = 0;
+            if (Settings.TotPar > 0) {
+                Settings.TotPar--;
+                Settings.ParTime[Settings.TotPar] = 0;
             }
         } else if (m->menu == (m->TotalMenuItems - 1)) {
             // Clear PAR
-            for (uint8_t i = 0; i < TotPar; i++) {
-                ParTime[i] = 0;
+            for (uint8_t i = 0; i < Settings.TotPar; i++) {
+                Settings.ParTime[i] = 0;
             }
-            TotPar = 0;
+            Settings.TotPar = 0;
             m->menu = 1;
             m->page = 1;
         }
@@ -557,7 +520,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
 }
 
 void SetPar(SettingsMenu_t * m) {
-    uint8_t oldTotPar = TotPar;
+    uint8_t oldTotPar = Settings.TotPar;
     InitSettingsMenuDefaults(m);
     strmycpy(m->MenuTitle, "Par Settings ");
     do {
@@ -566,8 +529,8 @@ void SetPar(SettingsMenu_t * m) {
         SelectBinaryMenuItem(m);
         HandleParMenuSelection(m);
     } while (SettingsNotDone(m));
-    if (TotPar != oldTotPar) {
-        saveTotPar();
+    if (Settings.TotPar != oldTotPar) {
+        saveSettingsField(&Settings, &(Settings.TotPar), 1);
     }
 }
 // </editor-fold>
@@ -579,7 +542,7 @@ void SetBacklight() {//PWM Backlight
     b.max = 9;
     b.min = 0;
     b.step = 1;
-    b.value = BackLightLevel / 10;
+    b.value = Settings.BackLightLevel / 10;
     b.old_value = b.value;
     b.format = "%u";
     b.done = False;
@@ -588,9 +551,13 @@ void SetBacklight() {//PWM Backlight
         SelectInteger(&b);
         set_backlight(b.value * 10);
     } while (SettingsNotDone((&b)));
-    BackLightLevel = b.value * 10;
-    set_backlight(BackLightLevel);
-    SaveToEEPROM != (b.value != b.old_value);
+    if (b.selected) {
+        Settings.BackLightLevel = b.value * 10;
+        set_backlight(Settings.BackLightLevel);
+        if (b.value != b.old_value) {
+            saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
+        }
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Buzzer Settings">
@@ -599,7 +566,7 @@ void SetBeepFreq() {
     NumberSelection_t b;
     b.fmin = 0.8;
     b.fmax = 3.0;
-    b.fvalue = (float) BuzzerFrequency / 1000;
+    b.fvalue = (float) (Settings.BuzzerFrequency) / 1000;
     b.fold_value = b.fvalue;
     strmycpy(b.MenuTitle, "Tone");
     b.fstep = 0.1;
@@ -609,37 +576,45 @@ void SetBeepFreq() {
         DisplayDouble(&b);
         SelectDouble(&b);
     } while (SettingsNotDone((&b)));
-    BuzzerFrequency = (uint8_t) b.fvalue / 1000;
-    SaveToEEPROM |= (b.fvalue != b.fold_value);
+    if (b.selected) {
+        Settings.BuzzerFrequency = (uint8_t) b.fvalue / 1000;
+        if (b.fvalue != b.fold_value) {
+            saveSettingsField(&Settings, &(Settings.BuzzerFrequency), 2);
+        }
+    }
 }
 
 void SetBeepLevel() {
     NumberSelection_t b;
-    if (BuzzerLevel > 100) BuzzerLevel = 100;
+    InitSettingsNumberDefaults((&b));
+    if (Settings.BuzzerLevel > 100) Settings.BuzzerLevel = 100;
     strmycpy(b.MenuTitle, "Loudness");
     b.min = 0;
-    b.max = 99;
+    b.max = 10;
     b.step = 1;
     b.format = " %02d ";
-    b.value = BuzzerLevel;
+    b.value = Settings.BuzzerLevel / 10;
     b.old_value = b.value;
-    b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
     } while (SettingsNotDone((&b)));
-    BuzzerLevel = b.value;
-    SaveToEEPROM |= (b.value != b.old_value);
+    if (b.selected) {
+        Settings.BuzzerLevel = b.value * 10;
+        if (b.value != b.old_value) {
+            saveSettingsField(&Settings, &(Settings.BuzzerLevel), 1);
+        }
+    }
 }
 
 void SetBeepTime(TBool Par) {
     NumberSelection_t d;
     InitSettingsNumberDefaults((&d));
     if (Par) {
-        d.fvalue = (float) BuzzerParDuration / 1000;
+        d.fvalue = (float) (Settings.BuzzerParDuration) / 1000;
         strmycpy(d.MenuTitle, "Par Duration ");
     } else {
-        d.fvalue = (float) BuzzerStartDuration / 1000;
+        d.fvalue = (float) (Settings.BuzzerStartDuration) / 1000;
         strmycpy(d.MenuTitle, "Start Duration ");
     }
     d.fmin = 0.050;
@@ -653,9 +628,17 @@ void SetBeepTime(TBool Par) {
         SelectDouble(&d);
     } while (SettingsNotDone((&d)));
 
-    if (Par) BuzzerParDuration = (int) (d.fvalue * 1000);
-    else BuzzerStartDuration = (int) (d.fvalue * 1000);
-    SaveToEEPROM |= (d.fvalue != d.fold_value);
+    if (d.selected) {
+        if (d.fvalue != d.fold_value) {
+            if (Par) {
+                Settings.BuzzerParDuration = (int) (d.fvalue * 1000);
+                saveSettingsField(&Settings, &(Settings.BuzzerParDuration), 2);
+            } else {
+                Settings.BuzzerStartDuration = (int) (d.fvalue * 1000);
+                saveSettingsField(&Settings, &(Settings.BuzzerStartDuration), 2);
+            }
+        }
+    }
 }
 
 void SetBeep(SettingsMenu_t * m) {
@@ -688,7 +671,7 @@ void SetBeep(SettingsMenu_t * m) {
                     SetBeepTime(False);
                     break;
                 case 4:
-                    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
+                    generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
                     break;
             }
             // Here we want it done only when back pressed
@@ -705,33 +688,35 @@ void SetBeep(SettingsMenu_t * m) {
 void SetSens() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
-    if (Sensitivity > 10) Sensitivity = 10;
+    if (Settings.Sensitivity > 10) Settings.Sensitivity = 10;
     strmycpy(s.MenuTitle, "Sensitivity");
     s.max = 10;
     s.min = 1;
-    s.value = Sensitivity;
-    s.old_value = Sensitivity;
+    s.value = Settings.Sensitivity;
+    s.old_value = Settings.Sensitivity;
     s.step = 1;
     s.format = "%u";
     do {
         DisplayInteger(&s);
         SelectInteger(&s);
     } while (SettingsNotDone((&s)));
-    Sensitivity = s.value;
-    SaveToEEPROM |= (s.value != s.old_value);
+    Settings.Sensitivity = s.value;
+    if (s.value != s.old_value) {
+        saveSettingsField(&Settings, &(Settings.Sensitivity), 1);
+    }
 }
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Filter">
 
 void SetFilter() {
-    if (Filter > 100) Filter = 100;
+    if (Settings.Filter > 100) Settings.Filter = 100;
     NumberSelection_t f;
     strmycpy(f.MenuTitle, "Filter");
     f.fmin = 0.01;
     f.fmax = 0.2;
     f.fstep = 0.01;
-    f.fvalue = (float) Filter / 1000;
+    f.fvalue = (float) (Settings.Filter) / 1000;
     f.fold_value = f.value;
     f.done = False;
     f.format = " %1.2fs ";
@@ -739,8 +724,10 @@ void SetFilter() {
         DisplayDouble(&f);
         SelectDouble(&f);
     } while (SettingsNotDone((&f)));
-    Filter = (uint8_t) (f.fvalue * 1000);
-    SaveToEEPROM |= (f.fvalue != f.fold_value);
+    Settings.Filter = (uint8_t) (f.fvalue * 1000);
+    if (f.fvalue != f.fold_value) {
+        saveSettingsField(&Settings, &(Settings.Filter), 1);
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
@@ -773,138 +760,143 @@ void SetAutoStart(SettingsMenu_t * m) {
             set_autostert_label(m->MenuItem[0]);
         }
     } while (SettingsNotDone(m));
-    SaveToEEPROM |= (AutoStart != orgset);
+    if (AutoStart != orgset) {
+        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="TimerMode">
 // <editor-fold defaultstate="collapsed" desc="">
 
 void fill_par_bianci() {
-    TotPar = 12;
-    ParTime[0] = 3000;
-    ParTime[1] = 4000;
-    ParTime[2] = 8000;
-    ParTime[3] = 4000;
-    ParTime[4] = 5000;
-    ParTime[5] = 6000;
-    ParTime[6] = 5000;
-    ParTime[7] = 6000;
-    ParTime[8] = 7000;
-    ParTime[9] = 7000;
-    ParTime[10] = 10000;
-    ParTime[11] = 15000;
+    Settings.TotPar = 12;
+    Settings.ParTime[0] = 3000;
+    Settings.ParTime[1] = 4000;
+    Settings.ParTime[2] = 8000;
+    Settings.ParTime[3] = 4000;
+    Settings.ParTime[4] = 5000;
+    Settings.ParTime[5] = 6000;
+    Settings.ParTime[6] = 5000;
+    Settings.ParTime[7] = 6000;
+    Settings.ParTime[8] = 7000;
+    Settings.ParTime[9] = 7000;
+    Settings.ParTime[10] = 10000;
+    Settings.ParTime[11] = 15000;
 }
 
 void fill_par_barricade() {
-    TotPar = 8;
-    ParTime[0] = 5000;
-    ParTime[1] = 5000;
-    ParTime[2] = 6000;
-    ParTime[3] = 6000;
-    ParTime[4] = 7000;
-    ParTime[5] = 7000;
-    ParTime[6] = 8000;
-    ParTime[7] = 8000;
+    Settings.TotPar = 8;
+    Settings.ParTime[0] = 5000;
+    Settings.ParTime[1] = 5000;
+    Settings.ParTime[2] = 6000;
+    Settings.ParTime[3] = 6000;
+    Settings.ParTime[4] = 7000;
+    Settings.ParTime[5] = 7000;
+    Settings.ParTime[6] = 8000;
+    Settings.ParTime[7] = 8000;
 }
 
 void fill_par_falling_plate() {
-    TotPar = 8;
-    ParTime[0] = 6000;
-    ParTime[1] = 6000;
-    ParTime[2] = 7000;
-    ParTime[3] = 7000;
-    ParTime[4] = 8000;
-    ParTime[5] = 8000;
-    ParTime[6] = 9000;
-    ParTime[7] = 9000;
+    Settings.TotPar = 8;
+    Settings.ParTime[0] = 6000;
+    Settings.ParTime[1] = 6000;
+    Settings.ParTime[2] = 7000;
+    Settings.ParTime[3] = 7000;
+    Settings.ParTime[4] = 8000;
+    Settings.ParTime[5] = 8000;
+    Settings.ParTime[6] = 9000;
+    Settings.ParTime[7] = 9000;
 }
 
 void fill_par_nra_ppc_a() {
-    TotPar = 4;
-    ParTime[0] = 20000;
-    ParTime[1] = 90000;
-    ParTime[2] = 165000;
-    ParTime[3] = 12000;
+    Settings.TotPar = 4;
+    Settings.ParTime[0] = 20000;
+    Settings.ParTime[1] = 90000;
+    Settings.ParTime[2] = 165000;
+    Settings.ParTime[3] = 12000;
 }
 
 void fill_par_nra_ppc_b() {
-    TotPar = 5;
-    ParTime[0] = 20000;
-    ParTime[1] = 12000;
-    ParTime[2] = 90000;
-    ParTime[3] = 12000;
-    ParTime[4] = 120000;
+    Settings.TotPar = 5;
+    Settings.ParTime[0] = 20000;
+    Settings.ParTime[1] = 12000;
+    Settings.ParTime[2] = 90000;
+    Settings.ParTime[3] = 12000;
+    Settings.ParTime[4] = 120000;
 }
 
 void fill_par_nra_ppc_c() {
-    TotPar = 4;
-    ParTime[0] = 20000;
-    ParTime[1] = 90000;
-    ParTime[2] = 12000;
-    ParTime[3] = 165000;
+    Settings.TotPar = 4;
+    Settings.ParTime[0] = 20000;
+    Settings.ParTime[1] = 90000;
+    Settings.ParTime[2] = 12000;
+    Settings.ParTime[3] = 165000;
 }
 
 void fill_par_nra_ppc_d() {
-    TotPar = 4;
-    ParTime[0] = 8000;
-    ParTime[1] = 20000;
-    ParTime[2] = 20000;
-    ParTime[3] = 90000;
+    Settings.TotPar = 4;
+    Settings.ParTime[0] = 8000;
+    Settings.ParTime[1] = 20000;
+    Settings.ParTime[2] = 20000;
+    Settings.ParTime[3] = 90000;
 }
 // </editor-fold>
 
 void SetMode(SettingsMenu_t * m) {
-    TBool orgset;
+    uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 8;
     strmycpy(m->MenuTitle, "Timer Mode");
-    strmycpy(m->MenuItem[Regular], " Regular ");
-    strmycpy(m->MenuItem[Practical], " Practical ");
-    strmycpy(m->MenuItem[Barricade], " Barricade ");
-    strmycpy(m->MenuItem[FallingPlate], " Falling Plate ");
-    strmycpy(m->MenuItem[NRA_PPC_A], " NRA-PPC A ");
-    strmycpy(m->MenuItem[NRA_PPC_B], " NRA-PPC B ");
-    strmycpy(m->MenuItem[NRA_PPC_C], " NRA-PPC C ");
-    strmycpy(m->MenuItem[NRA_PPC_D], " NRA-PPC D ");
+    strmycpy(m->MenuItem[ParMode_Regular], " Regular ");
+    strmycpy(m->MenuItem[ParMode_Practical], " Practical ");
+    strmycpy(m->MenuItem[ParMode_Barricade], " Barricade ");
+    strmycpy(m->MenuItem[ParMode_FallingPlate], " Falling Plate ");
+    strmycpy(m->MenuItem[ParMode_NRA_PPC_A], " NRA-PPC A ");
+    strmycpy(m->MenuItem[ParMode_NRA_PPC_B], " NRA-PPC B ");
+    strmycpy(m->MenuItem[ParMode_NRA_PPC_C], " NRA-PPC C ");
+    strmycpy(m->MenuItem[ParMode_NRA_PPC_D], " NRA-PPC D ");
 
     SettingsTitle(m);
-    m->menu = ParMode;
+    m->menu = Settings.ParMode;
     //Main Screen
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
     } while (SettingsNotDone(m));
     if (m->selected) {
-        ParMode = m->menu;
+        Settings.ParMode = m->menu;
         switch (m->menu) {
-            case Regular:
-                getPar();
+            case ParMode_Regular:
+                restorePar();
                 break;
-            case Practical:
+            case ParMode_Practical:
                 fill_par_bianci();
                 break;
-            case Barricade:
+            case ParMode_Barricade:
                 fill_par_barricade();
                 break;
-            case FallingPlate:
+            case ParMode_FallingPlate:
                 fill_par_falling_plate();
                 break;
-            case NRA_PPC_A:
+            case ParMode_NRA_PPC_A:
                 fill_par_nra_ppc_a();
                 break;
-            case NRA_PPC_B:
+            case ParMode_NRA_PPC_B:
                 fill_par_nra_ppc_b();
                 break;
-            case NRA_PPC_C:
+            case ParMode_NRA_PPC_C:
                 fill_par_nra_ppc_c();
                 break;
-            case NRA_PPC_D:
+            case ParMode_NRA_PPC_D:
                 fill_par_nra_ppc_d();
                 break;
             default:
                 // How can we get here?
                 break;
         }
+    }
+    if (oldPar != Settings.ParMode) {
+        saveSettingsField(&Settings, &(Settings.ParMode), 1);
     }
 }
 // </editor-fold>
@@ -922,6 +914,8 @@ void SetClock() {
     } while (SettingsNotDone((&ts)));
 
     set_time(ts.hour, ts.minute, 0);
+    set_time(ts.hour, ts.minute, 0);
+    set_time(ts.hour, ts.minute, 0);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
@@ -935,51 +929,7 @@ void CountDownMode(uint8_t cdt, SettingsMenu_t * m) {
     prev_cdtime = 0;
     strmycpy(m->MenuTitle, "Countdown");
     top = SettingsTitle(m);
-    while (!Exit) {
-        cdtime = cdt * 10;
-        Run = False;
-        tcount = 0;
-        while (cdtime > 0) {
-            if (cdtime != prev_cdtime) {
-                sprintf(msg, "%02d:%02d", cdtime / 60, cdtime % 60);
-                lcd_write_string(msg, 10, top + 30, BigFont, BLACK_OVER_WHITE);
-                prev_cdtime = cdtime;
-            }
-            switch (Key) {
-                case KeySt: Run = True;
-                    break;
-                case KeyRw: Run = False;
-                    break;
-                case KeyBk: Run = False;
-                    cdtime = 0;
-                    break; //Exit no sound
-                case KeyIn: Run = True;
-                    cdtime = 0;
-                    break; //Exit with sound
-            }
-            if (Run && (tcount > 98)) {
-                tcount = 0;
-                cdtime--;
-            }
-            __delay_ms(10);
-            if (Run) tcount++;
-        }
-        if (Run) {
-            for (char i = 0; i < 5; i++) {
-                for (char j = 0; j < 3; j++) {
-                    generate_sinus(1, BuzzerFrequency, 50);
-                    for (char t = 0; t < 100; t++) {
-                        if (Keypressed) return;
-                        __delay_ms(1);
-                    }
-                }
-                for (char t = 0; t < 200; t++) {
-                    if (Keypressed) return;
-                    __delay_ms(2);
-                }
-            }
-        }
-    }
+    // TODO: Implement
 }
 
 void SetCustomCountDown() {
@@ -987,9 +937,9 @@ void SetCustomCountDown() {
     strmycpy(ts.MenuTitle, "Custom Countdown");
     // TODO: Review time format here
     // Hour means minute here
-    ts.hour = CustomCDtime / 60000;
+    ts.hour = Settings.CustomCDtime / 60000;
     // Minute means seconds
-    ts.minute = CustomCDtime / 1000;
+    ts.minute = Settings.CustomCDtime / 1000;
     ts.old_hour = ts.hour;
     ts.old_minute = ts.minute;
     ts.done = False;
@@ -997,8 +947,10 @@ void SetCustomCountDown() {
         DisplayTime(&ts);
         SelectTime(&ts);
     } while (SettingsNotDone((&ts)));
-    CustomCDtime = ts.hour * 60000 + ts.minute * 1000;
-    SaveToEEPROM |= (ts.hour != ts.old_hour || ts.minute != ts.old_minute);
+    Settings.CustomCDtime = ts.hour * 60000 + ts.minute * 1000;
+    if (ts.hour != ts.old_hour || ts.minute != ts.old_minute) {
+        saveSettingsField(&Settings, &(Settings.CustomCDtime), 4);
+    }
 }
 
 void SetCountDown(SettingsMenu_t * m) {
@@ -1021,7 +973,7 @@ void SetCountDown(SettingsMenu_t * m) {
         case 2: CountDownMode(30, m);
             break;
         case 3: SetCustomCountDown();
-            CountDownMode(CustomCDtime, m);
+            CountDownMode(Settings.CustomCDtime, m);
             break;
     }
 }
@@ -1033,25 +985,27 @@ void SetTilt(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 1;
     strmycpy(m->MenuTitle, "Tilt");
-    if (AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
+    if (Settings.AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
     else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
     SettingsTitle(m);
     // SettingsDisplay(&SetTiltMenu);
-    orgset = AR_IS.AR_IS;
+    orgset = Settings.AR_IS.AR_IS;
 
     do {
         DisplaySettings(m);
         SelectBinaryMenuItem(m);
         if (m->selected) {
             m->selected = False;
-            AR_IS.AutoRotate = !AR_IS.AutoRotate;
-            if (AR_IS.AutoRotate)
+            Settings.AR_IS.AutoRotate = !Settings.AR_IS.AutoRotate;
+            if (Settings.AR_IS.AutoRotate)
                 strmycpy(m->MenuItem[0], " Auto Rotate ON ");
             else
                 strmycpy(m->MenuItem[0], " Auto Rotate OFF");
         }
     } while (SettingsNotDone(m));
-    SaveToEEPROM |= (AR_IS.AR_IS != orgset);
+    if (Settings.AR_IS.AR_IS != orgset) {
+        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
@@ -1066,28 +1020,29 @@ void UpdateIS(SettingsMenu_t * sm) {
 void SetInput(SettingsMenu_t * m) {
     uint8_t orgset;
     InitSettingsMenuDefaults(m);
-    strmycpy(m->MenuTitle, "Input");
+    strmycpy(m->MenuTitle, "Input Source");
     UpdateIS(m);
     DisplaySettings(m);
-    orgset = InputType;
-    m->menu = InputType;
+    orgset = Settings.InputType;
+    m->menu = Settings.InputType;
 
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
-
     } while (SettingsNotDone(m));
     if (m->selected) {
-        InputType = m->menu;
+        Settings.InputType = m->menu;
     }
-    SaveToEEPROM |= (InputType != orgset);
+    if (Settings.InputType != orgset) {
+        saveSettingsField(&Settings, &(Settings.InputType), 1);
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void BlueTooth() {
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    lcd_write_string(" TBD9 ", 3, 40, MediumFont, BLACK_OVER_WHITE);
+    lcd_write_string(" TBD ", 3, 40, MediumFont, BLACK_OVER_WHITE);
     __delay_ms(500);
 }
 // </editor-fold>
@@ -1161,8 +1116,6 @@ void DoSettings(void) {
     InitSettingsMenuDefaults((&SettingsMenu));
     SetSettingsMenu(&SettingsMenu);
     SettingsTitle(&SettingsMenu);
-    SaveToEEPROM = False;
-
     lcd_clear();
     do {
         handle_rotation();
@@ -1176,10 +1129,7 @@ void DoSettings(void) {
             lcd_clear();
         }
     } while (SettingsNotDone((&SettingsMenu)));
-    if (SaveToEEPROM) {
-        saveSettings();
-        SaveToEEPROM = False;
-    }
+
     if (ui_state == SettingsScreen) {
         STATE_HANDLE_TIMER_IDLE;
     } else {
@@ -1393,7 +1343,7 @@ void DetectInit(void) {
         if (Peak < ADCvalue) Peak = ADCvalue;
     }
     Mean = Mean >> 6;
-    DetectThreshold = Mean + threshold_offsets[Sensitivity - 1];
+    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
 }
 
 uint8_t print_time() {
@@ -1441,23 +1391,23 @@ void print_footer() {
     print_label_at_footer_grid(message, 0, 0);
     sprintf(message, " Shots: %2d", ShootString.TotShoots);
     print_label_at_footer_grid(message, 1, 0);
-    switch (DelayMode) {
-        case Instant:sprintf(message, " Delay: 0.0s");
+    switch (Settings.DelayMode) {
+        case DELAY_MODE_Instant: sprintf(message, " Delay: 0.0s");
             break;
-        case Fixed: sprintf(message, " Delay: 3.0s");
+        case DELAY_MODE_Fixed: sprintf(message, " Delay: 3.0s");
             break;
-        case Random: sprintf(message, " Delay: RND");
+        case DELAY_MODE_Random: sprintf(message, " Delay: RND");
             break;
-        case Custom: sprintf(message, " Delay: %1.1fs", (float) DelayTime / 1000);
+        case DELAY_MODE_Custom: sprintf(message, " Delay: %1.1fs", (float) (Settings.DelayTime) / 1000);
             break;
     }
-//    sprintf(message,"t:%ds",rtc_time.sec);
+    //    sprintf(message,"t:%ds",rtc_time.sec);
     print_label_at_footer_grid(message, 0, 1);
 
-    if (TotPar > 0) {
-        sprintf(message, "Par %d:%3.1f", CurPar_idx + 1, (float) ParTime[CurPar_idx] / 1000);
+    if (Settings.TotPar > 0) {
+        sprintf(message, "P%02d:%3.1f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
     } else {
-        sprintf(message, " Par: Off");
+        sprintf(message, " P: Off");
     }
     print_label_at_footer_grid(message, 1, 1);
 }
@@ -1465,7 +1415,7 @@ void print_footer() {
 void DoMain(void) {
     measurement_start_time_msec = rtc_time.unix_time_ms;
     ShootString.ShootStringMark = CurrShotStringMark;
-    for (uint16_t i = 1; i < Size_of_ShootString; i++){
+    for (uint16_t i = 1; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
     }
     DetectInit();
@@ -1485,7 +1435,7 @@ void DoPowerOn() {
     LATEbits.LATE0 = 1;
     OSCFRQ = 0b00001000; // Switch back to 64MHz
     // TODO: Review power on sequence
-    set_backlight(BackLightLevel);
+    set_backlight(Settings.BackLightLevel);
 }
 
 void DoCharging() {
@@ -1494,13 +1444,13 @@ void DoCharging() {
         LATEbits.LATE0 = 1;
         switch (charger_state) {
             case Charging:
-//                set_backlight(2);
+                //                set_backlight(2);
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 break;
             case Complete:
-//                set_backlight(1);
+                //                set_backlight(1);
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
@@ -1539,32 +1489,32 @@ void update_shot_time_on_screen() {
 }
 
 void PlayParSound() {
-    if (InputType == Microphone) {
-        AUX_A = 1;
-        AUX_B = 1;
-    }
-    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerParDuration);
-    if (InputType == Microphone) {
+    if (Settings.InputType == Microphone) {
         AUX_A = 0;
         AUX_B = 0;
+    }
+    generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
+    if (Settings.InputType == Microphone) {
+        AUX_A = 1;
+        AUX_B = 1;
     }
 }
 
 void PlayStartSound() {
-    if (InputType == Microphone) {
-        AUX_A = 1;
-        AUX_B = 1;
-    }
-    generate_sinus(BuzzerLevel, BuzzerFrequency, BuzzerStartDuration);
-    if (InputType == Microphone) {
+    if (Settings.InputType == Microphone) {
         AUX_A = 0;
         AUX_B = 0;
+    }
+    generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+    if (Settings.InputType == Microphone) {
+        AUX_A = 1;
+        AUX_B = 1;
     }
 }
 
 void StartParTimer() {
     timerEventToHandle = None;
-    if (CurPar_idx < TotPar) {
+    if (CurPar_idx < Settings.TotPar) {
         CurPar_idx++;
         ParNowCounting = true;
         parStartTime_ms = rtc_time.unix_time_ms;
@@ -1572,18 +1522,18 @@ void StartParTimer() {
 }
 
 void StartCountdownTimer() {
-    switch (DelayMode) {
-        case Instant: DelayTime = 0;
+    switch (Settings.DelayMode) {
+        case DELAY_MODE_Instant: Settings.DelayTime = 0;
             break;
-        case Fixed: DelayTime = 3000;
+        case DELAY_MODE_Fixed: Settings.DelayTime = 3000;
             break;
-        case Random:
-            if (DelayTime < 500)
-                DelayTime = 1134;
-            DelayTime = (5 * DelayTime) % 3199;
+        case DELAY_MODE_Random:
+            if (Settings.DelayTime < 500)
+                Settings.DelayTime = 1134;
+            Settings.DelayTime = (5 * Settings.DelayTime) % 3199;
             break;
-        case Custom: DelayTime = eeprom_read_wdata(DelayTime_Address); //TODO: read model once at the power on
-            //Read again in case was changed from other mode
+        case DELAY_MODE_Custom:
+            eeprom_read_array(SettingAddress(Settings, Settings.DelayTime), (uint8_t *)&(Settings.DelayTime), 4);
             break;
     }
     countdown_start_time = rtc_time.unix_time_ms;
@@ -1599,7 +1549,7 @@ void UpdateShot(time_t now, ShotInput_t input) {
     }
     ddt = dt - ddt;
     //Don't count shoots less than Filter
-    if (ddt > Filter) {
+    if (ddt > Settings.Filter) {
         ShootString.shots[ShootString.TotShoots].dt = dt;
         ShootString.shots[ShootString.TotShoots].is_flags = input;
         ShootString.TotShoots++;
@@ -1619,7 +1569,7 @@ void update_screen_model() {
             if (now - measurement_start_time_msec >= MAX_MEASUREMENT_TIME) {
                 timerEventToHandle = TimerTimeout;
             }
-            switch (InputType) {
+            switch (Settings.InputType) {
                 case Microphone:
                     ADC_ENABLE_INTERRUPT_ENVELOPE;
                     break;
@@ -1636,14 +1586,14 @@ void update_screen_model() {
             }
             if (ParNowCounting) {
                 // Software "interrupt" emulation
-                if (now - parStartTime_ms >= ParTime[CurPar_idx]) {
+                if (now - parStartTime_ms >= Settings.ParTime[CurPar_idx]) {
                     ParNowCounting = false;
                     timerEventToHandle = ParEvent;
                 }
             }
             break;
         case TimerCountdown:
-            if (now - countdown_start_time >= DelayTime) {
+            if (now - countdown_start_time >= Settings.DelayTime) {
                 comandToHandle = CountdownExpired;
             }
             break;
@@ -1673,7 +1623,7 @@ static void interrupt isr(void) {
             case TimerCountdown:
                 break;
             default:
-                    ADC_ENABLE_INTERRUPT_BATTERY;
+                ADC_ENABLE_INTERRUPT_BATTERY;
                 break;
         }
     }
@@ -1699,9 +1649,10 @@ static void interrupt isr(void) {
                 ADC_ENABLE_INTERRUPT_ACCELEROMETR;
             }
                 break;
-            case ACCELEROMETER:{
+            case ACCELEROMETER:
+            {
                 uint16_t a = ADC_SAMPLE_REG_16_BIT;
-                orientation =  (a > ORIENTATION_INVERSE_THRESHOLD);
+                orientation = (a > ORIENTATION_INVERSE_THRESHOLD);
             }
                 break;
         }
@@ -1771,19 +1722,19 @@ void main(void) {
     lcd_init();
     ADC_init();
     eeprom_init();
-    //    getSettings();
-    getDefaultSettings();
-    //    getPar();
+        getSettings();
+//    getDefaultSettings();
+
     defineLatestStringAddress();
     getShootString(0);
-    set_backlight(BackLightLevel);
+    set_backlight(Settings.BackLightLevel);
     init_ms_timer0();
     initialize_rtc_timer();
     ei();
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
-//    eeprom_clear_block(0x0, EEPROM_MAX_SIZE);
+    //    eeprom_clear_block(0x0, EEPROM_MAX_SIZE);
     lcd_clear();
     while (True) {
         //TODO: Integrate watchdog timer
