@@ -229,14 +229,13 @@ void SelectInteger(NumberSelection_t* sm) {
             break;
         case BackShort:
         case BackLong:
-            sm->value = sm->old_value;
-            sm->selected = True;
+            sm->selected = False;
             sm->done = True;
             break;
         case OkShort:
         case OkLong:
             sm->done = True;
-            sm->selected = False;
+            sm->selected = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
