@@ -45,7 +45,6 @@ void PowerOffTimer() {
 }
 
 void StartTimer() {
-    lcd_clear();
     CurPar_idx = 0;
     StartCountdownTimer();
 }
@@ -141,7 +140,7 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-//            saveShootString();
+            saveShootString();
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
@@ -157,7 +156,6 @@ void HandleTimerEvents() {
 void handle_timer_listening() {
     update_shot_time_on_screen();
     print_header();
-    //    DoAdcGraph();
     print_footer();
     switch (comandToHandle) {
         case StartLong:

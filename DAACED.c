@@ -349,43 +349,46 @@ uint16_t findStringAddress(uint8_t index_in_eeprom) {
     return ShootStringStartAddress + index_in_eeprom*Size_of_ShootString;
 }
 
-uint8_t findCurStringMark() {
+uint8_t findCurStringIndex() {
     uint16_t addr = ShootStringStartAddress;
-    uint8_t i = 0, maxindex = 0, minindex = 0;
-    uint8_t marks[MAXSHOOTSTRINGS];
+    uint8_t i = 0, maxindex = 0;
+    time_t t = 0, max = 0;
+
     for (i = 0; i < MAXSHOOTSTRINGS; i++) {
         addr = findStringAddress(i);
-        marks[i] = eeprom_read_data(addr);
-        if (marks[i] == max(marks[maxindex], marks[i]))
+        eeprom_read_array(addr, &t, 4);
+        if (max < t) {
+            max = t;
             maxindex = i;
+        }
     }
     // TODO: Verify implementation
-    return marks[maxindex];
-}
-
-void defineLatestStringAddress() {
-    CurrShotStringMark = findCurStringMark();
-    CurrStringStartAddress = findStringAddress(ShootString.ShootStringMark % MAXSHOOTSTRINGS);
+    return maxindex;
 }
 
 // increments the string position, based on the current mark
 
 void saveShootString(void) {
+    uint8_t index;
+    uint16_t addr;
     // Don't save empty strings
     if (ShootString.TotShoots == 0)
         return;
-    uint16_t Address;
-    ShootString.ShootStringMark = (CurrShotStringMark - 1) % MAXSHOTSTRINGMARK;
-    Address = findStringAddress(ShootString.ShootStringMark % MAXSHOOTSTRINGS);
-    eeprom_write_array(ShootStringStartAddress, ShootString.data, ShootString.TotShoots + 2);
-    CurrStringStartAddress = Address;
-    CurrShotStringMark = ShootString.ShootStringMark;
+    index = findCurStringIndex() + 1;
+    if (index >= MAXSHOOTSTRINGS)
+        index = 0;
+    addr = findStringAddress(index);
+    eeprom_write_array(addr, ShootString.data, Size_of_ShootString);
 }
 
 TBool getShootString(uint8_t offset) {
-    uint16_t Address;
-    Address = findStringAddress((CurrShotStringMark - offset) % MAXSHOOTSTRINGS);
-    eeprom_read_array(ShootStringStartAddress, ShootString.data, Size_of_ShootString);
+    uint16_t addr;
+    int8_t index;
+    index = findCurStringIndex() - offset;
+    if(index < 0)
+        index = MAXSHOOTSTRINGS - index;
+    addr = findStringAddress(index);
+    eeprom_read_array(addr, ShootString.data, Size_of_ShootString);
     return True;
 }
 // </editor-fold>
@@ -1080,10 +1083,12 @@ void DoSet(uint8_t menu) {
             break;
         case 13:
             getDefaultSettings();
+            saveSettings();
             break;
         case 14:
-//            DoDiagnostics();
-            eeprom_clear_block(ShootStringStartAddress,EEPROM_MAX_SIZE-ShootStringStartAddress);
+            //            DoDiagnostics();
+            lcd_write_string("Please wait", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+            eeprom_clear_block(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
             break;
     }
 }
@@ -1259,7 +1264,6 @@ void DoReview() {
     CurShootString = 0;
     CurShoot = ShootString.TotShoots - 1;
     reviewChanged = True;
-    defineLatestStringAddress(); // the address of shoot string 0
     do {
         ReviewDisplay();
         define_input_action();
@@ -1289,7 +1293,6 @@ void DoReview() {
         comandToHandle = None;
 
     } while (ui_state == ReviewScreen);
-    defineLatestStringAddress();
     getShootString(0);
 }
 // </editor-fold>
@@ -1414,13 +1417,8 @@ void print_footer() {
 }
 
 void DoMain(void) {
-    measurement_start_time_msec = rtc_time.unix_time_ms;
-    ShootString.ShootStringMark = CurrShotStringMark;
-    for (uint16_t i = 1; i < Size_of_ShootString; i++) {
-        ShootString.data[i] = 0;
-    }
+    ShootString.start_time = rtc_time.unix_time_ms;
     DetectInit();
-
 }
 // </editor-fold>
 
@@ -1538,11 +1536,14 @@ void StartCountdownTimer() {
             break;
     }
     countdown_start_time = rtc_time.unix_time_ms;
+    for (uint16_t i = 0; i < Size_of_ShootString; i++) {
+        ShootString.data[i] = 0;
+    }
 }
 
 void UpdateShot(time_t now, ShotInput_t input) {
     time_t dt, ddt;
-    dt = now - measurement_start_time_msec;
+    dt = now - ShootString.start_time;
     if (ShootString.TotShoots == 0) {
         ddt = 0;
     } else {
@@ -1567,7 +1568,7 @@ void update_screen_model() {
     time_t now = rtc_time.unix_time_ms;
     switch (ui_state) {
         case TimerListening:
-            if (now - measurement_start_time_msec >= MAX_MEASUREMENT_TIME) {
+            if (now - ShootString.start_time >= MAX_MEASUREMENT_TIME) {
                 timerEventToHandle = TimerTimeout;
             }
             switch (Settings.InputType) {
@@ -1726,7 +1727,6 @@ void main(void) {
     getSettings();
     //    getDefaultSettings();
     //    saveSettings();
-    defineLatestStringAddress();
     getShootString(0);
     set_backlight(Settings.BackLightLevel);
     init_ms_timer0();

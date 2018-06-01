@@ -150,9 +150,8 @@ time_t timer_idle_last_action_time;
 // This should be changed carefully.
 // Saving to EEPROM strongly depends on these values
 #define MAXSHOOTSTRINGS              (30)
-#define MAXSHOTSTRINGMARK            (240)
 #define MAXSHOOT                     (100)
-#define Size_of_ShootString         (402)
+#define Size_of_ShootString         (405)
 
 typedef struct {
 
@@ -173,7 +172,7 @@ typedef union {
     uint8_t data[Size_of_ShootString];
 
     struct {
-        uint8_t ShootStringMark; //The most recent string has maximal value in the mark
+        time_t start_time;
         uint8_t TotShoots; //Total shoots in current string
 
         shot_t shots[MAXSHOOT]; //in 1mS unit
@@ -181,14 +180,11 @@ typedef union {
 } ShootString_t;
 ShootString_t ShootString;
 
-//ShootStringMark,TotShoots,ShootTime[0],ShootTime[1],ShootTime[n]...,ShootTime[TotShoots-1]
-time_t measurement_start_time_msec; // Reference time for counting shppt.
-// Should be set to RTC before beep starts
+
 #define MAX_MEASUREMENT_TIME    999000
 uint8_t CurShoot; //The current shoot of the displayed string
 uint8_t CurShootString; //Currently displayed string number 0..29
 uint16_t CurrStringStartAddress;
-uint8_t CurrShotStringMark;
 
 #define SHOTS_ON_REVIEW_SCREEN      3
 
@@ -218,8 +214,8 @@ time_t parStartTime_ms;
 //uint8_t ParMode = ParMode_Regular;
 
 #define ShootStringStartAddress     (0x0B80)
-#define SettingsStartAddress        (0x0100)
-#define SettingsDataSize            (23+3*MAXPAR)
+#define SettingsStartAddress        (0x0000)
+#define SettingsDataSize            (101)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
