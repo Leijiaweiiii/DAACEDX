@@ -1414,7 +1414,8 @@ void print_batery_text_info() {
     char message[32];
     sprintf(message,
             "%d",
-            battery_level);
+            battery_level
+            );
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
         lcd_clear_block(LCD_WIDTH - 10 - old_bat_length, 0, LCD_WIDTH - 8, SmallFont->height + 1);
@@ -1493,13 +1494,13 @@ void DoCharging() {
         LATEbits.LATE0 = 1;
         switch (charger_state) {
             case Charging:
-                set_backlight(2);
+//                set_backlight(2);
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 break;
             case Complete:
-                set_backlight(1);
+//                set_backlight(1);
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
