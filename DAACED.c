@@ -318,6 +318,7 @@ void getDefaultSettings() {
     Settings.AR_IS.Mic = 1;
     Settings.AR_IS.AutoRotate = 0;
     Settings.AR_IS.BT = 1;
+    Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 1500;
     Settings.BuzzerParDuration = 200;
     Settings.BuzzerStartDuration = 300;
@@ -1020,9 +1021,9 @@ void SetTilt(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="Input">
 
 void UpdateIS(SettingsMenu_t * sm) {
-    strmycpy(sm->MenuItem[Microphone], " Microphone ");
-    strmycpy(sm->MenuItem[A_or_B_multiple], " A or B (multiple) ");
-    strmycpy(sm->MenuItem[A_and_B_single], " A and B (single) ");
+    strmycpy(sm->MenuItem[INPUT_TYPE_Microphone], " Microphone ");
+    strmycpy(sm->MenuItem[INPUT_TYPE_A_or_B_multiple], " A or B (multiple) ");
+    strmycpy(sm->MenuItem[INPUT_TYPE_A_and_B_single], " A and B (single) ");
     sm->TotalMenuItems = 3;
 }
 
@@ -1530,24 +1531,24 @@ void update_shot_time_on_screen() {
 }
 
 void PlayParSound() {
-    if (Settings.InputType == Microphone) {
+    if (Settings.InputType == INPUT_TYPE_Microphone) {
         AUX_A = 0;
         AUX_B = 0;
     }
     generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
-    if (Settings.InputType == Microphone) {
+    if (Settings.InputType == INPUT_TYPE_Microphone) {
         AUX_A = 1;
         AUX_B = 1;
     }
 }
 
 void PlayStartSound() {
-    if (Settings.InputType == Microphone) {
+    if (Settings.InputType == INPUT_TYPE_Microphone) {
         AUX_A = 0;
         AUX_B = 0;
     }
     generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
-    if (Settings.InputType == Microphone) {
+    if (Settings.InputType == INPUT_TYPE_Microphone) {
         AUX_A = 1;
         AUX_B = 1;
     }
@@ -1614,14 +1615,14 @@ void update_screen_model() {
                 timerEventToHandle = TimerTimeout;
             }
             switch (Settings.InputType) {
-                case Microphone:
+                case INPUT_TYPE_Microphone:
                     ADC_ENABLE_INTERRUPT_ENVELOPE;
                     break;
-                case A_or_B_multiple:
+                case INPUT_TYPE_A_or_B_multiple:
                     if (AUX_A) UpdateShootNow(A);
                     else if (AUX_B) UpdateShootNow(B);
                     break;
-                case A_and_B_single:
+                case INPUT_TYPE_A_and_B_single:
                     if (AUX_A) UpdateShootNow(A);
                     else if (AUX_B) UpdateShootNow(B);
                     // TODO: Fix This should capture only one of A and one of B
@@ -1679,7 +1680,7 @@ static void interrupt isr(void) {
             case ENVELOPE:
                 ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
                 if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
-                    UpdateShootNow(Microphone);
+                    UpdateShootNow(INPUT_TYPE_Microphone);
                 }
                 break;
             case BATTERY:

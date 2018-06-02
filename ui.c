@@ -97,13 +97,13 @@ void handle_timer_idle_shutdown() {
 
 void handle_timer_idle() {
     switch(Settings.InputType){
-        case Microphone:
+        case INPUT_TYPE_Microphone:
             set_screen_title("Microphone ");
             break;
-        case A_and_B_single:
+        case INPUT_TYPE_A_and_B_single:
             set_screen_title("A+B single ");
             break;
-        case A_or_B_multiple:
+        case INPUT_TYPE_A_or_B_multiple:
             set_screen_title("A/B multi ");
             break;
     }

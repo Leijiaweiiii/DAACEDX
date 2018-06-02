@@ -131,9 +131,9 @@ typedef enum {
     B = 0b0100
 } ShotInput_t;
 
-#define Microphone 0
-#define A_or_B_multiple 1
-#define A_and_B_single 2
+#define INPUT_TYPE_Microphone       0
+#define INPUT_TYPE_A_or_B_multiple  1
+#define INPUT_TYPE_A_and_B_single   2
 
 
 typedef struct {
