@@ -1373,7 +1373,8 @@ void print_batery_text_info() {
     char message[32];
     sprintf(message,
             "%d",
-            battery_level
+                        battery_level
+//            (PORTD & 0b11000)
             );
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
@@ -1382,19 +1383,42 @@ void print_batery_text_info() {
     lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
 }
 
-uint8_t print_header() {
-    uint8_t col = LCD_WIDTH-50;
-    lcd_draw_bitmap(col,0,&bt_bitmap_data);
-    col+=bt_bitmap_data.width_in_bits + 2;
-    lcd_draw_bitmap(col,0,&battery_left_bitmap);
+TBool battery_level_ok(uint8_t l) {
+    uint16_t level = (battery_level - 3000) / 220;
+    return (level > l);
+}
+
+void print_batery_info() {
+    uint8_t col = LCD_WIDTH - 35;
+
+    lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
-    for(uint8_t i = 0;i<5;i++){
-        lcd_draw_bitmap(col,0,&battery_middle_full_bitmap);
-        col += battery_middle_full_bitmap.width_in_bits;
+    for (uint8_t i = 5; i > 0; i--) {
+        if (battery_level_ok(i - 1)) {
+            lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
+            col += battery_middle_full_bitmap.width_in_bits;
+        } else {
+            lcd_draw_bitmap(col, 0, &battery_middle_empty_bitmap);
+            col += battery_middle_empty_bitmap.width_in_bits;
+        }
     }
-    lcd_draw_bitmap(col,0,&battery_right_bitmap);
+    lcd_draw_bitmap(col, 0, &battery_right_bitmap);
+}
+
+uint8_t print_header() {
     print_time();
-//    print_batery_text_info();
+    if (BT_INSERT == 0) {
+        lcd_draw_bitmap(LCD_WIDTH - 53, 0, &bt_bitmap_data);
+    } else {
+        lcd_clear_block(
+                LCD_WIDTH - 53,
+                0,
+                LCD_WIDTH - 53 + bt_bitmap_data.width_in_bits,
+                bt_bitmap_data.heigth_in_bytes*8
+                );
+    }
+    //    print_batery_text_info();
+    print_batery_info();
     lcd_draw_fullsize_hline(UI_HEADER_END_LINE - 1, LCD_MID_LINE_PAGE);
     return UI_HEADER_END_LINE;
 }
