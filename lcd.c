@@ -486,67 +486,6 @@ void lcd_battery_info_d(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage
 
 // <editor-fold defaultstate="collapsed" desc="LCD functions implementations">
 
-void lcd_old_init() {
-    LCD_CS_DESELECT();
-
-    __delay_ms(10);
-    lcd_reset(); // Reset LCD.
-    lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-    lcd_send_command(CMD_SET_MODE_MASTER); // Enable master mode.
-
-    lcd_send_command(CMD_EXTENSION_2); // Extension2 command.
-    lcd_send_command(CMD_AUTO_READ); // Disable auto read.
-    lcd_send_data(0x9F);
-
-    lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-    lcd_send_command(CMD_SLEEP_OUT); // Sleep out.
-    lcd_send_command(CMD_DISPLAY_OFF); // Display OFF.
-    lcd_send_command(CMD_INT_OSC_ON); // Internal oscillator ON.
-
-    lcd_send_command(CMD_POWER_CON); // Power control.
-    lcd_send_data(0x0B); // Regulator, Follower and Booster ON.
-    lcd_send_command(CMD_SET_VOP); // Set Vop.
-    lcd_send_data(0x35); // 16 Volts.
-    lcd_send_data(0x04);
-
-    lcd_send_command(CMD_EXTENSION_2); // Extension2 commands.
-    lcd_send_command(CMD_ANALOG_CKT); // Analog Circuit set.
-    lcd_send_data(0x00);
-    lcd_send_data(0x01); // Booster efficiency 1.
-    lcd_send_data(0x02); // LCD bias 1/12
-    //    lcd_send_data(0x01);                                    // LCD bias 1/13
-
-    lcd_send_command(CMD_BOOSTER_LVL); // Booster level.
-    lcd_send_data(0xFB); // x10.
-
-    lcd_send_command(CMD_EXTENSION_1); // Extension1 commands.
-    lcd_send_command(CMD_DISPLAY_MODE); // Display mode.
-    lcd_send_data(0x10); // Monochrome mode.
-    lcd_send_command(CMD_DISPLAY_CONTROL); // Display control.
-    lcd_send_data(0x00); // No clock division.
-    lcd_send_data(0x7F); // 1/128 duty.
-    //    lcd_send_data(0b10011111);                              // 1/160 duty.
-    lcd_send_data(0x00); // ??
-
-    lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    lcd_send_data(0x01);
-    lcd_send_command(0xA6);
-
-    lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
-
-    lcd_send_command(CMD_INVERSION_OFF); // Pixel inversion OFF.
-
-    lcd_send_command(CMD_EXTENSION_2); // Extension2 command.
-    lcd_send_command(CMD_PWR_SRC_INT); // Use internel oscillator.
-
-    lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-    lcd_send_command(CMD_ICON_DISABLE); // Disable ICON RAM.
-
-    lcd_clear_data_ram(); // Clearing data RAM.
-
-    lcd_send_command(CMD_DISPLAY_ON); // Turn ON display.
-}
-
 void lcd_init() {
 #ifndef LCD_DIRECT_ACCESS
     memset(lcd_buffer, 0, sizeof (lcd_buffer)); // Clear LCD Buffer.
@@ -631,10 +570,7 @@ void lcd_init() {
 }
 
 void lcd_clear() {
-    //    memset(lcd_buffer, 0, sizeof (lcd_buffer));
-    //    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
-    //    lcd_refresh(&full_screen_update_boundary);
-    lcd_clear_block_d(0,0,LCD_WIDTH,LCD_HEIGHT);
+    lcd_clear_block_d(0, 0, LCD_WIDTH, LCD_HEIGHT);
 }
 
 void lcd_increase_contrast() {
@@ -665,11 +601,31 @@ void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_I
     lcd_write_string_d("       ", x_pos, y_pos, font, polarity);
     lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
 }
+// TODO: Try generate bitmaps suitable for this method
+
+void lcd_draw_bitmap_flat(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
+    uint8_t min_page, max_page, min_col, max_col;
+    min_page = PAGE(y_pos);
+    max_page = PAGE(y_pos) + bitmap_data->heigth_in_bytes;
+    min_col = x_pos;
+    max_col = x_pos + bitmap_data->width_in_bits;
+    lcd_prepare_send_data(min_col, min_page, max_col, max_page);
+    for (uint16_t i = 0; i < bitmap_data->heigth_in_bytes * bitmap_data->width_in_bits; i++) {
+        lcd_send_data(bitmap_data->image_data[i]);
+    }
+}
 
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    //    lcd_draw_bitmap_d(x_pos, y_pos, bitmap_data);
+    uint8_t column, page,index;
+    for (column = x_pos; column < x_pos + bitmap_data->width_in_bits; column++) {
+        lcd_prepare_send_data(column, PAGE(y_pos), column, PAGE(y_pos)+bitmap_data->heigth_in_bytes);
+        // TODO: Calculate carefully
+        for (page = bitmap_data->heigth_in_bytes; page > 0; page--) {
+            index = bitmap_data->heigth_in_bytes*(column - x_pos) + page-1;
+            lcd_send_data(bitmap_data->image_data[index]);
+        }
+    }
 }
-// TODO: Implement
 
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
     if (battery_percentage > 100) battery_percentage = 100;
@@ -687,9 +643,9 @@ void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_
 void lcd_set_orientation() {
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    if (orientation == ORIENTATION_NORMAL){
+    if (orientation == ORIENTATION_NORMAL) {
         lcd_send_data(LCD_ORIENTATION_NORMAL);
-    } else{
+    } else {
         lcd_send_data(LCD_ORIENTATION_INVERTED);
     }
 }
@@ -724,9 +680,9 @@ TBool column_is_a_junction(uint8_t c) {
     }
 }
 
-TBool page_not_on_hline(uint8_t p){
+TBool page_not_on_hline(uint8_t p) {
     // TODO: fix
-    switch(p){
+    switch (p) {
         case 4:
         case 8:
         case 12:
@@ -768,48 +724,6 @@ void lcd_draw_vgrid_lines(uint8_t start_line) {
         }
     }
 }
-//
-//void lcd_draw_bit_graph_column(size_t column, uint16_t value) {
-//    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
-//    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
-//        if ((value >> (2 * page)) & 0x3) lcd_send_data(LCD_BLACK_PAGE);
-//        else lcd_send_data(LCD_WHITE_PAGE);
-//    }
-//}
-//
-//void lcd_draw_bit_mark_column(size_t column) {
-//    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
-//    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
-//        if (page%2==0) lcd_send_data(LCD_BLACK_PAGE);
-//        else lcd_send_data(LCD_WHITE_PAGE);
-//    }
-//}
-//
-//void lcd_draw_scope_column(size_t column, uint16_t value) {
-//    uint8_t mark_page, mark_bit;
-//    mark_bit = (value % LCD_GRAPH_HEIGTH) % PAGE_HEIGTH;
-//    mark_page = value / LCD_GRAPH_HEIGTH;
-//    lcd_prepare_send_data(column, LCD_GRAPH_START_PAGE, column, PAGE(LCD_HEIGHT));
-//    for (uint8_t page = 0; page < LCD_GRAPH_HEIGTH; page++) {
-//        if (page == mark_page)
-//            lcd_send_data(mark_bit);
-//        else
-//            lcd_send_data(LCD_WHITE_PAGE);
-//    }
-//}
-//
-//void lcd_send_page_mark(uint8_t column, uint8_t page, uint8_t polarity) {
-//    lcd_prepare_send_data(column, page, column, page);
-//    if (polarity == BLACK_OVER_WHITE) lcd_send_data(LCD_BLACK_PAGE);
-//    else lcd_send_data(LCD_WHITE_PAGE);
-//}
-//
-//void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity) {
-//    lcd_prepare_send_data(column, page, column, page);
-//    if (polarity == BLACK_OVER_WHITE) lcd_send_data(value);
-//    else lcd_send_data(~value);
-//}
-// </editor-fold>
 
 void display_message(const char * message) {
     lcd_fill_block(2, 98, 158, 112);

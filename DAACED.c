@@ -126,7 +126,7 @@ void PIC_init(void) {
 
     TRISG = 0x00; // CON8, Debug Header.
     ANSELG = 0x00;
-
+    CPUDOZEbits.IDLEN = 0;
 }
 // </editor-fold>
 
@@ -562,12 +562,10 @@ void SetBacklight() {//PWM Backlight
         SelectInteger(&b);
         set_backlight(b.value);
     } while (SettingsNotDone((&b)));
-    if (b.selected) {
-        Settings.BackLightLevel = b.value;
-        set_backlight(Settings.BackLightLevel);
-        if (b.value != b.old_value) {
-            saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
-        }
+    Settings.BackLightLevel = b.value;
+    set_backlight(Settings.BackLightLevel);
+    if (b.selected && b.value != b.old_value) {
+        saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
     }
 }
 // </editor-fold>
@@ -1103,7 +1101,7 @@ void DoSet(uint8_t menu) {
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
 
-    SettingsMenu->TotalMenuItems = 15;
+    SettingsMenu->TotalMenuItems = 16;
 
     strmycpy(SettingsMenu->MenuTitle, " Settings ");
     strmycpy(SettingsMenu->MenuItem[0], " Delay ");
@@ -1121,6 +1119,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     strmycpy(SettingsMenu->MenuItem[12], " Bluetooth ");
     strmycpy(SettingsMenu->MenuItem[13], " Reset Settings ");
     strmycpy(SettingsMenu->MenuItem[14], " Clear History ");
+    sprintf(SettingsMenu->MenuItem[15], " FW version: %0X ", Settings.version);
 }
 
 void DoSettings(void) {
@@ -1384,8 +1383,18 @@ void print_batery_text_info() {
 }
 
 uint8_t print_header() {
+    uint8_t col = LCD_WIDTH-50;
+    lcd_draw_bitmap(col,0,&bt_bitmap_data);
+    col+=bt_bitmap_data.width_in_bits + 2;
+    lcd_draw_bitmap(col,0,&battery_left_bitmap);
+    col = col + battery_left_bitmap.width_in_bits;
+    for(uint8_t i = 0;i<5;i++){
+        lcd_draw_bitmap(col,0,&battery_middle_full_bitmap);
+        col += battery_middle_full_bitmap.width_in_bits;
+    }
+    lcd_draw_bitmap(col,0,&battery_right_bitmap);
     print_time();
-    print_batery_text_info();
+//    print_batery_text_info();
     lcd_draw_fullsize_hline(UI_HEADER_END_LINE - 1, LCD_MID_LINE_PAGE);
     return UI_HEADER_END_LINE;
 }
@@ -1434,9 +1443,12 @@ void DoPowerOff() {
     LATEbits.LATE0 = 0;
     // TODO: Implement SLEEP mode when powering off
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
+
+    Sleep();
 }
 
 void DoPowerOn() {
+    CPUDOZEbits.DOZEN = 0;
     LATEbits.LATE0 = 1;
     OSCFRQ = 0b00001000; // Switch back to 64MHz
     // TODO: Review power on sequence
