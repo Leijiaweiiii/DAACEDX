@@ -1469,7 +1469,7 @@ void DoPowerOff() {
     // TODO: Implement SLEEP mode when powering off
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
 
-    Sleep();
+//    Sleep();
 }
 
 void DoPowerOn() {
