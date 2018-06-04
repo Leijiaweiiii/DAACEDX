@@ -114,6 +114,7 @@ void SelectMenuItem(SettingsMenu_t* s) {
         case UpLong:
             decrement_menu_index(s);
             break;
+        case ReviewShort:
         case DownShort:
         case DownLong:
             increment_menu_index(s);
@@ -132,8 +133,8 @@ void SelectMenuItem(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
+//        case ReviewShort:ui_state = ReviewScreen;
+//            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -149,6 +150,7 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
         case UpLong:
             decrement_menu_index(s);
             break;
+        case ReviewShort:
         case DownShort:
         case DownLong:
             increment_menu_index(s);
@@ -167,8 +169,8 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
+//        case ReviewShort:ui_state = ReviewScreen;
+//            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -184,6 +186,7 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
         case UpLong:
             decrement_menu_index_inf(s);
             break;
+        case ReviewShort:
         case DownShort:
         case DownLong:
             increment_menu_index_inf(s);
@@ -202,8 +205,8 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
+//        case ReviewShort:ui_state = ReviewScreen;
+//            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -241,8 +244,8 @@ void SelectInteger(NumberSelection_t* sm) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
+//        case ReviewShort:ui_state = ReviewScreen;
+//            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -294,8 +297,8 @@ void SelectDouble(NumberSelection_t* sm) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
+//        case ReviewShort:ui_state = ReviewScreen;
+//            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -359,8 +362,8 @@ void SelectTime(TimeSelection_t* ts) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-        case ReviewShort:ui_state = ReviewScreen;
-            break;
+//        case ReviewShort:ui_state = ReviewScreen;
+//            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
