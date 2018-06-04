@@ -1450,7 +1450,7 @@ void print_footer() {
     print_label_at_footer_grid(message, 1, 1);
 }
 
-void DoMain(void) {
+void StartListenShots(void) {
     ShootString.start_time = rtc_time.unix_time_ms;
     DetectInit();
 }
@@ -1577,6 +1577,7 @@ void StartCountdownTimer() {
             break;
     }
     countdown_start_time = rtc_time.unix_time_ms;
+    ShootString.start_time = countdown_start_time;
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
     }
