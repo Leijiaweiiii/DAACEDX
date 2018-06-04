@@ -231,12 +231,12 @@ void handle_countdown() {
         case ReviewShort:STATE_HANDLE_TIMER_IDLE;
             break;
         case CountdownExpired:
+            StartListenShots();
             ui_state = TimerListening;
             update_shot_time_on_screen();
-
             if (Settings.TotPar > 0)
                 StartParTimer();
-            DoMain();
+            
             PlayStartSound();
             break;
         default:

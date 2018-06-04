@@ -194,7 +194,10 @@ uint16_t CurrStringStartAddress;
 #define DELAY_MODE_Random 2
 #define DELAY_MODE_Custom 3
 
-//uint8_t DelayMode = DELAY_MODE_Fixed;
+#define DETECT_THRESHOLD_LEVELS 13
+#define DEFAULT_SENSITIVITY     8
+const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = { 220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
+
 uint16_t DetectThreshold;
 time_t countdown_start_time;
 
@@ -252,7 +255,7 @@ uint16_t battery_level;
 // </editor-fold>
 
 void DoSettings();
-void DoMain();
+void StartListenShots();
 void DoReview();
 void DoPowerOff();
 void DoPowerOn();

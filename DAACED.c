@@ -285,16 +285,6 @@ void stop_sinus() {
 
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="Settings Display">
-
-uint8_t SettingsTitle(SettingsMenu_t* sm) {
-    set_screen_title(sm->MenuTitle);
-    print_header();
-    return UI_HEADER_END_LINE;
-}
-
-// </editor-fold>
-
 // <editor-fold defaultstate="collapsed" desc="Save and retrive DATA">
 
 void clearHistory() {
@@ -312,7 +302,7 @@ void getSettings() {
 
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
-    Settings.Sensitivity = 5;
+    Settings.Sensitivity = DEFAULT_SENSITIVITY;
     Settings.Filter = 70;
     Settings.AR_IS.Autostart = 1;
     Settings.AR_IS.Mic = 1;
@@ -341,12 +331,12 @@ void saveSettingsField(Settings_t * s, void * f, size_t l) {
 }
 
 void savePar(uint8_t par_index) {
-    uint8_t offset = (&(Settings.ParTime))-(&Settings) + par_index;
+    uint8_t offset = Settings.ParTime - (&Settings) + par_index;
     eeprom_write_array(SettingsStartAddress + offset, Settings.data + offset, 3);
 }
 
 void restorePar() {
-    uint8_t offset = (&(Settings.ParTime))-(&Settings);
+    uint8_t offset = Settings.ParTime - (&Settings);
     eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, MAXPAR);
     offset = (&(Settings.TotPar))-(&Settings);
     Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
@@ -404,6 +394,11 @@ TBool getShootString(uint8_t offset) {
 
 // <editor-fold defaultstate="collapsed" desc="Settings">
 
+uint8_t SettingsTitle(SettingsMenu_t* sm) {
+    set_screen_title(sm->MenuTitle);
+    print_header();
+    return UI_HEADER_END_LINE;
+}
 // <editor-fold defaultstate="collapsed" desc="Delay Settings">
 
 void SetCustomDelay() {
@@ -698,9 +693,9 @@ void SetBeep(SettingsMenu_t * m) {
 void SetSens() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
-    if (Settings.Sensitivity > 10) Settings.Sensitivity = 10;
+    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
     strmycpy(s.MenuTitle, "Sensitivity");
-    s.max = 10;
+    s.max = DETECT_THRESHOLD_LEVELS;
     s.min = 1;
     s.value = Settings.Sensitivity;
     s.old_value = Settings.Sensitivity;
@@ -1341,9 +1336,6 @@ void DoDiagnostics() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
 
-#define DETECT_THRESHOLD_LEVELS 10
-uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {/*220, 190, 160, */140, 120, 104, 87, 73, 61, 51, 42, 33, 15};
-
 void DetectInit(void) {
     uint16_t Mean = 0;
     uint16_t Peak = 0;
@@ -1376,8 +1368,8 @@ void print_batery_text_info() {
     char message[32];
     sprintf(message,
             "%d",
-                        battery_level
-//            (PORTD & 0b11000)
+            battery_level
+            //            (PORTD & 0b11000)
             );
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
@@ -1417,7 +1409,7 @@ uint8_t print_header() {
                 LCD_WIDTH - 53,
                 0,
                 LCD_WIDTH - 53 + bt_bitmap_data.width_in_bits,
-                bt_bitmap_data.heigth_in_bytes*8
+                bt_bitmap_data.heigth_in_bytes * 8
                 );
     }
     //    print_batery_text_info();
@@ -1471,11 +1463,17 @@ void DoPowerOff() {
     // TODO: Implement SLEEP mode when powering off
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
 
-//    Sleep();
+    //    Sleep();
 }
 
 void DoPowerOn() {
-    CPUDOZEbits.DOZEN = 0;
+    PIC_init();
+    initialize_backlight();
+    set_backlight(20);
+    spi_init();
+    lcd_init();
+    ADC_init();
+    eeprom_init();
     LATEbits.LATE0 = 1;
     OSCFRQ = 0b00001000; // Switch back to 64MHz
     // TODO: Review power on sequence
@@ -1488,13 +1486,11 @@ void DoCharging() {
         LATEbits.LATE0 = 1;
         switch (charger_state) {
             case Charging:
-                //                set_backlight(2);
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 break;
             case Complete:
-                //                set_backlight(1);
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
@@ -1714,61 +1710,10 @@ static void interrupt isr(void) {
     }
 }
 // </editor-fold>
-//
-//void DoThresholdGrapg(uint8_t column) {
-//    //    for (uint8_t i = 0; i < DETECT_THRESHOLD_LEVELS; i++) {
-//    //        //        if (ADC_LATEST_VALUE > Mean + threshold_offsets[i])
-//    //        //        if (ADC_MIDDLE_VALUE - cma_n>threshold_offsets[i])
-//    //        if (MeanValue() > threshold_offsets[i])
-//    //            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, BLACK_OVER_WHITE);
-//    //        else
-//    //            lcd_send_page_mark(column, PAGE(LCD_HEIGHT) - 1 - i, WHITE_OVER_BLACK);
-//    //    }
-//    lcd_draw_scope_column(column, ADC_LATEST_VALUE >> 2);
-//}
-//
-//void DoAdcGraph() {
-//    size_t column = 0;
-//    time_t t, t_1 = 0;
-//    int written = 0;
-//    char lbl[16];
-//    uint8_t lap = 0;
-//    lbl[24] = 0;
-//    t = rtc_time_msec;
-//    DetectInit();
-//
-//    while (True) {
-//        column = (column + 1) % 140;
-//        lcd_draw_bit_mark_column(5); // bit scale
-//        DoThresholdGrapg(10 + column);
-//
-//        lcd_send_page(10 + column, PAGE(25), 0x0F, lap % 2);
-//        if (column == 0) {
-//            lap++;
-//            if (Keypressed) {
-//                ui_state = TimerIdle;
-//                return;
-//            }
-//        }
-//        t_1 = t;
-//        t = rtc_time_msec;
-//        written = sprintf(lbl, "dt:%02u ", t - t_1);
-//        sprintf(lbl + written, "%x ", ADC_LATEST_VALUE);
-//        lcd_write_string(lbl, 5, 8, MediumFont, BLACK_OVER_WHITE);
-//        delay_rtc_ms(15);
-//    }
-//}
 
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
-    PIC_init();
-    LATEbits.LATE0 = 1;
-    initialize_backlight();
-    set_backlight(20);
-    spi_init();
-    lcd_init();
-    ADC_init();
-    eeprom_init();
+    DoPowerOn();
     init_ms_timer0();
     initialize_rtc_timer();
     ei();

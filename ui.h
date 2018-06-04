@@ -64,6 +64,7 @@ extern "C" {
     void handle_settings_screen();
     void handle_review_screen();
     void define_input_action();
+    void handle_timer_idle_shutdown();
     void handle_ui();
     void PowerOffTimer();
     void StopTimer();
