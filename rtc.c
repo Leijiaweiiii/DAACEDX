@@ -157,16 +157,30 @@ uint8_t get_second() {
     return gmtime(&const_time)->tm_sec;
 }
 
+void set_rtc_time(time_t x) {
+    time_t __ts = x >> 1;
+    di();
+    T1CONbits.ON = 0; //TIMER1 stop.
+    T3CONbits.ON = 0; //TIMER3 stop.
+    T5CONbits.ON = 0; //TIMER5 stop.
+    TMR1 = 0;
+    TMR3 = 0x0000FFFF & __ts;
+    TMR5 = (0xFFFF0000 & __ts) >> 16;
+    T1CONbits.ON = 1; //TIMER1 start.
+    T3CONbits.ON = 1; //TIMER3 start.
+    T5CONbits.ON = 1; //TIMER5 start.
+    ei();
+}
+
 void set_time(uint8_t h, uint8_t m, uint8_t s) {
     // TODO: Review and fix - something broken here
-    struct tm t;
-    t.tm_min = m;
-    t.tm_hour = h;
-    t.tm_sec = s;
-    time_t newtime = mktime(&t);
-    di();
+    struct tm * t;
+    t = gmtime(&(rtc_time.sec));
+    t->tm_min = m;
+    t->tm_hour = h;
+    t->tm_sec = s;
+    time_t newtime = mktime(t);
     set_rtc_time(newtime);
-    ei();
 }
 
 time_t get_corrected_time_msec() {
