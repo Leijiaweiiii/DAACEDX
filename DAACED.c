@@ -1133,14 +1133,16 @@ void DoSettings(void) {
     do {
         handle_rotation();
         print_header();
+        handle_timer_idle_shutdown();
         DisplaySettings(&SettingsMenu);
         SelectMenuItemCircular(&SettingsMenu);
         if (SettingsMenu.selected) {
             DoSet(SettingsMenu.menu);
             SettingsMenu.selected = False;
-            SettingsMenu.done = False;
             lcd_clear();
         }
+        // Never exit on OK/Cancel case here, only on screen change
+        SettingsMenu.done = False;
     } while (SettingsNotDone((&SettingsMenu)));
 
     if (ui_state == SettingsScreen) {
