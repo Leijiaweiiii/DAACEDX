@@ -112,6 +112,7 @@ extern "C" {
     void SelectTime(TimeSelection_t * t);
     void DisplayTime(TimeSelection_t * t);
     extern uint8_t print_header(); // implemented in DAACED.c
+    void display_big_font_label(const char * msg);
 #ifdef	__cplusplus
 }
 #endif

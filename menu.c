@@ -359,8 +359,6 @@ void SelectTime(TimeSelection_t* ts) {
             break;
         case BackShort:
         case BackLong:
-            ts->minute = ts->old_minute;
-            ts->hour = ts->old_hour;
             ts->selected = False;
             ts->done = True;
             break;

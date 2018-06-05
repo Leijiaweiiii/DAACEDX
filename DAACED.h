@@ -240,7 +240,7 @@ typedef union {
         uint16_t BuzzerParDuration;
         uint16_t BuzzerStartDuration;
         time_t DelayTime; // mS
-        time_t CustomCDtime;
+        time_t CustomCDtime; // sec TODO: Reduce storage type
         uint24_t ParTime[MAXPAR]; //in 1mS unit
     };
 } Settings_t;

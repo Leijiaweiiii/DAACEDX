@@ -313,7 +313,7 @@ void getDefaultSettings() {
     Settings.BuzzerParDuration = 200;
     Settings.BuzzerStartDuration = 300;
     Settings.BuzzerLevel = 1;
-    Settings.CustomCDtime = 2000;
+    Settings.CustomCDtime = 180; // 3 minutes in sec
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.DelayTime = 3000;
     Settings.BackLightLevel = 2;
@@ -930,36 +930,71 @@ void SetClock() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
 
-void CountDownMode(uint8_t cdt, SettingsMenu_t * m) {
-    uint8_t top, prev_cdtime, tcount;
-    uint16_t cdtime;
-    TBool Run;
-    char msg[20];
-
-    prev_cdtime = 0;
-    strmycpy(m->MenuTitle, "Countdown");
-    top = SettingsTitle(m);
-    // TODO: Implement
+void CountDownMode(time_t countdown) {
+    char msg[16];
+    time_t reminder;
+    time_t stop_time = rtc_time.sec + countdown;
+    uint8_t minute, second;
+    TBool done = False;
+    lcd_clear();
+    do {
+        print_header();
+        reminder = stop_time - rtc_time.sec;
+        minute = reminder / 60;
+        second = reminder % 60;
+        sprintf(msg,
+                "%02d%s%02d",
+                minute,
+                (rtc_time.sec % 2 == 0) ? ":" : " ",
+                second
+                );
+        display_big_font_label(msg);
+        define_input_action();
+        switch (comandToHandle) {
+            case StartLong:STATE_HANDLE_POWER_OFF;
+                break;
+            case StartShort:STATE_HANDLE_TIMER_IDLE;
+                break;
+            case ChargerEvent:STATE_HANDLE_CHARGING;
+                break;
+            case BackShort:
+            case BackLong:
+                done = True;
+                break;
+        }
+        if (minute == 0) {
+            if (second == 59 || second == 30 || second < 3) {
+                Beep();
+            }
+            if (second == 0) {
+                done = True;
+            }
+        }
+    } while (!done && ui_state == SettingsScreen);
 }
 
 void SetCustomCountDown() {
     TimeSelection_t ts;
+    InitSettingsNumberDefaults((&ts));
     strmycpy(ts.MenuTitle, "Custom Countdown");
     // TODO: Review time format here
     // Hour means minute here
-    ts.hour = Settings.CustomCDtime / 60000;
+    ts.hour = Settings.CustomCDtime / 60;
     // Minute means seconds
-    ts.minute = Settings.CustomCDtime / 1000;
+    ts.minute = Settings.CustomCDtime % 60;
     ts.old_hour = ts.hour;
     ts.old_minute = ts.minute;
     ts.done = False;
+    lcd_clear();
     do {
         DisplayTime(&ts);
         SelectTime(&ts);
     } while (SettingsNotDone((&ts)));
-    Settings.CustomCDtime = ts.hour * 60000 + ts.minute * 1000;
-    if (ts.hour != ts.old_hour || ts.minute != ts.old_minute) {
-        saveSettingsField(&Settings, &(Settings.CustomCDtime), 4);
+    if (ts.selected) {
+        Settings.CustomCDtime = ts.hour * 60 + ts.minute;
+        if (ts.hour != ts.old_hour || ts.minute != ts.old_minute) {
+            saveSettingsField(&Settings, &(Settings.CustomCDtime), 4);
+        }
     }
 }
 
@@ -978,12 +1013,12 @@ void SetCountDown(SettingsMenu_t * m) {
         SelectMenuItem(m);
     } while (SettingsNotDone(m));
     switch (m->menu) {
-        case 1: CountDownMode(18, m);
+        case 1: CountDownMode(180);
             break;
-        case 2: CountDownMode(30, m);
+        case 2: CountDownMode(300);
             break;
         case 3: SetCustomCountDown();
-            CountDownMode(Settings.CustomCDtime, m);
+            CountDownMode(Settings.CustomCDtime);
             break;
     }
 }
