@@ -29,6 +29,7 @@ extern "C" {
     } UiState;
 
     UiState ui_state = TimerIdle;
+
     typedef enum {
         None = 0,
         StartShort,
@@ -48,11 +49,11 @@ extern "C" {
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 
-    typedef enum TimerEvent{
+    typedef enum TimerEvent {
         NoEvent = 0,
-                TimerTimeout,
-                ParEvent,
-                ShotDetected
+        TimerTimeout,
+        ParEvent,
+        ShotDetected
     } TimerEvent;
     TimerEvent timerEventToHandle = NoEvent;
 
@@ -60,7 +61,7 @@ extern "C" {
 #define set_screen_title(x) {strmycpy(ScreenTitle, x);}
 
     void print_big_time_label(uint24_t t);
-    void print_line_with_shots_and_split(uint8_t shot_no,time_t split);
+    void print_line_with_shots_and_split(uint8_t shot_no, time_t split);
     void handle_settings_screen();
     void handle_review_screen();
     void define_input_action();

@@ -3,18 +3,19 @@
 #include "ui.h"
 #include "DAACED.h"
 uint8_t old_label_len = 0;
+
 void display_big_font_label(const char * msg) {
     uint8_t len = 0;
     len = lcd_string_lenght(msg, BigFont);
-    if(len!=old_label_len){
+    if (len != old_label_len) {
         lcd_clear_block(
                 (LCD_WIDTH - old_label_len) / 2,
-                UI_HEADER_END_LINE+24,
+                UI_HEADER_END_LINE + 24,
                 (LCD_WIDTH - old_label_len) / 2 + old_label_len,
-                UI_HEADER_END_LINE+24 + BigFont->height);
+                UI_HEADER_END_LINE + 24 + BigFont->height);
         old_label_len = len;
     }
-    lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE+24, BigFont, BLACK_OVER_WHITE);
+    lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE + 24, BigFont, BLACK_OVER_WHITE);
 }
 
 void DisplayTime(TimeSelection_t * t) {
@@ -133,8 +134,8 @@ void SelectMenuItem(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-//        case ReviewShort:ui_state = ReviewScreen;
-//            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -169,8 +170,8 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-//        case ReviewShort:ui_state = ReviewScreen;
-//            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -205,8 +206,8 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-//        case ReviewShort:ui_state = ReviewScreen;
-//            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -219,7 +220,7 @@ void SelectInteger(NumberSelection_t* sm) {
     define_input_action();
     switch (comandToHandle) {
         case UpShort:
-                        if (sm->value < sm->max) {
+            if (sm->value < sm->max) {
                 sm->value += sm->step;
             } else Beep();
             break;
@@ -230,7 +231,7 @@ void SelectInteger(NumberSelection_t* sm) {
             } else Beep();
             break;
         case DownShort:
-                        if (sm->value > sm->min) {
+            if (sm->value > sm->min) {
                 sm->value -= sm->step;
             } else Beep();
             break;
@@ -254,8 +255,8 @@ void SelectInteger(NumberSelection_t* sm) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-//        case ReviewShort:ui_state = ReviewScreen;
-//            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -286,9 +287,9 @@ void SelectDouble(NumberSelection_t* sm) {
             break;
         case DownLong:
             for (uint8_t i = 0; i < 5; i++) {
-            if (sm->fvalue > sm->fmin) {
-                sm->fvalue -= sm->fstep;
-            } else Beep();
+                if (sm->fvalue > sm->fmin) {
+                    sm->fvalue -= sm->fstep;
+                } else Beep();
             }
             break;
         case OkShort:
@@ -307,8 +308,8 @@ void SelectDouble(NumberSelection_t* sm) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-//        case ReviewShort:ui_state = ReviewScreen;
-//            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
@@ -372,8 +373,8 @@ void SelectTime(TimeSelection_t* ts) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
-//        case ReviewShort:ui_state = ReviewScreen;
-//            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
