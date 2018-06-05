@@ -254,7 +254,7 @@ TBool is_long_press() {
     do {
         duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
-            return duration >= LONG_PRESS_THRESHOLD_SEC;
+            break;
     } while (Keypressed);
     InputFlags.KEY_RELEASED =True; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;

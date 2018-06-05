@@ -219,14 +219,24 @@ void SelectInteger(NumberSelection_t* sm) {
     define_input_action();
     switch (comandToHandle) {
         case UpShort:
+                        if (sm->value < sm->max) {
+                sm->value += sm->step;
+            } else Beep();
+            break;
         case UpLong:
             if (sm->value < sm->max) {
+                sm->value += sm->step;
                 sm->value += sm->step;
             } else Beep();
             break;
         case DownShort:
+                        if (sm->value > sm->min) {
+                sm->value -= sm->step;
+            } else Beep();
+            break;
         case DownLong:
             if (sm->value > sm->min) {
+                sm->value -= sm->step;
                 sm->value -= sm->step;
             } else Beep();
             break;
