@@ -558,11 +558,12 @@ void SetBacklight() {//PWM Backlight
         SelectInteger(&b);
         set_backlight(b.value);
     } while (SettingsNotDone((&b)));
-    Settings.BackLightLevel = b.value;
-    set_backlight(Settings.BackLightLevel);
+
     if (b.selected && b.value != b.old_value) {
+        Settings.BackLightLevel = b.value;
         saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
     }
+    set_backlight(Settings.BackLightLevel);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Buzzer Settings">
@@ -693,21 +694,25 @@ void SetBeep(SettingsMenu_t * m) {
 void SetSens() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
-    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
+    //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
     strmycpy(s.MenuTitle, "Sensitivity");
-    s.max = DETECT_THRESHOLD_LEVELS;
-    s.min = 1;
+    //    s.max = DETECT_THRESHOLD_LEVELS;
+    //    s.min = 1;
+    s.max = 200;
+    s.min = 10;
     s.value = Settings.Sensitivity;
     s.old_value = Settings.Sensitivity;
     s.step = 1;
-    s.format = "%u";
+    s.format = "%d";
     do {
         DisplayInteger(&s);
         SelectInteger(&s);
     } while (SettingsNotDone((&s)));
-    Settings.Sensitivity = s.value;
-    if (s.value != s.old_value) {
-        saveSettingsField(&Settings, &(Settings.Sensitivity), 1);
+    if (s.selected) {
+        Settings.Sensitivity = s.value;
+        if (s.value != s.old_value) {
+            saveSettingsField(&Settings, &(Settings.Sensitivity), 3);
+        }
     }
 }
 
@@ -1347,7 +1352,8 @@ void DetectInit(void) {
         if (Peak < ADCvalue) Peak = ADCvalue;
     }
     Mean = Mean >> 6;
-    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
+    //    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
+    DetectThreshold = Mean + Settings.Sensitivity;
 }
 
 uint8_t print_time() {

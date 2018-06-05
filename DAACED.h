@@ -195,7 +195,7 @@ uint16_t CurrStringStartAddress;
 #define DELAY_MODE_Custom 3
 
 #define DETECT_THRESHOLD_LEVELS 13
-#define DEFAULT_SENSITIVITY     8
+#define DEFAULT_SENSITIVITY     73
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = { 220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
 uint16_t DetectThreshold;
@@ -218,7 +218,7 @@ time_t parStartTime_ms;
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-#define SettingsDataSize            (102)
+#define SettingsDataSize            (104)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -230,12 +230,12 @@ typedef union {
         AR_IS_T AR_IS;
         uint8_t DelayMode;
         uint8_t BuzzerLevel;
-        uint8_t Sensitivity;
         uint8_t BackLightLevel;
         uint8_t Filter;
         uint8_t ParMode;
         uint8_t TotPar; // 1 based
         uint8_t InputType;
+        uint24_t Sensitivity;
         uint16_t BuzzerFrequency;
         uint16_t BuzzerParDuration;
         uint16_t BuzzerStartDuration;
