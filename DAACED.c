@@ -391,6 +391,20 @@ TBool getShootString(uint8_t offset) {
     eeprom_read_array(addr, ShootString.data, Size_of_ShootString);
     return True;
 }
+
+TBool checkShotStringEmpty(uint8_t offset){
+    uint16_t addr;
+    int8_t index;
+    time_t time;
+    index = findCurStringIndex();
+    if (index >= offset)
+        index -= offset;
+    else
+        index = MAXSHOOTSTRINGS - offset + index;
+    addr = findStringAddress(index);
+    eeprom_read_array(addr, (uint8_t *)(&time), 4);
+    return (time == 0);
+}
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Settings">
@@ -1306,8 +1320,16 @@ void review_scroll_shot_down() {
 void review_previous_string() {
     if (CurShootString > 0) {
         CurShootString--;
+        if(checkShotStringEmpty(CurShootString)){
+            Beep();
+            CurShootString++;
+        }
     } else {
         CurShootString = MAXSHOOTSTRINGS - 1;
+        if(checkShotStringEmpty(CurShootString)){
+            Beep();
+            CurShootString = 0;
+        }
     }
     getShootString(CurShootString);
     reviewChanged = True;
@@ -1317,6 +1339,10 @@ void review_previous_string() {
 void review_next_string() {
     if (CurShootString < MAXSHOOTSTRINGS - 1) {
         CurShootString++;
+        if(checkShotStringEmpty(CurShootString)){
+            Beep();
+            CurShootString--;
+        }
     } else {
         CurShootString = 0;
     }
@@ -1326,6 +1352,7 @@ void review_next_string() {
 }
 
 void DoReview() {
+    getShootString(0);
     CurShootString = 0;
     CurShoot = ShootString.TotShoots - 1;
     reviewChanged = True;
@@ -1782,6 +1809,10 @@ void main(void) {
     initialize_rtc_timer();
     ei();
     getSettings();
+    getShootString(0);
+    if(ShootString.start_time>rtc_time.unix_time_ms){
+        set_rtc_time(ShootString.start_time);
+    }
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
