@@ -20,19 +20,3 @@ void define_charger_state(){
     charger_state_changed |= (old_state != charger_state);
 }
 
-char * charger_text_state(){
-    char msg[10];
-    sprintf(msg," 0x%02X ",CHARGER_STATE);
-    return msg;
-    // off - 0xFB
-    // connected - 0xE3
-    // charging - 0xA3
-//    switch(charger_state){
-//        case Charging:
-//            return "C";
-//        case Complete:
-//            return "F";
-//        default:
-//            return "N";
-//    }
-}
