@@ -264,6 +264,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
 
     sinus_dac_init();
 
+    //TODO: Stop sound when button pressed
     while (no_of_cycles--) {
         for (uint8_t count = 0; count < 32; count++) {
             dac_value = (sinus_table[count] * amplitude) >> 2;
@@ -963,14 +964,26 @@ void CountDownMode(time_t countdown) {
                 break;
         }
         if (minute == 0) {
-            if (second == 59 || second == 30 || second < 3) {
-                Beep();
-            }
             if (second == 0) {
                 done = True;
             }
         }
     } while (!done && ui_state == SettingsScreen);
+    if (done && minute == 0 && second == 0) {
+        for (uint8_t i = 0; i < 5; i++){
+            for (uint8_t j = 0; j < 4; j++) {
+                generate_sinus(
+                        Settings.BuzzerLevel,
+                        1000,
+                        50
+                        );
+                delay_rtc_ms(50);
+            }
+            if(Keypressed)
+                break;
+            delay_rtc_ms(400);
+        }
+    }
 }
 
 void SetCustomCountDown() {
