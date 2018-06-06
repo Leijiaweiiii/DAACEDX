@@ -266,6 +266,7 @@ void lcd_decrease_contrast();
 void lcd_draw_fullsize_hline(uint8_t line,uint8_t data);
 void lcd_draw_vgrid_lines(uint8_t start_line);
 void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
+void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity);
 //void lcd_draw_bit_graph_column(size_t column, uint16_t value);
 //void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
 //void lcd_draw_scope_column(size_t column, uint16_t value);

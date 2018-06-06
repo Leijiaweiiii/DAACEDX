@@ -392,7 +392,7 @@ TBool getShootString(uint8_t offset) {
     return True;
 }
 
-TBool checkShotStringEmpty(uint8_t offset){
+TBool checkShotStringEmpty(uint8_t offset) {
     uint16_t addr;
     int8_t index;
     time_t time;
@@ -402,7 +402,7 @@ TBool checkShotStringEmpty(uint8_t offset){
     else
         index = MAXSHOOTSTRINGS - offset + index;
     addr = findStringAddress(index);
-    eeprom_read_array(addr, (uint8_t *)(&time), 4);
+    eeprom_read_array(addr, (uint8_t *) (&time), 4);
     return (time == 0);
 }
 // </editor-fold>
@@ -984,7 +984,7 @@ void CountDownMode(time_t countdown) {
         }
     } while (!done && ui_state == SettingsScreen);
     if (done && minute == 0 && second == 0) {
-        for (uint8_t i = 0; i < 5; i++){
+        for (uint8_t i = 0; i < 5; i++) {
             for (uint8_t j = 0; j < 4; j++) {
                 generate_sinus(
                         Settings.BuzzerLevel,
@@ -993,7 +993,7 @@ void CountDownMode(time_t countdown) {
                         );
                 delay_rtc_ms(50);
             }
-            if(Keypressed)
+            if (Keypressed)
                 break;
             delay_rtc_ms(400);
         }
@@ -1286,14 +1286,22 @@ void ReviewDisplay() {
     sprintf(message, "String<");
     col = 4;
     lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
-    col += lcd_string_lenght(message, SmallFont);
+    col += lcd_string_lenght(message, SmallFont) + 2;
     col += first_page ? 0 : 3;
     page_start = page_size * (CurShootString / page_size);
     for (i = 0; i < page_size; i++) {
+        uint8_t polarity = (CurShootString % page_size == i);
         // Rounding to a page
         sprintf(message, "%d", page_start + i + 1);
-        lcd_write_string(message, col, line, SmallFont, CurShootString % page_size == i);
+
+        lcd_write_string(message, col, line, SmallFont, polarity);
+        if (polarity)
+            lcd_send_block_d(col - 2, line, col, line + SmallFont->height, ~polarity);
         col += lcd_string_lenght(message, SmallFont) + 3;
+        if (polarity)
+            lcd_send_block_d(col - 5, line, col - 3, line + SmallFont->height, !polarity);
+
+
     }
     sprintf(message, ">");
     lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
@@ -1320,13 +1328,13 @@ void review_scroll_shot_down() {
 void review_previous_string() {
     if (CurShootString > 0) {
         CurShootString--;
-        if(checkShotStringEmpty(CurShootString)){
+        if (checkShotStringEmpty(CurShootString)) {
             Beep();
             CurShootString++;
         }
     } else {
         CurShootString = MAXSHOOTSTRINGS - 1;
-        if(checkShotStringEmpty(CurShootString)){
+        if (checkShotStringEmpty(CurShootString)) {
             Beep();
             CurShootString = 0;
         }
@@ -1339,7 +1347,7 @@ void review_previous_string() {
 void review_next_string() {
     if (CurShootString < MAXSHOOTSTRINGS - 1) {
         CurShootString++;
-        if(checkShotStringEmpty(CurShootString)){
+        if (checkShotStringEmpty(CurShootString)) {
             Beep();
             CurShootString--;
         }
@@ -1810,7 +1818,7 @@ void main(void) {
     ei();
     getSettings();
     getShootString(0);
-    if(ShootString.start_time>rtc_time.unix_time_ms){
+    if (ShootString.start_time > rtc_time.unix_time_ms) {
         set_rtc_time(ShootString.start_time);
     }
     if (Settings.version != FW_VERSION) {
