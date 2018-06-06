@@ -26,7 +26,8 @@ rtc_time_t rtc_time;
 
 #define rtc_time_sec        ((TMR3|(TMR5<<16))<<1|(TMR1>>15))
 void set_rtc_time(time_t x);
-#define rtc_time_msec       (TMR1>>6)
+// Taking only 9 bits - the MSB is seconds
+#define rtc_time_msec       (TMR1>>6&0x01FF)
 #define update_rtc_time     {rtc_time.sec = rtc_time_sec;rtc_time.msec = correction_table[rtc_time_msec];rtc_time.unix_time_ms = rtc_time.sec*1000+rtc_time.msec;}
 #define delay_rtc(x)        {time_t __st = rtc_time.sec; while((rtc_time.sec  - __st)<x);}
 #define delay_rtc_ms(x)     {time_t __st = rtc_time.unix_time_ms;while((rtc_time.unix_time_ms -  __st)<x);}
