@@ -15,7 +15,7 @@
 #define STRMYCMP
 extern void strmycpy(char * to, const char * from);
 #endif
-#define FW_VERSION (0x04)
+#define FW_VERSION (0x05)
 // <editor-fold defaultstate="collapsed" desc="General">
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ            (64000000UL) //64MHz
