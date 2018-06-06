@@ -583,7 +583,7 @@ void SetBeepFreq() {
         SelectDouble(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.BuzzerFrequency = (uint16_t)(b.fvalue * 1000);
+        Settings.BuzzerFrequency = (uint16_t) (b.fvalue * 1000);
         if (b.fvalue != b.fold_value) {
             saveSettingsField(&Settings, &(Settings.BuzzerFrequency), 2);
         }
@@ -945,7 +945,7 @@ void CountDownMode(time_t countdown) {
         sprintf(msg,
                 "%02d%s%02d",
                 minute,
-                (rtc_time.sec % 2 == 0) ? ":" : " ",
+                (rtc_time.msec > 500 || rtc_time.msec < 250) ? "." : ":",
                 second
                 );
         display_big_font_label(msg);
@@ -974,25 +974,34 @@ void CountDownMode(time_t countdown) {
 }
 
 void SetCustomCountDown() {
-    TimeSelection_t ts;
+    NumberSelection_t ts;
+    uint8_t minute, second;
+    char msg[16];
     InitSettingsNumberDefaults((&ts));
-    strmycpy(ts.MenuTitle, "Custom Countdown");
-    // TODO: Review time format here
-    // Hour means minute here
-    ts.hour = Settings.CustomCDtime / 60;
-    // Minute means seconds
-    ts.minute = Settings.CustomCDtime % 60;
-    ts.old_hour = ts.hour;
-    ts.old_minute = ts.minute;
-    ts.done = False;
+    strmycpy(ts.MenuTitle, "Custom CountSaul, see table below.down");
+
+    // in seconds
+    ts.value = Settings.CustomCDtime;
+    ts.old_value = ts.value;
+    ts.max = 999;
+    ts.min = 30;
+    ts.step = 1;
     lcd_clear();
     do {
-        DisplayTime(&ts);
-        SelectTime(&ts);
+        print_header();
+        minute = ts.value / 60;
+        second = ts.value % 60;
+        sprintf(msg,
+                "%02d:%02d",
+                minute,
+                second
+                );
+        display_big_font_label(msg);
+        SelectInteger(&ts);
     } while (SettingsNotDone((&ts)));
     if (ts.selected) {
-        Settings.CustomCDtime = ts.hour * 60 + ts.minute;
-        if (ts.hour != ts.old_hour || ts.minute != ts.old_minute) {
+        Settings.CustomCDtime = ts.value;
+        if (ts.value != ts.old_value) {
             saveSettingsField(&Settings, &(Settings.CustomCDtime), 4);
         }
     }
