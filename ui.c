@@ -8,7 +8,7 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     sprintf(message, "#%03d ", shot_no);
     lcd_write_string(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
-    sprintf(message, "  Split %3.2f", (float)split/1000);
+    sprintf(message, "  Split %3.2f", (float) split / 1000);
     x_pos = LCD_WIDTH - lcd_string_lenght(message, SmallFont);
     lcd_write_string(
             message,
@@ -23,20 +23,20 @@ uint8_t old_time_str_len = 0;
 void print_big_time_label(uint24_t t) {
     char message[16];
     float tf;
-    if(t>MAX_MEASUREMENT_TIME)
-        tf=999.0;
+    if (t > MAX_MEASUREMENT_TIME)
+        tf = 999.0;
     else
         tf = ((float) t) / 1000;
     sprintf(message, "%3.02f", tf);
     uint8_t len = lcd_string_lenght(message, BigFont);
     if (len < old_time_str_len)
-        lcd_clear_block(LCD_WIDTH-old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
+        lcd_clear_block(LCD_WIDTH - old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
     old_time_str_len = len;
     lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
 }
 
 void update_countdown_time_on_screen() {
-    uint24_t reminder =Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
+    uint24_t reminder = Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
 
@@ -96,7 +96,7 @@ void handle_timer_idle_shutdown() {
 }
 
 void handle_timer_idle() {
-    switch(Settings.InputType){
+    switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
             set_screen_title("Microphone ");
             break;
@@ -225,8 +225,11 @@ void handle_countdown() {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
         case StartShort:
-            if (AutoStart)
+            if (AutoStart) {
+                STATE_HANDLE_COUNTDOWN;
+            } else {
                 STATE_HANDLE_TIMER_IDLE;
+            }
             break;
         case ReviewShort:STATE_HANDLE_TIMER_IDLE;
             break;
@@ -236,7 +239,7 @@ void handle_countdown() {
             update_shot_time_on_screen();
             if (Settings.TotPar > 0)
                 StartParTimer();
-            
+
             PlayStartSound();
             break;
         default:
@@ -256,7 +259,7 @@ TBool is_long_press() {
         if (duration > STICKY_THRESHOLD_SEC)
             break;
     } while (Keypressed);
-    InputFlags.KEY_RELEASED =True; // Mark key released only here to avoid double sensing of key press
+    InputFlags.KEY_RELEASED = True; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
