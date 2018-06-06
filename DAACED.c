@@ -583,7 +583,7 @@ void SetBeepFreq() {
         SelectDouble(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.BuzzerFrequency = (uint8_t) b.fvalue / 1000;
+        Settings.BuzzerFrequency = (uint16_t)(b.fvalue * 1000);
         if (b.fvalue != b.fold_value) {
             saveSettingsField(&Settings, &(Settings.BuzzerFrequency), 2);
         }
