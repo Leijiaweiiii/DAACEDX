@@ -943,7 +943,7 @@ void CountDownMode(time_t countdown) {
         minute = reminder / 60;
         second = reminder % 60;
         sprintf(msg,
-                "%02d%s%02d",
+                "%2d%s%02d",
                 minute,
                 (rtc_time.msec > 500 || rtc_time.msec < 250) ? "." : ":",
                 second
@@ -978,7 +978,7 @@ void SetCustomCountDown() {
     uint8_t minute, second;
     char msg[16];
     InitSettingsNumberDefaults((&ts));
-    strmycpy(ts.MenuTitle, "Custom CountSaul, see table below.down");
+    strmycpy(ts.MenuTitle, "Custom Count");
 
     // in seconds
     ts.value = Settings.CustomCDtime;
@@ -992,7 +992,7 @@ void SetCustomCountDown() {
         minute = ts.value / 60;
         second = ts.value % 60;
         sprintf(msg,
-                "%02d:%02d",
+                "%2d:%02d",
                 minute,
                 second
                 );
