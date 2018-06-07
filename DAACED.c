@@ -564,7 +564,7 @@ void SetBacklight() {//PWM Backlight
     b.max = 9;
     b.min = 0;
     b.step = 1;
-    b.value = (Settings.BackLightLevel+1)/10;
+    b.value = (Settings.BackLightLevel + 1) / 10;
     b.old_value = b.value;
     tmp = b.value;
     b.format = "%u";
@@ -572,8 +572,8 @@ void SetBacklight() {//PWM Backlight
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        if(b.value!=tmp){
-            set_backlight(b.value  * 10 - 1);
+        if (b.value != tmp) {
+            set_backlight(b.value * 10 - 1);
             tmp = b.value;
         }
     } while (SettingsNotDone((&b)));
@@ -625,7 +625,7 @@ void SetBeepLevel() {
         SelectInteger(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        if(b.value == 1) Settings.BuzzerLevel = 1;
+        if (b.value == 1) Settings.BuzzerLevel = 1;
         else Settings.BuzzerLevel = b.value * 10;
         if (b.value != b.old_value) {
             saveSettingsField(&Settings, &(Settings.BuzzerLevel), 1);
@@ -1060,8 +1060,8 @@ void SetCountDown(SettingsMenu_t * m) {
             break;
         case 2: CountDownMode(300);
             break;
-        case 3: 
-            if(SetCustomCountDown())
+        case 3:
+            if (SetCustomCountDown())
                 CountDownMode(Settings.CustomCDtime);
             break;
     }
