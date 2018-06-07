@@ -1005,7 +1005,7 @@ void CountDownMode(time_t countdown) {
     }
 }
 
-void SetCustomCountDown() {
+TBool SetCustomCountDown() {
     NumberSelection_t ts;
     uint8_t minute, second;
     char msg[16];
@@ -1036,7 +1036,9 @@ void SetCustomCountDown() {
         if (ts.value != ts.old_value) {
             saveSettingsField(&Settings, &(Settings.CustomCDtime), 4);
         }
+        return True;
     }
+    return False;
 }
 
 void SetCountDown(SettingsMenu_t * m) {
@@ -1058,8 +1060,9 @@ void SetCountDown(SettingsMenu_t * m) {
             break;
         case 2: CountDownMode(300);
             break;
-        case 3: SetCustomCountDown();
-            CountDownMode(Settings.CustomCDtime);
+        case 3: 
+            if(SetCustomCountDown())
+                CountDownMode(Settings.CustomCDtime);
             break;
     }
 }
