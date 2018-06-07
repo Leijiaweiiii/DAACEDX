@@ -225,11 +225,7 @@ void handle_countdown() {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
         case StartShort:
-            if (AutoStart) {
                 STATE_HANDLE_COUNTDOWN;
-            } else {
-                STATE_HANDLE_TIMER_IDLE;
-            }
             break;
         case ReviewShort:STATE_HANDLE_TIMER_IDLE;
             break;
