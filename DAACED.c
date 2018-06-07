@@ -331,12 +331,12 @@ void saveSettingsField(Settings_t * s, void * f, size_t l) {
 }
 
 void savePar(uint8_t par_index) {
-    uint8_t offset = Settings.ParTime - (&Settings) + par_index;
+    uint8_t offset = &(Settings.ParTime) - (&Settings) + par_index;
     eeprom_write_array(SettingsStartAddress + offset, Settings.data + offset, 3);
 }
 
 void restorePar() {
-    uint8_t offset = Settings.ParTime - (&Settings);
+    uint8_t offset = &(Settings.ParTime) - (&Settings);
     eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, MAXPAR);
     offset = (&(Settings.TotPar))-(&Settings);
     Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
