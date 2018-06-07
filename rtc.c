@@ -144,7 +144,12 @@ void init_ms_timer0() {
 
 uint8_t get_hour() {
     time_t const_time = rtc_time.sec;
-    return gmtime(&const_time)->tm_hour;
+    uint8_t res = gmtime(&const_time)->tm_hour;
+    if(res>12)
+        res -= 12;
+    else if(res == 0)
+        res = 12;
+    return res;
 }
 
 uint8_t get_minute() {
