@@ -1176,6 +1176,7 @@ void DoSet(uint8_t menu) {
             clearHistory();
             break;
     }
+    lcd_clear();
 }
 
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
