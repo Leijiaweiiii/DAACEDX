@@ -617,7 +617,7 @@ void SetBeepLevel() {
     b.min = 0;
     b.max = 10;
     b.step = 1;
-    b.format = " %02d ";
+    b.format = " %2d ";
     b.value = Settings.BuzzerLevel / 10;
     b.old_value = b.value;
     do {
