@@ -1462,7 +1462,7 @@ uint8_t print_time() {
     sprintf(message,
             "%02d%s%02d ",
             get_hour(),
-            (rtc_time.sec % 4) ? ":" : ".",
+            (rtc_time.sec_lsb & 0x0001 == 0) ? ":" : ".",
             get_minute());
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     sprintf(message, "%s", ScreenTitle);
@@ -1546,7 +1546,7 @@ void print_footer() {
         case DELAY_MODE_Custom: sprintf(message, " Delay: %1.1fs", (float) (Settings.DelayTime) / 1000);
             break;
     }
-    //    sprintf(message,"t:%ds",rtc_time.sec);
+//    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
     if (Settings.TotPar > 0) {
@@ -1554,6 +1554,7 @@ void print_footer() {
     } else {
         sprintf(message, " P: Off");
     }
+//    sprintf(message, "%u", rtc_time.msec);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -1811,6 +1812,8 @@ static void interrupt isr(void) {
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         update_rtc_time;
+        if(rtc_time.msec<100)
+            update_rtc_time;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;
         }

@@ -18,17 +18,22 @@
 // Timer3 counting output of timer1 which is 2 seconds
 extern const uint16_t correction_table[];
 typedef struct{
-    time_t sec;
+    union{
+        time_t sec;
+        struct{
+            uint16_t sec_lsb;
+            uint16_t sec_msb;
+        };
+    };
     time_t unix_time_ms;
     uint16_t msec;
 }rtc_time_t;
 rtc_time_t rtc_time;
 
-#define rtc_time_sec        ((TMR3|(TMR5<<16))<<1|(TMR1>>15))
 void set_rtc_time(time_t x);
-// Taking only 9 bits - the MSB is seconds
-#define rtc_time_msec       (TMR1>>6&0x01FF)
-#define update_rtc_time     {rtc_time.sec = rtc_time_sec;rtc_time.msec = correction_table[rtc_time_msec];rtc_time.unix_time_ms = rtc_time.sec*1000+rtc_time.msec;}
+// Taking only 10 bits - the MSB is 2 seconds
+#define rtc_time_2k_msec    (TMR1>>5)
+#define update_rtc_time     {rtc_time.sec_lsb = TMR3;rtc_time.sec_msb = TMR5;rtc_time.msec = correction_table[rtc_time_2k_msec];rtc_time.unix_time_ms = (rtc_time.sec*2000)+rtc_time.msec;}
 #define delay_rtc(x)        {time_t __st = rtc_time.sec; while((rtc_time.sec  - __st)<x);}
 #define delay_rtc_ms(x)     {time_t __st = rtc_time.unix_time_ms;while((rtc_time.unix_time_ms -  __st)<x);}
 
