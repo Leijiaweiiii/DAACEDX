@@ -559,22 +559,27 @@ void SetPar(SettingsMenu_t * m) {
 
 void SetBacklight() {//PWM Backlight
     NumberSelection_t b;
+    uint8_t tmp;
     strmycpy(b.MenuTitle, "Backlight ");
-    b.max = 10;
+    b.max = 9;
     b.min = 0;
     b.step = 1;
-    b.value = Settings.BackLightLevel;
+    b.value = (Settings.BackLightLevel+1)/10;
     b.old_value = b.value;
+    tmp = b.value;
     b.format = "%u";
     b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        set_backlight(b.value);
+        if(b.value!=tmp){
+            set_backlight(b.value  * 10 - 1);
+            tmp = b.value;
+        }
     } while (SettingsNotDone((&b)));
 
     if (b.selected && b.value != b.old_value) {
-        Settings.BackLightLevel = b.value;
+        Settings.BackLightLevel = b.value * 10 - 1;
         saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
     }
     set_backlight(Settings.BackLightLevel);
@@ -620,7 +625,8 @@ void SetBeepLevel() {
         SelectInteger(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.BuzzerLevel = b.value * 10;
+        if(b.value == 1) Settings.BuzzerLevel = 1;
+        else Settings.BuzzerLevel = b.value * 10;
         if (b.value != b.old_value) {
             saveSettingsField(&Settings, &(Settings.BuzzerLevel), 1);
         }
