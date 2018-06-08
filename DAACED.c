@@ -1259,7 +1259,6 @@ void ReviewDisplay() {
         lcd_clear();
     }
 
-
     // Stat line
     sprintf(ScreenTitle,
             REVIEW_TOTAL_SHOT_FORMAT,
@@ -1471,7 +1470,7 @@ uint8_t print_time() {
     sprintf(message,
             "%02d%s%02d ",
             get_hour(),
-            (rtc_time.msec <250 ||rtc_time.msec > 1750 ) ? "." : ":",
+            (rtc_time.msec < 250 || rtc_time.msec > 1750) ? "." : ":",
             get_minute());
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     sprintf(message, "%s", ScreenTitle);
@@ -1835,7 +1834,7 @@ static void interrupt isr(void) {
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         update_rtc_time;
-        if(rtc_time.msec<100)
+        if (rtc_time.msec < 100)
             update_rtc_time;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;

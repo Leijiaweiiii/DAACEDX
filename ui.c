@@ -1,6 +1,5 @@
 #include "ui.h"
 #include "DAACED.h"
-
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
     uint8_t x_pos = 0;
@@ -229,7 +228,7 @@ void handle_countdown() {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
         case StartShort:
-                STATE_HANDLE_COUNTDOWN;
+            STATE_HANDLE_COUNTDOWN;
             break;
         case ReviewShort:STATE_HANDLE_TIMER_IDLE;
             break;
