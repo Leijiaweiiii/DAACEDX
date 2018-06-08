@@ -544,7 +544,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             }
             Settings.TotPar = 0;
             m->menu = 1;
-            m->page = 1;
+            m->page = 0;
         }
         lcd_clear();
     }
