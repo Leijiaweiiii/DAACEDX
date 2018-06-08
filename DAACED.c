@@ -312,7 +312,7 @@ void getDefaultSettings() {
     Settings.BuzzerFrequency = 1500; // Hz
     Settings.BuzzerParDuration = 300; // ms
     Settings.BuzzerStartDuration = 500; // ms
-    Settings.BuzzerLevel = 50; // Middle strength sound. Display is BuzzerLevel/10
+    Settings.BuzzerLevel = 6; // Middle strength sound.
     Settings.CustomCDtime = 240; // 4 minutes in sec
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.DelayTime = 3000; // ms before start signal
@@ -612,21 +612,20 @@ void SetBeepFreq() {
 void SetBeepLevel() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
-    if (Settings.BuzzerLevel > 100) Settings.BuzzerLevel = 100;
-    strmycpy(b.MenuTitle, "Loudness");
+    if (Settings.BuzzerLevel > 20) Settings.BuzzerLevel = 20;
+    strmycpy(b.MenuTitle, "Loudneness");
     b.min = 0;
-    b.max = 10;
+    b.max = 20;
     b.step = 1;
     b.format = " %2d ";
-    b.value = Settings.BuzzerLevel / 10;
+    b.value = Settings.BuzzerLevel;
     b.old_value = b.value;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        if (b.value == 1) Settings.BuzzerLevel = 1;
-        else Settings.BuzzerLevel = b.value * 10;
+        Settings.BuzzerLevel = b.value;
         if (b.value != b.old_value) {
             saveSettingsField(&Settings, &(Settings.BuzzerLevel), 1);
         }
