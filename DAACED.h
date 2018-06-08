@@ -151,10 +151,9 @@ time_t timer_idle_last_action_time;
 // Saving to EEPROM strongly depends on these values
 #define MAXSHOOTSTRINGS              (30)
 #define MAXSHOOT                     (100)
-#define Size_of_ShootString         (405)
+#define Size_of_ShootString         (402)
 
 typedef struct {
-
     union {
         uint8_t is_flags;
 
@@ -172,14 +171,14 @@ typedef union {
     uint8_t data[Size_of_ShootString];
 
     struct {
-        time_t start_time;
+        uint8_t latest;
         uint8_t TotShoots; //Total shoots in current string
 
         shot_t shots[MAXSHOOT]; //in 1mS unit
     };
 } ShootString_t;
 ShootString_t ShootString;
-
+time_t ShootString_start_time;
 
 #define MAX_MEASUREMENT_TIME    999000
 uint8_t CurShoot; //The current shoot of the displayed string
@@ -269,7 +268,8 @@ uint8_t print_header();
 void print_footer();
 uint8_t print_time();
 void handle_rotation();
-void UpdateShootNow(ShotInput_t input);
+void UpdateShot(time_t now, ShotInput_t input);
+#define UpdateShootNow(x) {UpdateShot(rtc_time.unix_time_ms, x);}
 void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);

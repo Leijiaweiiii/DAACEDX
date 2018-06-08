@@ -347,20 +347,22 @@ uint16_t findStringAddress(uint8_t index_in_eeprom) {
 }
 
 uint8_t findCurStringIndex() {
-    uint16_t addr = ShootStringStartAddress;
-    uint8_t i = 0, maxindex = 0;
-    time_t t = 0, max = 0;
-
-    for (i = 0; i < MAXSHOOTSTRINGS; i++) {
-        addr = findStringAddress(i);
-        eeprom_read_array(addr, &t, 4);
-        if (max < t) {
-            max = t;
-            maxindex = i;
+    uint8_t i, t;
+    uint16_t addr;
+    uint8_t counts[MAXSHOOTSTRINGS];
+    uint8_t labels[MAXSHOOTSTRINGS];
+    t = 0;
+    for (i = MAXSHOOTSTRINGS; i > 0; i--) {
+        addr = findStringAddress(i - 1);
+        labels[i-1] = eeprom_read_data(addr);
+        counts[i-1] = eeprom_read_data(addr + 1);
+    }
+    for (i = 0; i <MAXSHOOTSTRINGS; i++) {
+        if (labels[i] == 1) {
+            return i;
         }
     }
-    // TODO: Verify implementation
-    return maxindex;
+    return 0;
 }
 
 // increments the string position, based on the current mark
@@ -371,11 +373,18 @@ void saveShootString(void) {
     // Don't save empty strings
     if (ShootString.TotShoots == 0)
         return;
-    index = findCurStringIndex() + 1;
+    index = findCurStringIndex();
+    addr = findStringAddress(index);
+    eeprom_write_data(addr, 0);
+    index++;
     if (index >= MAXSHOOTSTRINGS)
         index = 0;
+    ShootString.latest = 1;
     addr = findStringAddress(index);
     eeprom_write_array(addr, ShootString.data, Size_of_ShootString);
+    eeprom_write_data(addr, 1);
+    index = findCurStringIndex();
+
 }
 
 TBool getShootString(uint8_t offset) {
@@ -394,15 +403,16 @@ TBool getShootString(uint8_t offset) {
 TBool checkShotStringEmpty(uint8_t offset) {
     uint16_t addr;
     int8_t index;
-    time_t time;
+    uint8_t t;
     index = findCurStringIndex();
     if (index >= offset)
         index -= offset;
     else
         index = MAXSHOOTSTRINGS - offset + index;
-    addr = findStringAddress(index);
-    eeprom_read_array(addr, (uint8_t *) (&time), 4);
-    return (time == 0);
+    addr = findStringAddress(index) + 1; // offset of TotShots
+    t = eeprom_read_data(addr);
+    t = eeprom_read_data(addr);
+    return (t == 0);
 }
 // </editor-fold>
 
@@ -1232,9 +1242,9 @@ void DoSettings(void) {
 }
 // </editor-fold>
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="ReviewMenu">
-#define REVIEW_SHOT_FORMAT      "%2d: %3.2f "
-#define REVIEW_TOTAL_SHOT_FORMAT      " %2d / %3.2fs "
+// <editor-fold defaultstate="collapsed" desc="Review Screen">
+#define REVIEW_SHOT_FORMAT      "%2d: %3.2f %c"
+#define REVIEW_TOTAL_SHOT_FORMAT      " %2d / %3.2fs"
 #define REVIEW_SPLIT_FORMAT     "]%3.2f"
 TBool reviewChanged = True;
 
@@ -1265,14 +1275,14 @@ void ReviewDisplay() {
         sprintf(message,
                 REVIEW_SHOT_FORMAT,
                 curr_index + 1,
-                (float) ShootString.shots[curr_index].dt / 1000
+                (float) ShootString.shots[curr_index].dt / 1000,
+                (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ')
                 );
         lcd_write_string(message, 5, line, MediumFont, (i != 1)&0x01);
         line += halfline;
 
         // Don't print last diff at half line and not the latest
         if (i < SHOTS_ON_REVIEW_SCREEN - 1 &&
-                //                curr_index != 0 &&
                 curr_index != ShootString.TotShoots - 1) {
             sprintf(message,
                     REVIEW_SPLIT_FORMAT,
@@ -1545,7 +1555,7 @@ void print_footer() {
         case DELAY_MODE_Custom: sprintf(message, " Delay: %1.1fs", (float) (Settings.DelayTime) / 1000);
             break;
     }
-//    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
+    //    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
     if (Settings.TotPar > 0) {
@@ -1553,12 +1563,12 @@ void print_footer() {
     } else {
         sprintf(message, " P: Off");
     }
-//    sprintf(message, "%u", rtc_time.msec);
+    //    sprintf(message, "%u", rtc_time.msec);
     print_label_at_footer_grid(message, 1, 1);
 }
 
 void StartListenShots(void) {
-    ShootString.start_time = rtc_time.unix_time_ms;
+    ShootString_start_time = rtc_time.unix_time_ms;
     DetectInit();
 }
 // </editor-fold>
@@ -1616,46 +1626,58 @@ void clear_timer_area() {
     lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
 }
 
+void print_shot_origin(const shot_t * s) {
+    uint8_t y_pos = UI_HEADER_END_LINE + LCD_PAGE_HEIGTH;
+    if (s->is_a) {
+        lcd_write_string(
+                "A",
+                3,
+                y_pos,
+                MediumFont,
+                BLACK_OVER_WHITE
+                );
+    }
+    y_pos += MediumFont->height;
+    if (s->is_b) {
+        lcd_write_string(
+                "B",
+                3,
+                y_pos, MediumFont,
+                BLACK_OVER_WHITE
+                );
+    }
+}
+
 void update_shot_time_on_screen() {
-    uint8_t c = ShootString.TotShoots;
-    uint24_t t = 0, dt = 0;
-    switch (c) {
-        case 0:
-            t = 0;
-            break;
-        case 1:
-            t = ShootString.shots[c - 1].dt;
-            dt = t;
-            break;
-        default:
-            t = ShootString.shots[c - 1].dt;
-            dt = t - ShootString.shots[c - 2].dt;
-            break;
+    uint24_t t = 0;
+    if (ShootString.TotShoots > 0) {
+        t = ShootString.shots[ShootString.TotShoots - 1].dt;
+        print_shot_origin(&(ShootString.shots[ShootString.TotShoots - 1]));
     }
     print_big_time_label(t);
 }
 
 void PlayParSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 0;
-        AUX_B = 0;
+        AUX_A = 1;
+        AUX_B = 1;
     }
     generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 1;
-        AUX_B = 1;
+        AUX_A = 0;
+        AUX_B = 0;
     }
 }
 
 void PlayStartSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 0;
-        AUX_B = 0;
+        AUX_A = 1;
+        AUX_B = 1;
     }
     generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 1;
-        AUX_B = 1;
+        AUX_A = 0;
+        AUX_B = 0;
     }
 }
 
@@ -1683,15 +1705,15 @@ void StartCountdownTimer() {
             break;
     }
     countdown_start_time = rtc_time.unix_time_ms;
-    ShootString.start_time = countdown_start_time;
+    ShootString_start_time = countdown_start_time;
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
     }
 }
 
 void UpdateShot(time_t now, ShotInput_t input) {
-    time_t dt, ddt;
-    dt = now - ShootString.start_time;
+    uint24_t dt, ddt;
+    dt = now - ShootString_start_time;
     if (ShootString.TotShoots == 0) {
         ddt = 0;
     } else {
@@ -1708,15 +1730,11 @@ void UpdateShot(time_t now, ShotInput_t input) {
     }
 }
 
-void UpdateShootNow(ShotInput_t input) {
-    UpdateShot(rtc_time.unix_time_ms, input);
-}
-
 void update_screen_model() {
     time_t now = rtc_time.unix_time_ms;
     switch (ui_state) {
         case TimerListening:
-            if (now - ShootString.start_time >= MAX_MEASUREMENT_TIME) {
+            if (now - ShootString_start_time >= MAX_MEASUREMENT_TIME) {
                 timerEventToHandle = TimerTimeout;
             }
             switch (Settings.InputType) {
@@ -1724,12 +1742,18 @@ void update_screen_model() {
                     ADC_ENABLE_INTERRUPT_ENVELOPE;
                     break;
                 case INPUT_TYPE_A_or_B_multiple:
-                    if (AUX_A) UpdateShootNow(A);
-                    else if (AUX_B) UpdateShootNow(B);
+                    if (AUX_A) {
+                        UpdateShootNow(A);
+                    } else if (AUX_B) {
+                        UpdateShootNow(B);
+                    }
                     break;
                 case INPUT_TYPE_A_and_B_single:
-                    if (AUX_A) UpdateShootNow(A);
-                    else if (AUX_B) UpdateShootNow(B);
+                    if (AUX_A) {
+                        UpdateShootNow(A);
+                    } else if (AUX_B) {
+                        UpdateShootNow(B);
+                    }
                     // TODO: Fix This should capture only one of A and one of B
                     timerEventToHandle = TimerTimeout;
                     break;
@@ -1786,7 +1810,7 @@ static void interrupt isr(void) {
             case ENVELOPE:
                 ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
                 if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
-                    UpdateShootNow(INPUT_TYPE_Microphone);
+                    UpdateShootNow(Mic);
                 }
                 break;
             case BATTERY:
@@ -1829,9 +1853,7 @@ void main(void) {
     ei();
     getSettings();
     getShootString(0);
-    if (ShootString.start_time > rtc_time.unix_time_ms) {
-        set_rtc_time(ShootString.start_time);
-    }
+
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();

@@ -20,7 +20,7 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
 
 uint8_t old_time_str_len = 0;
 
-void print_big_time_label(uint24_t t) {
+void print_big_time_label(const uint24_t t) {
     char message[16];
     float tf;
     if (t > MAX_MEASUREMENT_TIME)
@@ -32,7 +32,11 @@ void print_big_time_label(uint24_t t) {
     if (len < old_time_str_len)
         lcd_clear_block(LCD_WIDTH - old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
     old_time_str_len = len;
-    lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+    if (len < LCD_WIDTH - 20) {
+        lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+    } else {
+        lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, MediumFont, BLACK_OVER_WHITE);
+    }
 }
 
 void update_countdown_time_on_screen() {
