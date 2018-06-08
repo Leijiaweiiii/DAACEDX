@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "DAACED.h"
+
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
     uint8_t x_pos = 0;
@@ -22,19 +23,23 @@ uint8_t old_time_str_len = 0;
 void print_big_time_label(const uint24_t t) {
     char message[16];
     float tf;
+    uint8_t len,spaceholder;
+    spaceholder = (Settings.InputType!=INPUT_TYPE_Microphone)?20:0;
     if (t > MAX_MEASUREMENT_TIME)
         tf = 999.0;
     else
         tf = ((float) t) / 1000;
     sprintf(message, "%3.02f", tf);
-    uint8_t len = lcd_string_lenght(message, BigFont);
+    len = lcd_string_lenght(message, BigFont);
     if (len < old_time_str_len)
         lcd_clear_block(LCD_WIDTH - old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
     old_time_str_len = len;
-    if (len < LCD_WIDTH - 20) {
+    if (len < LCD_WIDTH - spaceholder) {
         lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
     } else {
-        lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, MediumFont, BLACK_OVER_WHITE);
+        lcd_clear_block(LCD_WIDTH - len, UI_HEADER_END_LINE, LCD_WIDTH, BigFont->height + UI_HEADER_END_LINE);
+        len = lcd_string_lenght(message, MediumFont);
+        lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE + 16, MediumFont, BLACK_OVER_WHITE);
     }
 }
 
