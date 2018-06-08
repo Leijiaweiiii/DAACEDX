@@ -1662,7 +1662,6 @@ void PlayStartSound() {
 void StartParTimer() {
     timerEventToHandle = None;
     if (CurPar_idx < Settings.TotPar) {
-        CurPar_idx++;
         ParNowCounting = true;
         parStartTime_ms = rtc_time.unix_time_ms;
     }
@@ -1737,9 +1736,10 @@ void update_screen_model() {
             }
             if (ParNowCounting) {
                 // Software "interrupt" emulation
-                if (now - parStartTime_ms >= Settings.ParTime[CurPar_idx]) {
+                if (now - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
                     ParNowCounting = false;
                     timerEventToHandle = ParEvent;
+                    CurPar_idx++;
                 }
             }
             break;
