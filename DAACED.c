@@ -1461,7 +1461,7 @@ uint8_t print_time() {
     sprintf(message,
             "%02d%s%02d ",
             get_hour(),
-            (rtc_time.sec_lsb & 0x0001 == 0) ? ":" : ".",
+            (rtc_time.msec <250 ||rtc_time.msec > 1750 ) ? "." : ":",
             get_minute());
     lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
     sprintf(message, "%s", ScreenTitle);
