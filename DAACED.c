@@ -623,7 +623,7 @@ void SetBeepLevel() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
     if (Settings.BuzzerLevel > 20) Settings.BuzzerLevel = 20;
-    strmycpy(b.MenuTitle, "Loudneness");
+    strmycpy(b.MenuTitle, "Volume");
     b.min = 0;
     b.max = 20;
     b.step = 1;
@@ -681,7 +681,7 @@ void SetBeep(SettingsMenu_t * m) {
 
     strmycpy(m->MenuTitle, "Beep ");
     strmycpy(m->MenuItem[0], " Frequency ");
-    strmycpy(m->MenuItem[1], " Loudness ");
+    strmycpy(m->MenuItem[1], " Volume ");
     strmycpy(m->MenuItem[2], " Par Duration ");
     strmycpy(m->MenuItem[3], " Start Duration ");
     strmycpy(m->MenuItem[4], " Test Beep ");
