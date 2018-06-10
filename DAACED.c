@@ -947,6 +947,7 @@ void SetClock() {
     set_time(ts.hour, ts.minute, 0);
     set_time(ts.hour, ts.minute, 0);
     set_time(ts.hour, ts.minute, 0);
+    comandToHandle = TimeChanged;
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
@@ -1211,9 +1212,8 @@ void DoSettings(void) {
     SetSettingsMenu(&SettingsMenu);
     lcd_clear();
     do {
-        handle_rotation();
-        print_header();
         handle_timer_idle_shutdown();
+        handle_rotation();
         DisplaySettings(&SettingsMenu);
         SelectMenuItemCircular(&SettingsMenu);
         if (SettingsMenu.selected) {

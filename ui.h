@@ -45,7 +45,8 @@ extern "C" {
         BackLong,
         OkShort,
         OkLong,
-        ChargerEvent
+        ChargerEvent,
+        TimeChanged
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 
