@@ -1271,13 +1271,19 @@ void ReviewDisplay() {
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     for (i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
+        char * mode;
         uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
         uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
+        if(Settings.InputType==INPUT_TYPE_Microphone){
+            mode = ' ';
+        } else {
+            mode = (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ');
+        }
         sprintf(message,
                 REVIEW_SHOT_FORMAT,
                 curr_index + 1,
                 (float) ShootString.shots[curr_index].dt / 1000,
-                (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ')
+                mode
                 );
         lcd_write_string(message, 5, line, MediumFont, (i != 1)&0x01);
         line += halfline;
