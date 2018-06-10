@@ -354,10 +354,10 @@ uint8_t findCurStringIndex() {
     t = 0;
     for (i = MAXSHOOTSTRINGS; i > 0; i--) {
         addr = findStringAddress(i - 1);
-        labels[i-1] = eeprom_read_data(addr);
-        counts[i-1] = eeprom_read_data(addr + 1);
+        labels[i - 1] = eeprom_read_data(addr);
+        counts[i - 1] = eeprom_read_data(addr + 1);
     }
-    for (i = 0; i <MAXSHOOTSTRINGS; i++) {
+    for (i = 0; i < MAXSHOOTSTRINGS; i++) {
         if (labels[i] == 1) {
             return i;
         }
