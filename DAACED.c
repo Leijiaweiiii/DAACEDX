@@ -934,20 +934,31 @@ void SetMode(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="Clock">
 
 void SetClock() {
-    TimeSelection_t ts;
+    NumberSelection_t ts;
+    time_t minute;
     InitSettingsNumberDefaults((&ts));
-    ts.hour = get_hour();
-    ts.minute = get_minute();
+    minute = rtc_time.sec/30;
+    ts.min = 0;
+    ts.max = 0x7FFFFF;
+    ts.value = minute;
+    ts.old_value = ts.value;
+    ts.step = 60;
     strmycpy(ts.MenuTitle, "Clock");
+    ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
     do {
         DisplayTime(&ts);
-        SelectTime(&ts);
+        SelectInteger(&ts);
+        if(ts.selected && ts.state == 0){
+            ts.state = 1;
+            ts.selected = False;
+            ts.done = False;
+            ts.step = 1;
+        }
     } while (SettingsNotDone((&ts)));
-
-    set_time(ts.hour, ts.minute, 0);
-    set_time(ts.hour, ts.minute, 0);
-    set_time(ts.hour, ts.minute, 0);
-    comandToHandle = TimeChanged;
+    if (ts.selected && ts.old_value != ts.value) {
+        set_rtc_time(ts.value*60);
+        comandToHandle = TimeChanged;
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">

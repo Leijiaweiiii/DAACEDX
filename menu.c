@@ -8,22 +8,47 @@ void display_big_font_label(const char * msg) {
     uint8_t len = 0;
     len = lcd_string_lenght(msg, BigFont);
     if (len != old_label_len) {
+        uint8_t block_start = (LCD_WIDTH - old_label_len) / 2;
         lcd_clear_block(
-                (LCD_WIDTH - old_label_len) / 2,
+                block_start,
                 UI_HEADER_END_LINE + 24,
-                (LCD_WIDTH - old_label_len) / 2 + old_label_len,
+                block_start + old_label_len,
                 UI_HEADER_END_LINE + 24 + BigFont->height);
         old_label_len = len;
     }
     lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE + 24, BigFont, BLACK_OVER_WHITE);
 }
 
-void DisplayTime(TimeSelection_t * t) {
+void DisplayTime(NumberSelection_t * t) {
     char msg[16];
+    uint8_t hour,minute;
+    hour = t->value/60;
+    hour %= 12;
+    hour = (hour==0)?12:hour;
+    minute = t->value % 60;
     set_screen_title(t->MenuTitle);
     print_header();
-    sprintf(msg, "%02d:%02d", t->hour, t->minute);
+    sprintf(msg, "%02d:%02d", hour,minute);
     display_big_font_label(msg);
+    if (rtc_time.msec <500 || 
+            (rtc_time.msec > 1000 && rtc_time.msec<1500)) {
+        uint8_t block_start, block_end,w;
+        w = BigFont->char_descriptors[':' - BigFont->char_start].width;
+        if (t->state == 0) {
+            block_start = (LCD_WIDTH - old_label_len) / 2;
+            block_end = block_start;
+            block_end += (old_label_len) / 2-w;
+        } else {
+            block_start = (LCD_WIDTH - old_label_len) / 2;
+            block_end = LCD_WIDTH - block_start;
+            block_start += (old_label_len) / 2;
+        }
+        lcd_clear_block(
+                block_start,
+                UI_HEADER_END_LINE + 24,
+                block_end,
+                UI_HEADER_END_LINE + 24 + BigFont->height);
+    }
 }
 
 void DisplayDouble(NumberSelection_t* s) {
@@ -318,65 +343,3 @@ void SelectDouble(NumberSelection_t* sm) {
     comandToHandle = None;
 }
 
-void SelectTime(TimeSelection_t* ts) {
-    define_input_action();
-    switch (comandToHandle) {
-        case UpShort:
-            ts->minute += 1;
-            if (ts->minute > 59) {
-                ts->minute = ts->minute % 59;
-                if (ts->hour < 23) ts->hour++;
-                else (ts->hour = 0);
-            }
-            break;
-        case UpLong:
-            ts->minute += 5;
-            if (ts->minute > 59) {
-                ts->minute = ts->minute % 59;
-                if (ts->hour < 23) ts->hour++;
-                else (ts->hour = 0);
-            }
-            break;
-        case DownShort:
-            ts->minute -= 1;
-            if (ts->minute < 0) {
-                ts->minute = 60 - ts->minute;
-                if (ts->hour > 0) ts->hour--;
-                else {
-                    ts->hour = 23;
-                };
-            }
-            break;
-        case DownLong:
-            ts->minute -= 5;
-            if (ts->minute < 0) {
-                ts->minute = 60 - ts->minute;
-                if (ts->hour > 0) ts->hour--;
-                else {
-                    ts->hour = 23;
-                };
-            }
-            break;
-        case BackShort:
-        case BackLong:
-            ts->selected = False;
-            ts->done = True;
-            break;
-        case OkShort:
-        case OkLong:
-            ts->selected = True;
-            ts->done = True;
-            break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
-            break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
-            break;
-            //        case ReviewShort:ui_state = ReviewScreen;
-            //            break;
-        case ChargerEvent:STATE_HANDLE_CHARGING;
-            break;
-        default:
-            break;
-    }
-    comandToHandle = None;
-}

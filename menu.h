@@ -79,26 +79,10 @@ extern "C" {
                 unsigned done           : 1;
                 unsigned redraw         : 1;
                 unsigned selected       : 1;
-                unsigned UNUSED         : 6;
+                unsigned state          : 5; // Any state that controls know to manage
             };
         };
     } NumberSelection_t;
-
-    typedef struct {
-        char MenuTitle[MAXMenuTitleLength];
-        int8_t hour, minute, old_hour, old_minute;
-         union {
-            unsigned flags : 8;
-
-            struct {
-                unsigned done           : 1;
-                unsigned redraw         : 1;
-                unsigned selected       : 1;
-                unsigned UNUSED         : 6;
-            };
-        };
-    } TimeSelection_t;
-
 
     uint8_t PopMsg(const char* msg, uint16_t wait);
     void SelectMenuItem(SettingsMenu_t* s);
@@ -109,8 +93,7 @@ extern "C" {
     void SelectDouble(NumberSelection_t* s);
     void DisplayDouble(NumberSelection_t* s);
     void DisplayInteger(NumberSelection_t* s);
-    void SelectTime(TimeSelection_t * t);
-    void DisplayTime(TimeSelection_t * t);
+    void DisplayTime(NumberSelection_t * t);
     extern uint8_t print_header(); // implemented in DAACED.c
     void display_big_font_label(const char * msg);
 #ifdef	__cplusplus
