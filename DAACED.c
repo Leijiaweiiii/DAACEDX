@@ -417,12 +417,6 @@ TBool checkShotStringEmpty(uint8_t offset) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Settings">
-
-uint8_t SettingsTitle(SettingsMenu_t* sm) {
-    set_screen_title(sm->MenuTitle);
-    print_header();
-    return UI_HEADER_END_LINE;
-}
 // <editor-fold defaultstate="collapsed" desc="Delay Settings">
 
 void SetCustomDelay() {
@@ -784,7 +778,6 @@ void SetAutoStart(SettingsMenu_t * m) {
     m->TotalMenuItems = 1;
     strmycpy(m->MenuTitle, "Autostart");
     set_autostert_label(m->MenuItem[0]);
-    SettingsTitle(m);
     orgset = AutoStart;
     do {
         DisplaySettings(m);
@@ -895,7 +888,6 @@ void SetMode(SettingsMenu_t * m) {
     strmycpy(m->MenuItem[ParMode_NRA_PPC_C], " NRA-PPC C ");
     strmycpy(m->MenuItem[ParMode_NRA_PPC_D], " NRA-PPC D ");
 
-    SettingsTitle(m);
     m->menu = Settings.ParMode;
     //Main Screen
     do {
@@ -1085,7 +1077,7 @@ void SetTilt(SettingsMenu_t * m) {
     strmycpy(m->MenuTitle, "Tilt");
     if (Settings.AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
     else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
-    SettingsTitle(m);
+
     // SettingsDisplay(&SetTiltMenu);
     orgset = Settings.AR_IS.AR_IS;
 
@@ -1217,7 +1209,6 @@ void DoSettings(void) {
 
     InitSettingsMenuDefaults((&SettingsMenu));
     SetSettingsMenu(&SettingsMenu);
-    SettingsTitle(&SettingsMenu);
     lcd_clear();
     do {
         handle_rotation();
