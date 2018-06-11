@@ -1472,6 +1472,8 @@ void DetectInit(void) {
     Mean = Mean >> 6;
     //    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
     DetectThreshold = Mean + Settings.Sensitivity;
+    InputFlags.A_RELEASED = True;
+    InputFlags.B_RELEASED = True;
 }
 
 uint8_t print_time() {
@@ -1752,16 +1754,16 @@ void update_screen_model() {
                     ADC_ENABLE_INTERRUPT_ENVELOPE;
                     break;
                 case INPUT_TYPE_A_or_B_multiple:
-                    if (AUX_A) {
+                    if (InputFlags.A_RELEASED && AUX_A) {
                         UpdateShootNow(A);
-                    } else if (AUX_B) {
+                    } else if (InputFlags.B_RELEASED && AUX_B) {
                         UpdateShootNow(B);
                     }
                     break;
                 case INPUT_TYPE_A_and_B_single:
-                    if (AUX_A) {
+                    if (InputFlags.A_RELEASED && AUX_A) {
                         UpdateShootNow(A);
-                    } else if (AUX_B) {
+                    } else if (InputFlags.A_RELEASED && AUX_B) {
                         UpdateShootNow(B);
                     }
                     // TODO: Fix This should capture only one of A and one of B
