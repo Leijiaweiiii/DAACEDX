@@ -146,7 +146,9 @@ typedef struct {
 #define AutoStart Settings.AR_IS.Autostart
 #define Autorotate Settings.AR_IS.AutoRotate
 // Automatic shutdown after timeout 20 minutes
-time_t timer_idle_shutdown_timeout = 1200000;
+#define timer_idle_shutdown_timeout 1200000
+// Dim light after 45 seconds
+#define timer_idle_dim_timeout      45000
 time_t timer_idle_last_action_time;
 
 // This should be changed carefully.

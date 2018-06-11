@@ -1392,6 +1392,7 @@ void DoReview() {
     do {
         ReviewDisplay();
         define_input_action();
+        handle_timer_idle_shutdown();
         switch (comandToHandle) {
             case UpShort:
                 review_scroll_shot_up();
@@ -1582,6 +1583,7 @@ void StartListenShots(void) {
 
 void DoPowerOff() {
     set_backlight(0);
+    BackLightOFF;
     lcd_clear();
     LATEbits.LATE0 = 0;
     // TODO: Implement SLEEP mode when powering off
@@ -1593,7 +1595,8 @@ void DoPowerOff() {
 void DoPowerOn() {
     PIC_init();
     initialize_backlight();
-    set_backlight(20);
+    BackLightON;
+    set_backlight(5);
     spi_init();
     lcd_init();
     ADC_init();
