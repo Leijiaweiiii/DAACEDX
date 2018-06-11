@@ -1,5 +1,6 @@
 #include "lcd.h"
 #include "rtc.h"
+#include "DAACED.h"
 
 // <editor-fold defaultstate="collapsed" desc="SPI">
 
@@ -74,12 +75,12 @@ void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_by
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2) {
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_COL_ADD); // Column address.
-    lcd_send_data(c1); // Start column address.
-    lcd_send_data(c2); // End column address.
+    lcd_send_data(c1+x_offset); // Start column address.
+    lcd_send_data(c2+x_offset); // End column address.
 
     lcd_send_command(CMD_PAGE_ADD); // Row address.
-    lcd_send_data(p1); // Start row address.
-    lcd_send_data(p2); // End row address.
+    lcd_send_data(p1+y_offset); // Start row address.
+    lcd_send_data(p2+y_offset); // End row address.
     lcd_send_command(CMD_WRITE_DATA); // Write data.
 }
 #ifndef LCD_DIRECT_ACCESS
@@ -370,18 +371,6 @@ void lcd_fill_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
 void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_send_block_d(x1_pos, y1_pos, x2_pos, y2_pos, WHITE_OVER_BLACK);
 }
-#ifndef LCD_DIRECT_ACCESS
-
-void lcd_clear_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
-    if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
-    for (uint8_t x = x1_pos; x < x2_pos; x++) {
-        for (uint8_t y = y1_pos; y < y2_pos; y++) {
-            lcd_clear_pixel_b(x, y);
-        }
-    }
-}
-#endif
 
 uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     uint16_t strlng = 0;
@@ -415,82 +404,11 @@ void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const
         }
     }
 }
-#ifndef LCD_DIRECT_ACCESS
-
-void lcd_write_string_b(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    if (str_ptr == NULL) return;
-
-    while (*str_ptr) {
-        x_pos += lcd_write_char_b(*str_ptr, x_pos, y_pos, font, polarity);
-        ++str_ptr;
-        if (*str_ptr) {
-            if (polarity == WHITE_OVER_BLACK) {
-                lcd_fill_block_b(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-            } else {
-                lcd_clear_block_b(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-            }
-            x_pos += font->character_spacing;
-        }
-        if (x_pos >= LCD_WIDTH) {
-            y_pos += (font->height + 1);
-            x_pos %= LCD_WIDTH;
-            y_pos %= LCD_HEIGHT;
-        }
-    }
-}
-
-void lcd_draw_bitmap_b(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    for (uint8_t y = 0; y < bitmap_data->image_height; y++) {
-        for (uint8_t x = 0; x < (bitmap_data->image_width + 7) / 8; x++) {
-            uint8_t data = *(bitmap_data->image_data + ((y * ((bitmap_data->image_width + 7) / 8) + x)));
-            for (int8_t bit_index = 7; bit_index >= 0; bit_index--) {
-                if (data & BIT(bit_index)) {
-                    lcd_set_pixel_b((x * 8) + (7 - bit_index) + x_pos, y + y_pos);
-                } else {
-                    lcd_clear_pixel_b((x * 8) + (7 - bit_index) + x_pos, y + y_pos);
-                }
-            }
-        }
-    }
-}
-// TODO: Implement
-//void lcd_draw_bitmap_d(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-//    for (uint8_t y = 0; y < bitmap_data->image_height; y++) {
-//        for (uint8_t x = 0; x < (bitmap_data->image_width + 7) / 8; x++) {
-//            uint8_t data = *(bitmap_data->image_data + ((y * ((bitmap_data->image_width + 7) / 8) + x)));
-//
-//        }
-//    }
-//}
-
-void lcd_battery_info_b(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
-    battery_percentage %= 100;
-    lcd_draw_bitmap_b(x_pos, y_pos, &battery_bitmap_data);
-    uint8_t no_of_bars = battery_percentage / 16;
-    for (uint8_t bar = 0; bar <= no_of_bars; bar++) {
-        lcd_draw_vline_b(x_pos + (bar * 2), y_pos + 2, y_pos + 3 + 2, BLACK_OVER_WHITE);
-    }
-}
-
-void lcd_battery_info_d(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
-    battery_percentage %= 100;
-    lcd_draw_bitmap_b(x_pos, y_pos, &battery_bitmap_data);
-    uint8_t no_of_bars = battery_percentage / 16;
-    for (uint8_t bar = 0; bar <= no_of_bars; bar++) {
-        lcd_draw_vline_b(x_pos + (bar * 2), y_pos + 2, y_pos + 3 + 2, BLACK_OVER_WHITE);
-    }
-}
-
-#endif
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="LCD functions implementations">
 
 void lcd_init() {
-#ifndef LCD_DIRECT_ACCESS
-    memset(lcd_buffer, 0, sizeof (lcd_buffer)); // Clear LCD Buffer.
-    lcd_update_boundingbox(&full_screen_update_boundary, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1); // Reset refresh window.
-#endif
     LCD_CS_DESELECT();
 
     __delay_ms(10);
@@ -517,11 +435,8 @@ void lcd_init() {
     lcd_send_command(CMD_ANALOG_CKT); // Analog Circuit set.
     lcd_send_data(0x00);
     lcd_send_data(0x01); // Booster efficiency 1.
-#ifdef SMALL_LCD
-    lcd_send_data(LCD_BIAS_12); // LCD bias 1/12
-#else
+
     lcd_send_data(LCD_BIAS_12); // LCD bias 1/13
-#endif
     lcd_send_command(CMD_BOOSTER_LVL); // Booster level.
     lcd_send_data(0xFB); // x10.
 
@@ -530,39 +445,20 @@ void lcd_init() {
     lcd_send_data(0x10); // Monochrome mode.
     lcd_send_command(CMD_DISPLAY_CONTROL); // Display control.
     lcd_send_data(0x00); // No clock division.
-#ifdef SMALL_LCD
-    lcd_send_data(LCD_DUTY_CICLE_128); // 1/128 duty.
-#else
     lcd_send_data(LCD_DUTY_CICLE_160); // 1/160 duty.
-#endif
     lcd_send_data(0x00); // ??
 
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
     lcd_send_data(LCD_ORIENTATION_NORMAL);
 
-#ifdef MSB_FIRST
-    lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
-#else
     lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
-#endif
 
-#ifdef SMALL_LCD
-    lcd_send_command(CMD_INVERSION_OFF); // Pixel inversion OFF.
-#else
     lcd_send_command(CMD_INVERSION_OFF);
-#endif
     lcd_send_command(CMD_EXTENSION_2); // Extension2 command.
     lcd_send_command(CMD_PWR_SRC_INT); // Use internel oscillator.
 
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_ICON_DISABLE); // Disable ICON RAM.
-#ifndef SMALL_LCD
-    //    lcd_send_command(CMD_SET_SCROLL_AREA);
-    //    lcd_send_data(0);           //  Start at line 0
-    //    lcd_send_data(LCD_MAX_PAGES);  //  End at LCD_HEGHT
-    //    lcd_send_data(LCD_MAX_PAGES);  //  LCD_HEGHT lines to display
-    //    lcd_send_data(0x11);        // Whole Mode
-#endif
     lcd_send_command(CMD_NOP);
     lcd_clear_data_ram(); // Clearing data RAM.
 
@@ -588,18 +484,18 @@ void lcd_decrease_contrast() {
 }
 
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_char_d(c, x_pos, y_pos, font, polarity);
+    lcd_write_char_d(c,x_pos, y_pos, font, polarity);
 }
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
+    lcd_write_string_d(str_ptr,x_pos, y_pos, font, polarity);
 }
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     char msg[10];
     sprintf(msg, "%d", Int);
     lcd_write_string_d("       ", x_pos, y_pos, font, polarity);
-    lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
+    lcd_write_string_d(msg,x_pos, y_pos, font, polarity);
 }
 // TODO: Try generate bitmaps suitable for this method
 
@@ -641,13 +537,21 @@ void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_
 }
 
 void lcd_set_orientation() {
+    lcd_clear();
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    if (orientation == ORIENTATION_NORMAL) {
+    if (InputFlags.orientation == ORIENTATION_NORMAL) {
         lcd_send_data(LCD_ORIENTATION_NORMAL);
+        lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
+        x_offset = 0;
+        y_offset = 0;
     } else {
         lcd_send_data(LCD_ORIENTATION_INVERTED);
+        lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
+        x_offset = 15;
+        y_offset = 1;
     }
+    
 }
 
 void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {

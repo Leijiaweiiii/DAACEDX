@@ -119,9 +119,11 @@ union {
     uint8_t byte;
 
     struct {
-        unsigned A_RELEASED : 1;
-        unsigned B_RELEASED : 1;
-        unsigned KEY_RELEASED : 1;
+        unsigned A_RELEASED     :1;
+        unsigned B_RELEASED     :1;
+        unsigned KEY_RELEASED   :1;
+        unsigned TiltChanged    :1;
+        unsigned orientation    :1;
     };
 } InputFlags;
 

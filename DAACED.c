@@ -1787,7 +1787,9 @@ void update_screen_model() {
 }
 
 void handle_rotation() {
-    if (Autorotate && ui_state != TimerListening) {
+    if (Autorotate && InputFlags.TiltChanged) {
+        InputFlags.TiltChanged = False;
+        lcd_clear();
         lcd_set_orientation();
     }
 }
@@ -1833,8 +1835,10 @@ static void interrupt isr(void) {
                 break;
             case ACCELEROMETER:
             {
+                uint8_t old_orientation = InputFlags.orientation;
                 uint16_t a = ADC_SAMPLE_REG_16_BIT;
-                orientation = (a > ORIENTATION_INVERSE_THRESHOLD);
+                InputFlags.orientation = (a > ORIENTATION_INVERSE_THRESHOLD);
+                InputFlags.TiltChanged = old_orientation!=InputFlags.orientation;
             }
                 break;
         }

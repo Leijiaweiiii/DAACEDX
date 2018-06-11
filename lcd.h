@@ -38,7 +38,7 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define UI_FOOTER_START_LINE    (112)
 #define UI_FOOTER_GRID_WIDTH    (130)
 #define UI_FOOTER_GRID_HEIGH    (24)
-#define Y_OFFSET                (0)
+uint8_t x_offset = 0, y_offset = 0;
 #define UI_CHARGING_LBL_X       (64)
 #define UI_CHARGING_LBL_Y       (64)
 #define UI_NUMBER_SELECTION_COLUMN ()
@@ -53,13 +53,13 @@ uint16_t contrast_value = 0x0125; // Empirical starting value
 #define LCD_MID_LINE_PAGE       0x18
 #define LCD_BOT_LINE_PAGE       0x03
 
-#define LCD_GRAPH_HEIGTH        12
-#define LCD_GRAPH_START_PAGE    Y_OFFSET+3
+#define LCD_GRAPH_HEIGTH       12
+#define LCD_GRAPH_START_PAGE    y_offset+3
 
 
 #define LCD_PAGE_HEIGTH              (8)
 
-#define PAGE(x)                 (x/LCD_PAGE_HEIGTH + Y_OFFSET)
+#define PAGE(x)                 (x/LCD_PAGE_HEIGTH)
 
 #define START_OF_PAGE(x)        (x%LCD_PAGE_HEIGTH == 0)
 #define BLACK_OVER_WHITE        (0x01)
@@ -103,9 +103,7 @@ UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 
 
 #define ORIENTATION_NORMAL              0
 #define ORIENTATION_INVERTED            1
-#define ORIENTATION_INVERSE_THRESHOLD   0x170
-TBool orientation = ORIENTATION_NORMAL;
-TBool orientation_change_enabled = false;
+#define ORIENTATION_INVERSE_THRESHOLD   0x20C
 
 #define PopX1       LCD_WIDTH/8
 #define PopY1       LCD_HEIGHT/4
