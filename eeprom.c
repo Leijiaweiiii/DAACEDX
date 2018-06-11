@@ -57,8 +57,8 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
 
     EEPROM_CS_SELECT();
     eeprom_spi_write(CMD_WRITE);
-    eeprom_spi_write(MSB(address));
-    eeprom_spi_write(LSB(address));
+    eeprom_spi_write((uint8_t)MSB(address));
+    eeprom_spi_write((uint8_t)LSB(address));
     eeprom_spi_write(data);
     EEPROM_CS_DESELECT();
 }

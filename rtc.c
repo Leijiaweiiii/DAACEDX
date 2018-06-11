@@ -151,18 +151,25 @@ uint8_t get_second() {
 }
 
 void set_rtc_time(time_t x) {
-    time_t __ts = x >> 1;
     di();
+    rtc_time.sec = x;
     T1CONbits.ON = 0; //TIMER1 stop.
     T3CONbits.ON = 0; //TIMER3 stop.
     T5CONbits.ON = 0; //TIMER5 stop.
-    TMR1 = 0;
-    TMR3 = 0x0000FFFF & __ts;
-    TMR5 = (0xFFFF0000 & __ts) >> 16;
+//    TMR1 = 0x0000;
+    TMR1H = 0;
+    TMR1L = 0;
+//    TMR3 = rtc_time.sec_lsb;
+    TMR3L = LSB(rtc_time.sec_lsb);
+    TMR3H = MSB(rtc_time.sec_lsb);
+//    TMR5 = rtc_time.sec_msb;
+    TMR5L = LSB(rtc_time.sec_msb);
+    TMR5H = MSB(rtc_time.sec_msb);
     T1CONbits.ON = 1; //TIMER1 start.
     T3CONbits.ON = 1; //TIMER3 start.
     T5CONbits.ON = 1; //TIMER5 start.
     ei();
+    update_rtc_time;
 }
 
 void set_time(uint8_t h, uint8_t m, uint8_t s) {

@@ -326,17 +326,17 @@ void getDefaultSettings() {
 }
 
 void saveSettingsField(Settings_t * s, void * f, size_t l) {
-    uint8_t offset = f - s;
+    int offset = f - s;
     eeprom_write_array(SettingsStartAddress + offset, s->data + offset, l);
 }
 
 void savePar(uint8_t par_index) {
-    uint8_t offset = &(Settings.ParTime) - (&Settings) + par_index;
+    int offset = &(Settings.ParTime) - (&Settings) + par_index;
     eeprom_write_array(SettingsStartAddress + offset, Settings.data + offset, 3);
 }
 
 void restorePar() {
-    uint8_t offset = &(Settings.ParTime) - (&Settings);
+    int offset = &(Settings.ParTime) - (&Settings);
     eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, MAXPAR);
     offset = (&(Settings.TotPar))-(&Settings);
     Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
@@ -347,17 +347,16 @@ uint16_t findStringAddress(uint8_t index_in_eeprom) {
 }
 
 uint8_t findCurStringIndex() {
-    uint8_t i, t;
+    
     uint16_t addr;
     uint8_t counts[MAXSHOOTSTRINGS];
     uint8_t labels[MAXSHOOTSTRINGS];
-    t = 0;
-    for (i = MAXSHOOTSTRINGS; i > 0; i--) {
+    for (uint8_t i = MAXSHOOTSTRINGS; i > 0; i--) {
         addr = findStringAddress(i - 1);
         labels[i - 1] = eeprom_read_data(addr);
         counts[i - 1] = eeprom_read_data(addr + 1);
     }
-    for (i = 0; i < MAXSHOOTSTRINGS; i++) {
+    for (uint8_t i = 0; i < MAXSHOOTSTRINGS; i++) {
         if (labels[i] == 1) {
             return i;
         }
@@ -937,7 +936,7 @@ void SetClock() {
     NumberSelection_t ts;
     time_t minute;
     InitSettingsNumberDefaults((&ts));
-    minute = rtc_time.sec/30;
+    minute = rtc_time.sec / 30;
     ts.min = 0;
     ts.max = 0x7FFFFF;
     ts.value = minute;
@@ -948,7 +947,7 @@ void SetClock() {
     do {
         DisplayTime(&ts);
         SelectInteger(&ts);
-        if(ts.selected && ts.state == 0){
+        if (ts.selected && ts.state == 0) {
             ts.state = 1;
             ts.selected = False;
             ts.done = False;
@@ -956,7 +955,7 @@ void SetClock() {
         }
     } while (SettingsNotDone((&ts)));
     if (ts.selected && ts.old_value != ts.value) {
-        set_rtc_time(ts.value*60);
+        set_rtc_time(ts.value * 30);
         comandToHandle = TimeChanged;
     }
 }
@@ -1274,7 +1273,7 @@ void ReviewDisplay() {
         char * mode;
         uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
         uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
-        if(Settings.InputType==INPUT_TYPE_Microphone){
+        if (Settings.InputType == INPUT_TYPE_Microphone) {
             mode = ' ';
         } else {
             mode = (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ');
@@ -1483,9 +1482,9 @@ uint8_t print_time() {
             get_hour(),
             (rtc_time.msec < 250 || rtc_time.msec > 1750) ? "." : ":",
             get_minute());
-    lcd_write_string(message, 0, 0, SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
     sprintf(message, "%s", ScreenTitle);
-    lcd_write_string(message, 60, 0, SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, 55, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
 uint8_t old_bat_length = 0;
@@ -1725,7 +1724,7 @@ void StartCountdownTimer() {
 
 void UpdateShot(time_t now, ShotInput_t input) {
     uint24_t dt, ddt;
-    dt = now - ShootString_start_time;
+    dt = (uint24_t) (now - ShootString_start_time);
     if (ShootString.TotShoots == 0) {
         ddt = 0;
     } else {
