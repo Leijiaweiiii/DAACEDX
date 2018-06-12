@@ -103,7 +103,7 @@ UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 
 
 #define ORIENTATION_NORMAL              0
 #define ORIENTATION_INVERTED            1
-#define ORIENTATION_INVERSE_THRESHOLD   0x20C
+#define ORIENTATION_INVERSE_THRESHOLD   500
 
 #define PopX1       LCD_WIDTH/8
 #define PopY1       LCD_HEIGHT/4
