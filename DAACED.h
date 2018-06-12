@@ -88,9 +88,6 @@ uint8_t find_set_bit_position(uint8_t n);
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Ports">
-unsigned char PortE_Data;
-#define BackLightON          {PortE_Data = PORTE ; PortE_Data &= 0xBF ; PORTE = PortE_Data;}
-#define BackLightOFF         {PortE_Data = PORTE ; PortE_Data |= 0x40 ; PORTE = PortE_Data;}
 
 #define BuzzerPeriod          50            //[10uSec]  = 10/Freq
 #define BuzzerCycles          300           //Cycles

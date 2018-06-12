@@ -98,11 +98,11 @@ void handle_power_off() {
 void handle_timer_idle_shutdown() {
     if (comandToHandle != None) {
         timer_idle_last_action_time = rtc_time.unix_time_ms;
-        BackLightON;
+        set_backlight(Settings.BackLightLevel);
     } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_shutdown_timeout) {
         comandToHandle = StartLong;
     } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_dim_timeout){
-        BackLightOFF;
+        set_backlight(0);
     }
 }
 

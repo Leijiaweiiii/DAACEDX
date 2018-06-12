@@ -1584,7 +1584,6 @@ void StartListenShots(void) {
 
 void DoPowerOff() {
     set_backlight(0);
-    BackLightOFF;
     lcd_clear();
     LATEbits.LATE0 = 0;
     // TODO: Implement SLEEP mode when powering off
@@ -1596,7 +1595,6 @@ void DoPowerOff() {
 void DoPowerOn() {
     PIC_init();
     initialize_backlight();
-    BackLightON;
     set_backlight(5);
     spi_init();
     lcd_init();
