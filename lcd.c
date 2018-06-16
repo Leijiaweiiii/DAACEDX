@@ -75,12 +75,12 @@ void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_by
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2) {
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_COL_ADD); // Column address.
-    lcd_send_data(c1+x_offset); // Start column address.
-    lcd_send_data(c2+x_offset); // End column address.
+    lcd_send_data(c1 + x_offset); // Start column address.
+    lcd_send_data(c2 + x_offset); // End column address.
 
     lcd_send_command(CMD_PAGE_ADD); // Row address.
-    lcd_send_data(p1+y_offset); // Start row address.
-    lcd_send_data(p2+y_offset); // End row address.
+    lcd_send_data(p1 + y_offset); // Start row address.
+    lcd_send_data(p2 + y_offset); // End row address.
     lcd_send_command(CMD_WRITE_DATA); // Write data.
 }
 #ifndef LCD_DIRECT_ACCESS
@@ -463,6 +463,8 @@ void lcd_init() {
     lcd_clear_data_ram(); // Clearing data RAM.
 
     lcd_send_command(CMD_DISPLAY_ON); // Turn ON display.
+    x_offset = 0;
+    y_offset = 0;
 }
 
 void lcd_clear() {
@@ -484,18 +486,18 @@ void lcd_decrease_contrast() {
 }
 
 void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_char_d(c,x_pos, y_pos, font, polarity);
+    lcd_write_char_d(c, x_pos, y_pos, font, polarity);
 }
 
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_string_d(str_ptr,x_pos, y_pos, font, polarity);
+    lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
 }
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     char msg[10];
     sprintf(msg, "%d", Int);
     lcd_write_string_d("       ", x_pos, y_pos, font, polarity);
-    lcd_write_string_d(msg,x_pos, y_pos, font, polarity);
+    lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
 }
 // TODO: Try generate bitmaps suitable for this method
 
@@ -512,12 +514,12 @@ void lcd_draw_bitmap_flat(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bit
 }
 
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    uint8_t column, page,index;
+    uint8_t column, page, index;
     for (column = x_pos; column < x_pos + bitmap_data->width_in_bits; column++) {
-        lcd_prepare_send_data(column, PAGE(y_pos), column, PAGE(y_pos)+bitmap_data->heigth_in_bytes);
+        lcd_prepare_send_data(column, PAGE(y_pos), column, PAGE(y_pos) + bitmap_data->heigth_in_bytes);
         // TODO: Calculate carefully
         for (page = bitmap_data->heigth_in_bytes; page > 0; page--) {
-            index = bitmap_data->heigth_in_bytes*(column - x_pos) + page-1;
+            index = bitmap_data->heigth_in_bytes * (column - x_pos) + page - 1;
             lcd_send_data(bitmap_data->image_data[index]);
         }
     }

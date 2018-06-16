@@ -1106,6 +1106,8 @@ void SetTilt(SettingsMenu_t * m) {
     } while (SettingsNotDone(m));
     if (Settings.AR_IS.AR_IS != orgset) {
         saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        InputFlags.orientation = ORIENTATION_NORMAL;
+        InputFlags.TiltChanged = True;
     }
 }
 // </editor-fold>
@@ -1789,10 +1791,12 @@ void update_screen_model() {
 }
 
 void handle_rotation() {
-    if (Autorotate && InputFlags.TiltChanged) {
+    if (Autorotate){
+        if(InputFlags.TiltChanged) {
         InputFlags.TiltChanged = False;
         lcd_clear();
         lcd_set_orientation();
+    }
     }
 }
 // <editor-fold defaultstate="collapsed" desc="ISR function">
