@@ -347,7 +347,7 @@ uint16_t findStringAddress(uint8_t index_in_eeprom) {
 }
 
 uint8_t findCurStringIndex() {
-    
+
     uint16_t addr;
     uint8_t counts[MAXSHOOTSTRINGS];
     uint8_t labels[MAXSHOOTSTRINGS];
@@ -1465,16 +1465,28 @@ void DetectInit(void) {
     uint16_t Peak = 0;
     uint16_t ADCvalue;
 
-    for (uint8_t i = 0; i < 64; i++) {
-        ADCvalue = ADC_Read(ENVELOPE);
-        Mean += ADCvalue;
-        if (Peak < ADCvalue) Peak = ADCvalue;
+    switch (Settings.InputType) {
+        case INPUT_TYPE_Microphone:
+            for (uint8_t i = 0; i < 64; i++) {
+                ADCvalue = ADC_Read(ENVELOPE);
+                Mean += ADCvalue;
+                if (Peak < ADCvalue) Peak = ADCvalue;
+            }
+            Mean = Mean >> 6;
+            //    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
+            DetectThreshold = Mean + Settings.Sensitivity;
+            // Enable output driver for A/B I/O
+            TRISDbits.TRISD1 = 0;
+            TRISDbits.TRISD2 = 0;
+            break;
+        default:
+            InputFlags.A_RELEASED = True;
+            InputFlags.B_RELEASED = True;
+            // Disable output driver for A/B I/O
+            TRISDbits.TRISD1 = 1;
+            TRISDbits.TRISD2 = 1;
+            break;
     }
-    Mean = Mean >> 6;
-    //    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
-    DetectThreshold = Mean + Settings.Sensitivity;
-    InputFlags.A_RELEASED = True;
-    InputFlags.B_RELEASED = True;
 }
 
 uint8_t print_time() {
@@ -1791,12 +1803,12 @@ void update_screen_model() {
 }
 
 void handle_rotation() {
-    if (Autorotate){
-        if(InputFlags.TiltChanged) {
-        InputFlags.TiltChanged = False;
-        lcd_clear();
-        lcd_set_orientation();
-    }
+    if (Autorotate) {
+        if (InputFlags.TiltChanged) {
+            InputFlags.TiltChanged = False;
+            lcd_clear();
+            lcd_set_orientation();
+        }
     }
 }
 // <editor-fold defaultstate="collapsed" desc="ISR function">
@@ -1844,7 +1856,7 @@ static void interrupt isr(void) {
                 uint8_t old_orientation = InputFlags.orientation;
                 uint16_t a = ADC_SAMPLE_REG_16_BIT;
                 InputFlags.orientation = (a > ORIENTATION_INVERSE_THRESHOLD);
-                InputFlags.TiltChanged = old_orientation!=InputFlags.orientation;
+                InputFlags.TiltChanged = old_orientation != InputFlags.orientation;
             }
                 break;
         }
