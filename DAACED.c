@@ -1925,6 +1925,14 @@ static void interrupt isr(void) {
     } else if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
     }
+    if(PIR3bits.TX1IF){
+        PIR3bits.TX1IF=0;
+        uart_tx_int_handler();
+    }
+    if(PIR3bits.RC1IF){
+        uart_rx_int_handler();
+        PIR3bits.RC1IF = 0;
+    }
 }
 // </editor-fold>
 
