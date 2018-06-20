@@ -472,12 +472,12 @@ void SetDelay(SettingsMenu_t * m) {
 TBool EditPar(uint8_t par_index) {
     NumberSelection_t b;
     b.fmin = 0.1;
-    b.fmax = 100.0;
+    b.fmax = 99.9;
     b.fvalue = (float) (Settings.ParTime[par_index]) / 1000;
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index);
-    b.fstep = 0.1;
-    b.format = " %3.1fs ";
+    b.fstep = 0.05;
+    b.format = "%3.2fs";
     b.done = False;
     lcd_clear();
     do {
@@ -495,7 +495,7 @@ TBool EditPar(uint8_t par_index) {
 void FillParSettings(SettingsMenu_t * m) {
     uint8_t i = 0;
     for (i = 0; i < Settings.TotPar; i++) {
-        sprintf(m->MenuItem[i], "Par %d: %3.1fs  ", i + 1, (float) (Settings.ParTime[i]) / 1000);
+        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, (float) (Settings.ParTime[i]) / 1000);
     }
     if (i < MAXPAR)
         strmycpy(m->MenuItem[i], "Add ");
