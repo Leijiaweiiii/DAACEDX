@@ -469,6 +469,7 @@ void lcd_init() {
 
 void lcd_clear() {
     lcd_clear_block_d(0, 0, LCD_WIDTH, LCD_HEIGHT);
+    lcd_set_orientation();
 }
 
 void lcd_increase_contrast() {
@@ -539,10 +540,9 @@ void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_
 }
 
 void lcd_set_orientation() {
-    lcd_clear();
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    if (InputFlags.orientation == ORIENTATION_NORMAL) {
+    if (Orientation == ORIENTATION_NORMAL) {
         lcd_send_data(LCD_ORIENTATION_NORMAL);
         lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
         x_offset = 0;

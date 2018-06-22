@@ -119,8 +119,6 @@ union {
         unsigned A_RELEASED     :1;
         unsigned B_RELEASED     :1;
         unsigned KEY_RELEASED   :1;
-        unsigned TiltChanged    :1;
-        unsigned orientation    :1;
     };
 } InputFlags;
 
@@ -141,7 +139,7 @@ typedef struct {
 } DetectionResult_t;
 
 #define AutoStart Settings.AR_IS.Autostart
-#define Autorotate Settings.AR_IS.AutoRotate
+#define Orientation Settings.AR_IS.AutoRotate
 // Automatic shutdown after timeout 20 minutes
 #define timer_idle_shutdown_timeout 1200000
 // Dim light after 45 seconds

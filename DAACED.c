@@ -1082,32 +1082,20 @@ void SetCountDown(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="Tilt">
 
 void SetTilt(SettingsMenu_t * m) {
-    uint8_t orgset;
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 1;
+    m->TotalMenuItems = 2;
     strmycpy(m->MenuTitle, "Tilt");
-    if (Settings.AR_IS.AutoRotate) strmycpy(m->MenuItem[0], " Auto Rotate ON ");
-    else strmycpy(m->MenuItem[0], " Auto Rotate OFF ");
-
-    // SettingsDisplay(&SetTiltMenu);
-    orgset = Settings.AR_IS.AR_IS;
+    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Top UP");
+    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Top DOWN");
+    m->menu = Orientation;
 
     do {
         DisplaySettings(m);
-        SelectBinaryMenuItem(m);
-        if (m->selected) {
-            m->selected = False;
-            Settings.AR_IS.AutoRotate = !Settings.AR_IS.AutoRotate;
-            if (Settings.AR_IS.AutoRotate)
-                strmycpy(m->MenuItem[0], " Auto Rotate ON ");
-            else
-                strmycpy(m->MenuItem[0], " Auto Rotate OFF");
-        }
+        SelectMenuItem(m);
     } while (SettingsNotDone(m));
-    if (Settings.AR_IS.AR_IS != orgset) {
+    if (m->selected && Orientation != m->menu) {
+        Orientation = m->menu;
         saveSettingsField(&Settings, &(Settings.AR_IS), 1);
-        InputFlags.orientation = ORIENTATION_NORMAL;
-        InputFlags.TiltChanged = True;
     }
 }
 // </editor-fold>
@@ -1225,7 +1213,6 @@ void DoSettings(void) {
     lcd_clear();
     do {
         handle_timer_idle_shutdown();
-        handle_rotation();
         DisplaySettings(&SettingsMenu);
         SelectMenuItemCircular(&SettingsMenu);
         if (SettingsMenu.selected) {
@@ -1612,6 +1599,7 @@ void DoPowerOn() {
     set_backlight(5);
     spi_init();
     lcd_init();
+    lcd_set_orientation();
     ADC_init();
     eeprom_init();
     LATEbits.LATE0 = 1;
@@ -1802,15 +1790,6 @@ void update_screen_model() {
     }
 }
 
-void handle_rotation() {
-    if (Autorotate) {
-        if (InputFlags.TiltChanged) {
-            InputFlags.TiltChanged = False;
-            lcd_clear();
-            lcd_set_orientation();
-        }
-    }
-}
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 static void interrupt isr(void) {
@@ -1848,15 +1827,6 @@ static void interrupt isr(void) {
                 //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
                 //                if (battery_level > 99) battery_level = 99;
                 // Trigger measurement of orientation
-                ADC_ENABLE_INTERRUPT_ACCELEROMETR;
-            }
-                break;
-            case ACCELEROMETER:
-            {
-                uint8_t old_orientation = InputFlags.orientation;
-                uint16_t a = ADC_SAMPLE_REG_16_BIT;
-                InputFlags.orientation = (a > ORIENTATION_INVERSE_THRESHOLD);
-                InputFlags.TiltChanged = old_orientation != InputFlags.orientation;
             }
                 break;
         }
@@ -1895,11 +1865,9 @@ void main(void) {
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
-    //    eeprom_clear_block(0x0, EEPROM_MAX_SIZE);
     lcd_clear();
     while (True) {
         //TODO: Integrate watchdog timer
-        handle_rotation();
         handle_ui();
         frames_count++;
     }
