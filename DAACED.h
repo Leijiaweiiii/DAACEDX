@@ -268,7 +268,7 @@ void print_footer();
 uint8_t print_time();
 void handle_rotation();
 void UpdateShot(time_t now, ShotInput_t input);
-#define UpdateShootNow(x) {UpdateShot(rtc_time.unix_time_ms, x);}
+void UpdateShotNow();
 void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);

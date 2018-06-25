@@ -33,8 +33,8 @@ rtc_time_t rtc_time;
 void set_rtc_time(time_t x);
 // Taking only 10 bits - the MSB is 2 seconds
 #define rtc_time_2k_msec    (TMR1>>5)
-#define update_rtc_time     {rtc_time.sec_lsb = TMR3;rtc_time.sec_msb = TMR5;rtc_time.msec = correction_table[rtc_time_2k_msec];rtc_time.unix_time_ms = (rtc_time.sec*2000)+rtc_time.msec;}
-#define delay_rtc(x)        {time_t __st = rtc_time.sec; while((rtc_time.sec  - __st)<x);}
+void update_rtc_time();
+//#define delay_rtc(x)        {time_t __st = rtc_time.sec; while((rtc_time.sec  - __st)<x);}
 #define delay_rtc_ms(x)     {time_t __st = rtc_time.unix_time_ms;while((rtc_time.unix_time_ms -  __st)<x);}
 
 volatile uint32_t button_down_time, button_up_time;

@@ -1008,11 +1008,11 @@ void CountDownMode(time_t countdown) {
                         1000,
                         50
                         );
-                delay_rtc_ms(50);
+                Delay(50);
             }
             if (Keypressed)
                 break;
-            delay_rtc_ms(400);
+            Delay(400);
         }
     }
 }
@@ -1722,6 +1722,17 @@ void StartCountdownTimer() {
     }
 }
 
+void _update_rtc_time() {
+    update_rtc_time();
+    if (rtc_time.msec < 100)
+        update_rtc_time();
+}
+
+void UpdateShootNow(ShotInput_t x) {
+    _update_rtc_time();
+    UpdateShot(rtc_time.unix_time_ms, x);
+}
+
 void UpdateShot(time_t now, ShotInput_t input) {
     uint24_t dt, ddt;
     dt = (uint24_t) (now - ShootString_start_time);
@@ -1779,6 +1790,7 @@ void update_screen_model() {
             }
             break;
         case TimerCountdown:
+            _update_rtc_time();
             if (now - countdown_start_time >= Settings.DelayTime) {
                 comandToHandle = CountdownExpired;
             }
@@ -1796,7 +1808,8 @@ static void interrupt isr(void) {
 
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        PIR6bits.TMR1GIF = 0;
+//        PIR6bits.TMR1GIF = 0;
+        _update_rtc_time();
         frames_count = 0;
         define_charger_state();
         switch (ui_state) {
@@ -1833,9 +1846,6 @@ static void interrupt isr(void) {
     }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
-        update_rtc_time;
-        if (rtc_time.msec < 100)
-            update_rtc_time;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;
         }
