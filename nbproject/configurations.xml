@@ -18,7 +18,6 @@
       <itemPath>tbool.h</itemPath>
       <itemPath>bluetooth.h</itemPath>
       <itemPath>eeprom.h</itemPath>
-      <itemPath>shot_string.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"

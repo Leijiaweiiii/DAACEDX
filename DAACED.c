@@ -1806,9 +1806,30 @@ void update_screen_model() {
 
 static void interrupt isr(void) {
 
-    if (RTC_TIMER_IF) {
+    if (PIR0bits.TMR0IF) {
+        PIR0bits.TMR0IF = 0;
+        if (!Keypressed) {//Assignment will not work because of not native boolean
+            InputFlags.KEY_RELEASED = True;
+        }
+        update_screen_model();
+    } else if (PIR1bits.ADIF) {
+        if (ADPCH == ENVELOPE) {
+            ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
+            if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
+                UpdateShootNow(Mic);
+            }
+        } else if (ADPCH == BATTERY) {
+            adc_battery = ADC_SAMPLE_REG_16_BIT;
+            uint16_t battery_mV = adc_battery*BAT_divider;
+            battery_level = battery_mV;
+            //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
+            //                if (battery_level > 99) battery_level = 99;
+            // Trigger measurement of orientation
+        }
+        PIR1bits.ADIF = 0;
+    } else if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-//        PIR6bits.TMR1GIF = 0;
+        //        PIR6bits.TMR1GIF = 0;
         _update_rtc_time();
         frames_count = 0;
         define_charger_state();
@@ -1820,36 +1841,6 @@ static void interrupt isr(void) {
                 ADC_ENABLE_INTERRUPT_BATTERY;
                 break;
         }
-    }
-    if (PIR1bits.ADIF) {
-        PIR1bits.ADIF = 0;
-        while (GO_nDONE);
-
-        switch (ADPCH) {
-            case ENVELOPE:
-                ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-                if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
-                    UpdateShootNow(Mic);
-                }
-                break;
-            case BATTERY:
-            {
-                adc_battery = ADC_SAMPLE_REG_16_BIT;
-                uint16_t battery_mV = adc_battery*BAT_divider;
-                battery_level = battery_mV;
-                //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
-                //                if (battery_level > 99) battery_level = 99;
-                // Trigger measurement of orientation
-            }
-                break;
-        }
-    }
-    if (PIR0bits.TMR0IF) {
-        PIR0bits.TMR0IF = 0;
-        if (!Keypressed) {//Assignment will not work because of not native boolean
-            InputFlags.KEY_RELEASED = True;
-        }
-        update_screen_model();
     }
 }
 // </editor-fold>

@@ -122,8 +122,10 @@ void init_ms_timer0() {
     PIE0bits.TMR0IE = 0;
     T0CON0bits.T016BIT = 0; // Enable 16-bit mode.
     T0CON0bits.T0OUTPS = 0b0000; // Postscalar 1:1
+    // Time calculations:
+    // 65535/16MHz = 4.0959mS
     T0CON1bits.T0CS = 0b010; // Fosc/4 Clock Source - clock itself
-    T0CON1bits.T0PS = 0b0111; // 1:64 prescalar
+    T0CON1bits.T0PS = 0b0110; // 1:64 prescalar
     T0CON0bits.T0EN = 1; // Start timer.
     PIE0bits.TMR0IE = 1; // Enable Interrupt
     INTCONbits.PEIE = 1;
