@@ -115,6 +115,8 @@ command set whitelist mac address.
     void (*BT_cmd_handler)(BT_COMMAND_T cmd);
     void BT_init();
     void BT_SendDataStr(char * str);
+    void BT_off();
+    void BT_hard_reset();
     
 
 #ifdef	__cplusplus

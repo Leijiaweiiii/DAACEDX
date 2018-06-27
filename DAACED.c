@@ -98,11 +98,16 @@ void strmycpy(char * to, const char * from) {
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
 
+void enable_hf_osc() {
+    OSCENbits.HFOEN = 1;
+    while (!OSCSTATbits.HFOR); // Wait for the fast oscillator
+    OSCFRQ = 0b00001000; // 64 MHz Fosc.
+}
+
 void PIC_init(void) {
     // 0 = OUTPUT, 1 = INPUT
     // 0 = DIGITAL, 1 = ANALOG
-
-    OSCFRQ = 0b00001000; // 64 MHz Fosc.
+    enable_hf_osc();
 
     TRISA = 0b11111111; // ADC inputs 0..3
     ANSELA = 0b00001111;
@@ -126,7 +131,6 @@ void PIC_init(void) {
 
     TRISG = 0x00; // CON8, Debug Header.
     ANSELG = 0x00;
-    CPUDOZEbits.IDLEN = 0;
 }
 // </editor-fold>
 
@@ -1586,11 +1590,34 @@ void StartListenShots(void) {
 void DoPowerOff() {
     set_backlight(0);
     lcd_clear();
-    LATEbits.LATE0 = 0;
-    // TODO: Implement SLEEP mode when powering off
-    OSCFRQ = 0b00000000; // 1MHz clock for power saving
 
-    //    Sleep();
+    // TODO: Implement SLEEP mode when powering off
+
+
+    // Configure interrupt for wakeup
+    CPUDOZEbits.IDLEN = 0;
+    RTC_TIMER_IE = 0; // Disable 2 s timer interrupt
+    PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
+    CPUDOZEbits.IDLEN = 0;
+    ADC_DISABLE_INTERRUPT;
+    INT0IE = 1;
+    PORTEbits.RE0 = 0;
+    PORTEbits.RE2 = 0;
+    PORTEbits.RE6 = 1;
+    LATEbits.LATE2 = 0;
+    LATEbits.LATE6 = 1;
+    LATEbits.LATE0 = 0;
+    OSCCON3bits.CSWHOLD = 0;
+    OSCCON1bits.NOSC = 0b100;
+    while (!OSCCON3bits.ORDY);
+    OSCENbits.HFOEN = 0; // HF osc enabled only if required
+    OSCFRQ = 0b00000000; // 1MHz clock for power saving
+    Sleep();
+    InputFlags.KEY_RELEASED = 1;
+    RTC_TIMER_IE = 1;
+    PIE0bits.TMR0IE = 1;
+    OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
+    while (!OSCCON3bits.ORDY);
 }
 
 void DoPowerOn() {
@@ -1602,10 +1629,12 @@ void DoPowerOn() {
     lcd_set_orientation();
     ADC_init();
     eeprom_init();
+    PORTEbits.RE0 = 1;
     LATEbits.LATE0 = 1;
-    OSCFRQ = 0b00001000; // Switch back to 64MHz
     // TODO: Review power on sequence
     set_backlight(Settings.BackLightLevel);
+    RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
+    INT0IE = 0; // Disable wakeup interrupt
 }
 
 void DoCharging() {
@@ -1803,6 +1832,7 @@ void update_screen_model() {
 }
 
 // <editor-fold defaultstate="collapsed" desc="ISR function">
+time_t wakeup_start_time;
 
 static void interrupt isr(void) {
 
@@ -1841,6 +1871,9 @@ static void interrupt isr(void) {
                 ADC_ENABLE_INTERRUPT_BATTERY;
                 break;
         }
+    } else if (INT0IF) {
+        INT0IF = 0; // Wakeup happened, disable interrupt back
+        enable_hf_osc();
     }
 }
 // </editor-fold>

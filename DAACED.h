@@ -67,12 +67,12 @@ uint8_t find_set_bit_position(uint8_t n);
 //#define SWAP_KEYS
 #ifndef SWAP_KEYS
 #define Key                  (PORTB & 0x3F)
-#define KeySt                 0x02  //Start
+#define KeySt                 0x01  //Start
 #else
 #define Key                  (PORTB & 0x3D)
 #define KeySt                 0x80  //Start
 #endif
-#define KeyRw                 0x01  //Review
+#define KeyRw                 0x02  //Review
 #define KeyBk                 0x04  //Back
 #define KeyDw                 0x08  //v
 #define KeyUp                 0x10  //^
@@ -119,6 +119,7 @@ union {
         unsigned A_RELEASED     :1;
         unsigned B_RELEASED     :1;
         unsigned KEY_RELEASED   :1;
+        unsigned WAKEUP         :1;
     };
 } InputFlags;
 
@@ -273,4 +274,5 @@ void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
 void saveShootString(void);
+void _update_rtc_time();
 #endif /*  _DAACED_H_ */

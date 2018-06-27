@@ -23,8 +23,8 @@ uint8_t old_time_str_len = 0;
 void print_big_time_label(const uint24_t t) {
     char message[16];
     float tf;
-    uint8_t len,spaceholder;
-    spaceholder = (Settings.InputType!=INPUT_TYPE_Microphone)?20:0;
+    uint8_t len, spaceholder;
+    spaceholder = (Settings.InputType != INPUT_TYPE_Microphone) ? 20 : 0;
     if (t > MAX_MEASUREMENT_TIME)
         tf = 999.0;
     else
@@ -46,10 +46,6 @@ void print_big_time_label(const uint24_t t) {
 void update_countdown_time_on_screen() {
     uint24_t reminder = Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
-}
-
-void PowerOffTimer() {
-    DoPowerOff();
 }
 
 void StartTimer() {
@@ -81,27 +77,36 @@ void handle_charger_connected() {
 }
 
 void handle_power_off() {
-    switch (comandToHandle) {
-        case ReviewLong:
-        case OkLong:
-        case StartLong:STATE_HANDLE_POWER_ON;
-            break;
-        case ChargerEvent:STATE_HANDLE_CHARGING;
-            break;
-        default:
-            //do nothing - we're sleeping;
-            break;
+    if (LATEbits.LATE0 == 1) {
+        // if power is on, turn it off. Then we'll handle all the rest properly
+        // Power off will sleep, then if wakeup occured, we'll handle power ON
+        DoPowerOff();
+        define_input_action();
+    } else {
+        switch (comandToHandle) {
+            case ReviewLong:
+            case OkLong:
+            case StartLong:
+                STATE_HANDLE_POWER_ON;
+                break;
+            case ChargerEvent:STATE_HANDLE_CHARGING;
+                break;
+            default:
+                DoPowerOff();
+                break;
+        }
     }
     comandToHandle = None;
 }
 
 void handle_timer_idle_shutdown() {
+    _update_rtc_time();
     if (comandToHandle != None) {
         timer_idle_last_action_time = rtc_time.unix_time_ms;
         set_backlight(Settings.BackLightLevel);
     } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_shutdown_timeout) {
         comandToHandle = StartLong;
-    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_dim_timeout){
+    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_dim_timeout) {
         set_backlight(0);
     }
 }
@@ -168,6 +173,7 @@ void handle_timer_listening() {
     update_shot_time_on_screen();
     print_header();
     print_footer();
+    handle_timer_idle_shutdown();
     switch (comandToHandle) {
         case StartLong:
             saveShootString();
@@ -259,30 +265,34 @@ void handle_countdown() {
 
 TBool is_long_press() {
     //TODO: try save memory taking lower byte to save memory...
+    _update_rtc_time();
     time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
     do {
+        _update_rtc_time();
         duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             break;
+    } while (Keypressed);
+    return duration >= LONG_PRESS_THRESHOLD_SEC;
+}
+
+TBool is_long_press_repeatable() {
+    _update_rtc_time();
+    time_t press_time = rtc_time.unix_time_ms;
+    time_t duration = 0;
+    do {
+        _update_rtc_time();
+        duration = rtc_time.unix_time_ms - press_time;
+        if (duration > STICKY_THRESHOLD_SEC)
+            return duration >= LONG_PRESS_THRESHOLD_SEC;
     } while (Keypressed);
     InputFlags.KEY_RELEASED = True; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
-TBool is_long_press_repeatable() {
-    time_t press_time = rtc_time.unix_time_ms;
-    time_t duration = 0;
-    do {
-        duration = rtc_time.unix_time_ms - press_time;
-        if (duration > STICKY_THRESHOLD_SEC)
-            return duration >= LONG_PRESS_THRESHOLD_SEC;
-    } while (Keypressed);
-
-    return duration >= LONG_PRESS_THRESHOLD_SEC;
-}
-
 void define_input_action() {
+    
     if (InputFlags.KEY_RELEASED && Keypressed) {
         InputFlags.KEY_RELEASED = False;
         switch (Key) {
@@ -345,6 +355,10 @@ void define_input_action() {
 }
 
 void handle_ui() {
+    if (InputFlags.WAKEUP) {
+        InputFlags.WAKEUP = 0;
+        Beep();
+    }
     define_input_action();
     switch (ui_state) {
         case PowerOff:
