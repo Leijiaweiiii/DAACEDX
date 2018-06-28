@@ -768,35 +768,24 @@ void SetFilter() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
 
-void set_autostert_label(char * l) {
-    if (AutoStart)
-        strmycpy(l, " Auto Start ON ");
-    else
-        strmycpy(l, " Auto Start OFF ");
-}
-
 void SetAutoStart(SettingsMenu_t * m) {
     TBool orgset;
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 1;
+    m->TotalMenuItems = 2;
     strmycpy(m->MenuTitle, "Autostart");
-    set_autostert_label(m->MenuItem[0]);
+    strmycpy(m->MenuItem[0], " Auto Start OFF ");
+    strmycpy(m->MenuItem[1], " Auto Start ON ");
     orgset = AutoStart;
+    m->menu = AutoStart;
     do {
         DisplaySettings(m);
-        SelectBinaryMenuItem(m);
-        if (m->selected) {
-            m->selected = False;
-            m->done = False;
-            if (AutoStart)
-                AutoStart = False;
-            else
-                AutoStart = True;
-            set_autostert_label(m->MenuItem[0]);
-        }
+        SelectMenuItem(m);
     } while (SettingsNotDone(m));
-    if (AutoStart != orgset) {
-        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+    if (m->selected) {
+        AutoStart = m->menu;
+        if (AutoStart != orgset) {
+            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        }
     }
 }
 // </editor-fold>
