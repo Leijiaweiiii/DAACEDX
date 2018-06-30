@@ -1577,15 +1577,12 @@ void StartListenShots(void) {
 // </editor-fold>
 
 void DoPowerOff() {
-    set_backlight(0);
-    lcd_clear();
-
-    // TODO: Implement SLEEP mode when powering off
-
-
+    if (ui_state != PowerOff) {
+        set_backlight(0);
+        lcd_clear();
+    }
     // Configure interrupt for wakeup
     CPUDOZEbits.IDLEN = 0;
-    RTC_TIMER_IE = 0; // Disable 2 s timer interrupt
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     CPUDOZEbits.IDLEN = 0;
     ADC_DISABLE_INTERRUPT;
@@ -1597,13 +1594,12 @@ void DoPowerOff() {
     LATEbits.LATE6 = 1;
     LATEbits.LATE0 = 0;
     OSCCON3bits.CSWHOLD = 0;
-    OSCCON1bits.NOSC = 0b100;
+    OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
     while (!OSCCON3bits.ORDY);
     OSCENbits.HFOEN = 0; // HF osc enabled only if required
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
     Sleep();
     InputFlags.KEY_RELEASED = 1;
-    RTC_TIMER_IE = 1;
     PIE0bits.TMR0IE = 1;
     OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
     while (!OSCCON3bits.ORDY);
