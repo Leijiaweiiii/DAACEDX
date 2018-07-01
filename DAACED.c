@@ -392,7 +392,7 @@ void saveShootString(void) {
 
 }
 
-TBool getShootString(uint8_t offset) {
+void getShootString(uint8_t offset) {
     uint16_t addr;
     int8_t index;
     index = findCurStringIndex();
@@ -402,7 +402,6 @@ TBool getShootString(uint8_t offset) {
         index = MAXSHOOTSTRINGS - offset + index;
     addr = findStringAddress(index);
     eeprom_read_array(addr, ShootString.data, Size_of_ShootString);
-    return True;
 }
 
 TBool checkShotStringEmpty(uint8_t offset) {

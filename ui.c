@@ -244,7 +244,9 @@ void handle_countdown() {
         case StartShort:
             STATE_HANDLE_COUNTDOWN;
             break;
-        case ReviewShort:STATE_HANDLE_TIMER_IDLE;
+        case ReviewShort:
+            getShootString(0);
+            STATE_HANDLE_TIMER_IDLE;
             break;
         case CountdownExpired:
             StartListenShots();

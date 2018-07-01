@@ -276,4 +276,5 @@ void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
 void saveShootString(void);
 void _update_rtc_time();
+void getShootString(uint8_t offset);
 #endif /*  _DAACED_H_ */
