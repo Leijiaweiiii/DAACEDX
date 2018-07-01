@@ -69,13 +69,13 @@ extern "C" {
     void handle_timer_idle_shutdown();
     void handle_ui();
     void StopTimer();
-#define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;}
+#define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;set_backlight(0);lcd_clear();}
 #define STATE_HANDLE_POWER_ON           {ui_state = TimerIdle;DoPowerOn();lcd_clear();StopTimer();}
 #define STATE_HANDLE_TIMER_IDLE         {ui_state = TimerIdle;lcd_clear();StopTimer();}
 #define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();}
 #define STATE_HANDLE_SETTINGS_SCREEN    {ui_state = SettingsScreen;lcd_clear();DoSettings();}
 #define STATE_HANDLE_COUNTDOWN          {ui_state = TimerCountdown;lcd_clear();StartTimer();}
-#define STATE_HANDLE_CHARGING           {ui_state = ChargerScreen;DoCharging();}
+#define STATE_HANDLE_CHARGING           {ui_state = ChargerScreen;set_backlight(1);DoCharging();}
 #ifdef	__cplusplus
 }
 #endif

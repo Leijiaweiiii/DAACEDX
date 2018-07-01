@@ -348,17 +348,12 @@ void define_input_action() {
                 break;
         }
     } else {
-        define_charger_state();
         if (charger_state_changed)
             comandToHandle = ChargerEvent;
     }
 }
 
 void handle_ui() {
-    if (InputFlags.WAKEUP) {
-        InputFlags.WAKEUP = 0;
-        Beep();
-    }
     define_input_action();
     switch (ui_state) {
         case PowerOff:

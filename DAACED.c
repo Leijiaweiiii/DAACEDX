@@ -167,6 +167,7 @@ void set_backlight(uint8_t duty_cycle) {
     } else if (duty_cycle == 100) {
         LATEbits.LATE6 = 0;
     }
+    current_backlight = duty_cycle;
 }
 
 uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_t *selectedPrescalar) {
@@ -280,6 +281,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
         }
     }
     stop_sinus();
+    CONSUME_BEEP(duration);
 }
 
 void stop_sinus() {
@@ -1504,11 +1506,12 @@ TBool battery_level_ok(uint8_t l) {
 
 void print_batery_info() {
     uint8_t col = LCD_WIDTH - 35;
-
+    uint8_t num_bars = number_of_battery_bars();
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
+    
     for (uint8_t i = 5; i > 0; i--) {
-        if (battery_level_ok(i - 1)) {
+        if (i<=num_bars) {
             lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
             col += battery_middle_full_bitmap.width_in_bits;
         } else {
@@ -1577,10 +1580,7 @@ void StartListenShots(void) {
 // </editor-fold>
 
 void DoPowerOff() {
-    if (ui_state != PowerOff) {
-        set_backlight(0);
-        lcd_clear();
-    }
+
     // Configure interrupt for wakeup
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
@@ -1636,6 +1636,7 @@ void DoCharging() {
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                CONSUME_CHARGED_FULL;
                 break;
             case NotCharging:
                 STATE_HANDLE_POWER_OFF;
@@ -1844,16 +1845,21 @@ static void interrupt isr(void) {
         PIR1bits.ADIF = 0;
     } else if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        //        PIR6bits.TMR1GIF = 0;
         _update_rtc_time();
-        frames_count = 0;
         define_charger_state();
         switch (ui_state) {
             case TimerListening:
             case TimerCountdown:
                 break;
+            case PowerOff:
+                CONSUME_POWER_OFF(2000);
+                break;
+            case ChargerScreen:
+                CONSUME_CHARGE_ADD(2000);
             default:
                 ADC_ENABLE_INTERRUPT_BATTERY;
+                CONSUME_BACKLIGHT(2000,current_backlight);
+                CONSUME_POWER_ON(2000);
                 break;
         }
     } else if (INT0IF) {

@@ -8,10 +8,11 @@
 #ifndef CHARGER_H
 #define	CHARGER_H
 #include "tbool.h"
+#include "stdint.h"
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
 #define BAT_STAT_PORT               PORTE
 #define CHARGET_PG_NOT              0b00001000
 #define CHARGET_STAT_1              0b00010000
@@ -31,6 +32,7 @@ extern "C" {
 #define CHARGER_NOT_CONNECTED       0x30
 #define CHARGER_DISCONNECTED        0x38
 #define CHARGER_COMPLETE            0x10
+
     typedef enum {
         NotCharging,
         Charging,
@@ -40,6 +42,29 @@ extern "C" {
     volatile TBool charger_state_changed = false;
     void define_charger_state();
     char * charger_text_state();
+    /*
+     * Battery charge is defined in mA-mS
+     * Every time we're consuming electricity
+     * we subtract some capacity of known consumers from the resource
+     * Every time we're in charging state - we're adding capacity to the resource
+     * Sometimes we're estimating capacity and updating measured value to be the full charge
+     */
+
+#define CONSUMPTION_FULLY_CHARGED   UINT32_MAX
+    uint32_t battery_charge = CONSUMPTION_FULLY_CHARGED/3;
+    uint16_t backlight_consumption[] = {0, 3, 6, 9, 13, 16, 19, 24, 30, 35};
+    uint32_t battery_level_thresholds[] = {0x2AAAAAAA, 0x55555555, 0x7FFFFFFF, 0xAAAAAAAA, 0xD5555554};
+#define CONSUMPTION_BEEP_MA     210
+#define CONSUME_BEEP(x)         {battery_charge-=x*CONSUMPTION_BEEP_MA;}
+    // (x,y) -> duration,level
+#define CONSUME_BACKLIGHT(x,y)  {battery_charge -= x * backlight_consumption[y];}
+#define CONSUME_POWER_OFF(x)    {battery_charge -= x; }
+#define CONSUME_POWER_ON(x)     {battery_charge -= x*16; }
+#define CONSUME_CHARGE_ADD(x)   {battery_charge += x*1000; }
+#define CONSUME_CHARGED_FULL    {battery_charge = full_charge;}
+    uint32_t full_charge = CONSUMPTION_FULLY_CHARGED;
+    uint8_t number_of_battery_bars();
+    
 #ifdef	__cplusplus
 }
 #endif
