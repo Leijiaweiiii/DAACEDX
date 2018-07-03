@@ -1545,6 +1545,9 @@ void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uin
 
 void print_footer() {
     char message[20];
+    if(!InputFlags.FOOTER_CHANGED)
+        return;
+    InputFlags.FOOTER_CHANGED = False;
     lcd_fill_block(0, UI_FOOTER_START_LINE, LCD_WIDTH, LCD_HEIGHT);
     sprintf(message, " 1st: %3.2f", (float) ShootString.shots[0].dt / 1000);
     print_label_at_footer_grid(message, 0, 0);
@@ -1710,6 +1713,7 @@ void StartParTimer() {
     timerEventToHandle = None;
     if (CurPar_idx < Settings.TotPar) {
         ParNowCounting = true;
+        InputFlags.FOOTER_CHANGED = True;
         parStartTime_ms = rtc_time.unix_time_ms;
     }
 }
@@ -1763,6 +1767,7 @@ void UpdateShot(time_t now, ShotInput_t input) {
         ShootString.TotShoots++;
         if (ShootString.TotShoots >= MAXSHOOT)
             timerEventToHandle = TimerTimeout;
+        InputFlags.FOOTER_CHANGED = True;
     }
 }
 
@@ -1890,6 +1895,7 @@ void main(void) {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
     lcd_clear();
+    InputFlags.FOOTER_CHANGED = True;
     while (True) {
         //TODO: Integrate watchdog timer
         handle_ui();

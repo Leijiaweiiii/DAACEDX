@@ -50,6 +50,7 @@ void update_countdown_time_on_screen() {
 
 void StartTimer() {
     CurPar_idx = 0;
+    InputFlags.FOOTER_CHANGED = True;
     StartCountdownTimer();
 }
 
@@ -58,6 +59,7 @@ void StopTimer() {
     CurPar_idx = 0;
     print_header();
     print_footer();
+    InputFlags.FOOTER_CHANGED = True;
     update_shot_time_on_screen();
     timer_idle_last_action_time = rtc_time.unix_time_ms;
 }

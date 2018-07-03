@@ -121,6 +121,7 @@ union {
         unsigned B_RELEASED     :1;
         unsigned KEY_RELEASED   :1;
         unsigned WAKEUP         :1;
+        unsigned FOOTER_CHANGED :1;
     };
 } InputFlags;
 
