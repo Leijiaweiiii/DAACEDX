@@ -51,9 +51,9 @@ extern "C" {
      */
 
 #define CONSUMPTION_FULLY_CHARGED   UINT32_MAX
-    uint32_t battery_charge = CONSUMPTION_FULLY_CHARGED/3;
+    uint32_t battery_charge = CONSUMPTION_FULLY_CHARGED/2;
     uint16_t backlight_consumption[] = {0, 3, 6, 9, 13, 16, 19, 24, 30, 35};
-    uint32_t battery_level_thresholds[] = {0x2AAAAAAA, 0x55555555, 0x7FFFFFFF, 0xAAAAAAAA, 0xD5555554};
+    uint32_t battery_level_thresholds[] = {0x1AAAAAAA, 0x35555555, 0x6FFFFFFF, 0xAAAAAAAA, 0xD5555554};
 #define CONSUMPTION_BEEP_MA     210
 #define CONSUME_BEEP(x)         {battery_charge-=x*CONSUMPTION_BEEP_MA;}
     // (x,y) -> duration,level
