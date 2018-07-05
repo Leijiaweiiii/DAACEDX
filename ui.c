@@ -91,14 +91,15 @@ void handle_power_off() {
             case StartLong:
                 STATE_HANDLE_POWER_ON;
                 break;
-            case ChargerEvent:STATE_HANDLE_CHARGING;
+            case ChargerEvent:
+                STATE_HANDLE_CHARGING;
                 break;
             default:
                 DoPowerOff();
                 break;
         }
+        comandToHandle = None;
     }
-    comandToHandle = None;
 }
 
 void handle_timer_idle_shutdown() {
@@ -128,7 +129,6 @@ void handle_timer_idle() {
     update_shot_time_on_screen();
     print_header();
     print_footer();
-    handle_timer_idle_shutdown();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
@@ -175,7 +175,6 @@ void handle_timer_listening() {
     update_shot_time_on_screen();
     print_header();
     print_footer();
-    handle_timer_idle_shutdown();
     switch (comandToHandle) {
         case StartLong:
             saveShootString();
@@ -347,14 +346,15 @@ void define_input_action() {
 
                 break;
             default:
-
                 //user can press anything, but we can handle only specific gestures
                 break;
         }
     } else {
+        define_charger_state();
         if (charger_state_changed)
             comandToHandle = ChargerEvent;
     }
+    handle_timer_idle_shutdown();
 }
 
 void handle_ui() {

@@ -1180,7 +1180,6 @@ void DoSettings(void) {
     SetSettingsMenu(&SettingsMenu);
     lcd_clear();
     do {
-        handle_timer_idle_shutdown();
         DisplaySettings(&SettingsMenu);
         SelectMenuItemCircular(&SettingsMenu);
         if (SettingsMenu.selected) {
@@ -1351,7 +1350,6 @@ void DoReview() {
     do {
         ReviewDisplay();
         define_input_action();
-        handle_timer_idle_shutdown();
         switch (comandToHandle) {
             case UpShort:
                 review_scroll_shot_up();
@@ -1827,12 +1825,12 @@ static void interrupt isr(void) {
     } else if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         _update_rtc_time();
-        define_charger_state();
         switch (ui_state) {
             case TimerListening:
             case TimerCountdown:
                 break;
             case PowerOff:
+                define_charger_state();
                 CONSUME_POWER_OFF(2000);
                 break;
             case ChargerScreen:
