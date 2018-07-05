@@ -1228,7 +1228,7 @@ void DoSettings(void) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Review Screen">
 #define REVIEW_SHOT_FORMAT      "%2d: %3.2f %c"
-#define REVIEW_TOTAL_SHOT_FORMAT      " %2d / %3.2fs"
+#define REVIEW_TOTAL_SHOT_FORMAT      "%2d/%3.2fs"
 #define REVIEW_SPLIT_FORMAT     "]%3.2f"
 TBool reviewChanged = True;
 
@@ -1267,7 +1267,10 @@ void ReviewDisplay() {
                 (float) ShootString.shots[curr_index].dt / 1000,
                 mode
                 );
-        lcd_write_string(message, 5, line, MediumFont, (i != 1)&0x01);
+        if(lcd_string_lenght(message,MediumFont)> 134)
+            lcd_write_string(message, 1, line, SmallFont, (i != 1)&0x01);
+        else
+            lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
         line += halfline;
 
         // Don't print last diff at half line and not the latest
