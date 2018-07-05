@@ -218,38 +218,11 @@ uint8_t find_set_bit_position(uint8_t n) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
-uint8_t sinus_table[32] = {0x10, // 11.25
-    0x13, // 22.50
-    0x16, // 33.75
-    0x18, // 45.00
-    0x1B, // 56.25
-    0x1D, // 68.50
-    0x1E, // 79.75
-    0x1F, // 90.00
-    0x20, // 101.25
-    0x1F, // 112.50
-    0x1E, // 123.75
-    0x1D, // 135.00
-    0x1B, // 146.25
-    0x18, // 157.50
-    0x16, // 168.75
-    0x13, // 180.00
-    0x10, // 191.25
-    0x0C, // 202.50
-    0x09, // 213.75
-    0x07, // 225.00
-    0x04, // 236.25
-    0x02, // 247.50
-    0x01, // 258.75
-    0x00, // 270.00
-    0x00, // 281.25
-    0x00, // 292.50
-    0x01, // 303.75
-    0x02, // 315.00
-    0x04, // 326.25
-    0x07, // 337.50
-    0x09, // 348.75
-    0x0C}; // 360.00
+uint8_t sinus_table[5][32] = {
+    {0x8, 0x8, 0x8, 0x7, 0x7, 0x6, 0x6, 0x5, 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x2, 0x3, 0x4, 0x5, 0x6, 0x6, 0x7, 0x7, 0x8, 0x8},
+    {0x10, 0x10, 0xF, 0xF, 0xE, 0xC, 0xB, 0xA, 0x8, 0x6, 0x5, 0x4, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x4, 0x5, 0x6, 0x8, 0xA, 0xB, 0xC, 0xE, 0xF, 0xF, 0x10},
+    {0x1F, 0x1F, 0x1E, 0x1C, 0x1A, 0x18, 0x15, 0x13, 0x10, 0xC, 0xA, 0x7, 0x5, 0x3, 0x1, 0x0, 0x0, 0x0, 0x1, 0x3, 0x5, 0x7, 0xA, 0xC, 0x10, 0x13, 0x15, 0x18, 0x1A, 0x1C, 0x1E, 0x1F}
+};
 
 void sinus_dac_init() {
     TRISFbits.TRISF5 = 0;
@@ -267,14 +240,14 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     uint32_t sinus_sample_update_period_us = (uint32_t) (sinus_time_period_us / 57.0); ///32.0)+0.5f);
     int32_t no_of_cycles = ((int32_t) duration * 580) / sinus_time_period_us; //1000
 
+    if (amplitude == 0) return;
+
     sinus_dac_init();
 
     //TODO: Stop sound when button pressed
     while (no_of_cycles--) {
         for (uint8_t count = 0; count < 32; count++) {
-            dac_value = (sinus_table[count] * amplitude) >> 2;
-            if (dac_value > 31) dac_value = 31;
-            if (dac_value < 0) dac_value = 0;
+            dac_value = sinus_table[amplitude - 1][count];
             DAC1CON1 = dac_value;
             for (uint16_t delay = 0; delay < sinus_sample_update_period_us; delay++)
                 __delay_us(1);
@@ -318,7 +291,7 @@ void getDefaultSettings() {
     Settings.BuzzerFrequency = 1500; // Hz
     Settings.BuzzerParDuration = 300; // ms
     Settings.BuzzerStartDuration = 500; // ms
-    Settings.BuzzerLevel = 6; // Middle strength sound.
+    Settings.Volume = 2; // Middle strength sound.
     Settings.CustomCDtime = 240; // 4 minutes in sec
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.DelayTime = 3000; // ms before start signal
@@ -572,7 +545,7 @@ void SetBacklight() {//PWM Backlight
     b.max = 9;
     b.min = 0;
     b.step = 1;
-    b.value = (Settings.BackLightLevel + 1) / 10;
+    b.value = Settings.BackLightLevel;
     b.old_value = b.value;
     tmp = b.value;
     b.format = "%u";
@@ -581,13 +554,13 @@ void SetBacklight() {//PWM Backlight
         DisplayInteger(&b);
         SelectInteger(&b);
         if (b.value != tmp) {
-            set_backlight(b.value * 10 - 1);
+            set_backlight(b.value);
             tmp = b.value;
         }
     } while (SettingsNotDone((&b)));
 
     if (b.selected && b.value != b.old_value) {
-        Settings.BackLightLevel = b.value * 10 - 1;
+        Settings.BackLightLevel = b.value;
         saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
     }
     set_backlight(Settings.BackLightLevel);
@@ -597,45 +570,45 @@ void SetBacklight() {//PWM Backlight
 
 void SetBeepFreq() {
     NumberSelection_t b;
-    b.fmin = 0.8;
-    b.fmax = 3.0;
-    b.fvalue = (float) (Settings.BuzzerFrequency) / 1000;
-    b.fold_value = b.fvalue;
+    InitSettingsNumberDefaults((&b))
+    b.min = 800;
+    b.max = 3000;
+    b.value = Settings.BuzzerFrequency;
+    b.old_value = b.fvalue;
     strmycpy(b.MenuTitle, "Tone");
-    b.fstep = 0.1;
-    b.format = "%1.1fK";
-    b.done = False;
+    b.step = 100;
+    b.format = "%dHz";
     do {
-        DisplayDouble(&b);
-        SelectDouble(&b);
+        DisplayInteger(&b);
+        SelectInteger(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.BuzzerFrequency = (uint16_t) (b.fvalue * 1000);
+        Settings.BuzzerFrequency = b.value;
         if (b.fvalue != b.fold_value) {
             saveSettingsField(&Settings, &(Settings.BuzzerFrequency), 2);
         }
     }
 }
 
-void SetBeepLevel() {
+void SetVolume() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
-    if (Settings.BuzzerLevel > 20) Settings.BuzzerLevel = 20;
+    if (Settings.Volume > 3) Settings.Volume = 3;
     strmycpy(b.MenuTitle, "Volume");
     b.min = 0;
-    b.max = 20;
+    b.max = 3;
     b.step = 1;
     b.format = " %2d ";
-    b.value = Settings.BuzzerLevel;
+    b.value = Settings.Volume;
     b.old_value = b.value;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.BuzzerLevel = b.value;
+        Settings.Volume = b.value;
         if (b.value != b.old_value) {
-            saveSettingsField(&Settings, &(Settings.BuzzerLevel), 1);
+            saveSettingsField(&Settings, &(Settings.Volume), 1);
         }
     }
 }
@@ -695,7 +668,7 @@ void SetBeep(SettingsMenu_t * m) {
                     SetBeepFreq();
                     break;
                 case 1:
-                    SetBeepLevel();
+                    SetVolume();
                     break;
                 case 2:
                     SetBeepTime(True);
@@ -704,7 +677,7 @@ void SetBeep(SettingsMenu_t * m) {
                     SetBeepTime(False);
                     break;
                 case 4:
-                    generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
+                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
                     break;
             }
             // Here we want it done only when back pressed
@@ -998,7 +971,7 @@ void CountDownMode(time_t countdown) {
         for (uint8_t i = 0; i < 5; i++) {
             for (uint8_t j = 0; j < 4; j++) {
                 generate_sinus(
-                        Settings.BuzzerLevel,
+                        Settings.Volume,
                         1000,
                         50
                         );
@@ -1693,7 +1666,7 @@ void PlayParSound() {
         AUX_A = 1;
         AUX_B = 1;
     }
-    generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
+    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         AUX_A = 0;
         AUX_B = 0;
@@ -1705,7 +1678,7 @@ void PlayStartSound() {
         AUX_A = 1;
         AUX_B = 1;
     }
-    generate_sinus(Settings.BuzzerLevel, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         AUX_A = 0;
         AUX_B = 0;

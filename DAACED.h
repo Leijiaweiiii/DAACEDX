@@ -30,7 +30,6 @@
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
-extern uint8_t sinus_table[32];
 volatile uint8_t current_sample_index = 0;
 volatile uint16_t timer_reload_value;
 volatile uint8_t amplitude_value;
@@ -230,7 +229,7 @@ typedef union {
         uint8_t version;
         AR_IS_T AR_IS;
         uint8_t DelayMode;
-        uint8_t BuzzerLevel;
+        uint8_t Volume;
         uint8_t BackLightLevel;
         uint8_t Filter;
         uint8_t ParMode;
