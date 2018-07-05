@@ -21,23 +21,23 @@ void display_big_font_label(const char * msg) {
 
 void DisplayTime(NumberSelection_t * t) {
     char msg[16];
-    uint8_t hour,minute;
-    hour = t->value/60;
+    uint8_t hour, minute;
+    hour = t->value / 60;
     hour %= 12;
-    hour = (hour==0)?12:hour;
+    hour = (hour == 0) ? 12 : hour;
     minute = t->value % 60;
     set_screen_title(t->MenuTitle);
     print_header();
-    sprintf(msg, "%02d:%02d", hour,minute);
+    sprintf(msg, "%02d:%02d", hour, minute);
     display_big_font_label(msg);
-    if (rtc_time.msec <500 || 
-            (rtc_time.msec > 1000 && rtc_time.msec<1500)) {
-        uint8_t block_start, block_end,w;
+    if (rtc_time.msec < 500 ||
+            (rtc_time.msec > 1000 && rtc_time.msec < 1500)) {
+        uint8_t block_start, block_end, w;
         w = BigFont->char_descriptors[':' - BigFont->char_start].width;
         if (t->state == 0) {
             block_start = (LCD_WIDTH - old_label_len) / 2;
             block_end = block_start;
-            block_end += (old_label_len) / 2-w;
+            block_end += (old_label_len) / 2 - w;
         } else {
             block_start = (LCD_WIDTH - old_label_len) / 2;
             block_end = LCD_WIDTH - block_start;

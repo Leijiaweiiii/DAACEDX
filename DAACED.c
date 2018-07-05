@@ -149,7 +149,8 @@ void initialize_backlight() {
     PR2 = PRvalue;
 }
 
-void set_backlight(uint8_t duty_cycle) {
+void set_backlight(uint8_t level) {
+    uint8_t duty_cycle = level * 10;
     PWM6CONbits.EN = 0;
     if (duty_cycle == 0) {
         LATEbits.LATE6 = 1;
@@ -1240,7 +1241,7 @@ void ReviewDisplay() {
                 (float) ShootString.shots[curr_index].dt / 1000,
                 mode
                 );
-        if(lcd_string_lenght(message,MediumFont)> 134)
+        if (lcd_string_lenght(message, MediumFont) > 134)
             lcd_write_string(message, 1, line, SmallFont, (i != 1)&0x01);
         else
             lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
@@ -1484,9 +1485,9 @@ void print_batery_info() {
     uint8_t num_bars = number_of_battery_bars();
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
-    
+
     for (uint8_t i = 5; i > 0; i--) {
-        if (i<=num_bars) {
+        if (i <= num_bars) {
             lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
             col += battery_middle_full_bitmap.width_in_bits;
         } else {
@@ -1521,7 +1522,7 @@ void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uin
 
 void print_footer() {
     char message[20];
-    if(!InputFlags.FOOTER_CHANGED)
+    if (!InputFlags.FOOTER_CHANGED)
         return;
     InputFlags.FOOTER_CHANGED = False;
     lcd_fill_block(0, UI_FOOTER_START_LINE, LCD_WIDTH, LCD_HEIGHT);
@@ -1586,7 +1587,7 @@ void DoPowerOff() {
 void DoPowerOn() {
     PIC_init();
     initialize_backlight();
-    set_backlight(5);
+    set_backlight(2);
     spi_init();
     lcd_init();
     lcd_set_orientation();
@@ -1838,7 +1839,7 @@ static void interrupt isr(void) {
                 CONSUME_CHARGE_ADD(2000);
             default:
                 ADC_ENABLE_INTERRUPT_BATTERY;
-                CONSUME_BACKLIGHT(2000,current_backlight);
+                CONSUME_BACKLIGHT(2000, current_backlight);
                 CONSUME_POWER_ON(2000);
                 break;
         }
@@ -1875,7 +1876,10 @@ void main(void) {
     while (True) {
         //TODO: Integrate watchdog timer
         handle_ui();
-        frames_count++;
+        //        for (uint8_t i = 0;i<4;i++){
+        //            generate_sinus(i,1000,200);
+        //            delay_rtc_ms(1000);
+        //        }
     }
     // </editor-fold>
 }

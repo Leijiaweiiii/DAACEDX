@@ -114,9 +114,6 @@ const FONT_INFO *SmallFont = &patuaOne_16ptFontInfo;
 const FONT_INFO *MediumFont = &patuaOne_22ptFontInfo;
 const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 
-
-volatile uint8_t frames_count = 0;
-
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="ST75256 COMMANDS">
