@@ -1052,9 +1052,9 @@ void SetCountDown(SettingsMenu_t * m) {
 void SetTilt(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
-    strmycpy(m->MenuTitle, "Tilt");
-    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Top UP");
-    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Top DOWN");
+    strmycpy(m->MenuTitle, "Orientation");
+    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Upright");
+    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Upside-down");
     m->menu = Orientation;
 
     do {
@@ -1162,7 +1162,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     strmycpy(SettingsMenu->MenuItem[4], " Timer Mode ");
     strmycpy(SettingsMenu->MenuItem[5], " Clock ");
     strmycpy(SettingsMenu->MenuItem[6], " Countdown ");
-    strmycpy(SettingsMenu->MenuItem[7], " Tilt ");
+    strmycpy(SettingsMenu->MenuItem[7], " Display Orientation ");
     strmycpy(SettingsMenu->MenuItem[8], " Backlight ");
     strmycpy(SettingsMenu->MenuItem[9], " Sensitivity ");
     strmycpy(SettingsMenu->MenuItem[10], " Filter ");
