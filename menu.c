@@ -5,8 +5,14 @@
 uint8_t old_label_len = 0;
 
 void display_big_font_label(const char * msg) {
-    uint8_t len = 0;
-    len = lcd_string_lenght(msg, BigFont);
+    uint16_t len = 0;
+    FONT_INFO * font = BigFont;
+
+    len = lcd_string_lenght(msg, font);
+    if (len + 20 > LCD_WIDTH) {
+        font = MediumFont;
+        len = lcd_string_lenght(msg, font);
+    }
     if (len != old_label_len) {
         uint8_t block_start = (LCD_WIDTH - old_label_len) / 2;
         lcd_clear_block(
@@ -16,7 +22,7 @@ void display_big_font_label(const char * msg) {
                 UI_HEADER_END_LINE + 24 + BigFont->height);
         old_label_len = len;
     }
-    lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE + 24, BigFont, BLACK_OVER_WHITE);
+    lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE + 24, font, BLACK_OVER_WHITE);
 }
 
 void DisplayTime(NumberSelection_t * t) {
