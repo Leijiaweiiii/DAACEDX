@@ -1532,25 +1532,25 @@ void print_footer() {
     lcd_fill_block(0, UI_FOOTER_START_LINE, LCD_WIDTH, LCD_HEIGHT);
     sprintf(message, " 1st: %3.2f", (float) ShootString.shots[0].dt / 1000);
     print_label_at_footer_grid(message, 0, 0);
-    sprintf(message, " Shots: %2d", ShootString.TotShoots);
+    sprintf(message, "Shots: %2d", ShootString.TotShoots);
     print_label_at_footer_grid(message, 1, 0);
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: sprintf(message, " Delay: 0.0s");
+        case DELAY_MODE_Instant: sprintf(message, " Delay: 0.0");
             break;
-        case DELAY_MODE_Fixed: sprintf(message, " Delay: 3.0s");
+        case DELAY_MODE_Fixed: sprintf(message, " Delay: 3.0");
             break;
         case DELAY_MODE_Random: sprintf(message, " Delay: RND");
             break;
-        case DELAY_MODE_Custom: sprintf(message, " Delay: %1.1fs", (float) (Settings.DelayTime) / 1000);
+        case DELAY_MODE_Custom: sprintf(message, " Delay: %1.1f", (float) (Settings.DelayTime) / 1000);
             break;
     }
     //    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
     if (Settings.TotPar > 0) {
-        sprintf(message, "P%02d:%3.1f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
+        sprintf(message, "Par%02d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
     } else {
-        sprintf(message, " P: Off");
+        sprintf(message, " Par: Off");
     }
     //    sprintf(message, "%u", rtc_time.msec);
     print_label_at_footer_grid(message, 1, 1);
