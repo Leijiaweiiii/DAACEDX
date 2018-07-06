@@ -102,14 +102,14 @@ void initialize_rtc_timer() {
     T3CONbits.CKPS = 0b00; // don't prescale - we need seconds
     T3CONbits.NOT_SYNC = 1; // Async for operation during sleep
     T3CONbits.RD16 = 1;
-    T3GCONbits.GE = 0;
+    T3GCONbits.GE = 1;
 
     PMD1bits.TMR5MD = 0; // Enable perepherial timer 5
     TMR5CLKbits.CS = 0b1010; // TIMER5 clock source is TIMER3
     T5CONbits.CKPS = 0b00; // don't prescale - we need seconds
     T5CONbits.NOT_SYNC = 1; // Async for operation during sleep
     T5CONbits.RD16 = 1;
-    T5GCONbits.GE = 0;
+    T5GCONbits.GE = 1;
 
     T1CONbits.ON = 1; //TIMER1 start.
     T3CONbits.ON = 1; //TIMER3 start.
@@ -134,57 +134,31 @@ void init_ms_timer0() {
 // </editor-fold>
 
 uint8_t get_hour() {
-    time_t const_time = rtc_time.sec << 1;
-    uint8_t res = gmtime(&const_time)->tm_hour;
-    if (res > 12)
-        res -= 12;
-    else if (res == 0)
-        res = 12;
-    return res;
+    return _hour;
 }
 
 uint8_t get_minute() {
-    time_t const_time = rtc_time.sec << 1;
-    return gmtime(&const_time)->tm_min;
+    return _minute;
 }
 
-uint8_t get_second() {
-    time_t const_time = rtc_time.sec << 1;
-    return gmtime(&const_time)->tm_sec;
-}
-
-void set_rtc_time(time_t x) {
-    di();
-    rtc_time.sec = x;
-    T1CONbits.ON = 0; //TIMER1 stop.
-    T3CONbits.ON = 0; //TIMER3 stop.
-    T5CONbits.ON = 0; //TIMER5 stop.
-    TMR1 = 0x0000;
-    //    TMR1H = 0;
-    //    TMR1L = 0;
-    TMR3 = rtc_time.sec_lsb;
-    //    TMR3L = LSB(rtc_time.sec_lsb);
-    //    TMR3H = MSB(rtc_time.sec_lsb);
-    TMR5 = rtc_time.sec_msb;
-    //    TMR5L = LSB(rtc_time.sec_msb);
-    //    TMR5H = MSB(rtc_time.sec_msb);
-    T1CONbits.ON = 1; //TIMER1 start.
-    T3CONbits.ON = 1; //TIMER3 start.
-    T5CONbits.ON = 1; //TIMER5 start.
-    ei();
-    update_rtc_time();
+void tic_2_sec(){
+    _2sec++;
+    if(_2sec==30){
+        _2sec = 0;
+        _minute++;
+        if(_minute == 60){
+            _minute = 0;
+            _hour ++;
+            if(_hour == 24){
+                _hour = 0;
+            }
+        }
+    }
 }
 
 void set_time(uint8_t h, uint8_t m, uint8_t s) {
-    // TODO: Review and fix - something broken here
-    struct tm * t;
-    time_t time = rtc_time.sec;
-    t = gmtime(&time);
-    t->tm_min = m;
-    t->tm_hour = h;
-    t->tm_sec = s;
-    time_t newtime = mktime(t);
-    set_rtc_time(newtime);
+_hour = h;
+_minute = m;
 }
 
 time_t get_corrected_time_msec() {

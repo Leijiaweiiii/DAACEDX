@@ -75,7 +75,7 @@ extern "C" {
 #define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();}
 #define STATE_HANDLE_SETTINGS_SCREEN    {ui_state = SettingsScreen;lcd_clear();DoSettings();}
 #define STATE_HANDLE_COUNTDOWN          {ui_state = TimerCountdown;lcd_clear();StartTimer();}
-#define STATE_HANDLE_CHARGING           {ui_state = ChargerScreen;set_backlight(1);DoCharging();}
+#define STATE_HANDLE_CHARGING           {ui_state = ChargerScreen;set_backlight(0);}
 #ifdef	__cplusplus
 }
 #endif

@@ -902,28 +902,34 @@ void SetMode(SettingsMenu_t * m) {
 
 void SetClock() {
     NumberSelection_t ts;
-    time_t minute;
+    uint8_t h = get_hour(), m = get_minute();
     InitSettingsNumberDefaults((&ts));
-    minute = rtc_time.sec / 30;
     ts.min = 0;
-    ts.max = 0x7FFFFF;
-    ts.value = minute;
+    ts.max = 23;
+    ts.value = h;
     ts.old_value = ts.value;
-    ts.step = 60;
+    ts.step = 1;
     strmycpy(ts.MenuTitle, "Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
+    set_screen_title(ts.MenuTitle);
     do {
-        DisplayTime(&ts);
-        SelectInteger(&ts);
-        if (ts.selected && ts.state == 0) {
-            ts.state = 1;
-            ts.selected = False;
-            ts.done = False;
-            ts.step = 1;
-        }
+        DisplayTime(ts.value, m, ts.state);
+        SelectIntegerCircular(&ts);
     } while (SettingsNotDone((&ts)));
-    if (ts.selected && ts.old_value != ts.value) {
-        set_rtc_time(ts.value * 30);
+    if (ts.selected && ts.state == 0) {
+        ts.state = 1;
+        ts.selected = False;
+        ts.done = False;
+        ts.max = 59;
+        h = ts.value;
+        ts.value = m;
+        do {
+            DisplayTime(h, ts.value, ts.state);
+            SelectIntegerCircular(&ts);
+        } while (SettingsNotDone((&ts)));        
+    }
+    if (ts.selected && (h != get_hour()|| ts.value != m)) {
+        set_time(h, ts.value, 0);
         comandToHandle = TimeChanged;
     }
 }
@@ -1825,13 +1831,14 @@ static void interrupt isr(void) {
     } else if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         _update_rtc_time();
+        tic_2_sec();
         switch (ui_state) {
             case TimerListening:
             case TimerCountdown:
                 break;
             case PowerOff:
                 define_charger_state();
-                CONSUME_POWER_OFF(2000);
+                CONSUME_POWER_OFF(900);
                 break;
             case ChargerScreen:
                 CONSUME_CHARGE_ADD(2000);

@@ -66,20 +66,16 @@ void StopTimer() {
 
 void handle_charger_connected() {
     switch (comandToHandle) {
-        case ReviewLong:
-        case OkLong:
         case StartLong:STATE_HANDLE_POWER_ON;
             break;
-        case ChargerEvent:
-            DoCharging();
-            break;
         default:
+            DoCharging();
             break;
     }
 }
 
 void handle_power_off() {
-    if (LATEbits.LATE0 == 1) {
+    if (PORTEbits.RE0 == 1) {
         // if power is on, turn it off. Then we'll handle all the rest properly
         // Power off will sleep, then if wakeup occured, we'll handle power ON
         DoPowerOff();
@@ -104,12 +100,12 @@ void handle_power_off() {
 
 void handle_timer_idle_shutdown() {
     _update_rtc_time();
-    if (comandToHandle != None) {
+    if (comandToHandle != None && comandToHandle != ChargerEvent) {
         timer_idle_last_action_time = rtc_time.unix_time_ms;
         set_backlight(Settings.BackLightLevel);
-    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_shutdown_timeout) {
+    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time > timer_idle_shutdown_timeout) {
         comandToHandle = StartLong;
-    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time >= timer_idle_dim_timeout) {
+    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time > timer_idle_dim_timeout) {
         set_backlight(0);
     }
 }
@@ -295,7 +291,7 @@ TBool is_long_press_repeatable() {
 }
 
 void define_input_action() {
-    
+
     if (InputFlags.KEY_RELEASED && Keypressed) {
         InputFlags.KEY_RELEASED = False;
         switch (Key) {
@@ -349,11 +345,11 @@ void define_input_action() {
                 //user can press anything, but we can handle only specific gestures
                 break;
         }
-    } else {
-        define_charger_state();
-        if (charger_state_changed)
-            comandToHandle = ChargerEvent;
     }
+    define_charger_state();
+    if (charger_state_changed)
+        comandToHandle = ChargerEvent;
+
     handle_timer_idle_shutdown();
 }
 

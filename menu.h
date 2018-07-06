@@ -90,10 +90,11 @@ extern "C" {
     void SelectMenuItemCircular(SettingsMenu_t* s);
     void DisplaySettings(SettingsMenu_t* s);
     void SelectInteger(NumberSelection_t* s);
+    void SelectIntegerCircular(NumberSelection_t* s);
     void SelectDouble(NumberSelection_t* s);
     void DisplayDouble(NumberSelection_t* s);
     void DisplayInteger(NumberSelection_t* s);
-    void DisplayTime(NumberSelection_t * t);
+    void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state);
     extern uint8_t print_header(); // implemented in DAACED.c
     void display_big_font_label(const char * msg);
 #ifdef	__cplusplus

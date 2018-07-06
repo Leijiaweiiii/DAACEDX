@@ -25,29 +25,25 @@ void display_big_font_label(const char * msg) {
     lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE + 24, font, BLACK_OVER_WHITE);
 }
 
-void DisplayTime(NumberSelection_t * t) {
+void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
     char msg[16];
-    uint8_t hour, minute;
-    hour = t->value / 60;
-    hour %= 12;
-    hour = (hour == 0) ? 12 : hour;
-    minute = t->value % 60;
-    set_screen_title(t->MenuTitle);
     print_header();
     sprintf(msg, "%02d:%02d", hour, minute);
     display_big_font_label(msg);
     if (rtc_time.msec < 500 ||
             (rtc_time.msec > 1000 && rtc_time.msec < 1500)) {
-        uint8_t block_start, block_end, w;
-        w = BigFont->char_descriptors[':' - BigFont->char_start].width;
-        if (t->state == 0) {
-            block_start = (LCD_WIDTH - old_label_len) / 2;
-            block_end = block_start;
-            block_end += (old_label_len) / 2 - w;
+        uint8_t block_start, block_end, w,margin;
+        margin = (LCD_WIDTH - old_label_len) / 2;
+        w = BigFont->char_descriptors[':' - BigFont->char_start].width + 1;
+        if (state == 0) {
+            block_start = margin;
+            sprintf(msg, "%02d", hour);
+            block_end = block_start + lcd_string_lenght(msg,BigFont);
         } else {
-            block_start = (LCD_WIDTH - old_label_len) / 2;
-            block_end = LCD_WIDTH - block_start;
-            block_start += (old_label_len) / 2;
+            block_end = LCD_WIDTH - margin;
+            sprintf(msg, "%02d",minute);
+            block_start = block_end - lcd_string_lenght(msg,BigFont);
+            block_start -= 1;
         }
         lcd_clear_block(
                 block_start,
@@ -232,6 +228,48 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
         case BackLong:
             s->selected = False;
             s->done = True;
+            break;
+        case StartLong:STATE_HANDLE_POWER_OFF;
+            break;
+        case StartShort:STATE_HANDLE_TIMER_IDLE;
+            break;
+            //        case ReviewShort:ui_state = ReviewScreen;
+            //            break;
+        case ChargerEvent:STATE_HANDLE_CHARGING;
+            break;
+        default:
+            break;
+    }
+    comandToHandle = None;
+}
+void SelectIntegerCircular(NumberSelection_t* sm) {
+    define_input_action();
+    switch (comandToHandle) {
+        case UpLong:
+        case UpShort:
+            if (sm->value < sm->max) {
+                sm->value += sm->step;
+            } else {
+                sm->value = sm->min;
+            }
+            break;
+        case DownLong:
+        case DownShort:
+            if (sm->value > sm->min) {
+                sm->value -= sm->step;
+            } else {
+                sm->value = sm->max;
+            }
+            break;
+        case BackShort:
+        case BackLong:
+            sm->selected = False;
+            sm->done = True;
+            break;
+        case OkShort:
+        case OkLong:
+            sm->done = True;
+            sm->selected = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;

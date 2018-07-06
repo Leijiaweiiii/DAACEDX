@@ -29,7 +29,7 @@ typedef struct{
     uint16_t msec;
 }rtc_time_t;
 rtc_time_t rtc_time;
-
+uint8_t _hour,_minute,_2sec;
 void set_rtc_time(time_t x);
 // Taking only 10 bits - the MSB is 2 seconds
 #define rtc_time_2k_msec    (TMR1>>5)
@@ -43,7 +43,7 @@ void init_ms_timer0();
 
 uint8_t get_hour();
 uint8_t get_minute();
-uint8_t get_second();
+void tic_2_sec();
 uint16_t get_ms_corrected();
 time_t get_corrected_time_msec();
 void set_time(uint8_t h, uint8_t m, uint8_t s);
