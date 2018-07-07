@@ -18,8 +18,8 @@ void eeprom_spi_init() {
 
     SSP2STAT &= 0x3F;
     SSP2CON1 = 0x00; // power on state.
-//    SSP2CON1bits.SSPM = 0b0010;
-    SSP2CON1bits.SSPM = 0b0001;
+    SSP2CON1bits.SSPM = 0b0010;
+//    SSP2CON1bits.SSPM = 0b0001;
     SSP2STATbits.SMP = 0;
 
     SSP2CON1bits.CKP = 1;

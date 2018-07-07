@@ -116,11 +116,11 @@ union {
     uint8_t byte;
 
     struct {
-        unsigned A_RELEASED     :1;
-        unsigned B_RELEASED     :1;
-        unsigned KEY_RELEASED   :1;
-        unsigned WAKEUP         :1;
-        unsigned FOOTER_CHANGED :1;
+        unsigned A_RELEASED : 1;
+        unsigned B_RELEASED : 1;
+        unsigned KEY_RELEASED : 1;
+        unsigned WAKEUP : 1;
+        unsigned FOOTER_CHANGED : 1;
     };
 } InputFlags;
 
@@ -133,7 +133,6 @@ typedef enum {
 #define INPUT_TYPE_Microphone       0
 #define INPUT_TYPE_A_or_B_multiple  1
 #define INPUT_TYPE_A_and_B_single   2
-
 
 typedef struct {
     uint8_t input;
@@ -153,19 +152,23 @@ time_t timer_idle_last_action_time;
 #define MAXSHOOTSTRINGS              (30)
 #define MAXSHOOT                     (100)
 #define Size_of_ShootString         (402)
+#define SIZE_OF_SHOT_T              (4)
+typedef union {
+    uint8_t data[SIZE_OF_SHOT_T];
 
-typedef struct {
-    union {
-        uint8_t is_flags;
+    struct {
+        union {
+            uint8_t is_flags;
 
-        struct {
-            unsigned is_mic : 1;
-            unsigned is_a : 1;
-            unsigned is_b : 1;
-            unsigned unused : 5;
+            struct {
+                unsigned is_mic : 1;
+                unsigned is_a : 1;
+                unsigned is_b : 1;
+                unsigned unused : 5;
+            };
         };
+        uint24_t dt;
     };
-    uint24_t dt;
 } shot_t;
 
 typedef union {
@@ -196,7 +199,7 @@ uint16_t CurrStringStartAddress;
 
 #define DETECT_THRESHOLD_LEVELS 13
 #define DEFAULT_SENSITIVITY     73
-const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = { 220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
+const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
 uint16_t DetectThreshold;
 time_t countdown_start_time;
@@ -277,4 +280,5 @@ void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uin
 void saveShootString(void);
 void _update_rtc_time();
 void getShootString(uint8_t offset);
+void save_shots_if_required();
 #endif /*  _DAACED_H_ */

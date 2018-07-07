@@ -154,7 +154,7 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-            saveShootString();
+            save_shots_if_required();
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
@@ -168,23 +168,21 @@ void HandleTimerEvents() {
 }
 
 void handle_timer_listening() {
+    save_shots_if_required();
     update_shot_time_on_screen();
     print_header();
     print_footer();
     switch (comandToHandle) {
         case StartLong:
-            saveShootString();
             STATE_HANDLE_POWER_OFF;
             break;
         case StartShort:
             if (AutoStart) {
-                saveShootString();
                 STATE_HANDLE_COUNTDOWN;
             }
             break;
         case ReviewLong:
         case ReviewShort:
-            saveShootString();
             STATE_HANDLE_REVIEW_SCREEN;
             break;
         default:

@@ -362,8 +362,42 @@ void saveShootString(void) {
     addr = findStringAddress(index);
     eeprom_write_array(addr, ShootString.data, Size_of_ShootString);
     eeprom_write_data(addr, 1);
-    index = findCurStringIndex();
+}
 
+void saveOneShot(uint8_t shot_number) {
+    uint8_t index;
+    uint16_t addr;
+    shot_t test0;
+    index = findCurStringIndex();
+    addr = findStringAddress(index);
+    if (shot_number == 0) {
+        eeprom_write_data(addr, 0); // Mark old sot not last
+        index++;
+        if (index >= MAXSHOOTSTRINGS)
+            index = 0;
+        addr = findStringAddress(index);
+        eeprom_write_data(addr, 1); // Matk this shot last
+    }
+    addr++;
+    eeprom_write_data(addr, shot_number + 1);
+    addr++;
+    addr += shot_number * SIZE_OF_SHOT_T;
+    eeprom_write_array(addr, &(ShootString.shots[shot_number]), SIZE_OF_SHOT_T);
+    eeprom_read_array(addr, &(test0.data), SIZE_OF_SHOT_T);
+}
+
+uint8_t last_saved_shot;
+
+void save_shots_if_required() {
+    uint8_t const_shots;
+    const_shots = ShootString.TotShoots; // TotShots changed in the interrupt, so let's save it here for the calculation
+    UNUSED(const_shots); // trick for compiler not to optimize this variable and put it in RAM
+    if (last_saved_shot < const_shots) {
+        do {
+            saveOneShot(last_saved_shot);
+            last_saved_shot++;
+        } while (last_saved_shot < const_shots);
+    }
 }
 
 void getShootString(uint8_t offset) {
@@ -926,9 +960,9 @@ void SetClock() {
         do {
             DisplayTime(h, ts.value, ts.state);
             SelectIntegerCircular(&ts);
-        } while (SettingsNotDone((&ts)));        
+        } while (SettingsNotDone((&ts)));
     }
-    if (ts.selected && (h != get_hour()|| ts.value != m)) {
+    if (ts.selected && (h != get_hour() || ts.value != m)) {
         set_time(h, ts.value, 0);
         comandToHandle = TimeChanged;
     }
@@ -1558,6 +1592,7 @@ void print_footer() {
 
 void StartListenShots(void) {
     ShootString_start_time = rtc_time.unix_time_ms;
+    last_saved_shot = 0;
     DetectInit();
 }
 // </editor-fold>
