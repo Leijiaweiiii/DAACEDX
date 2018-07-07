@@ -37,7 +37,7 @@ uint8_t head_index = 0;
 #define ADC_MIDDLE_VALUE            (samples[ADC_MIFDDLE_INDEX])
 #define ADC_LATEST_VALUE            (samples[head_index])
 #define ADC_DETECTION_THRESHOLD     200
-#define ADC_SAMPLE_REG_16_BIT       ((ADRESH << 8) | ADRESL)
+#define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
 
 TBool AdcDetect();
 uint16_t median_v = 0;
