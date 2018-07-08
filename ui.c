@@ -61,6 +61,7 @@ void StopTimer() {
     print_footer();
     InputFlags.FOOTER_CHANGED = True;
     update_shot_time_on_screen();
+    update_rtc_time();
     timer_idle_last_action_time = rtc_time.unix_time_ms;
 }
 
@@ -103,10 +104,13 @@ void handle_timer_idle_shutdown() {
     if (comandToHandle != None && comandToHandle != ChargerEvent) {
         timer_idle_last_action_time = rtc_time.unix_time_ms;
         set_backlight(Settings.BackLightLevel);
-    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time > timer_idle_shutdown_timeout) {
-        comandToHandle = StartLong;
-    } else if (rtc_time.unix_time_ms - timer_idle_last_action_time > timer_idle_dim_timeout) {
-        set_backlight(0);
+    } else {
+        time_t inactive_time = rtc_time.unix_time_ms - timer_idle_last_action_time;
+        if (inactive_time > timer_idle_shutdown_timeout) {
+            comandToHandle = StartLong;
+        } else if (inactive_time > timer_idle_dim_timeout) {
+            set_backlight(0);
+        }
     }
 }
 
@@ -347,8 +351,8 @@ void define_input_action() {
     define_charger_state();
     if (charger_state_changed)
         comandToHandle = ChargerEvent;
-
-    handle_timer_idle_shutdown();
+    else
+        handle_timer_idle_shutdown();
 }
 
 void handle_ui() {

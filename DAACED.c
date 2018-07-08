@@ -151,6 +151,8 @@ void initialize_backlight() {
 
 void set_backlight(uint8_t level) {
     uint8_t duty_cycle = level * 10;
+    if(current_backlight==duty_cycle)
+        return;
     PWM6CONbits.EN = 0;
     if (duty_cycle == 0) {
         LATEbits.LATE6 = 1;
