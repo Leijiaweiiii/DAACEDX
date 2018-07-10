@@ -44,6 +44,7 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
+    _update_rtc_time();
     uint24_t reminder = Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
@@ -117,13 +118,13 @@ void handle_timer_idle_shutdown() {
 void handle_timer_idle() {
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
-            set_screen_title("Microphone ");
+            set_screen_title("   Mic ");
             break;
         case INPUT_TYPE_A_and_B_single:
-            set_screen_title("A+B single ");
+            set_screen_title(" A+B single ");
             break;
         case INPUT_TYPE_A_or_B_multiple:
-            set_screen_title("A/B multi ");
+            set_screen_title(" A/B multi ");
             break;
     }
     update_shot_time_on_screen();

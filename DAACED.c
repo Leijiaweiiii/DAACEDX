@@ -151,7 +151,7 @@ void initialize_backlight() {
 
 void set_backlight(uint8_t level) {
     uint8_t duty_cycle = level * 10;
-    if(current_backlight==duty_cycle)
+    if (current_backlight == duty_cycle)
         return;
     PWM6CONbits.EN = 0;
     if (duty_cycle == 0) {
@@ -535,6 +535,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
                 res = EditPar(Settings.TotPar);
                 if (res) { // Roll back if not selected
                     Settings.TotPar++;
+                    m->menu++;
                 } else {
                     Settings.ParTime[Settings.TotPar] = 0;
                 }
@@ -1212,7 +1213,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     strmycpy(SettingsMenu->MenuItem[12], " Bluetooth ");
     strmycpy(SettingsMenu->MenuItem[13], " Reset Settings ");
     strmycpy(SettingsMenu->MenuItem[14], " Clear History ");
-    sprintf(SettingsMenu->MenuItem[15], " FW version: %0X ", Settings.version);
+    sprintf(SettingsMenu->MenuItem[15], " FW version: %02d ", Settings.version);
 }
 
 void DoSettings(void) {
@@ -1490,9 +1491,8 @@ void DetectInit(void) {
 uint8_t print_time() {
     char message[30];
     sprintf(message,
-            "%02d%s%02d ",
+            "%02d:%02d ",
             get_hour(),
-            (rtc_time.msec < 250 || rtc_time.msec > 1750) ? "." : ":",
             get_minute());
     lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
     sprintf(message, "%s", ScreenTitle);
@@ -1584,9 +1584,9 @@ void print_footer() {
     print_label_at_footer_grid(message, 0, 1);
 
     if (Settings.TotPar > 0) {
-        sprintf(message, "Par%02d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
+        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
     } else {
-        sprintf(message, " Par: Off");
+        sprintf(message, "Par: Off");
     }
     //    sprintf(message, "%u", rtc_time.msec);
     print_label_at_footer_grid(message, 1, 1);
@@ -1782,9 +1782,9 @@ void UpdateShot(time_t now, ShotInput_t input) {
     if (ddt > Settings.Filter) {
         ShootString.shots[ShootString.TotShoots].dt = dt;
         ShootString.shots[ShootString.TotShoots].is_flags = input;
-        ShootString.TotShoots++;
-        if (ShootString.TotShoots >= MAXSHOOT)
-            timerEventToHandle = TimerTimeout;
+        if (ShootString.TotShoots < MAXSHOOT) {
+            ShootString.TotShoots++;
+        }
         InputFlags.FOOTER_CHANGED = True;
     }
 }
