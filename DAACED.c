@@ -119,7 +119,7 @@ void PIC_init(void) {
     TRISC = 0b11100101; // C6 = TX, C7 RX
     // C3 = DP_SCL(OP), C4 = DP_SDA(OP)
 
-    TRISD = 0b00110111; // EEPROM SPI SDI=5 SCK=6 SDO=7
+    TRISD = 0b00110000; // EEPROM SPI SDI=5 SCK=6 SDO=7
     ANSELD = 0b00000000;
 
     TRISE = 0b10111010; // E0 = POWER(OP), E6 = BL_EN(OP)
@@ -254,7 +254,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
             DAC1CON1 = dac_value;
             for (uint16_t delay = 0; delay < sinus_sample_update_period_us; delay++)
                 __delay_us(1);
-            if (!(GO_nDONE)) {
+            if (Settings.InputType == INPUT_TYPE_Microphone && !(GO_nDONE)) {
                 if (!InputFlags.ADC_DETECTED) {
                     InputFlags.ADC_DETECTED = 1;
                     samples[head_index] = ADC_SAMPLE_REG_16_BIT;
@@ -1485,13 +1485,15 @@ void DetectInit(void) {
             DetectThreshold = Mean + Settings.Sensitivity;
             ADC_ENABLE_INTERRUPT_ENVELOPE;
             // Enable output driver for A/B I/O
-            TRISDbits.TRISD1 = 1;
-            TRISDbits.TRISD2 = 1;
+            TRISDbits.TRISD0 = 0;
+            TRISDbits.TRISD1 = 0;
+            TRISDbits.TRISD2 = 0;
             break;
         default:
             InputFlags.A_RELEASED = True;
             InputFlags.B_RELEASED = True;
             // Disable output driver for A/B I/O
+            TRISDbits.TRISD0 = 0;
             TRISDbits.TRISD1 = 0;
             TRISDbits.TRISD2 = 0;
             break;
@@ -1516,7 +1518,6 @@ void print_batery_text_info() {
     sprintf(message,
             "%d",
             battery_level
-            //            (PORTD & 0b11000)
             );
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
@@ -1593,12 +1594,12 @@ void print_footer() {
     //    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
-    //    if (Settings.TotPar > 0) {
-    //        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
-    //    } else {
-    //        sprintf(message, "Par: Off");
-    //    }
-    sprintf(message, "%d", rtc_time.sec);
+        if (Settings.TotPar > 0) {
+            sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
+        } else {
+            sprintf(message, "Par: Off");
+    }
+    //    sprintf(message, "%d", PORTD & 0x07);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -1716,25 +1717,33 @@ void update_shot_time_on_screen() {
 
 void PlayParSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 1;
-        AUX_B = 1;
+        TRISDbits.TRISD1 = 1;
+        TRISDbits.TRISD2 = 1;
+        LATDbits.LATD1 = 1;
+        LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 0;
-        AUX_B = 0;
+        TRISDbits.TRISD1 = 0;
+        TRISDbits.TRISD2 = 0;
+        LATDbits.LATD1 = 0;
+        LATDbits.LATD2 = 0;
     }
 }
 
 void PlayStartSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 1;
-        AUX_B = 1;
+        TRISDbits.TRISD1 = 1;
+        TRISDbits.TRISD2 = 1;
+        LATDbits.LATD1 = 1;
+        LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        AUX_A = 0;
-        AUX_B = 0;
+        TRISDbits.TRISD1 = 0;
+        TRISDbits.TRISD2 = 0;
+        LATDbits.LATD1 = 0;
+        LATDbits.LATD2 = 0;
     }
 }
 
@@ -1762,6 +1771,7 @@ void StartCountdownTimer() {
             eeprom_read_array(SettingAddress(Settings, Settings.DelayTime), (uint8_t *)&(Settings.DelayTime), 4);
             break;
     }
+    update_rtc_time();
     countdown_start_time = rtc_time.unix_time_ms;
     ShootString_start_time = countdown_start_time;
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
@@ -1769,14 +1779,8 @@ void StartCountdownTimer() {
     }
 }
 
-void _update_rtc_time() {
-    update_rtc_time();
-    if (rtc_time.msec < 100)
-        update_rtc_time();
-}
-
 void UpdateShotNow(ShotInput_t x) {
-    _update_rtc_time();
+    update_rtc_time();
     UpdateShot(rtc_time.unix_time_ms, x);
 }
 
@@ -1828,15 +1832,19 @@ void update_screen_model() {
         switch (Settings.InputType) {
             case INPUT_TYPE_A_or_B_multiple:
                 if (InputFlags.A_RELEASED && !AUX_A) {
+                    InputFlags.A_RELEASED = 0;
                     UpdateShotNow(A);
                 } else if (InputFlags.B_RELEASED && !AUX_B) {
+                    InputFlags.B_RELEASED = 0;
                     UpdateShotNow(B);
                 }
                 break;
             case INPUT_TYPE_A_and_B_single:
                 if (InputFlags.A_RELEASED && !AUX_A) {
+                    InputFlags.A_RELEASED = 0;
                     UpdateShotNow(A);
                 } else if (InputFlags.A_RELEASED && !AUX_B) {
+                    InputFlags.A_RELEASED = 0;
                     UpdateShotNow(B);
                 }
                 // TODO: Fix This should capture only one of A and one of B

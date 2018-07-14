@@ -44,7 +44,7 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    _update_rtc_time();
+    update_rtc_time();
     uint24_t reminder = Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
@@ -101,7 +101,7 @@ void handle_power_off() {
 }
 
 void handle_timer_idle_shutdown() {
-    _update_rtc_time();
+    update_rtc_time();
     if (comandToHandle != None && comandToHandle != ChargerEvent) {
         timer_idle_last_action_time = rtc_time.sec;
         set_backlight(Settings.BackLightLevel);
@@ -272,11 +272,11 @@ void handle_countdown() {
 
 TBool is_long_press() {
     //TODO: try save memory taking lower byte to save memory...
-    _update_rtc_time();
+    update_rtc_time();
     time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
     do {
-        _update_rtc_time();
+        update_rtc_time();
         duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             break;
@@ -285,11 +285,11 @@ TBool is_long_press() {
 }
 
 TBool is_long_press_repeatable() {
-    _update_rtc_time();
+    update_rtc_time();
     time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
     do {
-        _update_rtc_time();
+        update_rtc_time();
         duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
