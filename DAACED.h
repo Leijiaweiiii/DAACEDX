@@ -121,6 +121,7 @@ union {
         unsigned KEY_RELEASED : 1;
         unsigned WAKEUP : 1;
         unsigned FOOTER_CHANGED : 1;
+        unsigned ADC_DETECTED : 1;
     };
 } InputFlags;
 
@@ -273,7 +274,7 @@ void print_footer();
 uint8_t print_time();
 void handle_rotation();
 void UpdateShot(time_t now, ShotInput_t input);
-void UpdateShotNow();
+void UpdateShotNow(ShotInput_t x);
 void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
@@ -284,4 +285,5 @@ void save_shots_if_required();
 void check_countdown_expired();
 void check_par_expired();
 void check_timer_max_time();
+void DetectMicShot();
 #endif /*  _DAACED_H_ */

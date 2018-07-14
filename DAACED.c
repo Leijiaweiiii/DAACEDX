@@ -244,7 +244,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     int32_t no_of_cycles = ((int32_t) duration * 580) / sinus_time_period_us; //1000
 
     if (amplitude == 0) return;
-
+    ADC_DISABLE_INTERRUPT;
     sinus_dac_init();
 
     //TODO: Stop sound when button pressed
@@ -254,9 +254,17 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
             DAC1CON1 = dac_value;
             for (uint16_t delay = 0; delay < sinus_sample_update_period_us; delay++)
                 __delay_us(1);
+            if (!(GO_nDONE)) {
+                if (!InputFlags.ADC_DETECTED) {
+                    InputFlags.ADC_DETECTED = 1;
+                    samples[head_index] = ADC_SAMPLE_REG_16_BIT;
+                    DetectMicShot();
+                }
+            }
         }
     }
     stop_sinus();
+    ADC_ENABLE_INTERRUPT;
     CONSUME_BEEP(duration);
 }
 
@@ -1475,16 +1483,17 @@ void DetectInit(void) {
             Mean = Mean >> 6;
             //    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
             DetectThreshold = Mean + Settings.Sensitivity;
+            ADC_ENABLE_INTERRUPT_ENVELOPE;
             // Enable output driver for A/B I/O
-            TRISDbits.TRISD1 = 0;
-            TRISDbits.TRISD2 = 0;
+            TRISDbits.TRISD1 = 1;
+            TRISDbits.TRISD2 = 1;
             break;
         default:
             InputFlags.A_RELEASED = True;
             InputFlags.B_RELEASED = True;
             // Disable output driver for A/B I/O
-            TRISDbits.TRISD1 = 1;
-            TRISDbits.TRISD2 = 1;
+            TRISDbits.TRISD1 = 0;
+            TRISDbits.TRISD2 = 0;
             break;
     }
 }
@@ -1766,7 +1775,7 @@ void _update_rtc_time() {
         update_rtc_time();
 }
 
-void UpdateShootNow(ShotInput_t x) {
+void UpdateShotNow(ShotInput_t x) {
     _update_rtc_time();
     UpdateShot(rtc_time.unix_time_ms, x);
 }
@@ -1815,23 +1824,20 @@ void check_timer_max_time() {
 }
 
 void update_screen_model() {
-    if (ui_state == TimerListening||ui_state == TimerCountdown) {
+    if (ui_state == TimerListening) {
         switch (Settings.InputType) {
-            case INPUT_TYPE_Microphone:
-//                ADC_ENABLE_INTERRUPT_ENVELOPE;
-                break;
             case INPUT_TYPE_A_or_B_multiple:
-                if (InputFlags.A_RELEASED && AUX_A) {
-                    UpdateShootNow(A);
-                } else if (InputFlags.B_RELEASED && AUX_B) {
-                    UpdateShootNow(B);
+                if (InputFlags.A_RELEASED && !AUX_A) {
+                    UpdateShotNow(A);
+                } else if (InputFlags.B_RELEASED && !AUX_B) {
+                    UpdateShotNow(B);
                 }
                 break;
             case INPUT_TYPE_A_and_B_single:
-                if (InputFlags.A_RELEASED && AUX_A) {
-                    UpdateShootNow(A);
-                } else if (InputFlags.A_RELEASED && AUX_B) {
-                    UpdateShootNow(B);
+                if (InputFlags.A_RELEASED && !AUX_A) {
+                    UpdateShotNow(A);
+                } else if (InputFlags.A_RELEASED && !AUX_B) {
+                    UpdateShotNow(B);
                 }
                 // TODO: Fix This should capture only one of A and one of B
                 timerEventToHandle = TimerTimeout;
@@ -1841,7 +1847,14 @@ void update_screen_model() {
 }
 
 // <editor-fold defaultstate="collapsed" desc="ISR function">
-time_t wakeup_start_time;
+
+void DetectMicShot() {
+    if (ui_state == TimerListening) {
+        if (ADC_LATEST_VALUE > DetectThreshold) {
+            UpdateShotNow(Mic);
+        }
+    }
+}
 
 static void interrupt isr(void) {
 
@@ -1850,13 +1863,19 @@ static void interrupt isr(void) {
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;
         }
+        if (AUX_A) { // high is "open"
+            InputFlags.A_RELEASED = True;
+        }
+        if (AUX_B) {
+            InputFlags.B_RELEASED = True;
+        }
         update_screen_model();
+        ADCON0bits.ADGO = 1;
+        InputFlags.ADC_DETECTED = 0;
     } else if (PIR1bits.ADIF) {
         if (ADPCH == ENVELOPE) {
             ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-            if (ui_state == TimerListening && ADC_LATEST_VALUE > DetectThreshold) {
-                UpdateShootNow(Mic);
-            }
+            DetectMicShot();
         } else if (ADPCH == BATTERY) {
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             uint16_t battery_mV = adc_battery*BAT_divider;

@@ -553,7 +553,7 @@ void lcd_set_orientation() {
         x_offset = 15;
         y_offset = 1;
     }
-    
+
 }
 
 void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {

@@ -253,8 +253,8 @@ void handle_countdown() {
             STATE_HANDLE_TIMER_IDLE;
             break;
         case CountdownExpired:
-            StartListenShots();
             ui_state = TimerListening;
+            StartListenShots();
             update_shot_time_on_screen();
             if (Settings.TotPar > 0)
                 StartParTimer();
