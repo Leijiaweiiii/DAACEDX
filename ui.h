@@ -60,6 +60,7 @@ extern "C" {
 
     char ScreenTitle[32];
 #define set_screen_title(x) {strmycpy(ScreenTitle, x);}
+#define clear_screen_title {for(uint8_t i=0;i<32;i++){ScreenTitle[i] = ' ';}}
 
     void print_big_time_label(uint24_t t);
     void print_line_with_shots_and_split(uint8_t shot_no, time_t split);

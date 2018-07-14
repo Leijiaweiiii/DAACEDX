@@ -141,10 +141,10 @@ typedef struct {
 
 #define AutoStart Settings.AR_IS.Autostart
 #define Orientation Settings.AR_IS.AutoRotate
-// Automatic shutdown after timeout 20 minutes
-#define timer_idle_shutdown_timeout 1200000
-// Dim light after 45 seconds
-#define timer_idle_dim_timeout      45000
+// Automatic shutdown after timeout 20 minutes (in 2 sec intervals))
+#define timer_idle_shutdown_timeout 600
+// Dim light after 46 seconds (in 2 sec intervals)
+#define timer_idle_dim_timeout      23
 time_t timer_idle_last_action_time;
 
 // This should be changed carefully.
@@ -281,4 +281,7 @@ void saveShootString(void);
 void _update_rtc_time();
 void getShootString(uint8_t offset);
 void save_shots_if_required();
+void check_countdown_expired();
+void check_par_expired();
+void check_timer_max_time();
 #endif /*  _DAACED_H_ */

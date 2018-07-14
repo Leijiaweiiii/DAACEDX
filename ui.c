@@ -103,12 +103,12 @@ void handle_power_off() {
 void handle_timer_idle_shutdown() {
     _update_rtc_time();
     if (comandToHandle != None && comandToHandle != ChargerEvent) {
-        timer_idle_last_action_time = rtc_time.unix_time_ms;
+        timer_idle_last_action_time = rtc_time.sec;
         set_backlight(Settings.BackLightLevel);
     } else {
-        time_t inactive_time = rtc_time.unix_time_ms - timer_idle_last_action_time;
+        time_t inactive_time = rtc_time.sec - timer_idle_last_action_time;
         if (inactive_time > timer_idle_shutdown_timeout) {
-            comandToHandle = StartLong;
+            STATE_HANDLE_POWER_OFF;
         } else if (inactive_time > timer_idle_dim_timeout) {
             set_backlight(0);
         }
@@ -177,6 +177,8 @@ void handle_timer_listening() {
     update_shot_time_on_screen();
     print_header();
     print_footer();
+    check_par_expired();
+
     switch (comandToHandle) {
         case StartLong:
             STATE_HANDLE_POWER_OFF;
@@ -193,6 +195,7 @@ void handle_timer_listening() {
         default:
             // All the rest keys handled inside the next handler.
             // As well as shoot events
+            check_timer_max_time();
             HandleTimerEvents();
             break;
     }
@@ -238,6 +241,7 @@ void handle_countdown() {
     print_footer();
     print_header();
     update_countdown_time_on_screen();
+    check_countdown_expired();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
@@ -262,6 +266,7 @@ void handle_countdown() {
             // As well as shoot events
             break;
     }
+    Delay(1);
     comandToHandle = None;
 }
 

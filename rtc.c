@@ -66,32 +66,15 @@ uint8_t get_time_source() {
 }
 
 void initialize_rtc_timer() {
-    uint8_t init_timeout = 0;
     // Real time counter will count 2 seconds forever.
-    // Timer1 for sync
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
-    OSCENbits.SOSCEN = 1;
+    OSCENbits.SOSCEN = 0;
     OSCENbits.EXTOEN = 0;
-    init_timeout = 0;
-    while (!OSCSTATbits.SOR) {
-        init_timeout++;
-        if (init_timeout == 0) {
-            break;
-        }
-        Delay(2);
-    }
+    OSCENbits.LFOEN = 1;
+    while (!OSCSTATbits.LFOR);
 
-    if (OSCSTATbits.SOR) {
-        TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
-        OSCENbits.EXTOEN = 0;
-    } else {
-        TMR1CLKbits.CS = 0b0100; // fall back to LFINTOSC
-        OSCENbits.SOSCEN = 0; // Disable not working secondary oscillator
-        OSCENbits.EXTOEN = 0;
-    }
-    // TODO: bringup oscillator failover functionality
-
+    TMR1CLKbits.CS = 0b0100; // TIMER1 clock source is secondary oscillator
     T1CONbits.CKPS = 0b00; // Prescale = 1:1.
     T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
     T1CONbits.RD16 = 1;
@@ -141,15 +124,15 @@ uint8_t get_minute() {
     return _minute;
 }
 
-void tic_2_sec(){
+void tic_2_sec() {
     _2sec++;
-    if(_2sec==30){
+    if (_2sec == 30) {
         _2sec = 0;
         _minute++;
-        if(_minute == 60){
+        if (_minute == 60) {
             _minute = 0;
-            _hour ++;
-            if(_hour == 24){
+            _hour++;
+            if (_hour == 24) {
                 _hour = 0;
             }
         }
@@ -157,8 +140,8 @@ void tic_2_sec(){
 }
 
 void set_time(uint8_t h, uint8_t m, uint8_t s) {
-_hour = h;
-_minute = m;
+    _hour = h;
+    _minute = m;
 }
 
 time_t get_corrected_time_msec() {

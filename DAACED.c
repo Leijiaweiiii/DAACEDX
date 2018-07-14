@@ -221,7 +221,7 @@ uint8_t find_set_bit_position(uint8_t n) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
-uint8_t sinus_table[5][32] = {
+uint8_t sinus_table[3][32] = {
     {0x8, 0x8, 0x8, 0x7, 0x7, 0x6, 0x6, 0x5, 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x2, 0x3, 0x4, 0x5, 0x6, 0x6, 0x7, 0x7, 0x8, 0x8},
     {0x10, 0x10, 0xF, 0xF, 0xE, 0xC, 0xB, 0xA, 0x8, 0x6, 0x5, 0x4, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x4, 0x5, 0x6, 0x8, 0xA, 0xB, 0xC, 0xE, 0xF, 0xF, 0x10},
     {0x1F, 0x1F, 0x1E, 0x1C, 0x1A, 0x18, 0x15, 0x13, 0x10, 0xC, 0xA, 0x7, 0x5, 0x3, 0x1, 0x0, 0x0, 0x0, 0x1, 0x3, 0x5, 0x7, 0xA, 0xC, 0x10, 0x13, 0x15, 0x18, 0x1A, 0x1C, 0x1E, 0x1F}
@@ -1419,6 +1419,7 @@ void DoReview() {
         comandToHandle = None;
 
     } while (ui_state == ReviewScreen);
+    clear_screen_title;
     getShootString(0);
 }
 // </editor-fold>
@@ -1583,12 +1584,12 @@ void print_footer() {
     //    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
-    if (Settings.TotPar > 0) {
-        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
-    } else {
-        sprintf(message, "Par: Off");
-    }
-    //    sprintf(message, "%u", rtc_time.msec);
+    //    if (Settings.TotPar > 0) {
+    //        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
+    //    } else {
+    //        sprintf(message, "Par: Off");
+    //    }
+    sprintf(message, "%d", rtc_time.sec);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -1639,6 +1640,7 @@ void DoPowerOn() {
     // TODO: Review power on sequence
     set_backlight(Settings.BackLightLevel);
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
+    GIE = 1; // enable global interrupts
     INT0IE = 0; // Disable wakeup interrupt
 }
 
@@ -1789,53 +1791,52 @@ void UpdateShot(time_t now, ShotInput_t input) {
     }
 }
 
-void update_screen_model() {
-    time_t now = rtc_time.unix_time_ms;
-    switch (ui_state) {
-        case TimerListening:
-            if (now - ShootString_start_time >= MAX_MEASUREMENT_TIME) {
-                timerEventToHandle = TimerTimeout;
-            }
-            switch (Settings.InputType) {
-                case INPUT_TYPE_Microphone:
-                    ADC_ENABLE_INTERRUPT_ENVELOPE;
-                    break;
-                case INPUT_TYPE_A_or_B_multiple:
-                    if (InputFlags.A_RELEASED && AUX_A) {
-                        UpdateShootNow(A);
-                    } else if (InputFlags.B_RELEASED && AUX_B) {
-                        UpdateShootNow(B);
-                    }
-                    break;
-                case INPUT_TYPE_A_and_B_single:
-                    if (InputFlags.A_RELEASED && AUX_A) {
-                        UpdateShootNow(A);
-                    } else if (InputFlags.A_RELEASED && AUX_B) {
-                        UpdateShootNow(B);
-                    }
-                    // TODO: Fix This should capture only one of A and one of B
-                    timerEventToHandle = TimerTimeout;
-                    break;
-            }
-            if (ParNowCounting) {
-                // Software "interrupt" emulation
-                if (now - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
-                    ParNowCounting = false;
-                    timerEventToHandle = ParEvent;
-                    CurPar_idx++;
-                }
-            }
-            break;
-        case TimerCountdown:
-            _update_rtc_time();
-            if (now - countdown_start_time >= Settings.DelayTime) {
-                comandToHandle = CountdownExpired;
-            }
-            break;
-        default:
+void check_countdown_expired() {
+    update_rtc_time();
+    if (rtc_time.unix_time_ms - countdown_start_time > Settings.DelayTime) {
+        comandToHandle = CountdownExpired;
+    }
+}
 
-            //do nothing, we're in ISR
-            break;
+void check_par_expired() {
+    if (ParNowCounting) {
+        if (rtc_time.unix_time_ms - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
+            ParNowCounting = false;
+            timerEventToHandle = ParEvent;
+            CurPar_idx++;
+        }
+    }
+}
+
+void check_timer_max_time() {
+    if (rtc_time.unix_time_ms - ShootString_start_time >= MAX_MEASUREMENT_TIME) {
+        timerEventToHandle = TimerTimeout;
+    }
+}
+
+void update_screen_model() {
+    if (ui_state == TimerListening||ui_state == TimerCountdown) {
+        switch (Settings.InputType) {
+            case INPUT_TYPE_Microphone:
+//                ADC_ENABLE_INTERRUPT_ENVELOPE;
+                break;
+            case INPUT_TYPE_A_or_B_multiple:
+                if (InputFlags.A_RELEASED && AUX_A) {
+                    UpdateShootNow(A);
+                } else if (InputFlags.B_RELEASED && AUX_B) {
+                    UpdateShootNow(B);
+                }
+                break;
+            case INPUT_TYPE_A_and_B_single:
+                if (InputFlags.A_RELEASED && AUX_A) {
+                    UpdateShootNow(A);
+                } else if (InputFlags.A_RELEASED && AUX_B) {
+                    UpdateShootNow(B);
+                }
+                // TODO: Fix This should capture only one of A and one of B
+                timerEventToHandle = TimerTimeout;
+                break;
+        }
     }
 }
 
@@ -1867,7 +1868,8 @@ static void interrupt isr(void) {
         PIR1bits.ADIF = 0;
     } else if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        _update_rtc_time();
+        update_rtc_time();
+        InputFlags.FOOTER_CHANGED = 1;
         tic_2_sec();
         switch (ui_state) {
             case TimerListening:
