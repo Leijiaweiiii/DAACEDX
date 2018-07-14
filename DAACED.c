@@ -553,6 +553,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             if (Settings.TotPar > 0) {
                 Settings.TotPar--;
                 Settings.ParTime[Settings.TotPar] = 0;
+                m->menu--;
             }
         } else if (m->menu == (m->TotalMenuItems - 1)) {
             // Clear PAR
@@ -560,7 +561,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
                 Settings.ParTime[i] = 0;
             }
             Settings.TotPar = 0;
-            m->menu = 1;
+            m->menu = 0;
             m->page = 0;
         }
         lcd_clear();
