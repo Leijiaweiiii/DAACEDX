@@ -1251,7 +1251,7 @@ void DoSettings(void) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Review Screen">
 #define REVIEW_SHOT_FORMAT      "%2d: %3.2f %c"
-#define REVIEW_TOTAL_SHOT_FORMAT      "%2d/%3.2fs"
+#define REVIEW_TOTAL_SHOT_FORMAT      " %2d/%3.2fs"
 #define REVIEW_SPLIT_FORMAT     "]%3.2f"
 TBool reviewChanged = True;
 
@@ -1427,6 +1427,7 @@ void DoReview() {
 
     } while (ui_state == ReviewScreen);
     clear_screen_title;
+    lcd_clear();
     getShootString(0);
 }
 // </editor-fold>
@@ -1593,7 +1594,7 @@ void print_footer() {
     //    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
-    if (Settings.TotPar > 0) {
+    if (Settings.TotPar > 0 && CurPar_idx < Settings.TotPar) {
         sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
     } else {
         sprintf(message, "Par: Off");
