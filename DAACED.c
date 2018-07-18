@@ -302,14 +302,14 @@ void getDefaultSettings() {
     Settings.AR_IS.AutoRotate = 0; // Off
     Settings.AR_IS.BT = 1; // On, TBD
     Settings.InputType = INPUT_TYPE_Microphone;
-    Settings.BuzzerFrequency = 1500; // Hz
+    Settings.BuzzerFrequency = 2000; // Hz
     Settings.BuzzerParDuration = 300; // ms
     Settings.BuzzerStartDuration = 500; // ms
     Settings.Volume = 2; // Middle strength sound.
     Settings.CustomCDtime = 240; // 4 minutes in sec
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.DelayTime = 3000; // ms before start signal
-    Settings.BackLightLevel = 10; // Most dimmed visible
+    Settings.BackLightLevel = 1; // Most dimmed visible
     Settings.TotPar = 0; // Par Off
     Settings.ParMode = ParMode_Regular;
     CurPar_idx = 0;
