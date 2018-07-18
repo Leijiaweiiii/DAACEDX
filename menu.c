@@ -32,17 +32,17 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
     display_big_font_label(msg);
     if (rtc_time.msec < 500 ||
             (rtc_time.msec > 1000 && rtc_time.msec < 1500)) {
-        uint8_t block_start, block_end, w,margin;
+        uint8_t block_start, block_end, w, margin;
         margin = (LCD_WIDTH - old_label_len) / 2;
         w = BigFont->char_descriptors[':' - BigFont->char_start].width + 1;
         if (state == 0) {
             block_start = margin;
             sprintf(msg, "%02d", hour);
-            block_end = block_start + lcd_string_lenght(msg,BigFont);
+            block_end = block_start + lcd_string_lenght(msg, BigFont);
         } else {
             block_end = LCD_WIDTH - margin;
-            sprintf(msg, "%02d",minute);
-            block_start = block_end - lcd_string_lenght(msg,BigFont);
+            sprintf(msg, "%02d", minute);
+            block_start = block_end - lcd_string_lenght(msg, BigFont);
             block_start -= 1;
         }
         lcd_clear_block(
@@ -242,6 +242,7 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
     }
     comandToHandle = None;
 }
+
 void SelectIntegerCircular(NumberSelection_t* sm) {
     define_input_action();
     switch (comandToHandle) {
@@ -288,25 +289,15 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
 void SelectInteger(NumberSelection_t* sm) {
     define_input_action();
     switch (comandToHandle) {
+        case UpLong:
         case UpShort:
             if (sm->value < sm->max) {
                 sm->value += sm->step;
             } else Beep();
             break;
-        case UpLong:
-            if (sm->value < sm->max) {
-                sm->value += sm->step;
-                sm->value += sm->step;
-            } else Beep();
-            break;
+        case DownLong:
         case DownShort:
             if (sm->value > sm->min) {
-                sm->value -= sm->step;
-            } else Beep();
-            break;
-        case DownLong:
-            if (sm->value > sm->min) {
-                sm->value -= sm->step;
                 sm->value -= sm->step;
             } else Beep();
             break;
@@ -337,29 +328,17 @@ void SelectInteger(NumberSelection_t* sm) {
 void SelectDouble(NumberSelection_t* sm) {
     define_input_action();
     switch (comandToHandle) {
+        case UpLong:
         case UpShort:
             if (sm->fvalue < sm->fmax) {
                 sm->fvalue += sm->fstep;
             } else Beep();
             break;
-        case UpLong:
-            for (uint8_t i = 0; i < 5; i++) {
-                if (sm->fvalue < sm->fmax) {
-                    sm->fvalue += sm->fstep;
-                } else Beep();
-            }
-            break;
+        case DownLong:
         case DownShort:
             if (sm->fvalue > sm->fmin) {
                 sm->fvalue -= sm->fstep;
             } else Beep();
-            break;
-        case DownLong:
-            for (uint8_t i = 0; i < 5; i++) {
-                if (sm->fvalue > sm->fmin) {
-                    sm->fvalue -= sm->fstep;
-                } else Beep();
-            }
             break;
         case OkShort:
         case OkLong:

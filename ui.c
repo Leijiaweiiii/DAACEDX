@@ -299,7 +299,6 @@ TBool is_long_press_repeatable() {
 }
 
 void define_input_action() {
-
     if (InputFlags.KEY_RELEASED && Keypressed) {
         InputFlags.KEY_RELEASED = False;
         switch (Key) {
