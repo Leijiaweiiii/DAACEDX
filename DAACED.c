@@ -1593,10 +1593,10 @@ void print_footer() {
     //    sprintf(message, "%c:%u", get_time_source(), rtc_time.unix_time_ms);
     print_label_at_footer_grid(message, 0, 1);
 
-        if (Settings.TotPar > 0) {
-            sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
-        } else {
-            sprintf(message, "Par: Off");
+    if (Settings.TotPar > 0) {
+        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
+    } else {
+        sprintf(message, "Par: Off");
     }
     //    sprintf(message, "%d", PORTD & 0x07);
     print_label_at_footer_grid(message, 1, 1);
@@ -1669,7 +1669,7 @@ void DoCharging() {
             default:
                 break;
         }
-        charger_state_changed = false;
+        charger_display_state = charger_state;
     }
 }
 

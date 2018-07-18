@@ -12,7 +12,6 @@ uint8_t number_of_battery_bars(){
     return res;
 }
 void define_charger_state() {
-    ChargerState_t old_state = charger_state;
     switch (CHARGER_STATE) {
         case CHARGER_CHARGING:
             charger_state = Charging;
@@ -27,6 +26,5 @@ void define_charger_state() {
         default:
             break;
     }
-    charger_state_changed |= (old_state != charger_state);
 }
 
