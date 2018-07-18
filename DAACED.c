@@ -1420,6 +1420,8 @@ void DoReview() {
                 break;
             case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
                 break;
+            case ChargerEvent:STATE_HANDLE_CHARGING;
+                break;
             default:
                 break;
         }
