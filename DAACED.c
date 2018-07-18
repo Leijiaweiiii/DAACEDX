@@ -153,7 +153,7 @@ void initialize_backlight() {
 }
 
 void set_backlight(uint8_t level) {
-    uint8_t duty_cycle = level * 10;
+    uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 1;
     if (current_backlight == duty_cycle)
         return;
     PWM6CONbits.EN = 0;
@@ -590,23 +590,18 @@ void SetPar(SettingsMenu_t * m) {
 
 void SetBacklight() {//PWM Backlight
     NumberSelection_t b;
-    uint8_t tmp;
     strmycpy(b.MenuTitle, "Backlight ");
     b.max = 9;
     b.min = 0;
     b.step = 1;
     b.value = Settings.BackLightLevel;
     b.old_value = b.value;
-    tmp = b.value;
     b.format = "%u";
     b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        if (b.value != tmp) {
-            set_backlight(b.value);
-            tmp = b.value;
-        }
+        set_backlight(b.value);
     } while (SettingsNotDone((&b)));
 
     if (b.selected && b.value != b.old_value) {
