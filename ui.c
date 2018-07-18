@@ -353,11 +353,10 @@ void define_input_action() {
                 break;
         }
     }
+    handle_timer_idle_shutdown();
     define_charger_state();
     if (charger_state_changed)
         comandToHandle = ChargerEvent;
-    else
-        handle_timer_idle_shutdown();
 }
 
 void handle_ui() {
