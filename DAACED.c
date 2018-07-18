@@ -628,8 +628,8 @@ void SetBeepFreq() {
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        if(b.value != tmp){
-            generate_sinus(1,b.value,50);
+        if (b.value != tmp) {
+            generate_sinus(1, b.value, 50);
             tmp = b.value;
         }
     } while (SettingsNotDone((&b)));
@@ -657,8 +657,8 @@ void SetVolume() {
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        if(b.value != tmp){
-            generate_sinus(b.value,Settings.BuzzerFrequency,50);
+        if (b.value != tmp) {
+            generate_sinus(b.value, Settings.BuzzerFrequency, 50);
             tmp = b.value;
         }
     } while (SettingsNotDone((&b)));
@@ -1625,12 +1625,13 @@ void StartListenShots(void) {
 // </editor-fold>
 
 void DoPowerOff() {
+    while (Keypressed); // Wait to button to release
 
-    // Configure interrupt for wakeup
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
     ADC_DISABLE_INTERRUPT;
+    // Configure interrupt for wakeup
     INT0IE = 1;
     PORTEbits.RE0 = 0;
     PORTEbits.RE2 = 0;
@@ -1638,7 +1639,6 @@ void DoPowerOff() {
     LATEbits.LATE2 = 0;
     LATEbits.LATE6 = 1;
     LATEbits.LATE0 = 0;
-
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
@@ -1660,6 +1660,10 @@ void DoPowerOn() {
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
     GIE = 1; // enable global interrupts
     INT0IE = 0; // Disable wakeup interrupt
+    init_ms_timer0();
+    initialize_rtc_timer();
+    update_rtc_time();
+    timer_idle_last_action_time = rtc_time.sec;
 }
 
 void DoCharging() {
@@ -1932,8 +1936,7 @@ static void interrupt isr(void) {
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     DoPowerOn();
-    init_ms_timer0();
-    initialize_rtc_timer();
+
     ei();
     getSettings();
     getShootString(0);

@@ -107,10 +107,14 @@ void handle_timer_idle_shutdown() {
         set_backlight(Settings.BackLightLevel);
     } else {
         time_t inactive_time = rtc_time.sec - timer_idle_last_action_time;
+
         if (inactive_time > timer_idle_shutdown_timeout) {
             STATE_HANDLE_POWER_OFF;
         } else if (inactive_time > timer_idle_dim_timeout) {
             set_backlight(0);
+        }
+        if (inactive_time < 0L) {
+            timer_idle_last_action_time = rtc_time.sec;
         }
     }
 }
