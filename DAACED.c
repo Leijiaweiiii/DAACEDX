@@ -108,7 +108,10 @@ void PIC_init(void) {
     // 0 = OUTPUT, 1 = INPUT
     // 0 = DIGITAL, 1 = ANALOG
     enable_hf_osc();
-
+    // fix settings of RTC oscillator
+    OSCENbits.SOSCEN = 1;
+    OSCENbits.EXTOEN = 0;
+    OSCENbits.LFOEN = 0;
     TRISA = 0b11111111; // ADC inputs 0..3
     ANSELA = 0b00001111;
     OSCENbits.ADOEN = 1; // Enable ADC oscillator;
@@ -1616,7 +1619,7 @@ void DoPowerOff() {
     // Configure interrupt for wakeup
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
-    CPUDOZEbits.IDLEN = 0;
+    OSCFRQ = 0b00000000; // 1MHz clock for power saving
     ADC_DISABLE_INTERRUPT;
     INT0IE = 1;
     PORTEbits.RE0 = 0;
@@ -1625,16 +1628,10 @@ void DoPowerOff() {
     LATEbits.LATE2 = 0;
     LATEbits.LATE6 = 1;
     LATEbits.LATE0 = 0;
-    OSCCON3bits.CSWHOLD = 0;
-    OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
-    while (!OSCCON3bits.ORDY);
-    OSCENbits.HFOEN = 0; // HF osc enabled only if required
-    OSCFRQ = 0b00000000; // 1MHz clock for power saving
+
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
-    OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
-    while (!OSCCON3bits.ORDY);
 }
 
 void DoPowerOn() {

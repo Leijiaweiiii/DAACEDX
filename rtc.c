@@ -1,5 +1,5 @@
 #include "rtc.h"
-
+// <editor-fold defaultstate="collapsed" desc="ms correction table">
 const uint16_t correction_table[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
     40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
@@ -52,6 +52,7 @@ const uint16_t correction_table[] = {
     1920, 1921, 1922, 1923, 1924, 1925, 1926, 1927, 1928, 1929, 1930, 1931, 1932, 1933, 1934, 1935, 1936, 1937, 1938, 1939, 1940, 1941, 1942, 1943, 1944, 1945, 1946, 1947, 1948, 1949, 1950, 1951, 1952, 1953, 1954, 1955, 1956, 1957, 1958, 1959, 1960,
     1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999
 };
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="RTC timer functions">
 
 
@@ -69,12 +70,12 @@ void initialize_rtc_timer() {
     // Real time counter will count 2 seconds forever.
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
-    OSCENbits.SOSCEN = 0;
+    OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
-    OSCENbits.LFOEN = 1;
-    while (!OSCSTATbits.LFOR);
+    OSCENbits.LFOEN = 0;
+    while (!OSCSTATbits.SOR);
 
-    TMR1CLKbits.CS = 0b0100; // TIMER1 clock source is secondary oscillator
+    TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
     T1CONbits.CKPS = 0b00; // Prescale = 1:1.
     T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
     T1CONbits.RD16 = 1;
@@ -115,7 +116,7 @@ void init_ms_timer0() {
 }
 
 // </editor-fold>
-
+// <editor-fold defaultstate="collapsed" desc="Time setting functions">
 uint8_t get_hour() {
     return _hour;
 }
@@ -159,3 +160,4 @@ void update_rtc_time() {
     rtc_time.msec = correction_table[rtc_time_2k_msec];
     rtc_time.unix_time_ms = (rtc_time.sec * 2000) + rtc_time.msec;
 }
+// </editor-fold>
