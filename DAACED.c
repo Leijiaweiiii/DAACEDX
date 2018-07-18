@@ -614,18 +614,24 @@ void SetBacklight() {//PWM Backlight
 // <editor-fold defaultstate="collapsed" desc="Buzzer Settings">
 
 void SetBeepFreq() {
+    uint24_t tmp;
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b))
     b.min = 800;
     b.max = 3000;
     b.value = Settings.BuzzerFrequency;
-    b.old_value = b.fvalue;
-    strmycpy(b.MenuTitle, "Tone");
+    b.old_value = b.value;
+    tmp = b.value;
+    strmycpy(b.MenuTitle, "  Tone");
     b.step = 100;
     b.format = "%dHz";
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
+        if(b.value != tmp){
+            generate_sinus(1,b.value,50);
+            tmp = b.value;
+        }
     } while (SettingsNotDone((&b)));
     if (b.selected) {
         Settings.BuzzerFrequency = b.value;
@@ -636,6 +642,7 @@ void SetBeepFreq() {
 }
 
 void SetVolume() {
+    uint8_t tmp;
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
     if (Settings.Volume > 3) Settings.Volume = 3;
@@ -646,9 +653,14 @@ void SetVolume() {
     b.format = " %2d ";
     b.value = Settings.Volume;
     b.old_value = b.value;
+    tmp = b.value;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
+        if(b.value != tmp){
+            generate_sinus(b.value,Settings.BuzzerFrequency,50);
+            tmp = b.value;
+        }
     } while (SettingsNotDone((&b)));
     if (b.selected) {
         Settings.Volume = b.value;
