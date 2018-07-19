@@ -72,8 +72,9 @@ void initialize_rtc_timer() {
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
-    OSCENbits.LFOEN = 0;
+    OSCENbits.LFOEN = 1;
     while (!OSCSTATbits.SOR);
+    while (!OSCSTATbits.LFOR); // Try turn on LFINTOSC to make enough noise for stable oscillations
 
     TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
     T1CONbits.CKPS = 0b00; // Prescale = 1:1.
