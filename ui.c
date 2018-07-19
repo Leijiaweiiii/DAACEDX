@@ -58,12 +58,11 @@ void StartTimer() {
 void StopTimer() {
     lcd_clear();
     CurPar_idx = 0;
-    print_header();
-    print_footer();
+//    print_header();
+//    print_footer();
     InputFlags.FOOTER_CHANGED = True;
-    update_shot_time_on_screen();
-    update_rtc_time();
-    timer_idle_last_action_time = rtc_time.unix_time_ms;
+//    update_shot_time_on_screen();
+//    update_rtc_time();
 }
 
 void handle_charger_connected() {
@@ -234,8 +233,7 @@ void handle_settings_screen() {
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
-            //All the rest ignoring
-
+            DoSettings();
             break;
     }
     comandToHandle = None;

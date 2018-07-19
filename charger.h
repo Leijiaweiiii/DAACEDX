@@ -51,9 +51,9 @@ extern "C" {
      * Sometimes we're estimating capacity and updating measured value to be the full charge
      */
 
-#define CONSUMPTION_FULLY_CHARGED   UINT32_MAX
+#define CONSUMPTION_FULLY_CHARGED   UINT32_MAX-1000
     uint32_t battery_charge = CONSUMPTION_FULLY_CHARGED/2;
-    uint16_t backlight_consumption[] = {0, 30, 60, 90, 130, 160, 190, 240, 300, 350};
+    uint16_t backlight_consumption[] = {0, 80, 90, 130, 160, 190, 210, 240, 300, 350};
     uint32_t battery_level_thresholds[] = {0x1AAAAAAA, 0x35555555, 0x6FFFFFFF, 0xAAAAAAAA, 0xD5555554};
 #define CONSUMPTION_BEEP_MA     210
 #define CONSUME_BEEP(x)         {battery_charge-=x*CONSUMPTION_BEEP_MA;}
@@ -61,7 +61,7 @@ extern "C" {
 #define CONSUME_BACKLIGHT(x,y)  {battery_charge -= x * backlight_consumption[y];}
 #define CONSUME_POWER_OFF(x)    {battery_charge -= x * 10; }
 #define CONSUME_POWER_ON(x)     {battery_charge -= x*160; }
-#define CONSUME_CHARGE_ADD(x)   {battery_charge += x*10000; }
+#define CONSUME_CHARGE_ADD(x)   {if(battery_charge<full_charge) battery_charge += x*10000; }
 #define CONSUME_CHARGED_FULL    {battery_charge = full_charge;}
     uint32_t full_charge = CONSUMPTION_FULLY_CHARGED;
     uint8_t number_of_battery_bars();
