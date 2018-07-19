@@ -51,7 +51,7 @@ extern "C" {
      * Sometimes we're estimating capacity and updating measured value to be the full charge
      */
 
-#define CONSUMPTION_FULLY_CHARGED   UINT32_MAX-1000
+#define CONSUMPTION_FULLY_CHARGED   (UINT32_MAX-1000)
     uint32_t battery_charge = CONSUMPTION_FULLY_CHARGED/2;
     uint16_t backlight_consumption[] = {0, 80, 90, 130, 160, 190, 210, 240, 300, 350};
     uint32_t battery_level_thresholds[] = {0x1AAAAAAA, 0x35555555, 0x6FFFFFFF, 0xAAAAAAAA, 0xD5555554};
