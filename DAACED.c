@@ -116,7 +116,7 @@ void PIC_init(void) {
     ANSELA = 0b00001111;
     OSCENbits.ADOEN = 1; // Enable ADC oscillator;
 
-    TRISB = 0b11111111; //
+    TRISB = 0b11000111; //
     ANSELB = 0b00000000;
 
     TRISC = 0b11100101; // C6 = TX, C7 RX
@@ -1626,7 +1626,8 @@ void StartListenShots(void) {
 
 void DoPowerOff() {
     while (Keypressed); // Wait to button to release
-
+    PWM6CONbits.EN = 0; // Disale PWM
+    T2CONbits.ON = 0;
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
