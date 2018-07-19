@@ -116,7 +116,7 @@ void PIC_init(void) {
     ANSELA = 0b00001111;
     OSCENbits.ADOEN = 1; // Enable ADC oscillator;
 
-    TRISB = 0b11000111; //
+    TRISB = 0b11111111; //
     ANSELB = 0b00000000;
 
     TRISC = 0b11100101; // C6 = TX, C7 RX
