@@ -297,7 +297,7 @@ uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FON
 
 // write char directly to the screen
 
-uint8_t lcd_write_char_d(unsigned int c,
+uint8_t lcd_write_char(unsigned int c,
         uint8_t x_pos,
         uint8_t y_pos,
         const FONT_INFO *font,
@@ -364,11 +364,11 @@ void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2
     }
 }
 
-void lcd_fill_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
+void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_send_block_d(x1_pos, y1_pos, x2_pos, y2_pos, BLACK_OVER_WHITE);
 }
 
-void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
+void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
     lcd_send_block_d(x1_pos, y1_pos, x2_pos, y2_pos, WHITE_OVER_BLACK);
 }
 
@@ -383,17 +383,17 @@ uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     return strlng;
 }
 
-void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
+void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     if (str_ptr == NULL) return;
     //TODO: There is a bug that prints bright pages at spacing when polarity is WHITE_OVER_BLACK
     while (*str_ptr) {
-        x_pos += lcd_write_char_d(*str_ptr, x_pos, y_pos, font, polarity);
+        x_pos += lcd_write_char(*str_ptr, x_pos, y_pos, font, polarity);
         ++str_ptr;
         if (*str_ptr) {
             if (polarity == WHITE_OVER_BLACK) {
-                lcd_fill_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
+                lcd_fill_block(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
             } else {
-                lcd_clear_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
+                lcd_clear_block(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
             }
             x_pos += font->character_spacing;
         }
@@ -468,7 +468,7 @@ void lcd_init() {
 }
 
 void lcd_clear() {
-    lcd_clear_block_d(0, 0, LCD_WIDTH, LCD_HEIGHT);
+    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     lcd_set_orientation();
 }
 
@@ -485,14 +485,14 @@ void lcd_decrease_contrast() {
     lcd_send_command(CMD_VOP_CON_DEC_VOP);
     contrast_value--;
 }
+//
+//void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
+//    lcd_write_char_d(c, x_pos, y_pos, font, polarity);
+//}
 
-void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_char_d(c, x_pos, y_pos, font, polarity);
-}
-
-void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
-}
+//void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
+//    lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
+//}
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     char msg[10];
@@ -526,18 +526,13 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
     }
 }
 
-void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage) {
-    if (battery_percentage > 100) battery_percentage = 100;
+//void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
+//    lcd_fill_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
+//}
 
-}
-
-void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_fill_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
-}
-
-void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    lcd_clear_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
-}
+//void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
+//    lcd_clear_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
+//}
 
 void lcd_set_orientation() {
     lcd_send_command(CMD_EXTENSION_1);

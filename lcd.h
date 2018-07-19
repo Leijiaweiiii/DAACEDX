@@ -242,15 +242,13 @@ void lcd_init();
 void lcd_clear();
 //void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity);
 //void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity);
-void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
+uint8_t lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data);
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage);
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_clear_data_ram();
-void lcd_write_string_d(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
-void lcd_clear_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_set_orientation();
 void lcd_demo();
 void lcd_old_init();
@@ -262,11 +260,6 @@ void lcd_draw_fullsize_hline(uint8_t line,uint8_t data);
 void lcd_draw_vgrid_lines(uint8_t start_line);
 void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity);
-//void lcd_draw_bit_graph_column(size_t column, uint16_t value);
-//void lcd_send_page_mark(uint8_t column, uint8_t page,uint8_t polarity );
-//void lcd_draw_scope_column(size_t column, uint16_t value);
-//void lcd_draw_bit_mark_column(size_t column);
-//void lcd_send_page(uint8_t column, uint8_t page, uint8_t value, uint8_t polarity);
 // </editor-fold>
 
 #endif	/* LCD_H */
