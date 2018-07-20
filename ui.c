@@ -58,11 +58,7 @@ void StartTimer() {
 void StopTimer() {
     lcd_clear();
     CurPar_idx = 0;
-//    print_header();
-//    print_footer();
     InputFlags.FOOTER_CHANGED = True;
-//    update_shot_time_on_screen();
-//    update_rtc_time();
 }
 
 void handle_charger_connected() {
@@ -273,29 +269,25 @@ void handle_countdown() {
 }
 
 TBool is_long_press() {
-    //TODO: try save memory taking lower byte to save memory...
-    update_rtc_time();
-    time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
     do {
-        update_rtc_time();
-        duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             break;
+        Delay(100);
+        duration += 100;
     } while (Keypressed);
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
 TBool is_long_press_repeatable() {
-    update_rtc_time();
-    time_t press_time = rtc_time.unix_time_ms;
     time_t duration = 0;
     do {
-        update_rtc_time();
-        duration = rtc_time.unix_time_ms - press_time;
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
+        Delay(100);
+        duration += 100;
     } while (Keypressed);
+
     InputFlags.KEY_RELEASED = True; // Mark key released only here to avoid double sensing of key press
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }

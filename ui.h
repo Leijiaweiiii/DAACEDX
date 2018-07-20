@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#define LONG_PRESS_THRESHOLD_SEC    1500
+#define LONG_PRESS_THRESHOLD_SEC    1300
 #define STICKY_THRESHOLD_SEC        1600
 
     typedef enum {
