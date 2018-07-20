@@ -98,16 +98,10 @@ void strmycpy(char * to, const char * from) {
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
 
-void enable_hf_osc() {
-    OSCENbits.HFOEN = 1;
-    while (!OSCSTATbits.HFOR); // Wait for the fast oscillator
-    OSCFRQ = 0b00001000; // 64 MHz Fosc.
-}
-
 void PIC_init(void) {
     // 0 = OUTPUT, 1 = INPUT
     // 0 = DIGITAL, 1 = ANALOG
-    enable_hf_osc();
+     OSCFRQ = 0b00001000; // 64 MHz Fosc.
     // fix settings of RTC oscillator
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
@@ -1643,6 +1637,7 @@ void DoPowerOff() {
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
+    OSCFRQ = 0b00001000; // 64 MHz Fosc.
 }
 
 void DoPowerOn() {
@@ -1929,7 +1924,6 @@ static void interrupt isr(void) {
         }
     } else if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
-        enable_hf_osc();
     }
 }
 // </editor-fold>
