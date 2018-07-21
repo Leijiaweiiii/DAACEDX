@@ -1637,7 +1637,7 @@ void DoPowerOff() {
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
-    OSCFRQ = 0b00001000; // 64 MHz Fosc.
+//    OSCFRQ = 0b00001000; // 64 MHz Fosc.
 }
 
 void DoPowerOn() {
@@ -1649,7 +1649,6 @@ void DoPowerOn() {
     lcd_set_orientation();
     ADC_init();
     eeprom_init();
-    PORTEbits.RE0 = 1;
     LATEbits.LATE0 = 1;
     // TODO: Review power on sequence
     set_backlight(Settings.BackLightLevel);
@@ -1665,14 +1664,16 @@ void DoPowerOn() {
 void DoCharging() {
     char msg[10];
     if (charger_state_changed) {
-        LATEbits.LATE0 = 1;
+        charger_display_state = charger_state;
         switch (charger_state) {
             case Charging:
+                LATEbits.LATE0 = 1;
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 break;
             case Complete:
+                LATEbits.LATE0 = 1;
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
@@ -1684,7 +1685,6 @@ void DoCharging() {
             default:
                 break;
         }
-        charger_display_state = charger_state;
     }
 }
 

@@ -36,6 +36,8 @@ extern void strmycpy(char * to, const char * from);
 #define HEX2DEC(x)            (x > '9') ? (x - 'a')+10 : x-'0'
 #define DEC(x)                (x-'0')
 #define Delay(t)           {for (int w=0 ; w<t ; w++)  __delay_ms(1);}
+#define __delay_ms_in_lp(x) _delay((unsigned long)((x)*(1000000UL/4000.0)))
+#define DelayLP(t)           {for (int w=0 ; w<t ; w++)  __delay_ms_in_lp(1);}
 
 #define IO_AS_OUTPUT            (0)
 #define IO_AS_INPUT             (1)

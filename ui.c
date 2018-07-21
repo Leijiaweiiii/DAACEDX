@@ -273,8 +273,12 @@ TBool is_long_press() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             break;
-        Delay(100);
-        duration += 100;
+        if (ui_state == PowerOff) {
+            DelayLP(10);
+        } else {
+            Delay(10);
+        }
+        duration += 10;
     } while (Keypressed);
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
@@ -284,8 +288,12 @@ TBool is_long_press_repeatable() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
-        Delay(100);
-        duration += 100;
+        if (ui_state == PowerOff) {
+            DelayLP(10);
+        } else {
+            Delay(10);
+        }
+        duration += 10;
     } while (Keypressed);
 
     InputFlags.KEY_RELEASED = True; // Mark key released only here to avoid double sensing of key press
