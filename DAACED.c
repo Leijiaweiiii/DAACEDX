@@ -101,7 +101,7 @@ void strmycpy(char * to, const char * from) {
 void PIC_init(void) {
     // 0 = OUTPUT, 1 = INPUT
     // 0 = DIGITAL, 1 = ANALOG
-     OSCFRQ = 0b00001000; // 64 MHz Fosc.
+    OSCFRQ = 0b00001000; // 64 MHz Fosc.
     // fix settings of RTC oscillator
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
@@ -402,15 +402,15 @@ void save_shots_if_required() {
     if (last_saved_shot < const_shots) {
         do {
             saveOneShot(last_saved_shot);
-            sendOneShot(last_saved_shot,&(ShootString.shots[last_saved_shot]));
+            sendOneShot(last_saved_shot, &(ShootString.shots[last_saved_shot]));
             last_saved_shot++;
         } while (last_saved_shot < const_shots);
     }
 }
 
 void send_all_shots() {
-    for(uint8_t shot = 0;shot < ShootString.TotShoots;shot++){
-        sendOneShot(shot,&(ShootString.shots[shot]));
+    for (uint8_t shot = 0; shot < ShootString.TotShoots; shot++) {
+        sendOneShot(shot, &(ShootString.shots[shot]));
     }
 }
 
@@ -1625,6 +1625,7 @@ void StartListenShots(void) {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Power functions">
+
 void DoPowerOff() {
     while (Keypressed); // Wait to button to release
     PWM6CONbits.EN = 0; // Disale PWM
@@ -1644,7 +1645,7 @@ void DoPowerOff() {
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
-//    OSCFRQ = 0b00001000; // 64 MHz Fosc.
+    //    OSCFRQ = 0b00001000; // 64 MHz Fosc.
 }
 
 void DoPowerOn() {
@@ -1699,7 +1700,7 @@ void DoCharging() {
 // </editor-fold>
 
 void PlayParSound() {
-    sendSignal("PAR",Settings.BuzzerParDuration,rtc_time.unix_time_ms - ShootString_start_time);
+    sendSignal("PAR", Settings.BuzzerParDuration, rtc_time.unix_time_ms - ShootString_start_time);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -1716,7 +1717,7 @@ void PlayParSound() {
 }
 
 void PlayStartSound() {
-    sendSignal("START",Settings.BuzzerParDuration,0.0);
+    sendSignal("START", Settings.BuzzerParDuration, 0.0);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -1903,11 +1904,11 @@ static void interrupt isr(void) {
     } else if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
     }
-    if(PIR3bits.TX1IF){
-        PIR3bits.TX1IF=0;
+    if (PIR3bits.TX1IF) {
+        PIR3bits.TX1IF = 0;
         uart_tx_int_handler();
     }
-    if(PIR3bits.RC1IF){
+    if (PIR3bits.RC1IF) {
         uart_rx_int_handler();
         PIR3bits.RC1IF = 0;
     }
