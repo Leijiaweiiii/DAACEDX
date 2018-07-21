@@ -402,8 +402,15 @@ void save_shots_if_required() {
     if (last_saved_shot < const_shots) {
         do {
             saveOneShot(last_saved_shot);
+            sendOneShot(last_saved_shot,&(ShootString.shots[last_saved_shot]));
             last_saved_shot++;
         } while (last_saved_shot < const_shots);
+    }
+}
+
+void send_all_shots() {
+    for(uint8_t shot = 0;shot < ShootString.TotShoots;shot++){
+        sendOneShot(shot,&(ShootString.shots[shot]));
     }
 }
 

@@ -8,6 +8,7 @@
 #ifndef BLUETOOTH_H
 #define	BLUETOOTH_H
 #include "DAACEDcommon.h"
+#include "shot.h"
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -117,7 +118,7 @@ command set whitelist mac address.
     void BT_SendDataStr(char * str);
     void BT_off();
     void BT_hard_reset();
-    
+    void sendOneShot(uint8_t shot_number,shot_t * shot);
 
 #ifdef	__cplusplus
 }
