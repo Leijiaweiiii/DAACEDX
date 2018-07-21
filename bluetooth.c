@@ -1,25 +1,48 @@
 #include "bluetooth.h"
 #include "uart.h"
+
+TBool at_ok(){
+    return (uart_rx_buffer[0]=='O' && uart_rx_buffer[1] == 'K');
+}
+void BT_send_comand(char * cmd, int length){
+    uart_start_tx_string(cmd,length);
+    uart_rx_handled();
+    while(!uart_flags.tx_complete);
+    Delay(100);
+}
 void BT_init() {
     BT_hard_reset();
+    Delay(100);
+    BT_send_comand("AT",2);
+    if(at_ok()){
+        // Set high speed
+        BT_send_comand("AT+BAUD4",16);
+        uart_set_high_speed;
+        BT_send_comand("AT",2);
+        if(!at_ok()){
+            uart_set_low_speed;
+            BT_hard_reset();
+        }
+    }
+    BT_send_comand("AT+NAMEDAA_RAZOR",16);
+    uart_rx_handled();
 }
 
 void BT_off(){
-    BT_RESET_INV = 0;// Hold in reset when off
+    BT_send_comand("AT+SLEEP",8);
 }
 
-void BT_soft_reset() {
-
+void BT_soft_reset(){
+    BT_send_comand("AT+RESET",8);
 }
 
 void BT_hard_reset() {
     BT_RESET_INV = 0;
-    _delay(300);
+    _delay(100);
     BT_RESET_INV = 1;
 }
-
-void BT_send_uart() {
-
+void BT_set_high_speed(){
+    
 }
 void sendOneShot(uint8_t shot_number,shot_t * shot){
     char msg[16];

@@ -1666,8 +1666,9 @@ void DoPowerOn() {
     init_ms_timer0();
     initialize_rtc_timer();
     update_rtc_time();
-    BT_init();
+
     init_uart();
+    BT_init();
     timer_idle_last_action_time = rtc_time.sec;
 }
 
@@ -1940,10 +1941,6 @@ void main(void) {
     while (True) {
         //TODO: Integrate watchdog timer
         handle_ui();
-        //        for (uint8_t i = 0;i<4;i++){
-        //            generate_sinus(i,1000,200);
-        //            delay_rtc_ms(1000);
-        //        }
     }
     // </editor-fold>
 }

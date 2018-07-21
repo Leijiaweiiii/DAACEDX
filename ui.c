@@ -392,9 +392,10 @@ void define_input_action() {
                 break;
         }
     }
+    BT_define_action();
     switch(BT_COMMAND){
         case BT_StartTimer:
-            comandToHandle = StartLong;
+            comandToHandle = StartShort;
             break;
         case BT_GetConfig:
             comandToHandle = SendConfig;
@@ -403,6 +404,7 @@ void define_input_action() {
             comandToHandle = SendLastString;
             break;
     }
+    BT_COMMAND = None;
     handle_timer_idle_shutdown();
     define_charger_state();
     if (charger_state_changed)

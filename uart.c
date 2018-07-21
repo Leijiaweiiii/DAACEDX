@@ -24,7 +24,7 @@ void init_uart(void) {
     BAUD1CONbits.BRG16 = 1; // 16 bit baud rate counter
     TX1STAbits.BRGH = 0;
     BAUD1CONbits.SCKP = 0; // Data on falling edge
-    SP1BRG = 416; // for 9600 rate, calculated for 64 MHz
+    uart_set_low_speed;
     TX1STAbits.TX9 = 0; // 8 bits TX
     TX1STAbits.TXEN = 1; // TX Enabled
     TX1IF = 0;

@@ -115,9 +115,10 @@ command set whitelist mac address.
  DAA+CMD1
  */
     void BT_init();
-    void BT_SendDataStr(char * str);
     void BT_off();
     void BT_hard_reset();
+    void BT_soft_reset();
+    void BT_set_high_speed();
     void sendOneShot(uint8_t shot_number,shot_t * shot);
     void sendSignal(const char * name, uint16_t duration,uint24_t time_ms);
     void BT_define_action();
