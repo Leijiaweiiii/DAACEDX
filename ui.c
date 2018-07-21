@@ -17,6 +17,40 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
             BLACK_OVER_WHITE
             );
 }
+void clear_timer_area() {
+    lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
+}
+
+void print_shot_origin(const shot_t * s) {
+    uint8_t y_pos = UI_HEADER_END_LINE + LCD_PAGE_HEIGTH;
+    if (s->is_a) {
+        lcd_write_string(
+                "A",
+                3,
+                y_pos,
+                MediumFont,
+                BLACK_OVER_WHITE
+                );
+    }
+    y_pos += MediumFont->height;
+    if (s->is_b) {
+        lcd_write_string(
+                "B",
+                3,
+                y_pos, MediumFont,
+                BLACK_OVER_WHITE
+                );
+    }
+}
+
+void update_shot_time_on_screen() {
+    uint24_t t = 0;
+    if (ShootString.TotShoots > 0) {
+        t = ShootString.shots[ShootString.TotShoots - 1].dt;
+        print_shot_origin(&(ShootString.shots[ShootString.TotShoots - 1]));
+    }
+    print_big_time_label(t);
+}
 
 uint8_t old_time_str_len = 0;
 

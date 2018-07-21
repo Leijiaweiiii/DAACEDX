@@ -1617,7 +1617,7 @@ void StartListenShots(void) {
     DetectInit();
 }
 // </editor-fold>
-
+// <editor-fold defaultstate="collapsed" desc="Power functions">
 void DoPowerOff() {
     while (Keypressed); // Wait to button to release
     PWM6CONbits.EN = 0; // Disale PWM
@@ -1687,41 +1687,7 @@ void DoCharging() {
         }
     }
 }
-
-void clear_timer_area() {
-    lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
-}
-
-void print_shot_origin(const shot_t * s) {
-    uint8_t y_pos = UI_HEADER_END_LINE + LCD_PAGE_HEIGTH;
-    if (s->is_a) {
-        lcd_write_string(
-                "A",
-                3,
-                y_pos,
-                MediumFont,
-                BLACK_OVER_WHITE
-                );
-    }
-    y_pos += MediumFont->height;
-    if (s->is_b) {
-        lcd_write_string(
-                "B",
-                3,
-                y_pos, MediumFont,
-                BLACK_OVER_WHITE
-                );
-    }
-}
-
-void update_shot_time_on_screen() {
-    uint24_t t = 0;
-    if (ShootString.TotShoots > 0) {
-        t = ShootString.shots[ShootString.TotShoots - 1].dt;
-        print_shot_origin(&(ShootString.shots[ShootString.TotShoots - 1]));
-    }
-    print_big_time_label(t);
-}
+// </editor-fold>
 
 void PlayParSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
