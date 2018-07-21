@@ -1619,8 +1619,8 @@ void print_footer() {
 }
 
 void StartListenShots(void) {
-    ShootString_start_time = rtc_time.unix_time_ms;
     last_saved_shot = 0;
+    ShootString_start_time = rtc_time.unix_time_ms;
     DetectInit();
 }
 // </editor-fold>
@@ -1698,6 +1698,7 @@ void DoCharging() {
 // </editor-fold>
 
 void PlayParSound() {
+    sendSignal("PAR",Settings.BuzzerParDuration,rtc_time.unix_time_ms - ShootString_start_time);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -1714,6 +1715,7 @@ void PlayParSound() {
 }
 
 void PlayStartSound() {
+    sendSignal("START",Settings.BuzzerParDuration,0.0);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -1795,6 +1797,7 @@ void check_countdown_expired() {
 
 void check_par_expired() {
     if (ParNowCounting) {
+        update_rtc_time();
         if (rtc_time.unix_time_ms - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
             ParNowCounting = false;
             timerEventToHandle = ParEvent;

@@ -119,6 +119,7 @@ command set whitelist mac address.
     void BT_off();
     void BT_hard_reset();
     void sendOneShot(uint8_t shot_number,shot_t * shot);
+    void sendSignal(const char * name, uint16_t duration,uint24_t time_ms);
 
 #ifdef	__cplusplus
 }
