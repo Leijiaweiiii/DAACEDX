@@ -294,7 +294,7 @@ void getDefaultSettings() {
     Settings.Filter = 70; // ms
     Settings.AR_IS.Autostart = 1; // on
     Settings.AR_IS.AutoRotate = 0; // Off
-    Settings.AR_IS.BT = 1; // On, TBD
+    Settings.AR_IS.BT = 0; // Off by default
     Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 2000; // Hz
     Settings.BuzzerParDuration = 300; // ms
@@ -1162,10 +1162,32 @@ void SetInput(SettingsMenu_t * m) {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
-void BlueTooth() {
-    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    lcd_write_string(" TBD ", 3, 40, MediumFont, BLACK_OVER_WHITE);
-    __delay_ms(500);
+void init_bt() {
+    if (Settings.AR_IS.BT) {
+        init_uart();
+        BT_init();
+    } else {
+        BT_off();
+    }
+}
+
+void BlueTooth(SettingsMenu_t * m) {
+    InitSettingsMenuDefaults(m);
+    m->TotalMenuItems = 2;
+    strmycpy(m->MenuTitle, "Bluetooth");
+    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Disabled");
+    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Enabled");
+    m->menu = Settings.AR_IS.BT;
+
+    do {
+        DisplaySettings(m);
+        SelectMenuItem(m);
+    } while (SettingsNotDone(m));
+    if (m->selected && Settings.AR_IS.BT != m->menu) {
+        Settings.AR_IS.BT = m->menu;
+        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        init_bt();
+    }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
@@ -1198,7 +1220,7 @@ void DoSet(uint8_t menu) {
             break;
         case 11:SetInput(m);
             break;
-        case 12:BlueTooth();
+        case 12:BlueTooth(m);
             break;
         case 13:
             getDefaultSettings();
@@ -1665,10 +1687,9 @@ void DoPowerOn() {
     INT0IE = 0; // Disable wakeup interrupt
     init_ms_timer0();
     initialize_rtc_timer();
+    getSettings();
+    init_bt();
     update_rtc_time();
-
-    init_uart();
-    BT_init();
     timer_idle_last_action_time = rtc_time.sec;
 }
 
@@ -1919,11 +1940,8 @@ static void interrupt isr(void) {
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     DoPowerOn();
-
     ei();
-    getSettings();
     getShootString(0);
-
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
@@ -1931,7 +1949,6 @@ void main(void) {
     }
     set_backlight(Settings.BackLightLevel);
     getShootString(0);
-
 
     // Initialization End
     // </editor-fold>

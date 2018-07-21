@@ -29,11 +29,13 @@ void BT_init() {
 }
 
 void BT_off(){
-    BT_send_comand("AT+SLEEP",8);
+//    uart_start_tx_string("AT+SLEEP",8);
+    BT_RESET_INV = 0;
 }
 
 void BT_soft_reset(){
     BT_send_comand("AT+RESET",8);
+
 }
 
 void BT_hard_reset() {
@@ -67,13 +69,13 @@ void BT_define_action(){
             case '1':
                 BT_COMMAND = BT_StartTimer;
                 break;
-            case 6:
-            case '6':
+            case 2:
+            case '2':
                 BT_COMMAND = BT_GetLastString;
                 break;
             case 5:
             case '5':
-                BT_COMMAND = BT_GetLastString;
+                BT_COMMAND = BT_GetConfig;
                 break;
         }
         // DAA prefix - our commands
