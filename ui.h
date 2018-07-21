@@ -46,7 +46,9 @@ extern "C" {
         OkShort,
         OkLong,
         ChargerEvent,
-        TimeChanged
+        TimeChanged,
+        SendLastString,
+        SendConfig
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 

@@ -182,6 +182,9 @@ void handle_timer_idle() {
             break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
+        case SendLastString:
+            send_all_shots();
+            break;
         default:
             //All the rest ignoring
             break;
@@ -388,6 +391,17 @@ void define_input_action() {
                 //user can press anything, but we can handle only specific gestures
                 break;
         }
+    }
+    switch(BT_COMMAND){
+        case BT_StartTimer:
+            comandToHandle = StartLong;
+            break;
+        case BT_GetConfig:
+            comandToHandle = SendConfig;
+            break;
+        case BT_GetLastString:
+            comandToHandle = SendLastString;
+            break;
     }
     handle_timer_idle_shutdown();
     define_charger_state();

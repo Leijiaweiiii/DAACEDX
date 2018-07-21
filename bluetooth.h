@@ -106,20 +106,21 @@ command set whitelist mac address.
         BT_SaveConfig = 5,
         BT_GetLastString = 6,
         BT_StartSendShots = 7, // Send shots one by one when detected
-        BT_StopSendShots = 8
+        BT_StopSendShots = 8,
+        BT_None = 0
     } BT_COMMAND_T;
-    
+    BT_COMMAND_T BT_COMMAND = BT_None;
 /*
  Examples of commands
  DAA+CMD1
  */
-    void (*BT_cmd_handler)(BT_COMMAND_T cmd);
     void BT_init();
     void BT_SendDataStr(char * str);
     void BT_off();
     void BT_hard_reset();
     void sendOneShot(uint8_t shot_number,shot_t * shot);
     void sendSignal(const char * name, uint16_t duration,uint24_t time_ms);
+    void BT_define_action();
 
 #ifdef	__cplusplus
 }

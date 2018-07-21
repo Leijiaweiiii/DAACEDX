@@ -36,3 +36,24 @@ void sendSignal(const char * name, uint16_t duration,uint24_t time_ms){
     size = sprintf(msg,"%s,%3.2f,%3.2f\n",name,((float)duration)/1000,((float)time_ms)/1000);
     uart_start_tx_string(msg,size);
 }
+
+void BT_define_action(){
+    if(uart_rx_buffer[0]=='D' && uart_rx_buffer[1]=='A' && uart_rx_buffer[2]=='A'){
+        switch(uart_rx_buffer[3]){
+            case 1:
+            case '1':
+                BT_COMMAND = BT_StartTimer;
+                break;
+            case 6:
+            case '6':
+                BT_COMMAND = BT_GetLastString;
+                break;
+            case 5:
+            case '5':
+                BT_COMMAND = BT_GetLastString;
+                break;
+        }
+        // DAA prefix - our commands
+        uart_rx_handled();
+    }
+}

@@ -255,4 +255,5 @@ void check_countdown_expired();
 void check_par_expired();
 void check_timer_max_time();
 void DetectMicShot();
+void send_all_shots();
 #endif /*  _DAACED_H_ */

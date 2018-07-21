@@ -1665,6 +1665,7 @@ void DoPowerOn() {
     init_ms_timer0();
     initialize_rtc_timer();
     update_rtc_time();
+    BT_init();
     init_uart();
     timer_idle_last_action_time = rtc_time.sec;
 }
