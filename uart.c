@@ -29,17 +29,21 @@ void init_uart(void) {
     TX1STAbits.TXEN = 1; // TX Enabled
     TX1IF = 0;
     PIE3bits.TX1IE = 1; // Enable interrupt
-
-
     RC1STAbits.SPEN = 1;
     RC1STAbits.RX9 = 0;
     RCSTA1bits.CREN = 1;
     RC1IF = 0;
     RC1IE = 1;
-
     uart_flags.tx_complete = 1;
     uart_rx_handled();
-    // TODO: Init UART RX
+}
+
+void uart_disable() {
+    RC1IE = 0;
+    PIE3bits.TX1IE = 0;
+    TX1STAbits.TXEN = 0;
+    RCSTA1bits.CREN = 0;
+    RC1STAbits.SPEN = 0;
 }
 
 void send_next_byte() {
@@ -52,6 +56,12 @@ void uart_start_tx_string(const char * str, const uint8_t size) {
     // Wait until previous buffer sent
     while (!uart_flags.tx_complete);
     strmycpy(uart_tx_buff, str);
+    if(size<tx_size){
+        // old command longer
+        for (uint8_t i = size;i<tx_size;i++){
+            uart_tx_buff[i] = 0;
+        }
+    }
     tx_size = size;
     tx_head = 0;
     uart_flags.tx_complete = 0;

@@ -9,6 +9,7 @@ void BT_send_comand(char * cmd, int length){
     uart_rx_handled();
     while(!uart_flags.tx_complete);
     Delay(100);
+    asm(" nop");
 }
 void BT_init() {
     BT_hard_reset();
@@ -25,12 +26,25 @@ void BT_init() {
         }
     }
     BT_send_comand("AT+NAMEDAA_RAZOR",16);
+    BT_send_comand("AT+PWRM1",8);// Disable auto sleep when powered ON
     uart_rx_handled();
+    BT_STATUS.initialized = 1;
 }
 
 void BT_off(){
-//    uart_start_tx_string("AT+SLEEP",8);
-    BT_RESET_INV = 0;
+    if(BT_STATUS.initialized){
+//        BT_hard_reset();
+//        uart_set_low_speed;
+//        Delay(100);
+        BT_send_comand("AT+PWRM0",8);
+        Delay(45);
+        BT_send_comand("AT+UART1",8);
+        Delay(45);
+        BT_send_comand("AT+SLEEP",8);
+        BT_STATUS.initialized = 0;
+        Delay(100);
+        uart_disable();
+    }
 }
 
 void BT_soft_reset(){

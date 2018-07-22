@@ -11,8 +11,8 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-#define UART_RX_BUF_SIZE 96
-#define UART_TX_BUF_SIZE 128
+#define UART_RX_BUF_SIZE 64
+#define UART_TX_BUF_SIZE 64
     char uart_rx_buffer[UART_RX_BUF_SIZE];
     volatile unsigned char rx_head=0;
     char uart_tx_buff[UART_TX_BUF_SIZE];
@@ -27,6 +27,7 @@ extern "C" {
     void uart_rx_int_handler();
     void uart_start_tx_string(const char * str, const uint8_t size);
     void uart_rx_handled();
+    void uart_disable();
 #define uart_set_high_speed {SP1BRG = 34; /* for 115200 rate, calculated for 64 MHz */}
 #define uart_set_low_speed  {SP1BRG = 416; /* for 9600 rate, calculated for 64 MHz */}
 

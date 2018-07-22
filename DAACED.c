@@ -1654,6 +1654,7 @@ void DoPowerOff() {
     T2CONbits.ON = 0;
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
+    BT_off();
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
     ADC_DISABLE_INTERRUPT;
     // Configure interrupt for wakeup

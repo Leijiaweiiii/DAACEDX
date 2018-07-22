@@ -94,8 +94,8 @@ command set whitelist mac address.
     union {
         unsigned status_byte        :8;
         struct{
-            unsigned connected      :1;
             unsigned card_present   :1;
+            unsigned initialized    :1;
         };
     } BT_STATUS;
     typedef enum {
