@@ -70,6 +70,7 @@ void initialize_rtc_timer() {
     // Real time counter will count 2 seconds forever.
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
+    OSCCON3bits.SOSCPWR = 1; // High power mode for secondary oscillator
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
     OSCENbits.LFOEN = 0;
