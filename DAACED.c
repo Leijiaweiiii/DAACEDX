@@ -1860,13 +1860,17 @@ void update_screen_model() {
             case INPUT_TYPE_A_and_B_single:
                 if (InputFlags.A_RELEASED && !AUX_A) {
                     InputFlags.A_RELEASED = 0;
-                    UpdateShotNow(A);
-                } else if (InputFlags.A_RELEASED && !AUX_B) {
-                    InputFlags.A_RELEASED = 0;
-                    UpdateShotNow(B);
+                    if (ShootString.TotShoots == 0 || ShootString.shots[0].is_b) {
+                        UpdateShotNow(A);
+                    }
                 }
-                // TODO: Fix This should capture only one of A and one of B
-                timerEventToHandle = TimerTimeout;
+                if (InputFlags.A_RELEASED && !AUX_B) {
+                    InputFlags.A_RELEASED = 0;
+                    if (ShootString.TotShoots == 0 || ShootString.shots[0].is_a) {
+                        UpdateShotNow(B);
+                    }
+                }
+                if (ShootString.TotShoots == 2) timerEventToHandle = TimerTimeout;
                 break;
         }
     }
