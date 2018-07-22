@@ -405,6 +405,9 @@ void save_shots_if_required() {
             sendOneShot(last_saved_shot, &(ShootString.shots[last_saved_shot]));
             last_saved_shot++;
         } while (last_saved_shot < const_shots);
+    } else if (ShootString.shots[last_saved_shot - 1].ov) {
+        saveOneShot(last_saved_shot - 1);
+        sendOneShot(last_saved_shot - 1, &(ShootString.shots[last_saved_shot - 1]));
     }
 }
 
@@ -1812,10 +1815,14 @@ void UpdateShot(time_t now, ShotInput_t input) {
     ddt = dt - ddt;
     //Don't count shoots less than Filter
     if (ddt > Settings.Filter) {
-        ShootString.shots[ShootString.TotShoots].dt = dt;
-        ShootString.shots[ShootString.TotShoots].is_flags = input;
         if (ShootString.TotShoots < MAXSHOOT) {
+            ShootString.shots[ShootString.TotShoots].dt = dt;
+            ShootString.shots[ShootString.TotShoots].is_flags = input;
             ShootString.TotShoots++;
+        } else {
+            ShootString.shots[ShootString.TotShoots - 1].dt = dt;
+            ShootString.shots[ShootString.TotShoots - 1].is_flags = input;
+            ShootString.shots[ShootString.TotShoots - 1].ov = 1;
         }
         InputFlags.FOOTER_CHANGED = True;
     }

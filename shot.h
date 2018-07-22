@@ -26,7 +26,8 @@ typedef union {
                 unsigned is_mic : 1;
                 unsigned is_a : 1;
                 unsigned is_b : 1;
-                unsigned unused : 5;
+                unsigned ov : 1;// The overflow shot
+                unsigned unused : 4;
             };
         };
         uint24_t dt;
