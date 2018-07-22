@@ -995,20 +995,20 @@ void SetClock() {
 
 void CountDownMode(time_t countdown) {
     char msg[16];
-    time_t reminder;
-    time_t stop_time = rtc_time.sec + countdown;
+    time_t reminder = countdown*1000;
+    time_t stop_time = rtc_time.unix_time_ms + reminder + 1;
     uint8_t minute, second;
     TBool done = False;
     lcd_clear();
     do {
         print_header();
-        reminder = stop_time - rtc_time.sec;
+        update_rtc_time();
+        reminder = (stop_time - rtc_time.unix_time_ms)/1000;
         minute = reminder / 60;
         second = reminder % 60;
         sprintf(msg,
-                "%2d%s%02d",
+                "%2d:%02d",
                 minute,
-                (rtc_time.msec > 500 || rtc_time.msec < 250) ? "." : ":",
                 second
                 );
         display_big_font_label(msg);
@@ -1036,7 +1036,7 @@ void CountDownMode(time_t countdown) {
             for (uint8_t j = 0; j < 4; j++) {
                 generate_sinus(
                         Settings.Volume,
-                        1000,
+                        Settings.BuzzerFrequency,
                         50
                         );
                 Delay(50);
