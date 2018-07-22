@@ -122,6 +122,7 @@ union {
         unsigned WAKEUP : 1;
         unsigned FOOTER_CHANGED : 1;
         unsigned ADC_DETECTED : 1;
+        unsigned INITIALIZED    :1;
     };
 } InputFlags;
 

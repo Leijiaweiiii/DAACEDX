@@ -33,9 +33,7 @@ void BT_init() {
 
 void BT_off(){
     if(BT_STATUS.initialized){
-//        BT_hard_reset();
-//        uart_set_low_speed;
-//        Delay(100);
+
         BT_send_comand("AT+PWRM0",8);
         Delay(45);
         BT_send_comand("AT+UART1",8);

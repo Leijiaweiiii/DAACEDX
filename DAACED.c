@@ -1657,6 +1657,7 @@ void DoPowerOff() {
     BT_off();
     OSCFRQ = 0b00000000; // 1MHz clock for power saving
     ADC_DISABLE_INTERRUPT;
+    InputFlags.INITIALIZED = False;
     // Configure interrupt for wakeup
     INT0IE = 1;
     PORTEbits.RE0 = 0;
@@ -1672,7 +1673,9 @@ void DoPowerOff() {
 }
 
 void DoPowerOn() {
+    if(InputFlags.INITIALIZED) return;
     PIC_init();
+    LATEbits.LATE0 = 1;
     initialize_backlight();
     set_backlight(2);
     spi_init();
@@ -1680,7 +1683,7 @@ void DoPowerOn() {
     lcd_set_orientation();
     ADC_init();
     eeprom_init();
-    LATEbits.LATE0 = 1;
+    
     // TODO: Review power on sequence
     set_backlight(Settings.BackLightLevel);
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
@@ -1692,6 +1695,7 @@ void DoPowerOn() {
     init_bt();
     update_rtc_time();
     timer_idle_last_action_time = rtc_time.sec;
+    InputFlags.INITIALIZED = True;
 }
 
 void DoCharging() {
@@ -1949,7 +1953,6 @@ void main(void) {
         saveSettings();
     }
     set_backlight(Settings.BackLightLevel);
-    getShootString(0);
 
     // Initialization End
     // </editor-fold>
