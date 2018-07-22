@@ -995,7 +995,7 @@ void SetClock() {
 
 void CountDownMode(time_t countdown) {
     char msg[16];
-    time_t reminder = countdown*1000;
+    time_t reminder = countdown * 1000;
     time_t stop_time = rtc_time.unix_time_ms + reminder + 1;
     uint8_t minute, second;
     TBool done = False;
@@ -1003,7 +1003,7 @@ void CountDownMode(time_t countdown) {
     do {
         print_header();
         update_rtc_time();
-        reminder = (stop_time - rtc_time.unix_time_ms)/1000;
+        reminder = (stop_time - rtc_time.unix_time_ms) / 1000;
         minute = reminder / 60;
         second = reminder % 60;
         sprintf(msg,
@@ -1655,10 +1655,10 @@ void DoPowerOff() {
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     BT_off();
-    OSCCON3bits.CSWHOLD = 0;    // Switch OSC when ready
-    OSCCON1bits.NOSC = 0b100;   // New oscillator is SOSC
-    while(!OSCCON3bits.ORDY); // Wait new oscillator ready
-    OSCENbits.HFOEN = 0;        // Disable HFINTOSC
+    OSCCON3bits.CSWHOLD = 0; // Switch OSC when ready
+    OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
+    while (!OSCCON3bits.ORDY); // Wait new oscillator ready
+    OSCENbits.HFOEN = 0; // Disable HFINTOSC
     ADC_DISABLE_INTERRUPT;
     InputFlags.INITIALIZED = False;
     // Configure interrupt for wakeup
@@ -1672,12 +1672,12 @@ void DoPowerOff() {
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
-    OSCCON1bits.NOSC = 0b110;   // New oscillator is HFINTOSC
-    while(!OSCCON3bits.ORDY); // Wait new oscillator ready
+    OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
+    while (!OSCCON3bits.ORDY); // Wait new oscillator ready
 }
 
 void DoPowerOn() {
-    if(InputFlags.INITIALIZED) return;
+    if (InputFlags.INITIALIZED) return;
     PIC_init();
     LATEbits.LATE0 = 1;
     initialize_backlight();
@@ -1687,7 +1687,7 @@ void DoPowerOn() {
     lcd_set_orientation();
     ADC_init();
     eeprom_init();
-    
+
     // TODO: Review power on sequence
     set_backlight(Settings.BackLightLevel);
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
