@@ -1655,7 +1655,10 @@ void DoPowerOff() {
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     BT_off();
-    OSCFRQ = 0b00000000; // 1MHz clock for power saving
+    OSCCON3bits.CSWHOLD = 0;    // Switch OSC when ready
+    OSCCON1bits.NOSC = 0b100;   // New oscillator is SOSC
+    while(!OSCCON3bits.ORDY); // Wait new oscillator ready
+    OSCENbits.HFOEN = 0;        // Disable HFINTOSC
     ADC_DISABLE_INTERRUPT;
     InputFlags.INITIALIZED = False;
     // Configure interrupt for wakeup
@@ -1669,7 +1672,8 @@ void DoPowerOff() {
     Sleep();
     InputFlags.KEY_RELEASED = 1;
     PIE0bits.TMR0IE = 1;
-    //    OSCFRQ = 0b00001000; // 64 MHz Fosc.
+    OSCCON1bits.NOSC = 0b110;   // New oscillator is HFINTOSC
+    while(!OSCCON3bits.ORDY); // Wait new oscillator ready
 }
 
 void DoPowerOn() {
