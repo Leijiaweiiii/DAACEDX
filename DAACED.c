@@ -1832,6 +1832,8 @@ void check_countdown_expired() {
     update_rtc_time();
     if (rtc_time.unix_time_ms - countdown_start_time > Settings.DelayTime) {
         comandToHandle = CountdownExpired;
+    } else {
+        Delay(20);
     }
 }
 

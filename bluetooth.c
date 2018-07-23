@@ -25,7 +25,7 @@ void BT_init() {
             BT_hard_reset();
         }
     }
-    BT_send_comand("AT+NAMEDAA_RAZOR",16);
+    BT_send_comand("AT+NAMERAZOR",12);
     BT_send_comand("AT+PWRM1",8);// Disable auto sleep when powered ON
     uart_rx_handled();
     BT_STATUS.initialized = 1;

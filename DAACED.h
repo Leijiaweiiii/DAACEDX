@@ -201,20 +201,20 @@ typedef union {
     uint8_t data[SettingsDataSize];
 
     struct {
-        uint8_t version;
+        uint8_t version;                // 0
         AR_IS_T AR_IS;
-        uint8_t DelayMode;
-        uint8_t Volume;
-        uint8_t BackLightLevel;
-        uint8_t Filter;
-        uint8_t ParMode;
-        uint8_t TotPar; // 1 based
-        uint8_t InputType;
-        uint24_t Sensitivity;
-        uint16_t BuzzerFrequency;
-        uint16_t BuzzerParDuration;
-        uint16_t BuzzerStartDuration;
-        time_t DelayTime; // mS
+        uint8_t DelayMode;              // 1
+        uint8_t Volume;                 // 2
+        uint8_t BackLightLevel;         // 3
+        uint8_t Filter;                 // 4
+        uint8_t ParMode;                // 5
+        uint8_t TotPar; // 1 based      // 6
+        uint8_t InputType;              // 7
+        uint24_t Sensitivity;           // 8
+        uint16_t BuzzerFrequency;       // 9
+        uint16_t BuzzerParDuration;     // A
+        uint16_t BuzzerStartDuration;   // B
+        time_t DelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
         uint24_t ParTime[MAXPAR]; //in 1mS unit
     };
