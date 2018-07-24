@@ -12,3 +12,4 @@ extern const bitmap_data_t battery_right_bitmap;
 extern const bitmap_data_t battery_middle_full_bitmap;
 extern const bitmap_data_t battery_middle_empty_bitmap;
 extern const bitmap_data_t battery_left_bitmap;
+extern const bitmap_data_t daaced_logo;

@@ -1649,6 +1649,12 @@ void StartListenShots(void) {
     DetectInit();
 }
 // </editor-fold>
+
+void print_logo_splash() {
+    lcd_draw_bitmap(0,0,&daaced_logo);
+    Delay(2000);
+}
+
 // <editor-fold defaultstate="collapsed" desc="Power functions">
 
 void DoPowerOff() {
@@ -1703,6 +1709,7 @@ void DoPowerOn() {
     update_rtc_time();
     timer_idle_last_action_time = rtc_time.sec;
     InputFlags.INITIALIZED = True;
+    print_logo_splash();
 }
 
 void DoCharging() {
