@@ -515,7 +515,8 @@ void lcd_draw_bitmap_flat(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bit
 }
 
 void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
-    uint8_t column, page, index;
+    uint8_t column, page;
+    uint16_t index;
     for (column = x_pos; column < x_pos + bitmap_data->width_in_bits; column++) {
         lcd_prepare_send_data(column, PAGE(y_pos), column, PAGE(y_pos) + bitmap_data->heigth_in_bytes);
         // TODO: Calculate carefully
