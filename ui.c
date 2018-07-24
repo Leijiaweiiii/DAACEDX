@@ -17,6 +17,7 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
             BLACK_OVER_WHITE
             );
 }
+
 void clear_timer_area() {
     lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
 }
@@ -31,15 +32,18 @@ void print_shot_origin(const shot_t * s) {
                 MediumFont,
                 BLACK_OVER_WHITE
                 );
-    }
-    y_pos += MediumFont->height;
-    if (s->is_b) {
-        lcd_write_string(
-                "B",
-                3,
-                y_pos, MediumFont,
-                BLACK_OVER_WHITE
-                );
+        lcd_clear_block(3, y_pos + MediumFont->height, 35, y_pos + 2 * MediumFont->height);
+    } else {
+        lcd_clear_block(3, y_pos, 35, y_pos + MediumFont->height);
+        y_pos += MediumFont->height;
+        if (s->is_b) {
+            lcd_write_string(
+                    "B",
+                    3,
+                    y_pos, MediumFont,
+                    BLACK_OVER_WHITE
+                    );
+        }
     }
 }
 
@@ -393,7 +397,7 @@ void define_input_action() {
         }
     }
     BT_define_action();
-    switch(BT_COMMAND){
+    switch (BT_COMMAND) {
         case BT_StartTimer:
             comandToHandle = StartShort;
             break;
