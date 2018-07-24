@@ -58,7 +58,7 @@ void print_big_time_label(const uint24_t t) {
     char message[16];
     float tf;
     uint8_t len, spaceholder;
-    spaceholder = (Settings.InputType != INPUT_TYPE_Microphone) ? 20 : 0;
+    spaceholder = (Settings.InputType != INPUT_TYPE_Microphone) ? 40 : 0;
     if (t > MAX_MEASUREMENT_TIME)
         tf = 999.0;
     else

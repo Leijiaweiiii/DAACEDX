@@ -1533,9 +1533,9 @@ void DetectInit(void) {
             InputFlags.A_RELEASED = True;
             InputFlags.B_RELEASED = True;
             // Disable output driver for A/B I/O
-            TRISDbits.TRISD0 = 0;
-            TRISDbits.TRISD1 = 0;
-            TRISDbits.TRISD2 = 0;
+            TRISDbits.TRISD0 = 1;
+            TRISDbits.TRISD1 = 1;
+            TRISDbits.TRISD2 = 1;
             break;
     }
 }
@@ -1861,7 +1861,8 @@ void update_screen_model() {
                 if (InputFlags.A_RELEASED && !AUX_A) {
                     InputFlags.A_RELEASED = 0;
                     UpdateShotNow(A);
-                } else if (InputFlags.B_RELEASED && !AUX_B) {
+                }
+                if (InputFlags.B_RELEASED && !AUX_B) {
                     InputFlags.B_RELEASED = 0;
                     UpdateShotNow(B);
                 }
@@ -1873,8 +1874,8 @@ void update_screen_model() {
                         UpdateShotNow(A);
                     }
                 }
-                if (InputFlags.A_RELEASED && !AUX_B) {
-                    InputFlags.A_RELEASED = 0;
+                if (InputFlags.B_RELEASED && !AUX_B) {
+                    InputFlags.B_RELEASED = 0;
                     if (ShootString.TotShoots == 0 || ShootString.shots[0].is_a) {
                         UpdateShotNow(B);
                     }

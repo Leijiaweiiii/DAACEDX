@@ -55,7 +55,6 @@ const uint16_t correction_table[] = {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="RTC timer functions">
 
-
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
 
 uint8_t get_time_source() {
@@ -74,9 +73,7 @@ void initialize_rtc_timer() {
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
     OSCENbits.LFOEN = 0;
-    Delay(100);
-//    while (!OSCSTATbits.SOR);
-//    while (!OSCSTATbits.LFOR); // Try turn on LFINTOSC to make enough noise for stable oscillations
+    while (!OSCSTATbits.SOR);
 
     TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
     T1CONbits.CKPS = 0b00; // Prescale = 1:1.
