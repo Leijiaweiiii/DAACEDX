@@ -185,11 +185,14 @@ time_t parStartTime_ms;
 #define ParMode_Practical 1
 #define ParMode_Barricade 2
 #define ParMode_FallingPlate 3
-#define ParMode_NRA_PPC_A 4
-#define ParMode_NRA_PPC_B 5
-#define ParMode_NRA_PPC_C 6
-#define ParMode_NRA_PPC_D 7
-//uint8_t ParMode = ParMode_Regular;
+#define ParMode_MovingTarget 4
+#define ParMode_NRA_PPC_A 5
+#define ParMode_NRA_PPC_B 6
+#define ParMode_NRA_PPC_C 7
+#define ParMode_NRA_PPC_D 8
+#define ParMode_CUSTOM 9
+#define TOT_PAR_MODES 10
+extern const char * par_mode_strings[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
@@ -256,5 +259,5 @@ void check_countdown_expired();
 void check_par_expired();
 void check_timer_max_time();
 void DetectMicShot();
-void send_all_shots();
+void handle_bt_commands();
 #endif /*  _DAACED_H_ */

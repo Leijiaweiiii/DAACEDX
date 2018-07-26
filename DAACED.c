@@ -536,6 +536,13 @@ void FillParSettings(SettingsMenu_t * m) {
     m->TotalMenuItems = i + 1;
 }
 
+void clear_par() {
+    for (uint8_t i = 0; i < Settings.TotPar; i++) {
+        Settings.ParTime[i] = 0;
+    }
+    Settings.TotPar = 0;
+}
+
 void HandleParMenuSelection(SettingsMenu_t * m) {
     if (m->selected) {
         m->selected = False;
@@ -564,10 +571,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             }
         } else if (m->menu == (m->TotalMenuItems - 1)) {
             // Clear PAR
-            for (uint8_t i = 0; i < Settings.TotPar; i++) {
-                Settings.ParTime[i] = 0;
-            }
-            Settings.TotPar = 0;
+            clear_par();
             m->menu = 0;
             m->page = 0;
         }
@@ -867,6 +871,12 @@ void fill_par_falling_plate() {
     Settings.ParTime[7] = 9000;
 }
 
+int fill_par_moving_target() {
+    for (uint8_t i = 0; i < 12; i++) {
+        Settings.ParTime[i] = 6000;
+    }
+}
+
 void fill_par_nra_ppc_a() {
     Settings.TotPar = 4;
     Settings.ParTime[0] = 20000;
@@ -901,19 +911,65 @@ void fill_par_nra_ppc_d() {
 }
 // </editor-fold>
 
+void set_par_mode(int m) {
+
+    switch (m) {
+        case ParMode_Regular:
+            restorePar();
+            break;
+        case ParMode_Practical:
+            fill_par_bianci();
+            break;
+        case ParMode_Barricade:
+            fill_par_barricade();
+            break;
+        case ParMode_FallingPlate:
+            fill_par_falling_plate();
+            break;
+        case ParMode_MovingTarget:
+            fill_par_moving_target();
+            break;
+        case ParMode_NRA_PPC_A:
+            fill_par_nra_ppc_a();
+            break;
+        case ParMode_NRA_PPC_B:
+            fill_par_nra_ppc_b();
+            break;
+        case ParMode_NRA_PPC_C:
+            fill_par_nra_ppc_c();
+            break;
+        case ParMode_NRA_PPC_D:
+            fill_par_nra_ppc_d();
+            break;
+        case ParMode_CUSTOM:
+            restorePar();
+            break;
+        default:
+            // How can we get here?
+            break;
+    }
+}
+const char * par_mode_strings[TOT_PAR_MODES] = {
+    " Timer ",
+    " Practical ",
+    " Barricade ",
+    " Falling Plt ",
+    " Moving Trgt ",
+    " NRA-PPC A ",
+    " NRA-PPC B ",
+    " NRA-PPC C ",
+    " NRA-PPC D ",
+    " Custom "
+};
+
 void SetMode(SettingsMenu_t * m) {
     uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 8;
+    m->TotalMenuItems = 10;
     strmycpy(m->MenuTitle, "Timer Mode");
-    strmycpy(m->MenuItem[ParMode_Regular], " Regular ");
-    strmycpy(m->MenuItem[ParMode_Practical], " Practical ");
-    strmycpy(m->MenuItem[ParMode_Barricade], " Barricade ");
-    strmycpy(m->MenuItem[ParMode_FallingPlate], " Falling Plate ");
-    strmycpy(m->MenuItem[ParMode_NRA_PPC_A], " NRA-PPC A ");
-    strmycpy(m->MenuItem[ParMode_NRA_PPC_B], " NRA-PPC B ");
-    strmycpy(m->MenuItem[ParMode_NRA_PPC_C], " NRA-PPC C ");
-    strmycpy(m->MenuItem[ParMode_NRA_PPC_D], " NRA-PPC D ");
+    for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
+        strmycpy(m->MenuItem[i], par_mode_strings[i]);
+    }
 
     m->menu = Settings.ParMode;
     //Main Screen
@@ -923,38 +979,10 @@ void SetMode(SettingsMenu_t * m) {
     } while (SettingsNotDone(m));
     if (m->selected) {
         Settings.ParMode = m->menu;
-        switch (m->menu) {
-            case ParMode_Regular:
-                restorePar();
-                break;
-            case ParMode_Practical:
-                fill_par_bianci();
-                break;
-            case ParMode_Barricade:
-                fill_par_barricade();
-                break;
-            case ParMode_FallingPlate:
-                fill_par_falling_plate();
-                break;
-            case ParMode_NRA_PPC_A:
-                fill_par_nra_ppc_a();
-                break;
-            case ParMode_NRA_PPC_B:
-                fill_par_nra_ppc_b();
-                break;
-            case ParMode_NRA_PPC_C:
-                fill_par_nra_ppc_c();
-                break;
-            case ParMode_NRA_PPC_D:
-                fill_par_nra_ppc_d();
-                break;
-            default:
-                // How can we get here?
-                break;
+        Settings.ParMode = m;
+        if (oldPar != Settings.ParMode) {
+            saveSettingsField(&Settings, &(Settings.ParMode), 1);
         }
-    }
-    if (oldPar != Settings.ParMode) {
-        saveSettingsField(&Settings, &(Settings.ParMode), 1);
     }
 }
 // </editor-fold>
@@ -995,7 +1023,21 @@ void SetClock() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
-
+void countdown_expired_signal(){
+    for (uint8_t i = 0; i < 5; i++) {
+            for (uint8_t j = 0; j < 4; j++) {
+                generate_sinus(
+                        Settings.Volume,
+                        Settings.BuzzerFrequency,
+                        50
+                        );
+                Delay(50);
+            }
+            if (Keypressed)
+                break;
+            Delay(400);
+        }
+}
 void CountDownMode(time_t countdown) {
     char msg[16];
     time_t reminder = countdown * 1000;
@@ -1035,19 +1077,7 @@ void CountDownMode(time_t countdown) {
         }
     } while (!done && ui_state == SettingsScreen);
     if (done && minute == 0 && second == 0) {
-        for (uint8_t i = 0; i < 5; i++) {
-            for (uint8_t j = 0; j < 4; j++) {
-                generate_sinus(
-                        Settings.Volume,
-                        Settings.BuzzerFrequency,
-                        50
-                        );
-                Delay(50);
-            }
-            if (Keypressed)
-                break;
-            Delay(400);
-        }
+        countdown_expired_signal();
     }
 }
 
@@ -1192,6 +1222,105 @@ void BlueTooth(SettingsMenu_t * m) {
         init_bt();
     }
 }
+
+void bt_set_par() {
+    long par_idx = 0;
+    long par_time = 0;
+    char * endp[1];
+    par_idx = strtol(bt_cmd_args_raw, endp, 10);
+
+    if (par_idx > 0 && par_idx <= MAXPAR) {
+        par_time = strtol(*endp + 1, endp, 10);
+        // Par time between 1ms and 99000ms
+        if (par_time > 0 && par_time < 99901) {
+            Settings.ParTime[par_idx - 1] = par_time;
+            Settings.TotPar = par_idx;
+            savePar(par_idx);
+            saveSettingsField(&Settings, &(Settings.TotPar), 1);
+            DAA_MSG_OK;
+        } else {
+            DAA_MSG_ERROR;
+        }
+    } else if (par_idx == 0) {
+        clear_par();
+        DAA_MSG_OK;
+    } else {
+        DAA_MSG_ERROR;
+    }
+}
+
+void bt_set_mode() {
+    int mode = 0;
+    mode = atoi(bt_cmd_args_raw);
+    if (mode >= 0 && mode < TOT_PAR_MODES) {
+        lcd_clear_block(0, 0, LCD_WIDTH, UI_HEADER_END_LINE);
+        Settings.ParMode = mode;
+        saveSettingsField(&Settings, &(Settings.ParMode), 1);
+        DAA_MSG_OK;
+    } else {
+        DAA_MSG_ERROR;
+    }
+}
+
+void handle_bt_commands() {
+    uint8_t length = 0;
+    char msg[16];
+    switch (BT_COMMAND) {
+        case BT_SendVersion:
+            length = sprintf(msg, "%d\n", Settings.version);
+            sendString(msg, length);
+            break;
+        case BT_StartTimer:
+            STATE_HANDLE_COUNTDOWN;
+            break;
+        case BT_GetLastString:
+            if (ShootString.TotShoots > 0) {
+                send_all_shots();
+            } else {
+                DAA_MSG_EMPTY;
+            }
+            break;
+        case BT_SetPar:
+            bt_set_par();
+            break;
+        case BT_SetMode:
+            bt_set_mode();
+            break;
+        case BT_ClearHistory:
+            lcd_clear();
+            DAA_MSG_WAIT;
+            clearHistory();
+            lcd_clear();
+            DAA_MSG_OK;
+            break;
+        case BT_DefaultSettings:
+            getDefaultSettings();
+            saveSettings();
+            DAA_MSG_OK;
+            break;
+        case BT_Find:
+            countdown_expired_signal();
+            DAA_MSG_LISTEN;
+            break;
+        case BT_None:
+            break;
+        case BT_GetPars:
+            if(Settings.TotPar > 0){
+            for (uint8_t i = 0;i<Settings.TotPar;i++){
+                length = sprintf(msg,"%d,%d\n",i+1,Settings.ParTime[i]);
+                sendString(msg,length);
+            }
+            } else {
+                DAA_MSG_EMPTY;
+            }
+            break;
+        default:
+            DAA_MSG_NOT_SUPPORTED;
+            break;
+    }
+    BT_COMMAND = BT_None;
+}
+
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
 
@@ -1651,7 +1780,7 @@ void StartListenShots(void) {
 // </editor-fold>
 
 void print_logo_splash() {
-    lcd_draw_bitmap(0,0,&daaced_logo);
+    lcd_draw_bitmap(0, 0, &daaced_logo);
     Delay(2000);
 }
 
@@ -1741,7 +1870,7 @@ void DoCharging() {
 // </editor-fold>
 
 void PlayParSound() {
-    sendSignal("PAR", Settings.BuzzerParDuration, rtc_time.unix_time_ms - ShootString_start_time);
+    sendSignal("PAR", Settings.BuzzerParDuration, Settings.ParTime[CurPar_idx]);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -1758,7 +1887,7 @@ void PlayParSound() {
 }
 
 void PlayStartSound() {
-    sendSignal("START", Settings.BuzzerParDuration, 0.0);
+    sendSignal("START", Settings.BuzzerStartDuration, 0.0);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -1784,6 +1913,10 @@ void StartParTimer() {
 }
 
 void StartCountdownTimer() {
+    char msg[16];
+    uint8_t length;
+    CurPar_idx = 0;
+    InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
         case DELAY_MODE_Instant: Settings.DelayTime = 0;
             break;
@@ -1804,6 +1937,8 @@ void StartCountdownTimer() {
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
     }
+    length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, Settings.DelayTime);
+    sendString(msg, length);
 }
 
 void UpdateShotNow(ShotInput_t x) {
@@ -1850,7 +1985,8 @@ void check_par_expired() {
         if (rtc_time.unix_time_ms - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
             ParNowCounting = false;
             timerEventToHandle = ParEvent;
-            CurPar_idx++;
+            if (Settings.ParMode != ParMode_Regular)
+                CurPar_idx++;
         }
     }
 }

@@ -106,8 +106,12 @@ extern "C" {
         BT_SendVersion = 0,
         BT_StartTimer = 1, // Same as to press "start" button in "Autostart" mode
         BT_GetLastString = 2,
-        BT_GetConfig = 3,
-        BT_SetConfig = 4,
+        BT_SetPar = 3,
+        BT_SetMode = 4,
+        BT_ClearHistory = 5,
+        BT_DefaultSettings = 6,
+        BT_Find = 7,
+        BT_GetPars = 8,
         BT_None = 127
     } BT_COMMAND_T;
     BT_COMMAND_T BT_COMMAND = BT_None;
@@ -120,11 +124,16 @@ extern "C" {
     void BT_off();
     void BT_hard_reset();
     void BT_soft_reset();
-    void BT_set_high_speed();
     void sendOneShot(uint8_t shot_number, shot_t * shot);
     void sendSignal(const char * name, uint16_t duration, uint24_t time_ms);
     void BT_define_action();
-#define sendString(x, y)    {uart_start_tx_string(x,y);}
+#define sendString(x, y)    {uart_rx_handled();uart_start_tx_string(x,y);}
+#define DAA_MSG_OK       {sendString("OK\n",3);}
+#define DAA_MSG_ERROR    {sendString("ERROR\n",6);}
+#define DAA_MSG_EMPTY    {sendString("EMPTY\n",6);}
+#define DAA_MSG_WAIT     {sendString("WAIT\n",5);}
+#define DAA_MSG_LISTEN   {sendString("LISTEN\n",7);}
+#define DAA_MSG_NOT_SUPPORTED   {sendString("NOT SUPPORTED\n",14);}
 #ifdef	__cplusplus
 }
 #endif

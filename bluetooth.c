@@ -11,6 +11,7 @@ void BT_send_comand(char * cmd, int length){
     asm(" nop");
 }
 void BT_init() {
+    // TODO: Try connect to last known device
     BT_hard_reset();
     Delay(100);
     BT_send_comand("AT",2);
@@ -32,7 +33,8 @@ void BT_init() {
 
 void BT_off(){
     if(BT_STATUS.initialized){
-
+        BT_send_comand("AT",2);
+        Delay(20);
         BT_send_comand("AT+PWRM0",8);
         Delay(45);
         BT_send_comand("AT+UART1",8);
@@ -54,9 +56,7 @@ void BT_hard_reset() {
     _delay(100);
     BT_RESET_INV = 1;
 }
-void BT_set_high_speed(){
-    
-}
+
 void sendOneShot(uint8_t shot_number,shot_t * shot){
     char msg[16];
     int size;
@@ -91,5 +91,11 @@ void BT_define_action(){
         }
         // DAA prefix - our commands
         uart_rx_handled();
+    } else {
+        uint8_t const_head = rx_head;
+        UNUSED(const_head); // Don't optimize and memory barrier
+        Delay(2); // 1ms is length of 1 character in 9600. in 115200 this is infinity
+        if(rx_head==const_head)
+            uart_rx_handled();
     }
 }

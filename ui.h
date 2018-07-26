@@ -75,7 +75,7 @@ extern "C" {
 #define STATE_HANDLE_TIMER_IDLE         {ui_state = TimerIdle;StopTimer();}
 #define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();}
 #define STATE_HANDLE_SETTINGS_SCREEN    {ui_state = SettingsScreen;lcd_clear();}
-#define STATE_HANDLE_COUNTDOWN          {ui_state = TimerCountdown;lcd_clear();StartTimer();}
+#define STATE_HANDLE_COUNTDOWN          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
 #define STATE_HANDLE_CHARGING           {ui_state = ChargerScreen;set_backlight(0);}
 #ifdef	__cplusplus
 }

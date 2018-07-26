@@ -87,12 +87,6 @@ void update_countdown_time_on_screen() {
     print_big_time_label(reminder);
 }
 
-void StartTimer() {
-    CurPar_idx = 0;
-    InputFlags.FOOTER_CHANGED = True;
-    StartCountdownTimer();
-}
-
 void StopTimer() {
     lcd_clear();
     CurPar_idx = 0;
@@ -153,17 +147,22 @@ void handle_timer_idle_shutdown() {
 }
 
 void handle_timer_idle() {
-    switch (Settings.InputType) {
-        case INPUT_TYPE_Microphone:
-            set_screen_title("   Mic ");
-            break;
-        case INPUT_TYPE_A_and_B_single:
-            set_screen_title(" A+B single ");
-            break;
-        case INPUT_TYPE_A_or_B_multiple:
-            set_screen_title(" A/B multi ");
-            break;
+    if (Settings.ParMode == 0) {
+        switch (Settings.InputType) {
+            case INPUT_TYPE_Microphone:
+                set_screen_title("       Mic ");
+                break;
+            case INPUT_TYPE_A_and_B_single:
+                set_screen_title(" A+B single ");
+                break;
+            case INPUT_TYPE_A_or_B_multiple:
+                set_screen_title(" A/B multi ");
+                break;
+        }
+    } else {
+        set_screen_title(par_mode_strings[Settings.ParMode]);
     }
+
     update_shot_time_on_screen();
     print_header();
     print_footer();
@@ -178,11 +177,19 @@ void handle_timer_idle() {
             break;
         case UpLong:
         case UpShort:
-            lcd_increase_contrast();
+            if (CurPar_idx != Settings.TotPar - 1){
+                CurPar_idx++;
+            } else {
+                CurPar_idx = 0;
+            }
             break;
         case DownLong:
         case DownShort:
-            lcd_decrease_contrast();
+            if (CurPar_idx != 0){
+                CurPar_idx--;
+            } else {
+                CurPar_idx = Settings.TotPar - 1;
+            }
             break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
@@ -200,7 +207,7 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
-            if (Settings.TotPar > 0)
+            if (Settings.TotPar > 0 && Settings.ParMode == ParMode_Regular)
                 StartParTimer();
             PlayParSound();
             break;
@@ -398,27 +405,6 @@ void define_input_action() {
     define_charger_state();
     if (charger_state_changed)
         comandToHandle = ChargerEvent;
-}
-
-void handle_bt_commands() {
-    uint8_t length = 0;
-    char msg[16];
-    switch (BT_COMMAND) {
-        case BT_SendVersion:
-            length = sprintf(msg,"%d",Settings.version);
-            sendString(msg,length);
-            break;
-        case BT_StartTimer:
-            comandToHandle = StartShort;
-            break;
-        case BT_GetConfig:
-            
-            break;
-        case BT_GetLastString:
-            send_all_shots();
-            break;
-    }
-    BT_COMMAND = BT_None;
 }
 
 void handle_ui() {
