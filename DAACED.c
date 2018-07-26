@@ -516,8 +516,7 @@ TBool EditPar(uint8_t par_index) {
     } while (SettingsNotDone((&b)));
     if (b.selected) {
         Settings.ParTime[par_index] = (long) (b.fvalue * 1000);
-        if (b.fold_value != b.fvalue)
-            savePar(par_index);
+        savePar(par_index);
     }
     return b.selected;
 }
@@ -1023,21 +1022,23 @@ void SetClock() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
-void countdown_expired_signal(){
+
+void countdown_expired_signal() {
     for (uint8_t i = 0; i < 5; i++) {
-            for (uint8_t j = 0; j < 4; j++) {
-                generate_sinus(
-                        Settings.Volume,
-                        Settings.BuzzerFrequency,
-                        50
-                        );
-                Delay(50);
-            }
-            if (Keypressed)
-                break;
-            Delay(400);
+        for (uint8_t j = 0; j < 4; j++) {
+            generate_sinus(
+                    Settings.Volume,
+                    Settings.BuzzerFrequency,
+                    50
+                    );
+            Delay(50);
         }
+        if (Keypressed)
+            break;
+        Delay(400);
+    }
 }
+
 void CountDownMode(time_t countdown) {
     char msg[16];
     time_t reminder = countdown * 1000;
@@ -1305,11 +1306,11 @@ void handle_bt_commands() {
         case BT_None:
             break;
         case BT_GetPars:
-            if(Settings.TotPar > 0){
-            for (uint8_t i = 0;i<Settings.TotPar;i++){
-                length = sprintf(msg,"%d,%d\n",i+1,Settings.ParTime[i]);
-                sendString(msg,length);
-            }
+            if (Settings.TotPar > 0) {
+                for (uint8_t i = 0; i < Settings.TotPar; i++) {
+                    length = sprintf(msg, "%d,%d\n", i + 1, Settings.ParTime[i]);
+                    sendString(msg, length);
+                }
             } else {
                 DAA_MSG_EMPTY;
             }
