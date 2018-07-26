@@ -485,14 +485,6 @@ void lcd_decrease_contrast() {
     lcd_send_command(CMD_VOP_CON_DEC_VOP);
     contrast_value--;
 }
-//
-//void lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-//    lcd_write_char_d(c, x_pos, y_pos, font, polarity);
-//}
-
-//void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-//    lcd_write_string_d(str_ptr, x_pos, y_pos, font, polarity);
-//}
 
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     char msg[10];
@@ -527,14 +519,6 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
     }
 }
 
-//void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-//    lcd_fill_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
-//}
-
-//void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-//    lcd_clear_block_d(x1_pos, y1_pos, x2_pos, y2_pos);
-//}
-
 void lcd_set_orientation() {
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
@@ -562,131 +546,12 @@ void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {
     }
 }
 
-TBool column_is_a_junction(uint8_t c) {
-    switch (c) {
-        case 0:
-        case 1:
-        case 60:
-        case 61:
-        case 120:
-        case 121:
-        case 180:
-        case 181:
-        case 238:
-        case 239:
-            return True;
-            break;
-        default:
-            return False;
-            break;
-    }
-}
-
-TBool page_not_on_hline(uint8_t p) {
-    // TODO: fix
-    switch (p) {
-        case 4:
-        case 8:
-        case 12:
-        case 16:
-        case 20:
-            return False;
-            break;
-        default:
-            return True;
-            break;
-    }
-}
-
-void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data) {
-    uint8_t x1_pos = 0;
-    uint8_t x2_pos = LCD_WIDTH;
-    uint8_t page = PAGE(line);
-    for (uint8_t column = x1_pos; column < x2_pos; column++) {
-        lcd_prepare_send_data(column, page, column, page);
-        if (column_is_a_junction(column))
-            lcd_send_data(LCD_BLACK_PAGE);
-        else
-            lcd_send_data(data);
-    }
-}
-
 void lcd_send_page(uint8_t page, uint8_t col, uint8_t data) {
     lcd_prepare_send_data(col, page, col, page);
     lcd_send_data(data);
-}
-
-void lcd_draw_vgrid_lines(uint8_t start_line) {
-    for (uint8_t p = PAGE(start_line); p < LCD_MAX_PAGES; p++) {
-        if (page_not_on_hline(p)) {
-            for (uint8_t c = 0; c < LCD_WIDTH; c++) {
-                if (column_is_a_junction(c))
-                    lcd_send_page(p, c, LCD_BLACK_PAGE);
-            }
-        }
-    }
 }
 
 void display_message(const char * message) {
     lcd_fill_block(2, 98, 158, 112);
     lcd_write_string(message, 4, 101, BigFont, WHITE_OVER_BLACK);
 }
-
-void lcd_demo() {
-    uint8_t d = LCD_BLACK_PAGE;
-    for (int page = 0; page < 50; page++) {
-        lcd_prepare_send_data(0, page, LCD_WIDTH, page);
-        if (page % 2 == 0) d = LCD_WHITE_PAGE;
-        else d = LCD_BLACK_PAGE;
-        for (int col = 0; col < LCD_WIDTH; col++) {
-            if (col % 8 == 0) d = ~d;
-            lcd_send_data(d);
-        }
-    }
-}
-
-void lcd_demo1() {
-    char message[32];
-    lcd_fill_block(0, 0, 160, 114);
-    display_message("lcd_fill_block()");
-    __delay_ms(1000);
-
-    lcd_clear_block(158, 112, 2, 2);
-    display_message("lcd_clear_block()");
-    __delay_ms(1000);
-
-    for (uint8_t battery = 0; battery <= 100; battery += 10) {
-        lcd_battery_info(4, 4, battery);
-        sprintf(message, "Battery : %d%%", battery);
-        display_message(message);
-        __delay_ms(1);
-    }
-    //    lcd_clear_block(2, 2, 156, 98);
-    //    display_message("lcd_draw_bitmap()");
-    //    for(uint8_t y = 5; y < 96-demo_bitmap_data.image_height; y = y + 30) {
-    //        for(uint8_t x = 5; x < 150 - demo_bitmap_data.image_width; x = x + 30) {
-    //            lcd_draw_bitmap(x, y, &demo_bitmap_data);
-    //            __delay_ms(300);
-    //            lcd_clear_block(x,y, x+demo_bitmap_data.image_width, y+demo_bitmap_data.image_height);
-    //        }
-    //    }
-
-    lcd_clear_block(2, 2, 158, 98);
-    lcd_write_string("Hello..!!", 3, 3, MediumFont, BLACK_OVER_WHITE);
-    display_message("Black On White");
-    __delay_ms(1000);
-
-    lcd_fill_block(2, 2, 158, 98);
-    __delay_ms(1000);
-    lcd_clear_block(2, 2, 158, 98);
-    lcd_write_string(" Hello..!! ", 3, 3, MediumFont, WHITE_OVER_BLACK);
-    display_message("White On Black");
-    __delay_ms(1000);
-
-    lcd_clear_block(2, 2, 158, 98);
-    lcd_write_string("1234", 3, 3, BigFont, BLACK_OVER_WHITE);
-    display_message("I am Big");
-    __delay_ms(1000);
-
-}
-
