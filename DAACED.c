@@ -1263,6 +1263,32 @@ void bt_set_mode() {
     }
 }
 
+void bt_set_delay() {
+    int time = 0;
+    time = atoi(bt_cmd_args_raw);
+    if (time > -1 && time < 10000) {
+        Settings.DelayMode = DELAY_MODE_Custom;
+        Settings.DelayTime = time;
+        saveSettingsField(&Settings, &(Settings.DelayTime), 4);
+        saveSettingsField(&Settings, &(Settings.DelayMode), 1);
+    } else {
+        DAA_MSG_ERROR;
+    }
+}
+
+void bt_get_pars() {
+    uint8_t length = 0;
+    char msg[16];
+    if (Settings.TotPar > 0) {
+        for (uint8_t i = 0; i < Settings.TotPar; i++) {
+            length = sprintf(msg, "%d,%d\n", i + 1, Settings.ParTime[i]);
+            sendString(msg, length);
+        }
+    } else {
+        DAA_MSG_EMPTY;
+    }
+}
+
 void handle_bt_commands() {
     uint8_t length = 0;
     char msg[16];
@@ -1300,20 +1326,17 @@ void handle_bt_commands() {
             DAA_MSG_OK;
             break;
         case BT_Find:
-            countdown_expired_signal();
             DAA_MSG_LISTEN;
+            countdown_expired_signal();
             break;
         case BT_None:
             break;
         case BT_GetPars:
-            if (Settings.TotPar > 0) {
-                for (uint8_t i = 0; i < Settings.TotPar; i++) {
-                    length = sprintf(msg, "%d,%d\n", i + 1, Settings.ParTime[i]);
-                    sendString(msg, length);
-                }
-            } else {
-                DAA_MSG_EMPTY;
-            }
+            bt_get_pars();
+            break;
+        case BT_SetDelay:
+            bt_set_delay();
+            DAA_MSG_OK;
             break;
         default:
             DAA_MSG_NOT_SUPPORTED;

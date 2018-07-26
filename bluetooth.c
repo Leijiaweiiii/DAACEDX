@@ -60,16 +60,14 @@ void BT_hard_reset() {
 void sendOneShot(uint8_t shot_number,shot_t * shot){
     char msg[16];
     int size;
-//    if(!BT_STATUS.connected) return; // Send nothing if not connected
-    size = sprintf(msg,"%d,%d,%3.2f\n",shot_number + 1,shot->is_flags,((float)shot->dt)/1000);
+    size = sprintf(msg,"%d,%d,%dt\n",shot_number + 1,shot->is_flags,shot->dt);
     uart_start_tx_string(msg,size);
 }
 
 void sendSignal(const char * name, uint16_t duration,uint24_t time_ms){
     char msg[16];
     int size;
-//    if(!BT_STATUS.connected) return; // Send nothing if not connected
-    size = sprintf(msg,"%s,%3.2f,%3.2f\n",name,((float)duration)/1000,((float)time_ms)/1000);
+    size = sprintf(msg,"%s,%d,%d\n",name, duration, time_ms);
     uart_start_tx_string(msg,size);
 }
 

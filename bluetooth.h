@@ -112,6 +112,7 @@ extern "C" {
         BT_DefaultSettings = 6,
         BT_Find = 7,
         BT_GetPars = 8,
+        BT_SetDelay = 9,
         BT_None = 127
     } BT_COMMAND_T;
     BT_COMMAND_T BT_COMMAND = BT_None;
