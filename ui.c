@@ -186,9 +186,6 @@ void handle_timer_idle() {
             break;
         case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
-        case SendLastString:
-            send_all_shots();
-            break;
         default:
             //All the rest ignoring
             break;
@@ -396,27 +393,38 @@ void define_input_action() {
                 break;
         }
     }
-    BT_define_action();
-    switch (BT_COMMAND) {
-        case BT_StartTimer:
-            comandToHandle = StartShort;
-            break;
-        case BT_GetConfig:
-            comandToHandle = SendConfig;
-            break;
-        case BT_GetLastString:
-            comandToHandle = SendLastString;
-            break;
-    }
-    BT_COMMAND = None;
+
     handle_timer_idle_shutdown();
     define_charger_state();
     if (charger_state_changed)
         comandToHandle = ChargerEvent;
 }
 
+void handle_bt_commands() {
+    uint8_t length = 0;
+    char msg[16];
+    switch (BT_COMMAND) {
+        case BT_SendVersion:
+            length = sprintf(msg,"%d",Settings.version);
+            sendString(msg,length);
+            break;
+        case BT_StartTimer:
+            comandToHandle = StartShort;
+            break;
+        case BT_GetConfig:
+            
+            break;
+        case BT_GetLastString:
+            send_all_shots();
+            break;
+    }
+    BT_COMMAND = BT_None;
+}
+
 void handle_ui() {
     define_input_action();
+    BT_define_action();
+    handle_bt_commands();
     switch (ui_state) {
         case PowerOff:
             handle_power_off();

@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   bluetooth.h
  * Author: navado
  *
@@ -9,16 +9,17 @@
 #define	BLUETOOTH_H
 #include "DAACEDcommon.h"
 #include "shot.h"
+#include "uart.h"
 #ifdef	__cplusplus
 extern "C" {
 #endif
 #define BT_INSERT       PORTDbits.RD4
 #define BT_RESET_INV    PORTDbits.RD3
 
-   
-// <editor-fold defaultstate="collapsed" desc="HM-11 AT commands">
+
+    // <editor-fold defaultstate="collapsed" desc="HM-11 AT commands">
 #define AT_RES_ON                  (1)
-#define AT_RES_OFF                 (0)    
+#define AT_RES_OFF                 (0)
 #define AT_GET_OK_1_PARAM       "OK+Get:%1X"
 #define AT_SET_OK_1_PARAM       "OK+Set:%1X"
 #define AT_TEST                 "AT"
@@ -50,27 +51,27 @@ extern "C" {
 #define AT_GET_ADTY_RES         AT_GET_OK_1_PARAM
 #define AT_SET_ADTY             "AT+ADTY%1X"
 #define AT_SET_ADTY_RES         AT_SET_OK_1_PARAM
-/*
-Para: 0 ~ 3
-0: Advertising
-ScanResponse,
-Connectable
-1: Only allow last device
-connect in 1.28 seconds
-2: Only allow Advertising
-and ScanResponse.
-3: Only allow Advertising
-Default: 0
-    */
+    /*
+    Para: 0 ~ 3
+    0: Advertising
+    ScanResponse,
+    Connectable
+    1: Only allow last device
+    connect in 1.28 seconds
+    2: Only allow Advertising
+    and ScanResponse.
+    3: Only allow Advertising
+    Default: 0
+     */
 #define AT_ADTY_PARAM_AD_SCAN_CON   (0x0)
 #define AT_ADTY_PARAM_CONNECT_LAST  (0x1)
 #define AT_ADTY_PARAM_AD_SCAN       (0x2)
 #define AT_ADTY_PARAM_AD            (0x3)
-/*
-Note1: This command added in V524.
-Note2: Please send AT+RESET to restart module if you set value 1.
-Note3: Must execute AT+TYPE3 first.
- */
+    /*
+    Note1: This command added in V524.
+    Note2: Please send AT+RESET to restart module if you set value 1.
+    Note3: Must execute AT+TYPE3 first.
+     */
 #define AT_GET_ANCS                 "AT+ANCS?"
 #define AT_GET_ANCD_RES             AT_GET_OK_1_PARAM
 #define AT_SET_ANCS                 "AT+ANCS%d"
@@ -80,49 +81,50 @@ Note3: Must execute AT+TYPE3 first.
 #define AT_GET_ALLO_RES             AT_GET_OK_1_PARAM
 #define AT_SET_ALLO                 "AT+ALLO%1d"
 #define AT_SET_ALLO_RES             AT_SET_OK_1_PARAM
-/*
-Note1: This command added in V523.
-Note2: Whitelist allow three mac address link to module. Please use AT+AD
-command set whitelist mac address.
-*/
+    /*
+    Note1: This command added in V523.
+    Note2: Whitelist allow three mac address link to module. Please use AT+AD
+    command set whitelist mac address.
+     */
 #define AT_ALLO_ON                  AT_RES_ON
 #define AT_ALLO_OFF                 AT_RES_OFF
 #define AT_RESET                    "AT+RESET"
 #define AT_RESET_RES                "OK+RESET"
-// TODO: Continue    
-// </editor-fold 
+    // TODO: Continue
+    // </editor-fold
+
     union {
-        unsigned status_byte        :8;
-        struct{
-            unsigned card_present   :1;
-            unsigned initialized    :1;
+        unsigned status_byte : 8;
+
+        struct {
+            unsigned card_present : 1;
+            unsigned initialized : 1;
         };
     } BT_STATUS;
+
     typedef enum {
+        BT_SendVersion = 0,
         BT_StartTimer = 1, // Same as to press "start" button in "Autostart" mode
-        BT_StopTimer = 2,
+        BT_GetLastString = 2,
         BT_GetConfig = 3,
         BT_SetConfig = 4,
-        BT_SaveConfig = 5,
-        BT_GetLastString = 6,
-        BT_StartSendShots = 7, // Send shots one by one when detected
-        BT_StopSendShots = 8,
-        BT_None = 0
+        BT_None = 127
     } BT_COMMAND_T;
     BT_COMMAND_T BT_COMMAND = BT_None;
-/*
- Examples of commands
- DAA+CMD1
- */
+    char bt_cmd_args_raw[UART_RX_BUF_SIZE];
+    /*
+     Examples of commands
+     DAA+CMD1
+     */
     void BT_init();
     void BT_off();
     void BT_hard_reset();
     void BT_soft_reset();
     void BT_set_high_speed();
-    void sendOneShot(uint8_t shot_number,shot_t * shot);
-    void sendSignal(const char * name, uint16_t duration,uint24_t time_ms);
+    void sendOneShot(uint8_t shot_number, shot_t * shot);
+    void sendSignal(const char * name, uint16_t duration, uint24_t time_ms);
     void BT_define_action();
-
+#define sendString(x, y)    {uart_start_tx_string(x,y);}
 #ifdef	__cplusplus
 }
 #endif

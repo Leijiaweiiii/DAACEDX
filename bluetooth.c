@@ -1,5 +1,4 @@
 #include "bluetooth.h"
-#include "uart.h"
 
 TBool at_ok(){
     return (uart_rx_buffer[0]=='O' && uart_rx_buffer[1] == 'K');
@@ -74,21 +73,21 @@ void sendSignal(const char * name, uint16_t duration,uint24_t time_ms){
     uart_start_tx_string(msg,size);
 }
 
+void clear_args_buffer(){
+    for (int i = 0; i < UART_RX_BUF_SIZE; i++) {
+        bt_cmd_args_raw[i] = 0;
+    }
+}
+
 void BT_define_action(){
     if(uart_rx_buffer[0]=='D' && uart_rx_buffer[1]=='A' && uart_rx_buffer[2]=='A'){
-        switch(uart_rx_buffer[3]){
-            case 1:
-            case '1':
-                BT_COMMAND = BT_StartTimer;
-                break;
-            case 2:
-            case '2':
-                BT_COMMAND = BT_GetLastString;
-                break;
-            case 5:
-            case '5':
-                BT_COMMAND = BT_GetConfig;
-                break;
+        int8_t cmd  = uart_rx_buffer[3] - '0';
+        if(cmd >= 0){
+            BT_COMMAND = (BT_COMMAND_T)cmd;
+            clear_args_buffer();
+            strmycpy(bt_cmd_args_raw,uart_rx_buffer+4);
+        } else {
+            BT_COMMAND = BT_None;
         }
         // DAA prefix - our commands
         uart_rx_handled();
