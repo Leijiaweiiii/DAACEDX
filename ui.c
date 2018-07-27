@@ -116,8 +116,6 @@ void handle_power_off() {
         define_input_action();
     } else {
         switch (comandToHandle) {
-            case ReviewLong:
-            case OkLong:
             case StartLong:
                 STATE_HANDLE_POWER_ON;
                 break;
