@@ -1906,7 +1906,7 @@ void DoCharging() {
     }
 }
 // </editor-fold>
-
+// <editor-fold defaultstate="collapsed" desc="Service functions">
 void PlayParSound() {
     sendSignal("PAR", Settings.BuzzerParDuration, Settings.ParTime[CurPar_idx]);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -1981,6 +1981,7 @@ void StartCountdownTimer() {
 
 void UpdateShotNow(ShotInput_t x) {
     update_rtc_time();
+    timer_idle_last_action_time = rtc_time.sec;
     UpdateShot(rtc_time.unix_time_ms, x);
 }
 
@@ -2066,7 +2067,7 @@ void update_screen_model() {
         }
     }
 }
-
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 void DetectMicShot() {

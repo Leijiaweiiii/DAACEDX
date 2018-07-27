@@ -174,7 +174,7 @@ void handle_timer_idle() {
             break;
         case UpLong:
         case UpShort:
-            if (CurPar_idx != Settings.TotPar - 1){
+            if (CurPar_idx != Settings.TotPar - 1) {
                 CurPar_idx++;
             } else {
                 CurPar_idx = 0;
@@ -182,7 +182,7 @@ void handle_timer_idle() {
             break;
         case DownLong:
         case DownShort:
-            if (CurPar_idx != 0){
+            if (CurPar_idx != 0) {
                 CurPar_idx--;
             } else {
                 CurPar_idx = Settings.TotPar - 1;
