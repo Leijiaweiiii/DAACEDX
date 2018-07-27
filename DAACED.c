@@ -1817,11 +1817,6 @@ void StartListenShots(void) {
 }
 // </editor-fold>
 
-void print_logo_splash() {
-    lcd_draw_bitmap(0, 0, &daaced_logo);
-    Delay(2000);
-}
-
 // <editor-fold defaultstate="collapsed" desc="Power functions">
 
 void DoPowerOff() {

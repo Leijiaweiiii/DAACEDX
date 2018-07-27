@@ -1,6 +1,11 @@
 #include "ui.h"
 #include "DAACED.h"
 
+void print_logo_splash() {
+    lcd_draw_bitmap(0, 0, &daaced_logo);
+    Delay(2000);
+}
+
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
     uint8_t x_pos = 0;

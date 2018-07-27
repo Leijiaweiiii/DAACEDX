@@ -70,6 +70,7 @@ extern "C" {
     void handle_timer_idle_shutdown();
     void handle_ui();
     void StopTimer();
+    void print_logo_splash();
 #define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;set_backlight(0);lcd_clear();}
 #define STATE_HANDLE_POWER_ON           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
 #define STATE_HANDLE_TIMER_IDLE         {ui_state = TimerIdle;StopTimer();}
