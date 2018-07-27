@@ -2115,8 +2115,6 @@ static void interrupt isr(void) {
                 define_charger_state();
                 CONSUME_POWER_OFF(900);
                 break;
-            case ChargerScreen:
-                CONSUME_CHARGE_ADD(2000);
             default:
                 ADC_ENABLE_INTERRUPT_BATTERY;
                 CONSUME_BACKLIGHT(2000, current_backlight);
