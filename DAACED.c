@@ -1981,6 +1981,7 @@ void StartCountdownTimer() {
 
 void UpdateShotNow(ShotInput_t x) {
     update_rtc_time();
+    timer_idle_last_action_time = rtc_time.sec;
     UpdateShot(rtc_time.unix_time_ms, x);
 }
 
