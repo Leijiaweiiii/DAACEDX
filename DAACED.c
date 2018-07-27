@@ -948,17 +948,30 @@ void set_par_mode(int m) {
             break;
     }
 }
-const char * par_mode_strings[TOT_PAR_MODES] = {
-    " Timer ",
-    " Practical ",
-    " Barricade ",
-    " Falling Plt ",
-    " Moving Trgt ",
+const char * par_mode_menu_names[TOT_PAR_MODES] = {
+    " Normal Timer ",
+    " Bianchi - Practical ",
+    " Bianchi - Barricade ",
+    " Bianchi - Falling Plate",
+    " Bianchi - Moving Targe",
     " NRA-PPC A ",
     " NRA-PPC B ",
     " NRA-PPC C ",
     " NRA-PPC D ",
     " Custom "
+};
+
+const char * par_mode_header_names[TOT_PAR_MODES] = {
+    "   Timer",
+    "  Practical",
+    "  Barricade",
+    "Falling Plate",
+    "Moving Targ",
+    " NRA-PPC A ",
+    " NRA-PPC B ",
+    " NRA-PPC C ",
+    " NRA-PPC D ",
+    "   Custom "
 };
 
 void SetMode(SettingsMenu_t * m) {
@@ -967,10 +980,11 @@ void SetMode(SettingsMenu_t * m) {
     m->TotalMenuItems = 10;
     strmycpy(m->MenuTitle, "Timer Mode");
     for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
-        strmycpy(m->MenuItem[i], par_mode_strings[i]);
+        strmycpy(m->MenuItem[i], par_mode_menu_names[i]);
     }
 
     m->menu = Settings.ParMode;
+    m->page = ItemToPage(m->menu);
     //Main Screen
     do {
         DisplaySettings(m);
@@ -1745,12 +1759,12 @@ void print_batery_info() {
 uint8_t print_header() {
     print_time();
     if (BT_INSERT == 0) {
-        lcd_draw_bitmap(LCD_WIDTH - 53, 0, &bt_bitmap_data);
+        lcd_draw_bitmap(LCD_WIDTH - 50, 0, &bt_bitmap_data);
     } else {
         lcd_clear_block(
-                LCD_WIDTH - 53,
+                LCD_WIDTH - 50,
                 0,
-                LCD_WIDTH - 53 + bt_bitmap_data.width_in_bits,
+                LCD_WIDTH - 50 + bt_bitmap_data.width_in_bits,
                 bt_bitmap_data.heigth_in_bytes * 8
                 );
     }

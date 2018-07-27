@@ -160,7 +160,7 @@ void handle_timer_idle() {
                 break;
         }
     } else {
-        set_screen_title(par_mode_strings[Settings.ParMode]);
+        set_screen_title(par_mode_header_names[Settings.ParMode]);
     }
 
     update_shot_time_on_screen();

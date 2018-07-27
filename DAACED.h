@@ -192,7 +192,8 @@ time_t parStartTime_ms;
 #define ParMode_NRA_PPC_D 8
 #define ParMode_CUSTOM 9
 #define TOT_PAR_MODES 10
-extern const char * par_mode_strings[];
+extern const char * par_mode_menu_names[];
+extern const char * par_mode_header_names[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
