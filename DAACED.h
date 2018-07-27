@@ -170,7 +170,7 @@ uint16_t CurrStringStartAddress;
 #define DELAY_MODE_Custom 3
 
 #define DETECT_THRESHOLD_LEVELS 13
-#define DEFAULT_SENSITIVITY     15
+#define DEFAULT_SENSITIVITY     70
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
 uint16_t DetectThreshold;
