@@ -54,7 +54,14 @@ void send_next_byte() {
 
 void uart_start_tx_string(const char * str, const uint8_t size) {
     // Wait until previous buffer sent
-    while (!uart_flags.tx_complete);
+    while (!uart_flags.tx_complete){
+        uint8_t const_tx_head = tx_head;
+        UNUSED(const_tx_head);
+        Delay(1);
+        if(tx_head==const_tx_head){
+            break;
+        }
+    }
     strmycpy(uart_tx_buff, str);
     if(size<tx_size){
         // old command longer
