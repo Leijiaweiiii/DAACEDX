@@ -181,17 +181,17 @@ volatile uint8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
-#define ParMode_Regular 0
-#define ParMode_Practical 1
-#define ParMode_Barricade 2
-#define ParMode_FallingPlate 3
-#define ParMode_MovingTarget 4
-#define ParMode_NRA_PPC_A 5
-#define ParMode_NRA_PPC_B 6
-#define ParMode_NRA_PPC_C 7
-#define ParMode_NRA_PPC_D 8
-#define ParMode_CUSTOM 9
-#define TOT_PAR_MODES 10
+#define ParMode_Regular         0
+#define ParMode_CUSTOM          1
+#define ParMode_Practical       2
+#define ParMode_Barricade       3
+#define ParMode_FallingPlate    4
+#define ParMode_MovingTarget    5
+#define ParMode_NRA_PPC_A       6
+#define ParMode_NRA_PPC_B       7
+#define ParMode_NRA_PPC_C       8
+#define ParMode_NRA_PPC_D       9
+#define TOT_PAR_MODES           10
 extern const char * par_mode_menu_names[];
 extern const char * par_mode_header_names[];
 

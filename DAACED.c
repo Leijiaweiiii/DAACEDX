@@ -950,19 +950,20 @@ void set_par_mode(int m) {
 }
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
     " Normal Timer ",
-    " Bianchi - Practical ",
-    " Bianchi - Barricade ",
-    " Bianchi - Falling Plate",
-    " Bianchi - Moving Targe",
-    " NRA-PPC A ",
-    " NRA-PPC B ",
-    " NRA-PPC C ",
-    " NRA-PPC D ",
-    " Custom "
+    " Custom ",
+    " Bianchi: Practical ",
+    " Bianchi: Barricade ",
+    " Bianchi: Falling Plate",
+    " Bianchi: Moving Targ. ",
+    " NRA-PPC: A ",
+    " NRA-PPC: B ",
+    " NRA-PPC: C ",
+    " NRA-PPC: D "
 };
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
     "   Timer",
+    "   Custom ",
     "  Practical",
     "  Barricade",
     "Falling Plate",
@@ -970,8 +971,7 @@ const char * par_mode_header_names[TOT_PAR_MODES] = {
     " NRA-PPC A ",
     " NRA-PPC B ",
     " NRA-PPC C ",
-    " NRA-PPC D ",
-    "   Custom "
+    " NRA-PPC D "
 };
 
 void SetMode(SettingsMenu_t * m) {
@@ -988,7 +988,7 @@ void SetMode(SettingsMenu_t * m) {
     //Main Screen
     do {
         DisplaySettings(m);
-        SelectMenuItem(m);
+        SelectMenuItemCircular(m);
     } while (SettingsNotDone(m));
     if (m->selected) {
         Settings.ParMode = m->menu;
