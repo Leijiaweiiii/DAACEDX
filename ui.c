@@ -318,11 +318,11 @@ TBool is_long_press() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             break;
-        if (ui_state == PowerOff) {
-            DelayLP(10);
-        } else {
+//        if (ui_state == PowerOff) {
+//            DelayLP(10);
+//        } else {
             Delay(10);
-        }
+//        }
         duration += 10;
     } while (Keypressed);
     return duration >= LONG_PRESS_THRESHOLD_SEC;
@@ -333,11 +333,11 @@ TBool is_long_press_repeatable() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
-        if (ui_state == PowerOff) {
-            DelayLP(10);
-        } else {
+//        if (ui_state == PowerOff) {
+//            DelayLP(10);
+//        } else {
             Delay(10);
-        }
+//        }
         duration += 10;
     } while (Keypressed);
 
