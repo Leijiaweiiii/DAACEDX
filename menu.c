@@ -214,7 +214,7 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
         case OkShort:
         case OkLong:
             s->selected = True;
-            s->done = False;
+            s->done = True;
             break;
         case BackShort:
         case BackLong:
