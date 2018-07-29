@@ -109,31 +109,24 @@ void handle_charger_connected() {
 }
 
 void handle_power_off() {
-    if (PORTEbits.RE0 == 1) {
+    if (LATEbits.LATE0 == 1) {
+        lcd_clear();
         // if power is on, turn it off. Then we'll handle all the rest properly
         // Power off will sleep, then if wakeup occured, we'll handle power ON
         DoPowerOff();
-        define_input_action();
+    } else if (comandToHandle == StartLong) {
+        STATE_HANDLE_POWER_ON;
     } else {
-        switch (comandToHandle) {
-            case StartLong:
-                STATE_HANDLE_POWER_ON;
-                break;
-            case ChargerEvent:
-                STATE_HANDLE_CHARGING;
-                break;
-            default:
-                DoPowerOff();
-                break;
-        }
-        comandToHandle = None;
+
+        DoPowerOff();
     }
+    comandToHandle = None;
 }
 
 void handle_timer_idle_shutdown() {
     update_rtc_time();
     time_t inactive_time;
-    if ((comandToHandle != None && comandToHandle != ChargerEvent)) {
+    if (comandToHandle != None) {
         timer_idle_last_action_time = rtc_time.sec;
     }
     inactive_time = rtc_time.sec - timer_idle_last_action_time;
@@ -190,8 +183,6 @@ void handle_timer_idle() {
             } else {
                 CurPar_idx = Settings.TotPar - 1;
             }
-            break;
-        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             //All the rest ignoring
@@ -254,8 +245,6 @@ void handle_review_screen() {
             break;
         case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
             break;
-        case ChargerEvent:STATE_HANDLE_CHARGING;
-            break;
         default:
             DoReview();
             break;
@@ -270,8 +259,6 @@ void handle_settings_screen() {
         case StartShort:STATE_HANDLE_TIMER_IDLE;
             break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
-            break;
-        case ChargerEvent:STATE_HANDLE_CHARGING;
             break;
         default:
             DoSettings();
@@ -318,11 +305,11 @@ TBool is_long_press() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             break;
-//        if (ui_state == PowerOff) {
-//            DelayLP(10);
-//        } else {
-            Delay(10);
-//        }
+        //        if (ui_state == PowerOff) {
+        //            DelayLP(10);
+        //        } else {
+        Delay(10);
+        //        }
         duration += 10;
     } while (Keypressed);
     return duration >= LONG_PRESS_THRESHOLD_SEC;
@@ -333,11 +320,11 @@ TBool is_long_press_repeatable() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
-//        if (ui_state == PowerOff) {
-//            DelayLP(10);
-//        } else {
-            Delay(10);
-//        }
+        //        if (ui_state == PowerOff) {
+        //            DelayLP(10);
+        //        } else {
+        Delay(10);
+        //        }
         duration += 10;
     } while (Keypressed);
 
@@ -400,17 +387,15 @@ void define_input_action() {
                 break;
         }
     }
-
-    handle_timer_idle_shutdown();
     define_charger_state();
-    if (charger_state_changed)
-        comandToHandle = ChargerEvent;
+    handle_timer_idle_shutdown();
 }
 
 void handle_ui() {
     define_input_action();
     BT_define_action();
     handle_bt_commands();
+    if (charger_state_changed) STATE_HANDLE_POWER_OFF;
     switch (ui_state) {
         case PowerOff:
             handle_power_off();
@@ -429,9 +414,6 @@ void handle_ui() {
             break;
         case SettingsScreen:
             handle_settings_screen();
-            break;
-        case ChargerScreen:
-            handle_charger_connected();
             break;
         default:
             //We should never get here, nothing to do.

@@ -1078,8 +1078,6 @@ void CountDownMode(time_t countdown) {
                 break;
             case StartShort:STATE_HANDLE_TIMER_IDLE;
                 break;
-            case ChargerEvent:STATE_HANDLE_CHARGING;
-                break;
             case BackShort:
             case BackLong:
                 done = True;
@@ -1625,8 +1623,6 @@ void DoReview() {
                 break;
             case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
                 break;
-            case ChargerEvent:STATE_HANDLE_CHARGING;
-                break;
             default:
                 break;
         }
@@ -1820,12 +1816,13 @@ void StartListenShots(void) {
 // <editor-fold defaultstate="collapsed" desc="Power functions">
 
 void DoPowerOff() {
-    while (Keypressed); // Wait to button to release
+    DoCharging();
     PWM6CONbits.EN = 0; // Disale PWM
     T2CONbits.ON = 0;
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     BT_off();
+    while (Keypressed); // Wait to button to release
     OSCCON3bits.CSWHOLD = 0; // Switch OSC when ready
     OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
     while (!OSCCON3bits.ORDY); // Wait new oscillator ready
@@ -1893,7 +1890,7 @@ void DoCharging() {
                 CONSUME_CHARGED_FULL;
                 break;
             case NotCharging:
-                STATE_HANDLE_POWER_OFF;
+                lcd_clear();
                 break;
             default:
                 break;
