@@ -94,7 +94,7 @@ void update_countdown_time_on_screen() {
 
 void StopTimer() {
     lcd_clear();
-    CurPar_idx = 0;
+    set_par_mode(Settings.ParMode);
     InputFlags.FOOTER_CHANGED = True;
 }
 
@@ -140,7 +140,7 @@ void handle_timer_idle_shutdown() {
 }
 
 void handle_timer_idle() {
-    if (Settings.ParMode == 0) {
+    if (Settings.ParMode == ParMode_Regular) {
         switch (Settings.InputType) {
             case INPUT_TYPE_Microphone:
                 set_screen_title("       Mic ");
@@ -170,18 +170,24 @@ void handle_timer_idle() {
             break;
         case UpLong:
         case UpShort:
-            if (CurPar_idx != Settings.TotPar - 1) {
-                CurPar_idx++;
-            } else {
-                CurPar_idx = 0;
+            if (Settings.ParMode != ParMode_Regular) {
+                if (CurPar_idx != Settings.TotPar - 1) {
+                    CurPar_idx++;
+                } else {
+                    CurPar_idx = 0;
+                }
+                InputFlags.FOOTER_CHANGED = True;
             }
             break;
         case DownLong:
         case DownShort:
-            if (CurPar_idx != 0) {
-                CurPar_idx--;
-            } else {
-                CurPar_idx = Settings.TotPar - 1;
+            if (Settings.ParMode != ParMode_Regular) {
+                if (CurPar_idx != 0) {
+                    CurPar_idx--;
+                } else {
+                    CurPar_idx = Settings.TotPar - 1;
+                }
+                InputFlags.FOOTER_CHANGED = True;
             }
             break;
         default:
@@ -198,8 +204,10 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
-            if (Settings.TotPar > 0 && Settings.ParMode == ParMode_Regular)
+            if (Settings.TotPar > 0 && Settings.ParMode == ParMode_Regular) {
+                CurPar_idx++;
                 StartParTimer();
+            }
             PlayParSound();
             break;
             // By default do nothing

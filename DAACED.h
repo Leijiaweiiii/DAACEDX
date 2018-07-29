@@ -176,8 +176,8 @@ const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 
 uint16_t DetectThreshold;
 time_t countdown_start_time;
 
-#define MAXPAR 12
-volatile uint8_t CurPar_idx = 0; //The par index
+#define MAXPAR 20
+volatile int8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
 
@@ -197,7 +197,7 @@ extern const char * par_mode_header_names[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-#define SettingsDataSize            (104)
+#define SettingsDataSize            (86)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -261,4 +261,5 @@ void check_par_expired();
 void check_timer_max_time();
 void DetectMicShot();
 void handle_bt_commands();
+void set_par_mode(int m);
 #endif /*  _DAACED_H_ */

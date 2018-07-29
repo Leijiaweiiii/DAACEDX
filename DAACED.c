@@ -914,6 +914,8 @@ void set_par_mode(int m) {
 
     switch (m) {
         case ParMode_Regular:
+            CurPar_idx = 0;// Intentially fall-through
+        case ParMode_CUSTOM:
             restorePar();
             break;
         case ParMode_Practical:
@@ -939,9 +941,6 @@ void set_par_mode(int m) {
             break;
         case ParMode_NRA_PPC_D:
             fill_par_nra_ppc_d();
-            break;
-        case ParMode_CUSTOM:
-            restorePar();
             break;
         default:
             // How can we get here?
@@ -992,11 +991,11 @@ void SetMode(SettingsMenu_t * m) {
     } while (SettingsNotDone(m));
     if (m->selected) {
         Settings.ParMode = m->menu;
-        Settings.ParMode = m;
         if (oldPar != Settings.ParMode) {
             saveSettingsField(&Settings, &(Settings.ParMode), 1);
         }
     }
+    set_par_mode(Settings.ParMode);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Clock">
@@ -1945,7 +1944,9 @@ void StartParTimer() {
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
-    CurPar_idx = 0;
+    if(Settings.ParMode == ParMode_Regular)
+        CurPar_idx = 0;
+
     InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
         case DELAY_MODE_Instant: Settings.DelayTime = 0;
@@ -2016,8 +2017,6 @@ void check_par_expired() {
         if (rtc_time.unix_time_ms - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
             ParNowCounting = false;
             timerEventToHandle = ParEvent;
-            if (Settings.ParMode != ParMode_Regular)
-                CurPar_idx++;
         }
     }
 }
