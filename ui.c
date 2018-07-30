@@ -29,6 +29,7 @@ void clear_timer_area() {
 
 void print_shot_origin(const shot_t * s) {
     uint8_t y_pos = UI_HEADER_END_LINE + LCD_PAGE_HEIGTH;
+    if(s->is_mic) return;
     if (s->is_a) {
         lcd_write_string(
                 "A",
@@ -38,7 +39,7 @@ void print_shot_origin(const shot_t * s) {
                 BLACK_OVER_WHITE
                 );
         lcd_clear_block(3, y_pos + MediumFont->height, 35, y_pos + 2 * MediumFont->height);
-    } else {
+    } else if (s->is_b) {
         lcd_clear_block(3, y_pos, 35, y_pos + MediumFont->height);
         y_pos += MediumFont->height;
         if (s->is_b) {
