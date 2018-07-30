@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 
-#define MAXMenuItems        16
+#define MAXMenuItems        17
 #define MAXItemLenght       25
 #define MAXMenuTitleLength  25
 

@@ -29,7 +29,7 @@ void clear_timer_area() {
 
 void print_shot_origin(const shot_t * s) {
     uint8_t y_pos = UI_HEADER_END_LINE + LCD_PAGE_HEIGTH;
-    if(s->is_mic) return;
+    if (s->is_mic) return;
     if (s->is_a) {
         lcd_write_string(
                 "A",
@@ -125,6 +125,7 @@ void handle_power_off() {
 }
 
 void handle_timer_idle_shutdown() {
+    if (!Settings.AR_IS.AutoPowerOff) return;
     update_rtc_time();
     time_t inactive_time;
     if (comandToHandle != None) {
@@ -399,11 +400,26 @@ void define_input_action() {
     handle_timer_idle_shutdown();
 }
 
+void handle_low_battery() {
+    if(battery_mV<200) return;
+    if (ui_state != PowerOff && number_of_battery_bars() == 0) {
+        char msg[16];
+        lcd_clear();
+        sprintf(msg, " Battery Low");
+        lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+        sprintf(msg, " Please Charge");
+        lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y + MediumFont->height, MediumFont, BLACK_OVER_WHITE);
+        Sleep(2000);
+        STATE_HANDLE_POWER_OFF;
+    }
+}
+
 void handle_ui() {
     define_input_action();
     BT_define_action();
     handle_bt_commands();
     if (charger_state_changed) STATE_HANDLE_POWER_OFF;
+    handle_low_battery();
     switch (ui_state) {
         case PowerOff:
             handle_power_off();

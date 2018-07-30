@@ -295,6 +295,7 @@ void getDefaultSettings() {
     Settings.AR_IS.Autostart = 1; // on
     Settings.AR_IS.AutoRotate = 0; // Off
     Settings.AR_IS.BT = 0; // Off by default
+    Settings.AR_IS.AutoPowerOff = 1; // ON by default
     Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 2000; // Hz
     Settings.BuzzerParDuration = 300; // ms
@@ -1215,7 +1216,23 @@ void init_bt() {
         BT_off();
     }
 }
+void SetAutoPowerOff(SettingsMenu_t * m){
+    InitSettingsMenuDefaults(m);
+    m->TotalMenuItems = 2;
+    strmycpy(m->MenuTitle, "Auto Off");
+    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Disabled");
+    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Enabled");
+    m->menu = Settings.AR_IS.AutoPowerOff;
 
+    do {
+        DisplaySettings(m);
+        SelectMenuItem(m);
+    } while (SettingsNotDone(m));
+    if (m->selected && Settings.AR_IS.AutoPowerOff != m->menu) {
+        Settings.AR_IS.AutoPowerOff = m->menu;
+        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+    }
+}
 void BlueTooth(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
@@ -1397,6 +1414,9 @@ void DoSet(uint8_t menu) {
             //            DoDiagnostics();
             clearHistory();
             break;
+        case 16: // For tests
+            SetAutoPowerOff(m);
+            break;
     }
     lcd_clear();
 }
@@ -1404,7 +1424,7 @@ void DoSet(uint8_t menu) {
 void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
 
-    SettingsMenu->TotalMenuItems = 16;
+    SettingsMenu->TotalMenuItems = 17;
 
     strmycpy(SettingsMenu->MenuTitle, " Settings ");
     strmycpy(SettingsMenu->MenuItem[0], " Delay ");
@@ -1423,6 +1443,7 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
     strmycpy(SettingsMenu->MenuItem[13], " Reset Settings ");
     strmycpy(SettingsMenu->MenuItem[14], " Clear History ");
     sprintf(SettingsMenu->MenuItem[15], " FW version: %02d ", Settings.version);
+    sprintf(SettingsMenu->MenuItem[16], " Auto Power OFF ");
 }
 
 void DoSettings(void) {
@@ -1719,18 +1740,13 @@ void print_batery_text_info() {
     char message[32];
     sprintf(message,
             "%d",
-            battery_level
+            number_of_battery_bars()
             );
     uint8_t width = lcd_string_lenght(message, SmallFont);
     if (old_bat_length > width)
         lcd_clear_block(LCD_WIDTH - 10 - old_bat_length, 0, LCD_WIDTH - 8, SmallFont->height + 1);
     old_bat_length = width;
     lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
-}
-
-TBool battery_level_ok(uint8_t l) {
-    uint16_t level = (battery_level - 3000) / 220;
-    return (level > l);
 }
 
 void print_batery_info() {
@@ -1801,7 +1817,7 @@ void print_footer() {
     } else {
         sprintf(message, "Par: Off");
     }
-    //    sprintf(message, "%d", PORTD & 0x07);
+//        sprintf(message, "%d", battery_mV);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -1945,12 +1961,13 @@ void StartParTimer() {
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
+    ADC_ENABLE_INTERRUPT_BATTERY; // To get accurate battery readings if someone actively uses timer in Autostart mode
     if (Settings.ParMode == ParMode_Regular) {
         CurPar_idx = 0;
     }
     InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: Settings.DelayTime = 0;
+        case DELAY_MODE_Instant: Settings.DelayTime = 2; // To allow battery reading and not interfere with detection
             break;
         case DELAY_MODE_Fixed: Settings.DelayTime = 3000;
             break;
@@ -2101,11 +2118,7 @@ static void interrupt isr(void) {
             DetectMicShot();
         } else if (ADPCH == BATTERY) {
             adc_battery = ADC_SAMPLE_REG_16_BIT;
-            uint16_t battery_mV = adc_battery*BAT_divider;
-            battery_level = battery_mV;
-            //                battery_level = (battery_mV / 8) - 320; // "/10" ((battery_mV-3200)*100)/(3900-3200)
-            //                if (battery_level > 99) battery_level = 99;
-            // Trigger measurement of orientation
+            battery_mV = adc_battery*BAT_divider;
         }
         PIR1bits.ADIF = 0;
     } else if (RTC_TIMER_IF) {
@@ -2116,6 +2129,7 @@ static void interrupt isr(void) {
         switch (ui_state) {
             case TimerListening:
             case TimerCountdown:
+                CONSUME_BACKLIGHT(2005, current_backlight);
                 break;
             case PowerOff:
                 define_charger_state();

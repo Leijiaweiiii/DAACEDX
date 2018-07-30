@@ -108,6 +108,7 @@ typedef union {
         unsigned Autostart : 1;
         unsigned BT : 1;
         unsigned Aux : 1;
+        unsigned AutoPowerOff   : 1;
     };
 
 } AR_IS_T;
@@ -122,7 +123,7 @@ union {
         unsigned WAKEUP : 1;
         unsigned FOOTER_CHANGED : 1;
         unsigned ADC_DETECTED : 1;
-        unsigned INITIALIZED    :1;
+        unsigned INITIALIZED : 1;
     };
 } InputFlags;
 
@@ -205,19 +206,19 @@ typedef union {
     uint8_t data[SettingsDataSize];
 
     struct {
-        uint8_t version;                // 0
+        uint8_t version; // 0
         AR_IS_T AR_IS;
-        uint8_t DelayMode;              // 1
-        uint8_t Volume;                 // 2
-        uint8_t BackLightLevel;         // 3
-        uint8_t Filter;                 // 4
-        uint8_t ParMode;                // 5
+        uint8_t DelayMode; // 1
+        uint8_t Volume; // 2
+        uint8_t BackLightLevel; // 3
+        uint8_t Filter; // 4
+        uint8_t ParMode; // 5
         uint8_t TotPar; // 1 based      // 6
-        uint8_t InputType;              // 7
-        uint24_t Sensitivity;           // 8
-        uint16_t BuzzerFrequency;       // 9
-        uint16_t BuzzerParDuration;     // A
-        uint16_t BuzzerStartDuration;   // B
+        uint8_t InputType; // 7
+        uint24_t Sensitivity; // 8
+        uint16_t BuzzerFrequency; // 9
+        uint16_t BuzzerParDuration; // A
+        uint16_t BuzzerStartDuration; // B
         time_t DelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
         uint24_t ParTime[MAXPAR]; //in 1mS unit
@@ -230,7 +231,6 @@ SettingsMenu_t ma; // Submenu for second level menu
 SettingsMenu_t mx; // Submenu for third level menu
 SettingsMenu_t SettingsMenu;
 
-uint16_t battery_level;
 // </editor-fold>
 
 void DoSettings();

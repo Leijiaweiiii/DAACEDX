@@ -4,10 +4,15 @@
 uint8_t number_of_battery_bars(){
     uint8_t res = 0;
     for(uint8_t i = 0;i<5;i++){
-        //TODO: Manipulate only with MSB
+#ifdef TIMEBAT
         if(battery_level_thresholds[i]<battery_charge){
             res++;
         }
+#else
+        if(battery_voltage_thresholds[i]<battery_mV){
+            res++;
+        }
+#endif
     }
     return res;
 }
