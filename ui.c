@@ -401,16 +401,16 @@ void define_input_action() {
 }
 
 void handle_low_battery() {
-    if(battery_mV<200) return;
-    if (ui_state != PowerOff && number_of_battery_bars() == 0) {
+    if(!battery_low) return;
+    if (ui_state != PowerOff) {
         char msg[16];
+        STATE_HANDLE_POWER_OFF;
         lcd_clear();
         sprintf(msg, " Battery Low");
-        lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+        lcd_write_string(msg, 10, UI_CHARGING_LBL_Y - MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
         sprintf(msg, " Please Charge");
-        lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y + MediumFont->height, MediumFont, BLACK_OVER_WHITE);
-        Sleep(2000);
-        STATE_HANDLE_POWER_OFF;
+        lcd_write_string(msg, 10, UI_CHARGING_LBL_Y + MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
+        Delay(3000);
     }
 }
 

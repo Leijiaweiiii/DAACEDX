@@ -1756,7 +1756,7 @@ void print_batery_info() {
     col = col + battery_left_bitmap.width_in_bits;
 
     for (uint8_t i = 5; i > 0; i--) {
-        if (i <= num_bars) {
+        if (i < num_bars + 1) {
             lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
             col += battery_middle_full_bitmap.width_in_bits;
         } else {
