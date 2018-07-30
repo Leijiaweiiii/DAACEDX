@@ -914,7 +914,7 @@ void set_par_mode(int m) {
 
     switch (m) {
         case ParMode_Regular:
-            CurPar_idx = 0;// Intentially fall-through
+            CurPar_idx = 0; // Intentially fall-through
         case ParMode_CUSTOM:
             restorePar();
             break;
@@ -1898,6 +1898,7 @@ void DoCharging() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Service functions">
+
 void PlayParSound() {
     sendSignal("PAR", Settings.BuzzerParDuration, Settings.ParTime[CurPar_idx]);
     if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -1944,9 +1945,9 @@ void StartParTimer() {
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
-    if(Settings.ParMode == ParMode_Regular)
+    if (Settings.ParMode == ParMode_Regular) {
         CurPar_idx = 0;
-
+    }
     InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
         case DELAY_MODE_Instant: Settings.DelayTime = 0;
@@ -2009,6 +2010,15 @@ void check_countdown_expired() {
     } else {
         Delay(20);
     }
+}
+
+void increment_par() {
+    if (CurPar_idx != Settings.TotPar - 1) {
+        CurPar_idx++;
+    } else {
+        CurPar_idx = 0;
+    }
+    InputFlags.FOOTER_CHANGED = True;
 }
 
 void check_par_expired() {

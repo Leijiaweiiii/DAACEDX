@@ -171,12 +171,7 @@ void handle_timer_idle() {
         case UpLong:
         case UpShort:
             if (Settings.ParMode != ParMode_Regular) {
-                if (CurPar_idx != Settings.TotPar - 1) {
-                    CurPar_idx++;
-                } else {
-                    CurPar_idx = 0;
-                }
-                InputFlags.FOOTER_CHANGED = True;
+                increment_par();
             }
             break;
         case DownLong:
@@ -204,9 +199,13 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE;
             break;
         case ParEvent:
-            if (Settings.TotPar > 0 && Settings.ParMode == ParMode_Regular) {
-                CurPar_idx++;
-                StartParTimer();
+            if (Settings.TotPar > 0) {
+                if (Settings.ParMode == ParMode_Regular) {
+                    CurPar_idx++;
+                    StartParTimer();
+                } else {
+                    increment_par();
+                }
             }
             PlayParSound();
             break;

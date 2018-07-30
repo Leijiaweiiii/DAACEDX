@@ -262,4 +262,5 @@ void check_timer_max_time();
 void DetectMicShot();
 void handle_bt_commands();
 void set_par_mode(int m);
+void increment_par();
 #endif /*  _DAACED_H_ */
