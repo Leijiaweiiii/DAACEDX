@@ -30,6 +30,7 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
     print_header();
     sprintf(msg, "%02d:%02d", hour, minute);
     display_big_font_label(msg);
+    update_rtc_time();
     if (rtc_time.msec < 500 ||
             (rtc_time.msec > 1000 && rtc_time.msec < 1500)) {
         uint8_t block_start, block_end, w, margin;
