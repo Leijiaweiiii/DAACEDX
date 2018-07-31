@@ -406,10 +406,10 @@ void handle_low_battery() {
         char msg[16];
         STATE_HANDLE_POWER_OFF;
         lcd_clear();
-        sprintf(msg, " Battery Low");
-        lcd_write_string(msg, 10, UI_CHARGING_LBL_Y - MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
-        sprintf(msg, " Please Charge");
-        lcd_write_string(msg, 10, UI_CHARGING_LBL_Y + MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
+        sprintf(msg, "Low Battery");
+        lcd_write_string(msg, 40, UI_CHARGING_LBL_Y - MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
+        sprintf(msg, "Please Charge");
+        lcd_write_string(msg, 30, UI_CHARGING_LBL_Y + MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
         Delay(3000);
     }
 }
