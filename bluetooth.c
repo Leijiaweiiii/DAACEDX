@@ -60,7 +60,7 @@ void BT_hard_reset() {
 void sendOneShot(uint8_t shot_number,shot_t * shot){
     char msg[16];
     int size;
-    size = sprintf(msg,"%d,%d,%dt\n",shot_number + 1,shot->is_flags,shot->dt);
+    size = sprintf(msg,"%d,%d,%d\n",shot_number + 1,shot->is_flags,shot->dt);
     uart_start_tx_string(msg,size);
 }
 
