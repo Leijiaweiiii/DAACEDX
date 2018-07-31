@@ -256,12 +256,13 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
                     InputFlags.ADC_DETECTED = 1;
                     samples[head_index] = ADC_SAMPLE_REG_16_BIT;
                     DetectMicShot();
+                    ADCON0bits.ADGO = 1;
                 }
             }
         }
     }
     stop_sinus();
-    ADC_ENABLE_INTERRUPT;
+    ADC_ENABLE_INTERRUPT_ENVELOPE;
     CONSUME_BEEP(duration);
 }
 
@@ -2110,13 +2111,15 @@ static void interrupt isr(void) {
             InputFlags.B_RELEASED = True;
         }
         update_screen_model();
-        ADCON0bits.ADGO = 1;
+        if (ADPCH == ENVELOPE)
+            ADCON0bits.ADGO = 1;
         InputFlags.ADC_DETECTED = 0;
     } else if (PIR1bits.ADIF) {
         if (ADPCH == ENVELOPE) {
             ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
             DetectMicShot();
         } else if (ADPCH == BATTERY) {
+            ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             battery_mV = adc_battery*BAT_divider;
         }
