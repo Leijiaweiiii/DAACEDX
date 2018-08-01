@@ -1480,64 +1480,15 @@ void DoSettings(void) {
 #define REVIEW_SPLIT_FORMAT     "]%3.2f"
 TBool reviewChanged = True;
 
-void ReviewDisplay() {
-    uint8_t line = UI_HEADER_END_LINE;
-    uint8_t col, i, page_start, page_size;
+void print_strings_line() {
+    uint8_t col, line, i, page_start, page_size;
     TBool first_page;
     char message[20];
-    // We're assuming here that Medium font has even number of bytes heigh
-    uint8_t halfline = 16;
-    if (reviewChanged) {
-        lcd_clear();
-    }
-
-    // Stat line
-    sprintf(ScreenTitle,
-            REVIEW_TOTAL_SHOT_FORMAT,
-            ShootString.TotShoots,
-            (float) ShootString.shots[ShootString.TotShoots - 1].dt / 1000
-            );
-    print_header();
-    //Shoot lines
-    //1st ShootNumber 01, before it ShootNumber 00 time=0
-    for (i = 0; i < min(ShootString.TotShoots, SHOTS_ON_REVIEW_SCREEN); i++) {
-        char * mode;
-        uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
-        uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
-        if (Settings.InputType == INPUT_TYPE_Microphone) {
-            mode = ' ';
-        } else {
-            mode = (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ');
-        }
-        sprintf(message,
-                REVIEW_SHOT_FORMAT,
-                curr_index + 1,
-                (float) ShootString.shots[curr_index].dt / 1000,
-                mode
-                );
-        if (lcd_string_lenght(message, MediumFont) > 134)
-            lcd_write_string(message, 1, line, SmallFont, (i != 1)&0x01);
-        else
-            lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
-        line += halfline;
-
-        // Don't print last diff at half line and not the latest
-        if (i < SHOTS_ON_REVIEW_SCREEN - 1 &&
-                curr_index != ShootString.TotShoots - 1) {
-            sprintf(message,
-                    REVIEW_SPLIT_FORMAT,
-                    (float) (ShootString.shots[subtrahend_index].dt - ShootString.shots[curr_index].dt) / 1000);
-            lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
-        }
-        line += halfline;
-    }
-
     line = LCD_HEIGHT - SmallFont->height;
     if (reviewChanged) {
         reviewChanged = False;
         lcd_fill_block(0, line, LCD_WIDTH, LCD_HEIGHT);
     }
-    //String line
     if (CurShootString < 10)
         page_size = 10;
     else
@@ -1560,11 +1511,67 @@ void ReviewDisplay() {
         col += lcd_string_lenght(message, SmallFont) + 3;
         if (polarity)
             lcd_send_block_d(col - 5, line, col - 3, line + SmallFont->height, !polarity);
-
-
     }
     sprintf(message, ">");
     lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
+}
+
+void ReviewDisplay() {
+    uint8_t line = UI_HEADER_END_LINE;
+    uint8_t i;
+    char message[20];
+    // We're assuming here that Medium font has even number of bytes heigh
+    uint8_t halfline = 16;
+    if (reviewChanged) {
+        lcd_clear();
+    }
+
+    // Stat line
+    sprintf(ScreenTitle,
+            REVIEW_TOTAL_SHOT_FORMAT,
+            ShootString.TotShoots,
+            (float) ShootString.shots[ShootString.TotShoots - 1].dt / 1000
+            );
+    print_header();
+    //Shoot lines
+    //1st ShootNumber 01, before it ShootNumber 00 time=0
+    for (i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
+        char * mode;
+        uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
+        uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
+        if (Settings.InputType == INPUT_TYPE_Microphone) {
+            mode = ' ';
+        } else {
+            mode = (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ');
+        }
+        // Handle cases with 1 and 2 shots nicely
+        if (i != 0 || ShootString.TotShoots >= SHOTS_ON_REVIEW_SCREEN) {
+            sprintf(message,
+                    REVIEW_SHOT_FORMAT,
+                    curr_index + 1,
+                    (float) ShootString.shots[curr_index].dt / 1000,
+                    mode
+                    );
+            if (lcd_string_lenght(message, MediumFont) > 134)
+                lcd_write_string(message, 1, line, SmallFont, (i != 1)&0x01);
+            else
+                lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
+        }
+        line += halfline;
+
+        // Don't print last diff at half line and not the latest
+        if (i < SHOTS_ON_REVIEW_SCREEN - 1 &&
+                curr_index != ShootString.TotShoots - 1) {
+            sprintf(message,
+                    REVIEW_SPLIT_FORMAT,
+                    (float) (ShootString.shots[subtrahend_index].dt - ShootString.shots[curr_index].dt) / 1000);
+            lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
+        }
+        line += halfline;
+        if(i==ShootString.TotShoots) break;
+    }
+    //String line
+    print_strings_line();
 }
 
 void review_scroll_shot_up() {
