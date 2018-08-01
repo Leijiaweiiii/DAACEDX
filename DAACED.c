@@ -997,6 +997,7 @@ void SetMode(SettingsMenu_t * m) {
         }
     }
     set_par_mode(Settings.ParMode);
+    CurPar_idx = 0;
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Clock">
