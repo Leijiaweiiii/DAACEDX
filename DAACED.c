@@ -276,6 +276,7 @@ void stop_sinus() {
 // <editor-fold defaultstate="collapsed" desc="Save and retrive DATA">
 
 void clearHistory() {
+    lcd_clear();
     lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
     eeprom_clear_block(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
 }
@@ -1345,7 +1346,6 @@ void handle_bt_commands() {
             bt_set_mode();
             break;
         case BT_ClearHistory:
-            lcd_clear();
             DAA_MSG_WAIT;
             clearHistory();
             lcd_clear();
@@ -1414,7 +1414,6 @@ void DoSet(uint8_t menu) {
             saveSettings();
             break;
         case 14:
-            //            DoDiagnostics();
             clearHistory();
             break;
         case 16: // For tests
