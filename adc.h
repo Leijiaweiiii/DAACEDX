@@ -51,7 +51,7 @@ uint16_t MeanValue();
 #define ADC_ENABLE_INTERRUPT_ENVELOPE              {ADPCH = ENVELOPE;ADCON3bits.ADSOI = 1;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_ENABLE_INTERRUPT_BATTERY               {ADPCH = BATTERY;ADCON3bits.ADSOI = 1;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_ENABLE_INTERRUPT_ACCELEROMETR          {ADPCH = ACCELEROMETER;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
-#define ADC_DISABLE_INTERRUPT       {PIE1bits.ADIE=0;}
+#define ADC_DISABLE_INTERRUPT       {PIE1bits.ADIE=0;while (GO_nDONE);}
 #define ADC_ENABLE_INTERRUPT       {PIE1bits.ADIE=1;}
 
 #ifdef	__cplusplus

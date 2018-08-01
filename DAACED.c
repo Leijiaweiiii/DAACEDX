@@ -2140,7 +2140,7 @@ static void interrupt isr(void) {
         tic_2_sec();
         if (ui_state == PowerOff) {
             define_charger_state();
-        } else {
+        } else if(ui_state != TimerListening && ui_state != TimerCountdown){
             ADC_ENABLE_INTERRUPT_BATTERY;
         }
     } else if (INT0IF) {
