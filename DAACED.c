@@ -1011,7 +1011,7 @@ void SetClock() {
     ts.value = h;
     ts.old_value = ts.value;
     ts.step = 1;
-    strmycpy(ts.MenuTitle, "Clock");
+    strmycpy(ts.MenuTitle, " Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
     set_screen_title(ts.MenuTitle);
     do {
