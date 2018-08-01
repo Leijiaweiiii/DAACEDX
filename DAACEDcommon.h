@@ -14,7 +14,6 @@
 #ifndef STRMYCMP
 #define STRMYCMP
 
-//#define TIMEBAT
 extern void strmycpy(char * to, const char * from);
 #endif
 #define FW_VERSION (0x17)

@@ -43,30 +43,9 @@ extern "C" {
 #define charger_state_changed   (charger_display_state != charger_state)
     void define_charger_state();
     char * charger_text_state();
-    /*
-     * Battery charge is defined in mA-mS
-     * Every time we're consuming electricity
-     * we subtract some capacity of known consumers from the resource
-     * Every time we're in charging state - we're adding capacity to the resource
-     * Sometimes we're estimating capacity and updating measured value to be the full charge
-     */
-
-#define CONSUMPTION_FULLY_CHARGED   (UINT32_MAX-1000)
-    uint32_t battery_charge = CONSUMPTION_FULLY_CHARGED/2;
-    uint16_t backlight_consumption[] = {0, 80, 90, 130, 160, 190, 210, 240, 300, 350};
-    uint32_t battery_level_thresholds[] = {0x1AAAAAAA, 0x35555555, 0x6FFFFFFF, 0xAAAAAAAA, 0xD5555554};
     uint16_t battery_voltage_thresholds[] = {4000, 3900, 3750, 3630, 3500, 3250};
     uint16_t battery_mV = 0;
 #define battery_low         (battery_mV<battery_voltage_thresholds[5])
-#define CONSUMPTION_BEEP_MA     210
-#define CONSUME_BEEP(x)         {battery_charge-=x*CONSUMPTION_BEEP_MA;}
-    // (x,y) -> duration,level
-#define CONSUME_BACKLIGHT(x,y)  {battery_charge -= x * backlight_consumption[y];}
-#define CONSUME_POWER_OFF(x)    {battery_charge -= x * 10; }
-#define CONSUME_POWER_ON(x)     {battery_charge -= x*160; }
-#define CONSUME_CHARGE_ADD(x)   {if(battery_charge<full_charge) battery_charge += x*10000; }
-#define CONSUME_CHARGED_FULL    {battery_charge = full_charge;}
-    uint32_t full_charge = CONSUMPTION_FULLY_CHARGED;
     uint8_t number_of_battery_bars();
     
 #ifdef	__cplusplus

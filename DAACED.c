@@ -263,7 +263,6 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     }
     stop_sinus();
     ADC_ENABLE_INTERRUPT_ENVELOPE;
-    CONSUME_BEEP(duration);
 }
 
 void stop_sinus() {
@@ -1217,7 +1216,8 @@ void init_bt() {
         BT_off();
     }
 }
-void SetAutoPowerOff(SettingsMenu_t * m){
+
+void SetAutoPowerOff(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
     strmycpy(m->MenuTitle, "Auto Off");
@@ -1234,6 +1234,7 @@ void SetAutoPowerOff(SettingsMenu_t * m){
         saveSettingsField(&Settings, &(Settings.AR_IS), 1);
     }
 }
+
 void BlueTooth(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
@@ -1820,7 +1821,7 @@ void print_footer() {
     } else {
         sprintf(message, "Par: Off");
     }
-//        sprintf(message, "%d", battery_mV);
+    //        sprintf(message, "%d", battery_mV);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -1905,7 +1906,6 @@ void DoCharging() {
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                CONSUME_CHARGED_FULL;
                 break;
             case NotCharging:
                 lcd_clear();
@@ -2131,20 +2131,10 @@ static void interrupt isr(void) {
         update_rtc_time();
         InputFlags.FOOTER_CHANGED = 1;
         tic_2_sec();
-        switch (ui_state) {
-            case TimerListening:
-            case TimerCountdown:
-                CONSUME_BACKLIGHT(2005, current_backlight);
-                break;
-            case PowerOff:
-                define_charger_state();
-                CONSUME_POWER_OFF(900);
-                break;
-            default:
-                ADC_ENABLE_INTERRUPT_BATTERY;
-                CONSUME_BACKLIGHT(2000, current_backlight);
-                CONSUME_POWER_ON(2000);
-                break;
+        if (ui_state == PowerOff) {
+            define_charger_state();
+        } else {
+            ADC_ENABLE_INTERRUPT_BATTERY;
         }
     } else if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
