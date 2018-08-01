@@ -2168,7 +2168,7 @@ void main(void) {
         saveSettings();
     }
     set_backlight(Settings.BackLightLevel);
-
+    set_par_mode(Settings.ParMode);
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">
