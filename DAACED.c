@@ -1575,6 +1575,10 @@ void ReviewDisplay() {
 }
 
 void review_scroll_shot_up() {
+    if(ShootString.TotShoots < SHOTS_ON_REVIEW_SCREEN) {
+        Beep();
+        return;
+    }
     if (CurShoot > 0) {
         CurShoot--;
     } else {
@@ -1584,6 +1588,10 @@ void review_scroll_shot_up() {
 }
 
 void review_scroll_shot_down() {
+    if(ShootString.TotShoots < SHOTS_ON_REVIEW_SCREEN) {
+        Beep();
+        return;
+    }
     if (CurShoot < ShootString.TotShoots) {
         CurShoot++;
     } else {
