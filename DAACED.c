@@ -1499,7 +1499,7 @@ void ReviewDisplay() {
     print_header();
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
-    for (i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
+    for (i = 0; i < min(ShootString.TotShoots, SHOTS_ON_REVIEW_SCREEN); i++) {
         char * mode;
         uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
         uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
@@ -1530,9 +1530,11 @@ void ReviewDisplay() {
         }
         line += halfline;
     }
+
+    line = LCD_HEIGHT - SmallFont->height;
     if (reviewChanged) {
         reviewChanged = False;
-        lcd_fill_block(0, line, LCD_WIDTH, LCD_HEIGHT - 8);
+        lcd_fill_block(0, line, LCD_WIDTH, LCD_HEIGHT);
     }
     //String line
     if (CurShootString < 10)
