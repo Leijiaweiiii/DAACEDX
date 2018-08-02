@@ -15,7 +15,7 @@ extern "C" {
 #endif
 #define BT_INSERT       PORTDbits.RD4
 #define BT_RESET_INV    PORTDbits.RD3
-
+#define BT_PRESENT      (BT_INSERT == 0)
 
     // <editor-fold defaultstate="collapsed" desc="HM-11 AT commands">
 #define AT_RES_ON                  (1)
@@ -97,8 +97,9 @@ extern "C" {
         unsigned status_byte : 8;
 
         struct {
-            unsigned card_present : 1;
-            unsigned initialized : 1;
+            unsigned card_present   : 1;
+            unsigned initialized    : 1;
+            unsigned connected      : 1;
         };
     } BT_STATUS;
 

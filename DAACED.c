@@ -1211,7 +1211,7 @@ void SetInput(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void init_bt() {
-    if (Settings.AR_IS.BT) {
+    if (Settings.AR_IS.BT && BT_PRESENT) {
         init_uart();
         BT_init();
     } else {
@@ -1647,6 +1647,7 @@ void DoReview() {
     do {
         ReviewDisplay();
         define_input_action();
+        BT_define_action();
         switch (comandToHandle) {
             case UpShort:
                 review_scroll_shot_up();
@@ -1793,7 +1794,7 @@ void print_batery_info() {
 
 uint8_t print_header() {
     print_time();
-    if (BT_INSERT == 0) {
+    if (BT_PRESENT && BT_STATUS.connected) {
         lcd_draw_bitmap(LCD_WIDTH - 50, 0, &bt_bitmap_data);
     } else {
         lcd_clear_block(
