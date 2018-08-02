@@ -1558,7 +1558,7 @@ void ReviewDisplay() {
                 lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
         }
         line += halfline;
-
+        if (i == ShootString.TotShoots) break;
         // Don't print last diff at half line and not the latest
         if (i < SHOTS_ON_REVIEW_SCREEN - 1 &&
                 curr_index != ShootString.TotShoots - 1) {
@@ -1568,14 +1568,14 @@ void ReviewDisplay() {
             lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
-        if(i==ShootString.TotShoots) break;
+
     }
     //String line
     print_strings_line();
 }
 
 void review_scroll_shot_up() {
-    if(ShootString.TotShoots < SHOTS_ON_REVIEW_SCREEN) {
+    if (ShootString.TotShoots < SHOTS_ON_REVIEW_SCREEN) {
         Beep();
         return;
     }
@@ -1588,7 +1588,7 @@ void review_scroll_shot_up() {
 }
 
 void review_scroll_shot_down() {
-    if(ShootString.TotShoots < SHOTS_ON_REVIEW_SCREEN) {
+    if (ShootString.TotShoots < SHOTS_ON_REVIEW_SCREEN) {
         Beep();
         return;
     }
@@ -1638,6 +1638,11 @@ void DoReview() {
     getShootString(0);
     CurShootString = 0;
     CurShoot = ShootString.TotShoots - 1;
+    if (ShootString.TotShoots == 0) {
+        Beep();
+        STATE_HANDLE_TIMER_IDLE;
+        return;
+    }
     reviewChanged = True;
     do {
         ReviewDisplay();
@@ -2148,7 +2153,7 @@ static void interrupt isr(void) {
         tic_2_sec();
         if (ui_state == PowerOff) {
             define_charger_state();
-        } else if(ui_state != TimerListening && ui_state != TimerCountdown){
+        } else if (ui_state != TimerListening && ui_state != TimerCountdown) {
             ADC_ENABLE_INTERRUPT_BATTERY;
         }
     } else if (INT0IF) {
