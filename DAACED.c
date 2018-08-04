@@ -1920,12 +1920,14 @@ void DoCharging() {
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                battery_mV = 5000;
                 break;
             case Complete:
                 LATEbits.LATE0 = 1;
                 lcd_clear();
                 sprintf(msg, "Charged  ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                battery_mV = 5000;
                 break;
             case NotCharging:
                 lcd_clear();
@@ -2143,7 +2145,7 @@ static void interrupt isr(void) {
         } else if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
-            battery_mV = adc_battery*BAT_divider;
+            battery_mV = min(adc_battery*BAT_divider, battery_mV);
         }
         PIR1bits.ADIF = 0;
     } else if (RTC_TIMER_IF) {
