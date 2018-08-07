@@ -43,7 +43,7 @@ extern "C" {
 #define charger_state_changed   (charger_display_state != charger_state)
     void define_charger_state();
     char * charger_text_state();
-    uint16_t battery_voltage_thresholds[] = {4000, 3900, 3750, 3630, 3500, 3250};
+    uint16_t battery_voltage_thresholds[] = {3950, 3850, 3750, 3620, 3450, 3200};
     uint16_t battery_mV = 0;
 #define battery_low         (battery_mV<battery_voltage_thresholds[5])
     uint8_t number_of_battery_bars();

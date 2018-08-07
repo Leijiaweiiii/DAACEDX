@@ -1906,8 +1906,10 @@ void DoPowerOn() {
     init_bt();
     update_rtc_time();
     timer_idle_last_action_time = rtc_time.sec;
+    battery_mV = 5000;
     InputFlags.INITIALIZED = True;
     print_logo_splash();
+    ADC_ENABLE_INTERRUPT_BATTERY;
 }
 
 void DoCharging() {
