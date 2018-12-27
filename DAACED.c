@@ -106,8 +106,8 @@ void PIC_init(void) {
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
     OSCENbits.LFOEN = 0;
-    TRISA = 0b11111111; // ADC inputs 0..3
-    ANSELA = 0b00001111;
+    TRISA = 0b11111111;
+    ANSELA = 0b00001110; // ADC inputs 1..3
     OSCENbits.ADOEN = 1; // Enable ADC oscillator;
 
     TRISB = 0b11111111; //
@@ -1162,10 +1162,11 @@ void SetCountDown(SettingsMenu_t * m) {
 
 void SetTilt(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 2;
+    m->TotalMenuItems = 3;
     strmycpy(m->MenuTitle, "Orientation");
     strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Upright");
     strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Upside-down");
+    strmycpy(m->MenuItem[ORIENTATION_AUTO], "Auto");
     m->menu = Orientation;
 
     do {

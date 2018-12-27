@@ -101,14 +101,12 @@ typedef union {
     uint8_t AR_IS;
 
     struct {
-        unsigned AutoRotate : 1;
-        unsigned Mic : 1;
-        unsigned A_or_B_multiple : 1;
-        unsigned A_and_B_single : 1;
-        unsigned Autostart : 1;
-        unsigned BT : 1;
-        unsigned Aux : 1;
+        unsigned AutoRotate     : 2;
+        unsigned Autostart      : 1;
+        unsigned BT             : 1;
+        unsigned Aux            : 1;
         unsigned AutoPowerOff   : 1;
+        unsigned unused         : 2;
     };
 
 } AR_IS_T;
@@ -143,7 +141,10 @@ typedef struct {
 } DetectionResult_t;
 
 #define AutoStart Settings.AR_IS.Autostart
+// Manual orientation settings
 #define Orientation Settings.AR_IS.AutoRotate
+// Automatic orientation
+#define OrientationSensor PORTAbits.RA0
 // Automatic shutdown after timeout 20 minutes (in 2 sec intervals))
 #define timer_idle_shutdown_timeout 600L
 // Dim light after 46 seconds (in 2 sec intervals)

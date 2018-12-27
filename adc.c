@@ -3,7 +3,7 @@
 
 void ADC_init() {
     TRISA = 0b11111111; // ADC inputs 0..3
-    ANSELA = 0b00001111;
+    ANSELA = 0b00001110;
     //  ADCON0 = 0b10000000;        // Enable ADC	 - single byte mode	   return ADRESH;
 //    ADCON0 = 0b10000100; // Enable ADC	 - single 10 bit mode	return (ADRESH<<8)|ADRESL;
 
