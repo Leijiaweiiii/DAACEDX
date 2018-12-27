@@ -33,7 +33,6 @@ uint8_t spi_write(uint8_t data) {
 //SPI End
 // </editor-fold>
 
-
 // <editor-fold defaultstate="collapsed" desc="LCD helper functions">
 
 void lcd_reset(void) {
@@ -83,149 +82,6 @@ void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2) {
     lcd_send_data(p2 + y_offset); // End row address.
     lcd_send_command(CMD_WRITE_DATA); // Write data.
 }
-#ifndef LCD_DIRECT_ACCESS
-
-void lcd_update_boundingbox(UpdateBoundary * box, uint8_t x_min, uint8_t y_min, uint8_t x_max, uint8_t y_max) {
-    box->changed |= box->min_x > x_min;
-    box->changed |= box->max_x < x_max;
-    box->changed |= box->min_y > y_min;
-    box->changed |= box->max_y < y_max;
-    if (x_min < box->min_x) box->min_x = x_min;
-    if (x_max > box->max_x) box->max_x = x_max;
-    if (y_min < box->min_y) box->min_y = y_min;
-    if (y_max > box->max_y) box->max_y = y_max;
-}
-
-uint8_t update_page(LCDPage * page, uint8_t position, uint8_t polarity) {
-    uint8_t p = page->PAGE;
-    switch (position % LCD_PAGE_HEIGTH) {
-#ifdef MSB_FIRST
-        case 0:
-            page->p0 = polarity;
-            break;
-        case 1:
-            page->p1 = polarity;
-            break;
-        case 2:
-            page->p2 = polarity;
-            break;
-        case 3:
-            page->p3 = polarity;
-            break;
-        case 4:
-            page->p4 = polarity;
-            break;
-        case 5:
-            page->p5 = polarity;
-            break;
-        case 6:
-            page->p6 = polarity;
-            break;
-        case 7:
-            page->p7 = polarity;
-            break;
-#else
-        case 0:
-            page->p7 = polarity;
-            break;
-        case 1:
-            page->p6 = polarity;
-            break;
-        case 2:
-            page->p5 = polarity;
-            break;
-        case 3:
-            page->p4 = polarity;
-            break;
-        case 4:
-            page->p3 = polarity;
-            break;
-        case 5:
-            page->p2 = polarity;
-            break;
-        case 6:
-            page->p1 = polarity;
-            break;
-        case 7:
-            page->p0 = polarity;
-            break;
-#endif
-    }
-    return p^page->PAGE;
-}
-
-void lcd_draw_pixel_b(uint8_t x_pos, uint8_t y_pos, uint8_t polarity) {
-    if ((x_pos >= LCD_WIDTH) || (y_pos >= LCD_HEIGHT)) {
-        return;
-    }
-
-    if (orientation == ORIENTATION_INVERTED && orientation_change_enabled) {
-        y_pos = LCD_HEIGHT - y_pos;
-        x_pos = LCD_WIDTH - x_pos;
-    } else {
-        y_pos += Y_OFFSET;
-    }
-    if (update_page(&lcd_buffer[PAGE(y_pos)][x_pos], y_pos, polarity))/* Update bounding box only if the bit actually changed the state*/
-        lcd_update_boundingbox(&full_screen_update_boundary, x_pos, y_pos, x_pos, y_pos);
-    // TODO: Calculate this in more generic way - now this will work only for the main screen
-}
-
-void lcd_set_pixel_b(uint8_t x_pos, uint8_t y_pos) {
-    lcd_draw_pixel_b(x_pos, y_pos, BLACK_OVER_WHITE);
-}
-
-void lcd_clear_pixel_b(uint8_t x_pos, uint8_t y_pos) {
-    lcd_draw_pixel_b(x_pos, y_pos, WHITE_OVER_BLACK);
-}
-
-void lcd_draw_line_b(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity) {
-    uint8_t steep = abs(y1_pos - y0_pos) > abs(x1_pos - x0_pos);
-    if (steep) {
-        SWAP(x0_pos, y0_pos);
-        SWAP(x1_pos, y1_pos);
-    }
-
-    if (x0_pos > x1_pos) {
-        SWAP(x0_pos, x1_pos);
-        SWAP(y0_pos, y1_pos);
-    }
-
-    //    lcd_update_boundingbox(&full_screen_update_boundary, x0_pos, y0_pos, x1_pos, y1_pos);
-
-    uint8_t dx, dy;
-    dx = x1_pos - x0_pos;
-    dy = abs(y1_pos - y0_pos);
-
-    int8_t error = dx / 2;
-    int8_t y_step;
-
-    if (y0_pos < y1_pos) y_step = 1;
-    else y_step = -1;
-
-    for (; x0_pos <= x1_pos; x0_pos = x0_pos + 1) {
-        if (steep) {
-            lcd_draw_pixel_b(y0_pos, x0_pos, polarity);
-        } else {
-            lcd_draw_pixel_b(x0_pos, y0_pos, polarity);
-        }
-
-        error -= dy;
-
-        if (error < 0) {
-            y0_pos += y_step;
-            error += dx;
-        }
-    }
-}
-
-void lcd_draw_vline_b(uint8_t x_pos, uint8_t y0_pos, uint8_t y1_pos, uint8_t polarity) {
-    lcd_draw_line_b(x_pos, y0_pos, x_pos, y1_pos, polarity);
-}
-
-void lcd_draw_hline_b(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity) {
-    lcd_draw_line_b(x0_pos, y_pos, x1_pos, y_pos, polarity);
-}
-#endif
 
 void lcd_clear_data_ram() {
     lcd_prepare_send_data(0, 0, LCD_WIDTH, LCD_MAX_PAGES);
@@ -233,67 +89,6 @@ void lcd_clear_data_ram() {
         lcd_send_data(LCD_WHITE_PAGE);
     }
 }
-#ifndef LCD_DIRECT_ACCESS
-
-void lcd_refresh(UpdateBoundary * box) {
-    uint8_t column, max_column, page;
-    // Don't even try to update unchanged box
-    if (!box->changed) return;
-
-    for (page = box->min_y / LCD_PAGE_HEIGTH; page < box->max_y / LCD_PAGE_HEIGTH; page = page + 1) {
-        lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
-        lcd_send_command(CMD_PAGE_ADD); // Row address.
-        lcd_send_data(page + Y_OFFSET); // Start row address.
-        lcd_send_data(page + Y_OFFSET); // End row address.
-
-        column = box->min_x;
-        max_column = box->max_x;
-
-        lcd_send_command(CMD_COL_ADD); // Column address.
-        lcd_send_data(column); // Start column address.
-        lcd_send_data(max_column); // End column address.
-
-        lcd_send_command(CMD_WRITE_DATA); // Write data.
-
-        for (; column <= max_column; column = column + 1) {
-            lcd_send_data(lcd_buffer[page][column].PAGE); // Sending data from buffer.
-        }
-    }
-    // min set to max, max to min - for box comparison when updated
-    box->min_x = LCD_WIDTH - 1;
-    box->max_x = 0;
-    box->min_y = LCD_HEIGHT - 1;
-    box->max_y = 0;
-    box->changed = false;
-    //    frames_count=frames_count+1;
-}
-
-uint8_t lcd_write_char_b(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    uint8_t i, j, line;
-    const uint8_t *bitmap;
-
-    if ((c < font->char_start) || (c > font->char_end)) return 0;
-
-    c = c - font->char_start; // 'c' now become index to tables.
-    bitmap = font->bitmap + font->char_descriptors[c].offset;
-
-    for (j = 0; j < font->height; j = j + 1) {
-        for (i = 0; i < font->char_descriptors[c].width; i = i + 1) {
-            if (i % 8 == 0) {
-                line = bitmap[(font->char_descriptors[c].width + 7) / 8 * j + i / 8]; // line data
-            }
-            if (line & 0x80) {
-                lcd_draw_pixel_b(x_pos + i, y_pos + j, polarity);
-            } else {
-                lcd_draw_pixel_b(x_pos + i, y_pos + j, !polarity);
-            }
-            line = line << 1;
-        }
-
-    }
-    return (font->char_descriptors[c].width);
-}
-#endif
 
 // write char directly to the screen
 
@@ -334,18 +129,6 @@ uint8_t lcd_write_char(unsigned int c,
 
     return font->char_descriptors[c].width;
 }
-#ifndef LCD_DIRECT_ACCESS
-
-void lcd_fill_block_b(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos) {
-    if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
-    if (y1_pos > y2_pos) SWAP(y1_pos, y2_pos);
-    for (uint8_t x = x1_pos; x < x2_pos; x++) {
-        for (uint8_t y = y1_pos; y < y2_pos; y++) {
-            lcd_set_pixel_b(x, y);
-        }
-    }
-}
-#endif
 
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity) {
     if (x1_pos > x2_pos) SWAP(x1_pos, x2_pos);
@@ -518,22 +301,40 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
         }
     }
 }
+void inline setOrientationNormal(){
+    lcd_send_data(LCD_ORIENTATION_NORMAL);
+    lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
+    x_offset = 0;
+    y_offset = 0;
+}
+
+void inline setOrientationInverted(){
+    lcd_send_data(LCD_ORIENTATION_INVERTED);
+    lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
+    x_offset = 15;
+    y_offset = 1;    
+}
 
 void lcd_set_orientation() {
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    if (Orientation == ORIENTATION_NORMAL) {
-        lcd_send_data(LCD_ORIENTATION_NORMAL);
-        lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
-        x_offset = 0;
-        y_offset = 0;
-    } else {
-        lcd_send_data(LCD_ORIENTATION_INVERTED);
-        lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
-        x_offset = 15;
-        y_offset = 1;
+    switch(Orientation){
+        case ORIENTATION_NORMAL:
+            setOrientationNormal();
+            break;
+        case ORIENTATION_INVERTED:
+            setOrientationInverted();
+            break;
+        case ORIENTATION_AUTO:
+            if(OrientationSensor == ORIENTATION_NORMAL)
+                setOrientationNormal();
+            else
+                setOrientationInverted();
+            break;
+        default:
+            // Do nothing, it's an error state
+            break;
     }
-
 }
 
 void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {

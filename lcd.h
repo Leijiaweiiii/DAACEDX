@@ -101,6 +101,9 @@ typedef struct {
 UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 1};
 #endif
 
+#define SMTH_DISABLED              0
+#define SMTH_ENABLED               1
+
 #define ORIENTATION_NORMAL              0
 #define ORIENTATION_INVERTED            1
 #define ORIENTATION_AUTO                2

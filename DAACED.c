@@ -1224,8 +1224,8 @@ void SetAutoPowerOff(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
     strmycpy(m->MenuTitle, "Auto Off");
-    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Disabled");
-    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Enabled");
+    strmycpy(m->MenuItem[SMTH_DISABLED], "Disabled");
+    strmycpy(m->MenuItem[SMTH_ENABLED], "Enabled");
     m->menu = Settings.AR_IS.AutoPowerOff;
 
     do {
@@ -1242,8 +1242,8 @@ void BlueTooth(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
     strmycpy(m->MenuTitle, "Bluetooth");
-    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Disabled");
-    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Enabled");
+    strmycpy(m->MenuItem[SMTH_DISABLED], "Disabled");
+    strmycpy(m->MenuItem[SMTH_ENABLED], "Enabled");
     m->menu = Settings.AR_IS.BT;
 
     do {
