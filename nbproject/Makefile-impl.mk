@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=DAACED.X
 
 # Active Configuration
-DEFAULTCONF=2018_05_28_01
+DEFAULTCONF=v1_45
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=default 2018_05_28_01 
+ALLCONFS=v2_05 v1_45 
 
 
 # build
@@ -45,15 +45,15 @@ ALLCONFS=default 2018_05_28_01
 
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default clean
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=2018_05_28_01 clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v2_05 clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v1_45 clean
 
 
 
 # all
 .all-impl: .all-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default build
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=2018_05_28_01 build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v2_05 build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v1_45 build
 
 
 

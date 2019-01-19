@@ -4,17 +4,17 @@
 # NOCDDL
 #
 CND_BASEDIR=`pwd`
-# default configuration
-CND_ARTIFACT_DIR_default=dist/default/production
-CND_ARTIFACT_NAME_default=DAACED.X.production.hex
-CND_ARTIFACT_PATH_default=dist/default/production/DAACED.X.production.hex
-CND_PACKAGE_DIR_default=${CND_DISTDIR}/default/package
-CND_PACKAGE_NAME_default=daaced.x.tar
-CND_PACKAGE_PATH_default=${CND_DISTDIR}/default/package/daaced.x.tar
-# 2018_05_28_01 configuration
-CND_ARTIFACT_DIR_2018_05_28_01=dist/2018_05_28_01/production
-CND_ARTIFACT_NAME_2018_05_28_01=DAACED.X.production.hex
-CND_ARTIFACT_PATH_2018_05_28_01=dist/2018_05_28_01/production/DAACED.X.production.hex
-CND_PACKAGE_DIR_2018_05_28_01=${CND_DISTDIR}/2018_05_28_01/package
-CND_PACKAGE_NAME_2018_05_28_01=daaced.x.tar
-CND_PACKAGE_PATH_2018_05_28_01=${CND_DISTDIR}/2018_05_28_01/package/daaced.x.tar
+# v2_05 configuration
+CND_ARTIFACT_DIR_v2_05=dist/v2_05/production
+CND_ARTIFACT_NAME_v2_05=DAACED.X.production.hex
+CND_ARTIFACT_PATH_v2_05=dist/v2_05/production/DAACED.X.production.hex
+CND_PACKAGE_DIR_v2_05=${CND_DISTDIR}/v2_05/package
+CND_PACKAGE_NAME_v2_05=daaced.x.tar
+CND_PACKAGE_PATH_v2_05=${CND_DISTDIR}/v2_05/package/daaced.x.tar
+# v1_45 configuration
+CND_ARTIFACT_DIR_v1_45=dist/v1_45/production
+CND_ARTIFACT_NAME_v1_45=DAACED.X.production.hex
+CND_ARTIFACT_PATH_v1_45=dist/v1_45/production/DAACED.X.production.hex
+CND_PACKAGE_DIR_v1_45=${CND_DISTDIR}/v1_45/package
+CND_PACKAGE_NAME_v1_45=daaced.x.tar
+CND_PACKAGE_PATH_v1_45=${CND_DISTDIR}/v1_45/package/daaced.x.tar
