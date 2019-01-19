@@ -2142,7 +2142,8 @@ static void interrupt isr(void) {
         if (ADPCH == ENVELOPE)
             ADCON0bits.ADGO = 1;
         InputFlags.ADC_DETECTED = 0;
-    } else if (PIR1bits.ADIF) {
+    } 
+    if (PIR1bits.ADIF) {
         if (ADPCH == ENVELOPE) {
             ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
             DetectMicShot();
@@ -2152,7 +2153,8 @@ static void interrupt isr(void) {
             battery_mV = min(adc_battery*BAT_divider, battery_mV);
         }
         PIR1bits.ADIF = 0;
-    } else if (RTC_TIMER_IF) {
+    } 
+    if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         update_rtc_time();
         InputFlags.FOOTER_CHANGED = 1;
@@ -2162,7 +2164,8 @@ static void interrupt isr(void) {
         } else if (ui_state != TimerListening && ui_state != TimerCountdown) {
             ADC_ENABLE_INTERRUPT_BATTERY;
         }
-    } else if (INT0IF) {
+    } 
+    if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
     }
     if (PIR3bits.TX1IF) {
