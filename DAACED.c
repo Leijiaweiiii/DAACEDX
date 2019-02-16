@@ -284,7 +284,7 @@ void getSettings() {
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
     Settings.Sensitivity = DEFAULT_SENSITIVITY;
-    Settings.Filter = 70; // ms
+    Settings.Filter = 80; // ms
     Settings.AR_IS.Autostart = 1; // on
     Settings.AR_IS.AutoRotate = 0; // Off
     Settings.AR_IS.BT = 0; // Off by default
@@ -781,8 +781,8 @@ void SetFilter() {
     if (Settings.Filter > 100) Settings.Filter = 100;
     NumberSelection_t f;
     strcpy(f.MenuTitle, "Filter");
-    f.fmin = 0.01;
-    f.fmax = 0.2;
+    f.fmin = 0.02;
+    f.fmax = 0.12;
     f.fstep = 0.01;
     f.fvalue = (float) (Settings.Filter) / 1000;
     f.fold_value = f.value;
