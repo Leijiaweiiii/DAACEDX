@@ -149,7 +149,7 @@ typedef struct {
 // Automatic shutdown after timeout 20 minutes (in 2 sec intervals))
 #define timer_idle_shutdown_timeout 600L
 // Dim light after 46 seconds (in 2 sec intervals)
-#define timer_idle_dim_timeout      23L
+#define timer_idle_dim_timeout      22L
 time_t timer_idle_last_action_time;
 
 // This should be changed carefully.
