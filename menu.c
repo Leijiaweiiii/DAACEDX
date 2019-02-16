@@ -27,7 +27,7 @@ void display_big_font_label(const char * msg) {
 
 void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
     char msg[16];
-    print_header();
+    print_header(true);
     sprintf(msg, "%02d:%02d", hour, minute);
     display_big_font_label(msg);
     update_rtc_time();
@@ -57,7 +57,7 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
 void DisplayDouble(NumberSelection_t* s) {
     char msg[16];
     set_screen_title(s->MenuTitle);
-    print_header();
+    print_header(true);
     sprintf(msg, s->format, s->fvalue);
     display_big_font_label(msg);
 }
@@ -66,7 +66,7 @@ void DisplayInteger(NumberSelection_t* s) {
     char msg[16];
 
     set_screen_title(s->MenuTitle);
-    print_header();
+    print_header(true);
     sprintf(msg, s->format, s->value);
     display_big_font_label(msg);
 }
@@ -75,7 +75,7 @@ void DisplaySettings(SettingsMenu_t* sm) {
     uint8_t p, lineh;
     uint16_t i;
     set_screen_title(sm->MenuTitle);
-    print_header();
+    print_header(true);
     p = UI_HEADER_END_LINE;
     lineh = SmallFont->height;
     if (sm->redraw) {
@@ -347,7 +347,8 @@ void SelectDouble(NumberSelection_t* sm) {
             break;
         case StartLong:STATE_HANDLE_POWER_OFF;
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:
+            STATE_HANDLE_TIMER_IDLE;
             break;
         default:
             break;

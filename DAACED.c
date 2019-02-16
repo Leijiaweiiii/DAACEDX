@@ -1055,7 +1055,7 @@ void CountDownMode(time_t countdown) {
     TBool done = False;
     lcd_clear();
     do {
-        print_header();
+        print_header(true);
         update_rtc_time();
         reminder = (stop_time - rtc_time.unix_time_ms) / 1000;
         minute = reminder / 60;
@@ -1103,7 +1103,7 @@ TBool SetCustomCountDown() {
     ts.step = 1;
     lcd_clear();
     do {
-        print_header();
+        print_header(true);
         minute = ts.value / 60;
         second = ts.value % 60;
         sprintf(msg,
@@ -1525,7 +1525,7 @@ void ReviewDisplay() {
             ShootString.TotShoots,
             (float) ShootString.shots[ShootString.TotShoots - 1].dt / 1000
             );
-    print_header();
+    print_header(true);
     //Shoot lines
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     for (i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
@@ -1700,7 +1700,7 @@ void DoDiagnostics() {
     s->done = False;
     strcpy(ScreenTitle, " Diagnostics");
     do {
-        print_header();
+        print_header(true);
         print_stats();
         SelectMenuItem(s);
     } while (SettingsNotDone(s));
@@ -1741,15 +1741,19 @@ void DetectInit(void) {
     }
 }
 
-uint8_t print_time() {
+uint8_t print_title(TBool settings) {
     char message[30];
-    sprintf(message,
-            "%02d:%02d ",
-            get_hour(),
-            get_minute());
-    lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
+    uint8_t title_pos = 5;
+    if(!settings){
+        sprintf(message,
+                "%02d:%02d ",
+                get_hour(),
+                get_minute());
+        lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
+        title_pos = 55;
+    }
     sprintf(message, "%s", ScreenTitle);
-    lcd_write_string(message, 55, 0, SmallFont, BLACK_OVER_WHITE);
+    lcd_write_string(message, title_pos, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
 uint8_t old_bat_length = 0;
@@ -1785,8 +1789,7 @@ void print_batery_info() {
     lcd_draw_bitmap(col, 0, &battery_right_bitmap);
 }
 
-uint8_t print_header() {
-    print_time();
+void print_bt_indication(){
     if (BT_PRESENT && BT_STATUS.connected) {
         lcd_draw_bitmap(LCD_WIDTH - 50, 0, &bt_bitmap_data);
     } else {
@@ -1797,7 +1800,11 @@ uint8_t print_header() {
                 bt_bitmap_data.heigth_in_bytes * 8
                 );
     }
-    //    print_batery_text_info();
+}
+
+uint8_t print_header(TBool settings) {
+    print_title(settings);
+    print_bt_indication();
     print_batery_info();
     lcd_draw_fullsize_hline(UI_HEADER_END_LINE - 1, LCD_MID_LINE_PAGE);
     return UI_HEADER_END_LINE;

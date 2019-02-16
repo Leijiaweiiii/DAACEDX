@@ -95,7 +95,7 @@ extern "C" {
     void DisplayDouble(NumberSelection_t* s);
     void DisplayInteger(NumberSelection_t* s);
     void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state);
-    extern uint8_t print_header(); // implemented in DAACED.c
+    extern uint8_t print_header(TBool hide_time); // implemented in DAACED.c
     void display_big_font_label(const char * msg);
 #ifdef	__cplusplus
 }

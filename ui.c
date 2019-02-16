@@ -159,7 +159,7 @@ void handle_timer_idle() {
     }
 
     update_shot_time_on_screen();
-    print_header();
+    print_header(false);
     print_footer();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF;
@@ -219,7 +219,7 @@ void HandleTimerEvents() {
 void handle_timer_listening() {
     save_shots_if_required();
     update_shot_time_on_screen();
-    print_header();
+    print_header(false);
     print_footer();
     check_par_expired();
 
@@ -278,7 +278,7 @@ void handle_settings_screen() {
 
 void handle_countdown() {
     print_footer();
-    print_header();
+    print_header(false);
     update_countdown_time_on_screen();
     check_countdown_expired();
     switch (comandToHandle) {
@@ -314,11 +314,7 @@ TBool is_long_press() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             break;
-        //        if (ui_state == PowerOff) {
-        //            DelayLP(10);
-        //        } else {
         Delay(10);
-        //        }
         duration += 10;
     } while (Keypressed);
     return duration >= LONG_PRESS_THRESHOLD_SEC;
@@ -329,11 +325,7 @@ TBool is_long_press_repeatable() {
     do {
         if (duration > STICKY_THRESHOLD_SEC)
             return duration >= LONG_PRESS_THRESHOLD_SEC;
-        //        if (ui_state == PowerOff) {
-        //            DelayLP(10);
-        //        } else {
         Delay(10);
-        //        }
         duration += 10;
     } while (Keypressed);
 
