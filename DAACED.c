@@ -305,10 +305,13 @@ void getDefaultSettings() {
         Settings.ParTime[i] = 0;
     }
 }
-
+void restoreSettingsField(Settings_t * s, void * f, size_t l){
+    int offset = f - s;
+    eeprom_read_array(SettingsStartAddress + offset, f, l);
+}
 void saveSettingsField(Settings_t * s, void * f, size_t l) {
     int offset = f - s;
-    eeprom_write_array(SettingsStartAddress + offset, s->data + offset, l);
+    eeprom_write_array(SettingsStartAddress + offset, f, l);
 }
 
 void savePar(uint8_t par_index) {
