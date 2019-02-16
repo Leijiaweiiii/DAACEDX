@@ -772,7 +772,7 @@ void SetSens() {//Sensitivity
     if (s.selected) {
         Settings.Sensitivity = s.value;
         if (s.value != s.old_value) {
-            saveSettingsField(&Settings, &(Settings.Sensitivity), 3);
+            saveSettingsField(&Settings, &(Settings.Sensitivity), 1);
         }
     }
 }

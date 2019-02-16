@@ -200,7 +200,7 @@ extern const char * par_mode_header_names[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-#define SettingsDataSize            (86)
+#define SettingsDataSize            (84)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -217,7 +217,7 @@ typedef union {
         uint8_t ParMode; // 5
         uint8_t TotPar; // 1 based      // 6
         uint8_t InputType; // 7
-        uint24_t Sensitivity; // 8
+        uint8_t Sensitivity; // 8
         uint16_t BuzzerFrequency; // 9
         uint16_t BuzzerParDuration; // A
         uint16_t BuzzerStartDuration; // B
