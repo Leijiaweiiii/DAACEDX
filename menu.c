@@ -192,9 +192,15 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
             s->selected = False;
             s->done = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:
+            s->selected = True;
+            s->done = True;
+            STATE_HANDLE_POWER_OFF;
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:
+            s->selected = True;
+            s->done = True;
+            STATE_HANDLE_TIMER_IDLE;
             break;
         default:
             break;
