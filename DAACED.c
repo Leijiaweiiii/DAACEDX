@@ -233,6 +233,9 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     int32_t no_of_cycles = ((int32_t) duration * 580) / sinus_time_period_us; //1000
 
     if (amplitude == 0) return;
+    // Don't beep ever in silent modes
+    if (Settings.ParMode == ParMode_Silent
+            || Settings.ParMode == ParMode_Spy) return; 
     ADC_DISABLE_INTERRUPT;
     sinus_dac_init();
 
@@ -825,7 +828,7 @@ void SetAutoStart(SettingsMenu_t * m) {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="TimerMode">
-// <editor-fold defaultstate="collapsed" desc="">
+// <editor-fold defaultstate="collapsed" desc="Bianchi modes">
 
 void fill_par_bianci() {
     Settings.TotPar = 12;
@@ -908,10 +911,24 @@ void fill_par_nra_ppc_d() {
 // </editor-fold>
 
 void set_par_mode(int m) {
-
+    // Draw back from destructive modes
+    restoreSettingsField(&Settings, &(Settings.Volume), 1);
+    restoreSettingsField(&Settings, &(Settings.Sensitivity), 1);
     switch (m) {
         case ParMode_Regular:
             CurPar_idx = 0; // Intentially fall-through
+            restorePar();
+            break;
+        case ParMode_Silent:
+            Settings.Volume = 0;
+            break;
+        case ParMode_Spy:
+            Settings.DelayMode = DELAY_MODE_Instant;
+            Settings.Volume = 0;
+            Settings.Sensitivity = Settings.Sensitivity>0?Settings.Sensitivity-1:0;
+            break;
+        case ParMode_Repetitive:
+            break;
         case ParMode_CUSTOM:
             restorePar();
             break;
@@ -946,6 +963,9 @@ void set_par_mode(int m) {
 }
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
     " Normal Timer ",
+    " Silent Mode",
+    " Spy Mode",
+    " Repetitive Mode",
     " Custom ",
     " Bianchi: Practical ",
     " Bianchi: Barricade ",
@@ -959,6 +979,9 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
     "   Timer",
+    "  Silent",
+    " Spy Mode",
+    " Repetitive",
     "   Custom ",
     "  Practical",
     "  Barricade",
@@ -991,6 +1014,7 @@ void SetMode(SettingsMenu_t * m) {
         if (oldPar != Settings.ParMode) {
             saveSettingsField(&Settings, &(Settings.ParMode), 1);
         }
+        STATE_HANDLE_TIMER_IDLE;
     }
     set_par_mode(Settings.ParMode);
     CurPar_idx = 0;
@@ -2153,7 +2177,7 @@ void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     DoPowerOn();
     ei();
-    getShootString(0);
+    getSettings();
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
