@@ -468,7 +468,7 @@ void SetDelay(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     strcpy(m->MenuTitle, "Delay");
     strcpy(m->MenuItem[DELAY_MODE_Instant], " Instant ");
-    strcpy(m->MenuItem[DELAY_MODE_Fixed], " 3.0 sec. ");
+    strcpy(m->MenuItem[DELAY_MODE_Fixed], " Fixed 3.0 sec. ");
     strcpy(m->MenuItem[DELAY_MODE_Random], " Random");
     strcpy(m->MenuItem[DELAY_MODE_Custom], " Custom ");
     m->TotalMenuItems = 4;
