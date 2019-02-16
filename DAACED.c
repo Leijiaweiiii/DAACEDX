@@ -86,15 +86,6 @@
 #include "uart.h"
 // </editor-fold>
 
-void strmycpy(char * to, const char * from) {
-    char * cp;
-
-    cp = to;
-    while (*cp = *from) {
-        cp++;
-        from++;
-    }
-}
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
 
@@ -452,7 +443,7 @@ TBool checkShotStringEmpty(uint8_t offset) {
 
 void SetCustomDelay() {
     NumberSelection_t n;
-    strmycpy(n.MenuTitle, "Custom Delay");
+    strcpy(n.MenuTitle, "Custom Delay");
     InitSettingsNumberDefaults((&n));
     n.fmin = 0.1;
     n.fmax = 10.0;
@@ -474,11 +465,11 @@ void SetCustomDelay() {
 void SetDelay(SettingsMenu_t * m) {
     uint8_t oldValue = Settings.DelayMode;
     InitSettingsMenuDefaults(m);
-    strmycpy(m->MenuTitle, "Delay");
-    strmycpy(m->MenuItem[DELAY_MODE_Instant], " Instant ");
-    strmycpy(m->MenuItem[DELAY_MODE_Fixed], " 3.0 sec. ");
-    strmycpy(m->MenuItem[DELAY_MODE_Random], " Random");
-    strmycpy(m->MenuItem[DELAY_MODE_Custom], " Custom ");
+    strcpy(m->MenuTitle, "Delay");
+    strcpy(m->MenuItem[DELAY_MODE_Instant], " Instant ");
+    strcpy(m->MenuItem[DELAY_MODE_Fixed], " 3.0 sec. ");
+    strcpy(m->MenuItem[DELAY_MODE_Random], " Random");
+    strcpy(m->MenuItem[DELAY_MODE_Custom], " Custom ");
     m->TotalMenuItems = 4;
     m->menu = Settings.DelayMode;
 
@@ -529,11 +520,11 @@ void FillParSettings(SettingsMenu_t * m) {
         sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, (float) (Settings.ParTime[i]) / 1000);
     }
     if (i < MAXPAR)
-        strmycpy(m->MenuItem[i], "Add ");
+        strcpy(m->MenuItem[i], "Add ");
     else
-        strmycpy(m->MenuItem[i], "Max Par reached ");
-    strmycpy(m->MenuItem[++i], "Delete Last ");
-    strmycpy(m->MenuItem[++i], "Delete All ");
+        strcpy(m->MenuItem[i], "Max Par reached ");
+    strcpy(m->MenuItem[++i], "Delete Last ");
+    strcpy(m->MenuItem[++i], "Delete All ");
     m->TotalMenuItems = i + 1;
 }
 
@@ -583,7 +574,7 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
 void SetPar(SettingsMenu_t * m) {
     uint8_t oldTotPar = Settings.TotPar;
     InitSettingsMenuDefaults(m);
-    strmycpy(m->MenuTitle, "Par Settings ");
+    strcpy(m->MenuTitle, "Par Settings ");
     do {
         FillParSettings(m);
         DisplaySettings(m);
@@ -599,7 +590,7 @@ void SetPar(SettingsMenu_t * m) {
 
 void SetBacklight() {//PWM Backlight
     NumberSelection_t b;
-    strmycpy(b.MenuTitle, "Backlight ");
+    strcpy(b.MenuTitle, "Backlight ");
     b.max = 9;
     b.min = 0;
     b.step = 1;
@@ -631,7 +622,7 @@ void SetBeepFreq() {
     b.value = Settings.BuzzerFrequency;
     b.old_value = b.value;
     tmp = b.value;
-    strmycpy(b.MenuTitle, "  Tone");
+    strcpy(b.MenuTitle, "  Tone");
     b.step = 100;
     b.format = "%dHz";
     do {
@@ -655,7 +646,7 @@ void SetVolume() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
     if (Settings.Volume > 3) Settings.Volume = 3;
-    strmycpy(b.MenuTitle, "Volume");
+    strcpy(b.MenuTitle, "Volume");
     b.min = 0;
     b.max = 3;
     b.step = 1;
@@ -684,10 +675,10 @@ void SetBeepTime(TBool Par) {
     InitSettingsNumberDefaults((&d));
     if (Par) {
         d.fvalue = (float) (Settings.BuzzerParDuration) / 1000;
-        strmycpy(d.MenuTitle, "Par Duration ");
+        strcpy(d.MenuTitle, "Par Duration ");
     } else {
         d.fvalue = (float) (Settings.BuzzerStartDuration) / 1000;
-        strmycpy(d.MenuTitle, "Start Duration ");
+        strcpy(d.MenuTitle, "Start Duration ");
     }
     d.fmin = 0.050;
     d.fmax = 1.0;
@@ -716,12 +707,12 @@ void SetBeepTime(TBool Par) {
 void SetBeep(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
 
-    strmycpy(m->MenuTitle, "Beep ");
-    strmycpy(m->MenuItem[0], " Frequency ");
-    strmycpy(m->MenuItem[1], " Volume ");
-    strmycpy(m->MenuItem[2], " Par Duration ");
-    strmycpy(m->MenuItem[3], " Start Duration ");
-    strmycpy(m->MenuItem[4], " Test Beep ");
+    strcpy(m->MenuTitle, "Beep ");
+    strcpy(m->MenuItem[0], " Frequency ");
+    strcpy(m->MenuItem[1], " Volume ");
+    strcpy(m->MenuItem[2], " Par Duration ");
+    strcpy(m->MenuItem[3], " Start Duration ");
+    strcpy(m->MenuItem[4], " Test Beep ");
     m->TotalMenuItems = 5;
 
     do {
@@ -761,7 +752,7 @@ void SetSens() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
     //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
-    strmycpy(s.MenuTitle, "Sensitivity");
+    strcpy(s.MenuTitle, "Sensitivity");
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
     s.max = 200;
@@ -788,7 +779,7 @@ void SetSens() {//Sensitivity
 void SetFilter() {
     if (Settings.Filter > 100) Settings.Filter = 100;
     NumberSelection_t f;
-    strmycpy(f.MenuTitle, "Filter");
+    strcpy(f.MenuTitle, "Filter");
     f.fmin = 0.01;
     f.fmax = 0.2;
     f.fstep = 0.01;
@@ -812,9 +803,9 @@ void SetAutoStart(SettingsMenu_t * m) {
     TBool orgset;
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
-    strmycpy(m->MenuTitle, "Autostart");
-    strmycpy(m->MenuItem[0], " Auto Start OFF ");
-    strmycpy(m->MenuItem[1], " Auto Start ON ");
+    strcpy(m->MenuTitle, "Autostart");
+    strcpy(m->MenuItem[0], " Auto Start OFF ");
+    strcpy(m->MenuItem[1], " Auto Start ON ");
     orgset = AutoStart;
     m->menu = AutoStart;
     do {
@@ -979,9 +970,9 @@ void SetMode(SettingsMenu_t * m) {
     uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 10;
-    strmycpy(m->MenuTitle, "Timer Mode");
+    strcpy(m->MenuTitle, "Timer Mode");
     for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
-        strmycpy(m->MenuItem[i], par_mode_menu_names[i]);
+        strcpy(m->MenuItem[i], par_mode_menu_names[i]);
     }
 
     m->menu = Settings.ParMode;
@@ -1012,7 +1003,7 @@ void SetClock() {
     ts.value = h;
     ts.old_value = ts.value;
     ts.step = 1;
-    strmycpy(ts.MenuTitle, " Clock");
+    strcpy(ts.MenuTitle, " Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
     set_screen_title(ts.MenuTitle);
     do {
@@ -1101,7 +1092,7 @@ TBool SetCustomCountDown() {
     uint8_t minute, second;
     char msg[16];
     InitSettingsNumberDefaults((&ts));
-    strmycpy(ts.MenuTitle, "Custom Count");
+    strcpy(ts.MenuTitle, "Custom Count");
 
     // in seconds
     ts.value = Settings.CustomCDtime;
@@ -1135,11 +1126,11 @@ TBool SetCustomCountDown() {
 void SetCountDown(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 4;
-    strmycpy(m->MenuTitle, "Countdown");
-    strmycpy(m->MenuItem[0], " Off ");
-    strmycpy(m->MenuItem[1], " 3 minutes ");
-    strmycpy(m->MenuItem[2], " 5 minutes ");
-    strmycpy(m->MenuItem[3], " Custom ");
+    strcpy(m->MenuTitle, "Countdown");
+    strcpy(m->MenuItem[0], " Off ");
+    strcpy(m->MenuItem[1], " 3 minutes ");
+    strcpy(m->MenuItem[2], " 5 minutes ");
+    strcpy(m->MenuItem[3], " Custom ");
 
     //Main Screen
     do {
@@ -1163,10 +1154,10 @@ void SetCountDown(SettingsMenu_t * m) {
 void SetTilt(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 3;
-    strmycpy(m->MenuTitle, "Orientation");
-    strmycpy(m->MenuItem[ORIENTATION_NORMAL], "Upright");
-    strmycpy(m->MenuItem[ORIENTATION_INVERTED], "Upside-down");
-    strmycpy(m->MenuItem[ORIENTATION_AUTO], "Auto");
+    strcpy(m->MenuTitle, "Orientation");
+    strcpy(m->MenuItem[ORIENTATION_NORMAL], "Upright");
+    strcpy(m->MenuItem[ORIENTATION_INVERTED], "Upside-down");
+    strcpy(m->MenuItem[ORIENTATION_AUTO], "Auto");
     m->menu = Orientation;
 
     do {
@@ -1182,16 +1173,16 @@ void SetTilt(SettingsMenu_t * m) {
 // <editor-fold defaultstate="collapsed" desc="Input">
 
 void UpdateIS(SettingsMenu_t * sm) {
-    strmycpy(sm->MenuItem[INPUT_TYPE_Microphone], " Microphone ");
-    strmycpy(sm->MenuItem[INPUT_TYPE_A_or_B_multiple], " A or B (multiple) ");
-    strmycpy(sm->MenuItem[INPUT_TYPE_A_and_B_single], " A and B (single) ");
+    strcpy(sm->MenuItem[INPUT_TYPE_Microphone], " Microphone ");
+    strcpy(sm->MenuItem[INPUT_TYPE_A_or_B_multiple], " A or B (multiple) ");
+    strcpy(sm->MenuItem[INPUT_TYPE_A_and_B_single], " A and B (single) ");
     sm->TotalMenuItems = 3;
 }
 
 void SetInput(SettingsMenu_t * m) {
     uint8_t orgset;
     InitSettingsMenuDefaults(m);
-    strmycpy(m->MenuTitle, "Input Source");
+    strcpy(m->MenuTitle, "Input Source");
     UpdateIS(m);
     DisplaySettings(m);
     orgset = Settings.InputType;
@@ -1223,9 +1214,9 @@ void init_bt() {
 void SetAutoPowerOff(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
-    strmycpy(m->MenuTitle, "Auto Off");
-    strmycpy(m->MenuItem[SMTH_DISABLED], "Disabled");
-    strmycpy(m->MenuItem[SMTH_ENABLED], "Enabled");
+    strcpy(m->MenuTitle, "Auto Off");
+    strcpy(m->MenuItem[SMTH_DISABLED], "Disabled");
+    strcpy(m->MenuItem[SMTH_ENABLED], "Enabled");
     m->menu = Settings.AR_IS.AutoPowerOff;
 
     do {
@@ -1241,9 +1232,9 @@ void SetAutoPowerOff(SettingsMenu_t * m) {
 void BlueTooth(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
     m->TotalMenuItems = 2;
-    strmycpy(m->MenuTitle, "Bluetooth");
-    strmycpy(m->MenuItem[SMTH_DISABLED], "Disabled");
-    strmycpy(m->MenuItem[SMTH_ENABLED], "Enabled");
+    strcpy(m->MenuTitle, "Bluetooth");
+    strcpy(m->MenuItem[SMTH_DISABLED], "Disabled");
+    strcpy(m->MenuItem[SMTH_ENABLED], "Enabled");
     m->menu = Settings.AR_IS.BT;
 
     do {
@@ -1429,22 +1420,22 @@ void SetSettingsMenu(SettingsMenu_t * SettingsMenu) {
 
     SettingsMenu->TotalMenuItems = 17;
 
-    strmycpy(SettingsMenu->MenuTitle, " Settings ");
-    strmycpy(SettingsMenu->MenuItem[0], " Delay ");
-    strmycpy(SettingsMenu->MenuItem[1], " Par ");
-    strmycpy(SettingsMenu->MenuItem[2], " Buzzer ");
-    strmycpy(SettingsMenu->MenuItem[3], " Auto Start ");
-    strmycpy(SettingsMenu->MenuItem[4], " Timer Mode ");
-    strmycpy(SettingsMenu->MenuItem[5], " Clock ");
-    strmycpy(SettingsMenu->MenuItem[6], " Countdown ");
-    strmycpy(SettingsMenu->MenuItem[7], " Display Orientation ");
-    strmycpy(SettingsMenu->MenuItem[8], " Backlight ");
-    strmycpy(SettingsMenu->MenuItem[9], " Sensitivity ");
-    strmycpy(SettingsMenu->MenuItem[10], " Filter ");
-    strmycpy(SettingsMenu->MenuItem[11], " Input ");
-    strmycpy(SettingsMenu->MenuItem[12], " Bluetooth ");
-    strmycpy(SettingsMenu->MenuItem[13], " Reset Settings ");
-    strmycpy(SettingsMenu->MenuItem[14], " Clear History ");
+    strcpy(SettingsMenu->MenuTitle, " Settings ");
+    strcpy(SettingsMenu->MenuItem[0], " Delay ");
+    strcpy(SettingsMenu->MenuItem[1], " Par ");
+    strcpy(SettingsMenu->MenuItem[2], " Buzzer ");
+    strcpy(SettingsMenu->MenuItem[3], " Auto Start ");
+    strcpy(SettingsMenu->MenuItem[4], " Timer Mode ");
+    strcpy(SettingsMenu->MenuItem[5], " Clock ");
+    strcpy(SettingsMenu->MenuItem[6], " Countdown ");
+    strcpy(SettingsMenu->MenuItem[7], " Display Orientation ");
+    strcpy(SettingsMenu->MenuItem[8], " Backlight ");
+    strcpy(SettingsMenu->MenuItem[9], " Sensitivity ");
+    strcpy(SettingsMenu->MenuItem[10], " Filter ");
+    strcpy(SettingsMenu->MenuItem[11], " Input ");
+    strcpy(SettingsMenu->MenuItem[12], " Bluetooth ");
+    strcpy(SettingsMenu->MenuItem[13], " Reset Settings ");
+    strcpy(SettingsMenu->MenuItem[14], " Clear History ");
     sprintf(SettingsMenu->MenuItem[15], " FW version: %02d ", Settings.version);
     sprintf(SettingsMenu->MenuItem[16], " Auto Power OFF ");
 }
@@ -1706,7 +1697,7 @@ void DoDiagnostics() {
     SettingsMenu_t * s = &mx;
     s->selected = False;
     s->done = False;
-    strmycpy(ScreenTitle, " Diagnostics");
+    strcpy(ScreenTitle, " Diagnostics");
     do {
         print_header();
         print_stats();

@@ -89,7 +89,7 @@ void BT_define_action() {
         if (cmd >= 0) {
             BT_COMMAND = (BT_COMMAND_T) cmd;
             clear_args_buffer();
-            strmycpy(bt_cmd_args_raw, uart_rx_buffer + 4);
+            strcpy(bt_cmd_args_raw, uart_rx_buffer + 4);
         } else {
             BT_COMMAND = BT_None;
         }

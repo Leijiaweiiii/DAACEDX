@@ -10,12 +10,8 @@
 #include "__null.h"
 #include "stdio.h"
 #include "stdlib.h"
-//#include "string.h"
-#ifndef STRMYCMP
-#define STRMYCMP
+#include "string.h"
 
-extern void strmycpy(char * to, const char * from);
-#endif
 #define FW_VERSION (0x18)
 // <editor-fold defaultstate="collapsed" desc="General">
 #ifndef _XTAL_FREQ

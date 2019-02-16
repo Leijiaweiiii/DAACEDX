@@ -62,7 +62,7 @@ void uart_start_tx_string(const char * str, const uint8_t size) {
             break;
         }
     }
-    strmycpy(uart_tx_buff, str);
+    strcpy(uart_tx_buff, str);
     if(size<tx_size){
         // old command longer
         for (uint8_t i = size;i<tx_size;i++){

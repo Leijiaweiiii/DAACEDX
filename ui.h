@@ -57,7 +57,7 @@ extern "C" {
     TimerEvent timerEventToHandle = NoEvent;
 
     char ScreenTitle[32];
-#define set_screen_title(x) {strmycpy(ScreenTitle, x);}
+#define set_screen_title(x) {strcpy(ScreenTitle, x);}
 #define clear_screen_title {for(uint8_t i=0;i<32;i++){ScreenTitle[i] = ' ';}}
 
     void print_big_time_label(uint24_t t);
