@@ -27,6 +27,7 @@
 #include "charger.h"
 #include "bluetooth.h"
 #include "eeprom.h"
+#include "random.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">

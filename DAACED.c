@@ -84,6 +84,7 @@
 #include "DAACED.h"
 #include "ui.h"
 #include "uart.h"
+#include "random.h"
 // </editor-fold>
 
 
@@ -1992,9 +1993,7 @@ void StartCountdownTimer() {
         case DELAY_MODE_Fixed: Settings.DelayTime = 3000;
             break;
         case DELAY_MODE_Random:
-            if (Settings.DelayTime < 500)
-                Settings.DelayTime = 1134;
-            Settings.DelayTime = (5 * Settings.DelayTime) % 3199;
+            Settings.DelayTime = 2000 + random16(3000);// from 2s to 5s random delay
             break;
         case DELAY_MODE_Custom:
             eeprom_read_array(SettingAddress(Settings, Settings.DelayTime), (uint8_t *)&(Settings.DelayTime), 4);
