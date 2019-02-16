@@ -1672,41 +1672,7 @@ void DoReview() {
     getShootString(0);
 }
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Diagnostics">
 
-void print_label_at_diagnostics_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y) {
-    lcd_write_string(msg, UI_FOOTER_GRID_X(grid_x), UI_FOOTER_GRID_Y(grid_y, UI_DIAG_GRID_START_LINE), SmallFont, BLACK_OVER_WHITE);
-}
-
-void print_stats() {
-    char message[32];
-    for (uint8_t y = UI_DIAG_GRID_START_LINE; y < LCD_HEIGHT; y += UI_FOOTER_GRID_HEIGH) {
-        lcd_draw_fullsize_hgridline(y, LCD_MID_LINE_PAGE);
-    }
-
-    lcd_draw_vgrid_lines(UI_HEADER_END_LINE);
-    // TODO: Implement some diagnostics
-    for (uint8_t x = 0; x < 4; x++)
-        for (uint8_t y = 0; y < 5; y++) {
-            uint8_t p = UI_FOOTER_GRID_Y(y, UI_DIAG_GRID_START_LINE);
-            sprintf(message, " %d %d,%d", PAGE(p), x, y);
-            print_label_at_diagnostics_grid(message, x, y);
-        }
-}
-
-void DoDiagnostics() {
-    SettingsMenu_t * s = &mx;
-    s->selected = False;
-    s->done = False;
-    strcpy(ScreenTitle, " Diagnostics");
-    do {
-        print_header(true);
-        print_stats();
-        SelectMenuItem(s);
-    } while (SettingsNotDone(s));
-
-}
-// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Main Menu">
 
 void DetectInit(void) {
