@@ -1072,8 +1072,9 @@ void CountDownMode(time_t countdown) {
                 break;
             case StartShort:STATE_HANDLE_TIMER_IDLE;
                 break;
-            case BackShort:
-            case BackLong:
+            case None:
+                break;
+            default:
                 done = True;
                 break;
         }
@@ -1085,6 +1086,7 @@ void CountDownMode(time_t countdown) {
     } while (!done && ui_state == SettingsScreen);
     if (done && minute == 0 && second == 0) {
         countdown_expired_signal();
+        STATE_HANDLE_TIMER_IDLE;
     }
 }
 
@@ -1098,8 +1100,8 @@ TBool SetCustomCountDown() {
     // in seconds
     ts.value = Settings.CustomCDtime;
     ts.old_value = ts.value;
-    ts.max = 999;
-    ts.min = 30;
+    ts.max = 3600;
+    ts.min = 0;
     ts.step = 1;
     lcd_clear();
     do {
@@ -1126,27 +1128,28 @@ TBool SetCustomCountDown() {
 
 void SetCountDown(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
-    m->TotalMenuItems = 4;
+    m->TotalMenuItems = 3;
     strcpy(m->MenuTitle, "Countdown");
-    strcpy(m->MenuItem[0], " Off ");
-    strcpy(m->MenuItem[1], " 3 minutes ");
-    strcpy(m->MenuItem[2], " 5 minutes ");
-    strcpy(m->MenuItem[3], " Custom ");
+    strcpy(m->MenuItem[0], " 3 minutes ");
+    strcpy(m->MenuItem[1], " 5 minutes ");
+    strcpy(m->MenuItem[2], " Custom ");
 
     //Main Screen
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
     } while (SettingsNotDone(m));
-    switch (m->menu) {
-        case 1: CountDownMode(180);
-            break;
-        case 2: CountDownMode(300);
-            break;
-        case 3:
-            if (SetCustomCountDown())
-                CountDownMode(Settings.CustomCDtime);
-            break;
+    if(m->selected){
+        switch (m->menu) {
+            case 0: CountDownMode(180);
+                break;
+            case 1: CountDownMode(300);
+                break;
+            case 2:
+                if (SetCustomCountDown())
+                    CountDownMode(Settings.CustomCDtime);
+                break;
+        }
     }
 }
 // </editor-fold>
