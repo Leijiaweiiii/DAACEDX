@@ -1404,7 +1404,20 @@ void handle_bt_commands() {
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
+TBool userIsSure(const char * title){
+    InitSettingsMenuDefaults((&ma));
+    ma.menu = SMTH_ENABLED; // No
+    ma.TotalMenuItems = 2;
+    strcpy(ma.MenuTitle, title);
+    strcpy(ma.MenuItem[SMTH_DISABLED], " Yes  ");
+    strcpy(ma.MenuItem[SMTH_ENABLED],  "  No  ");
 
+    do {
+        DisplaySettings((&ma));
+        SelectMenuItem((&ma));
+    } while (SettingsNotDone((&ma)));
+    return (ma.menu == SMTH_DISABLED);
+}
 void DoSet(uint8_t menu) {
     lcd_clear();
     switch (menu) {
@@ -1435,11 +1448,15 @@ void DoSet(uint8_t menu) {
         case 12:BlueTooth();
             break;
         case 13:
-            getDefaultSettings();
-            saveSettings();
+            if(userIsSure(" Reset Settings ? ")){
+                getDefaultSettings();
+                saveSettings();
+            }
             break;
         case 14:
-            clearHistory();
+            if(userIsSure(" Clear History ? ")){
+                clearHistory();
+            }
             break;
         case 16: // For tests
             SetAutoPowerOff();
