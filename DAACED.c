@@ -1005,6 +1005,14 @@ void SetMode(SettingsMenu_t * m) {
     do {
         DisplaySettings(m);
         SelectMenuItemCircular(m);
+        if(m->selected && m->done && m->menu == ParMode_CUSTOM){
+            // TODO: Allocate EEPROM for custom PAR
+            restorePar();
+            lcd_clear();
+            SetPar(&mx);
+            m->selected = False;
+            m->done = False;
+        }
     } while (SettingsNotDone(m));
     if (m->selected) {
         Settings.ParMode = m->menu;
