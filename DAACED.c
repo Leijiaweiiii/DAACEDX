@@ -958,6 +958,7 @@ void set_par_mode(int m) {
             break;
     }
 }
+
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
     " Normal Timer ",
     " Silent Mode",
@@ -971,7 +972,8 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
     " NRA-PPC: A ",
     " NRA-PPC: B ",
     " NRA-PPC: C ",
-    " NRA-PPC: D "
+    " NRA-PPC: D ",
+    " Auto Par "
 };
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
@@ -987,7 +989,8 @@ const char * par_mode_header_names[TOT_PAR_MODES] = {
     " NRA-PPC A ",
     " NRA-PPC B ",
     " NRA-PPC C ",
-    " NRA-PPC D "
+    " NRA-PPC D ",
+    " Auto Par "
 };
 
 void SetMode(SettingsMenu_t * m) {

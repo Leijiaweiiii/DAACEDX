@@ -197,15 +197,22 @@ time_t parStartTime_ms;
 #define ParMode_NRA_PPC_B       10
 #define ParMode_NRA_PPC_C       11
 #define ParMode_NRA_PPC_D       12
-#define TOT_PAR_MODES           13
+#define ParMode_AutoPar         13
+#define TOT_PAR_MODES           14
 extern const char * par_mode_menu_names[];
 extern const char * par_mode_header_names[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-#define SettingsDataSize            (84)
+// size of Settings fields + custom par + auto par
+#define SettingsDataSize            (84 + MAXPAR*3 + MAXPAR*6)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
+
+typedef struct {
+    uint24_t delay;
+    uint24_t par;
+} AutoPar_t;
 
 typedef union {
     uint8_t data[SettingsDataSize];
@@ -227,6 +234,8 @@ typedef union {
         time_t DelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
         uint24_t ParTime[MAXPAR]; //in 1mS unit
+        uint24_t CustomParTime[MAXPAR]; //in 1mS unit
+        AutoPar_t AutoPar[MAXPAR];
     };
 } Settings_t;
 volatile Settings_t Settings;
