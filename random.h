@@ -13,8 +13,8 @@ uint32_t random32(uint32_t limit);
 extern "C" {
 #endif
 
-uint32_t random_seed = 2345;
-uint32_t random32(uint32_t limit);
+uint16_t random_seed = 2345;
+//uint32_t random32(uint32_t limit);
 uint16_t random16(uint16_t limit);
 #define random_set_seed(seed)   { random_seed = seed; }
 #define random_get_seed()       (random_seed)
