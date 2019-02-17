@@ -1761,20 +1761,20 @@ uint8_t print_title(TBool settings) {
     lcd_write_string(message, title_pos, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
-uint8_t old_bat_length = 0;
-
-void print_batery_text_info() {
-    char message[32];
-    sprintf(message,
-            "%d",
-            number_of_battery_bars()
-            );
-    uint8_t width = lcd_string_lenght(message, SmallFont);
-    if (old_bat_length > width)
-        lcd_clear_block(LCD_WIDTH - 10 - old_bat_length, 0, LCD_WIDTH - 8, SmallFont->height + 1);
-    old_bat_length = width;
-    lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
-}
+//uint8_t old_bat_length = 0;
+//
+//void print_batery_text_info() {
+//    char message[32];
+//    sprintf(message,
+//            "%d",
+//            number_of_battery_bars()
+//            );
+//    uint8_t width = lcd_string_lenght(message, SmallFont);
+//    if (old_bat_length > width)
+//        lcd_clear_block(LCD_WIDTH - 10 - old_bat_length, 0, LCD_WIDTH - 8, SmallFont->height + 1);
+//    old_bat_length = width;
+//    lcd_write_string(message, LCD_WIDTH - 8 - width, 0, SmallFont, BLACK_OVER_WHITE);
+//}
 
 void print_batery_info() {
     uint8_t col = LCD_WIDTH - 35;

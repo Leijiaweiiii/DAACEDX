@@ -31,7 +31,7 @@ DEFAULTCONF=v2_05
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=v2_05 v1_45 
+ALLCONFS=v2_05 v2_05_o v1_45 
 
 
 # build
@@ -46,6 +46,7 @@ ALLCONFS=v2_05 v1_45
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v2_05 clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v2_05_o clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v1_45 clean
 
 
@@ -53,6 +54,7 @@ ALLCONFS=v2_05 v1_45
 # all
 .all-impl: .all-pre .depcheck-impl
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v2_05 build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v2_05_o build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=v1_45 build
 
 

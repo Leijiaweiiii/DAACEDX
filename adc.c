@@ -50,15 +50,15 @@ int comp (const void * elem1, const void * elem2)
     return 0;
 }
 
-uint16_t median(){
-    uint16_t res[ADC_BUFFER_SIZE];
-    for(uint8_t i = 0;i<ADC_BUFFER_SIZE;i++){
-        res[i]=samples[i];
-    }
-    qsort(res,ADC_BUFFER_SIZE,sizeof(uint16_t),comp);
-    median_v = res[ADC_MID_BUFFER];
-    return median_v;
-}
+//uint16_t median(){
+//    uint16_t res[ADC_BUFFER_SIZE];
+//    for(uint8_t i = 0;i<ADC_BUFFER_SIZE;i++){
+//        res[i]=samples[i];
+//    }
+//    qsort(res,ADC_BUFFER_SIZE,sizeof(uint16_t),comp);
+//    median_v = res[ADC_MID_BUFFER];
+//    return median_v;
+//}
 
 TBool AdcDetect(){
     return ADC_MIDDLE_VALUE - cma_n>ADC_DETECTION_THRESHOLD;

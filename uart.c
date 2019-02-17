@@ -46,7 +46,7 @@ void uart_disable() {
     RC1STAbits.SPEN = 0;
 }
 
-void send_next_byte() {
+inline void send_next_byte() {
     TX1REG = uart_tx_buff[tx_head];
     tx_head++;
     TX1IE = 1;

@@ -19,7 +19,7 @@ extern "C" {
 #define	ENVELOPE       0b000010          // AN2
 #define	BATTERY        0b000011          // AN3
 #define BAT_divider    4   // resistors relationship, will be changed to 4.96 (12.4K/10.0K)*4 to allow measure of 4.5V
-TBool BatteryLow = False;
+
 // </editor-fold>
 
 void ADC_init();
@@ -40,14 +40,13 @@ uint8_t head_index = 0;
 #define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
 
 TBool AdcDetect();
-uint16_t median_v = 0;
 uint16_t median();
 volatile uint16_t cma_n = 0;
 volatile uint16_t adc_battery = 0;
 uint16_t MeanValue();
 #define ADC_CMA_MEMORY_FACTOR       16
 #define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
-#define ADC_SAMPLE                  {ADC_BUFFER_PUT(ADC_Read(ENVELOPE));ADC_SET_CMA_NEXT(median());}
+//#define ADC_SAMPLE                  {ADC_BUFFER_PUT(ADC_Read(ENVELOPE));ADC_SET_CMA_NEXT(median());}
 #define ADC_ENABLE_INTERRUPT_ENVELOPE              {ADPCH = ENVELOPE;ADCON3bits.ADSOI = 1;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_ENABLE_INTERRUPT_BATTERY               {ADPCH = BATTERY;ADCON3bits.ADSOI = 1;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_ENABLE_INTERRUPT_ACCELEROMETR          {ADPCH = ACCELEROMETER;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}

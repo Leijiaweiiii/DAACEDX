@@ -33,9 +33,10 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
     update_rtc_time();
     if (rtc_time.msec < 500 ||
             (rtc_time.msec > 1000 && rtc_time.msec < 1500)) {
-        uint8_t block_start, block_end, w, margin;
+        uint8_t block_start, block_end, margin;
+//        uint8_t w;
         margin = (LCD_WIDTH - old_label_len) / 2;
-        w = BigFont->char_descriptors[':' - BigFont->char_start].width + 1;
+//        w = BigFont->char_descriptors[':' - BigFont->char_start].width + 1;
         if (state == 0) {
             block_start = margin;
             sprintf(msg, "%02d", hour);

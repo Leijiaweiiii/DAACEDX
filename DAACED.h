@@ -162,7 +162,6 @@ time_t ShootString_start_time;
 #define MAX_MEASUREMENT_TIME    999000
 uint8_t CurShoot; //The current shoot of the displayed string
 uint8_t CurShootString; //Currently displayed string number 0..29
-uint16_t CurrStringStartAddress;
 
 #define SHOTS_ON_REVIEW_SCREEN      3
 
@@ -205,7 +204,7 @@ extern const char * par_mode_header_names[];
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
 // size of Settings fields + custom par + auto par
-#define SettingsDataSize            (84 + MAXPAR*3 + MAXPAR*6)
+#define SettingsDataSize            (0x108)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
