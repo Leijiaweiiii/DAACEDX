@@ -476,21 +476,22 @@ void SetDelay(SettingsMenu_t * m) {
     strcpy(m->MenuItem[DELAY_MODE_Instant], " Instant ");
     strcpy(m->MenuItem[DELAY_MODE_Fixed], " Fixed 3.0 sec. ");
     strcpy(m->MenuItem[DELAY_MODE_Random], " Random");
-    strcpy(m->MenuItem[DELAY_MODE_Custom], " Custom ");
+    sprintf(m->MenuItem[DELAY_MODE_Custom], " Custom %3.1f sec. ",((double)Settings.DelayTime)/1000);
     m->TotalMenuItems = 4;
     m->menu = Settings.DelayMode;
 
     do {
         DisplaySettings(m);
         SelectMenuItem(m);
-
+        if (m->done && m->selected && m->menu == DELAY_MODE_Custom) {
+            SetCustomDelay();
+            lcd_clear();
+            sprintf(m->MenuItem[DELAY_MODE_Custom], " Custom %3.1f sec. ",((double)Settings.DelayTime)/1000);
+            m->done = False;
+        }
     } while (SettingsNotDone(m));
     if (m->selected) {
         Settings.DelayMode = m->menu;
-        if (Settings.DelayMode == DELAY_MODE_Custom) {
-            SetCustomDelay();
-            lcd_clear();
-        }
         if (Settings.DelayMode != oldValue) {
             saveSettingsField(&Settings, &(Settings.DelayMode), 1);
         }
