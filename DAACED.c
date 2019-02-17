@@ -664,7 +664,7 @@ void SetVolume() {
     tmp = b.value;
     do {
         DisplayInteger(&b);
-        SelectInteger(&b);
+        SelectIntegerCircular(&b);
         if (b.value != tmp) {
             generate_sinus(b.value, Settings.BuzzerFrequency, 50);
             tmp = b.value;
@@ -715,12 +715,11 @@ void SetBeepTime(TBool Par) {
 void SetBeep(SettingsMenu_t * m) {
     InitSettingsMenuDefaults(m);
 
-    strcpy(m->MenuTitle, "Beep ");
-    strcpy(m->MenuItem[0], " Frequency ");
-    strcpy(m->MenuItem[1], " Volume ");
-    strcpy(m->MenuItem[2], " Par Duration ");
-    strcpy(m->MenuItem[3], " Start Duration ");
-    strcpy(m->MenuItem[4], " Test Beep ");
+    strcpy(m->MenuTitle, "Buzzer ");
+    sprintf(m->MenuItem[0], " Frequency - %dHz ", Settings.BuzzerFrequency);
+    sprintf(m->MenuItem[1], " Volume - %d ", Settings.Volume);
+    sprintf(m->MenuItem[2], " Par Duration - %1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
+    strcpy(m->MenuItem[3], " Test Beep ");
     m->TotalMenuItems = 5;
 
     do {
@@ -739,9 +738,6 @@ void SetBeep(SettingsMenu_t * m) {
                     SetBeepTime(True);
                     break;
                 case 3:
-                    SetBeepTime(False);
-                    break;
-                case 4:
                     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
                     break;
             }
