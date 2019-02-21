@@ -232,16 +232,16 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     uint32_t sinus_sample_update_period_us = (uint32_t) (sinus_time_period_us / 57.0); ///32.0)+0.5f);
     int32_t no_of_cycles = ((int32_t) duration * 580) / sinus_time_period_us; //1000
 
-    if (amplitude == 0) return;
     // Don't beep ever in silent modes
     if (Settings.ParMode == ParMode_Silent
             || Settings.ParMode == ParMode_Spy) return; 
     ADC_DISABLE_INTERRUPT;
-    sinus_dac_init();
+    if (amplitude != 0) sinus_dac_init();
 
     //TODO: Stop sound when button pressed
     while (no_of_cycles--) {
         for (uint8_t count = 0; count < 32; count++) {
+            // it's wrong for amplitude == 0, but the DAC disabled for Amplitude == 0, so it's not a problem
             dac_value = sinus_table[amplitude - 1][count];
             DAC1CON1 = dac_value;
             for (uint16_t delay = 0; delay < sinus_sample_update_period_us; delay++)
