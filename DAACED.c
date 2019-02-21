@@ -712,17 +712,20 @@ void SetBeepTime(TBool Par) {
     }
 }
 
-void SetBeep() {
-    InitSettingsMenuDefaults((&ma));
-
-    strcpy(ma.MenuTitle, "Buzzer ");
+void setBuzzerMenu(){
     sprintf(ma.MenuItem[0], " Frequency - %dHz ", Settings.BuzzerFrequency);
     sprintf(ma.MenuItem[1], " Volume - %d ", Settings.Volume);
     sprintf(ma.MenuItem[2], " Par Duration - %1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
     strcpy(ma.MenuItem[3], " Test Beep ");
-    ma.TotalMenuItems = 5;
+    ma.TotalMenuItems = 4;
+}
+
+void SetBeep() {
+    InitSettingsMenuDefaults((&ma));
+    strcpy(ma.MenuTitle, "Buzzer ");
 
     do {
+        setBuzzerMenu();
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
         if (ma.selected) {
