@@ -315,7 +315,6 @@ uint16_t findStringAddress(uint8_t index_in_eeprom) {
 }
 
 uint8_t findCurStringIndex() {
-
     uint16_t addr;
     uint8_t counts[MAXSHOOTSTRINGS];
     uint8_t labels[MAXSHOOTSTRINGS];
