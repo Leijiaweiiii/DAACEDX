@@ -7,8 +7,6 @@ void putch(unsigned char data) {
 }
 
 void uart_rx_handled() {
-
-    uart_flags.rx_handled = 1;
     for (int i = 0; i < UART_RX_BUF_SIZE; i++) {
         uart_rx_buffer[i] = 0;
     }
@@ -38,19 +36,7 @@ void init_uart(void) {
     uart_rx_handled();
 }
 
-void uart_disable() {
-    RC1IE = 0;
-    PIE3bits.TX1IE = 0;
-    TX1STAbits.TXEN = 0;
-    RCSTA1bits.CREN = 0;
-    RC1STAbits.SPEN = 0;
-}
-
-inline void send_next_byte() {
-    TX1REG = uart_tx_buff[tx_head];
-    tx_head++;
-    TX1IE = 1;
-}
+#define send_next_byte() { TX1REG = uart_tx_buff[tx_head]; tx_head++; TX1IE = 1; }
 
 void uart_start_tx_string(const char * str, const uint8_t size) {
     // Wait until previous buffer sent
@@ -90,7 +76,6 @@ void uart_rx_int_handler() {
     if (RC1STAbits.OERR) RCSTA1bits.CREN = 0;
     // Handle error flags
     if (rx_head < UART_RX_BUF_SIZE) {
-        uart_flags.rx_handled = 0;
         uart_rx_buffer[rx_head] = RC1REG;
         rx_head++;
     } else {

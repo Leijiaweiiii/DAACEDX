@@ -1,10 +1,14 @@
 #include "ui.h"
 #include "DAACED.h"
 
-void print_logo_splash() {
-    lcd_draw_bitmap(0, 0, &daaced_logo);
-    Delay(2000);
-}
+// These may be macros but moved here for space optimization
+void STATE_HANDLE_POWER_OFF()          {ui_state = PowerOff;set_backlight(0);}
+void STATE_HANDLE_POWER_ON()           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
+void STATE_HANDLE_TIMER_IDLE()         {ui_state = TimerIdle;StopTimer();}
+void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
+void STATE_HANDLE_SETTINGS_SCREEN()    {ui_state = SettingsScreen;lcd_clear();}
+void STATE_HANDLE_COUNTDOWN()          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
+
 
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
     char message[20];
@@ -21,10 +25,6 @@ void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
             y_pos, SmallFont,
             BLACK_OVER_WHITE
             );
-}
-
-void clear_timer_area() {
-    lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height);
 }
 
 void print_shot_origin(const shot_t * s) {
@@ -100,13 +100,8 @@ void StopTimer() {
 }
 
 void handle_charger_connected() {
-    switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_ON;
-            break;
-        default:
-            DoCharging();
-            break;
-    }
+    if (comandToHandle == StartLong) STATE_HANDLE_POWER_ON();
+    else DoCharging();
 }
 
 void handle_power_off() {
@@ -116,9 +111,8 @@ void handle_power_off() {
         // Power off will sleep, then if wakeup occured, we'll handle power ON
         DoPowerOff();
     } else if (comandToHandle == StartLong) {
-        STATE_HANDLE_POWER_ON;
+        STATE_HANDLE_POWER_ON();
     } else {
-
         DoPowerOff();
     }
     comandToHandle = None;
@@ -133,7 +127,7 @@ void handle_timer_idle_shutdown() {
     }
     inactive_time = rtc_time.sec - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
-        STATE_HANDLE_POWER_OFF;
+        STATE_HANDLE_POWER_OFF();
     } else if (inactive_time > timer_idle_dim_timeout) {
         set_backlight(0);
     } else {
@@ -162,13 +156,13 @@ void handle_timer_idle() {
     print_header(false);
     print_footer();
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_COUNTDOWN;
+        case StartShort:STATE_HANDLE_COUNTDOWN();
             break;
-        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
             break;
-        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
+        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
             break;
         case UpLong:
         case UpShort:
@@ -198,7 +192,7 @@ void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
             save_shots_if_required();
-            STATE_HANDLE_TIMER_IDLE;
+            STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
             if (Settings.TotPar > 0) {
@@ -225,16 +219,16 @@ void handle_timer_listening() {
 
     switch (comandToHandle) {
         case StartLong:
-            STATE_HANDLE_POWER_OFF;
+            STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
             if (AutoStart) {
-                STATE_HANDLE_COUNTDOWN;
+                STATE_HANDLE_COUNTDOWN();
             }
             break;
         case ReviewLong:
         case ReviewShort:
-            STATE_HANDLE_REVIEW_SCREEN;
+            STATE_HANDLE_REVIEW_SCREEN();
             break;
         default:
             // All the rest keys handled inside the next handler.
@@ -248,11 +242,11 @@ void handle_timer_listening() {
 
 void handle_review_screen() {
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
-        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
+        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
             break;
         default:
             DoReview();
@@ -263,11 +257,11 @@ void handle_review_screen() {
 
 void handle_settings_screen() {
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
-        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN;
+        case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
             break;
         default:
             DoSettings();
@@ -282,14 +276,14 @@ void handle_countdown() {
     update_countdown_time_on_screen();
     check_countdown_expired();
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-            STATE_HANDLE_COUNTDOWN;
+            STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:
             getShootString(0);
-            STATE_HANDLE_TIMER_IDLE;
+            STATE_HANDLE_TIMER_IDLE();
             break;
         case CountdownExpired:
             ui_state = TimerListening;
@@ -396,7 +390,7 @@ void handle_low_battery() {
     if(!battery_low) return;
     if (ui_state != PowerOff) {
         char msg[16];
-        STATE_HANDLE_POWER_OFF;
+        STATE_HANDLE_POWER_OFF();
         lcd_clear();
         sprintf(msg, "Low Battery");
         lcd_write_string(msg, 40, UI_CHARGING_LBL_Y - MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
@@ -410,7 +404,7 @@ void handle_ui() {
     define_input_action();
     BT_define_action();
     handle_bt_commands();
-    if (charger_state_changed) STATE_HANDLE_POWER_OFF;
+    if (charger_state_changed) STATE_HANDLE_POWER_OFF();
     handle_low_battery();
     switch (ui_state) {
         case PowerOff:

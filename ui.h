@@ -59,7 +59,8 @@ extern "C" {
     char ScreenTitle[32];
 #define set_screen_title(x) {strcpy(ScreenTitle, x);}
 #define clear_screen_title {for(uint8_t i=0;i<32;i++){ScreenTitle[i] = ' ';}}
-
+#define clear_timer_area { lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height); }
+    
     void print_big_time_label(uint24_t t);
     void print_line_with_shots_and_split(uint8_t shot_no, time_t split);
     void handle_settings_screen();
@@ -68,13 +69,14 @@ extern "C" {
     void handle_timer_idle_shutdown();
     void handle_ui();
     void StopTimer();
-    void print_logo_splash();
-#define STATE_HANDLE_POWER_OFF          {ui_state = PowerOff;set_backlight(0);}
-#define STATE_HANDLE_POWER_ON           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
-#define STATE_HANDLE_TIMER_IDLE         {ui_state = TimerIdle;StopTimer();}
-#define STATE_HANDLE_REVIEW_SCREEN      {ui_state = ReviewScreen;lcd_clear();}
-#define STATE_HANDLE_SETTINGS_SCREEN    {ui_state = SettingsScreen;lcd_clear();}
-#define STATE_HANDLE_COUNTDOWN          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
+#define print_logo_splash() { lcd_draw_bitmap(0, 0, &daaced_logo);Delay(2000); }
+
+    void STATE_HANDLE_POWER_OFF();
+    void STATE_HANDLE_POWER_ON();
+    void STATE_HANDLE_TIMER_IDLE();
+    void STATE_HANDLE_REVIEW_SCREEN();
+    void STATE_HANDLE_SETTINGS_SCREEN();
+    void STATE_HANDLE_COUNTDOWN();
 #ifdef	__cplusplus
 }
 #endif

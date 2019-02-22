@@ -1,8 +1,6 @@
 #include "bluetooth.h"
 
-TBool at_ok() {
-    return (uart_rx_buffer[0] == 'O' && uart_rx_buffer[1] == 'K');
-}
+#define at_ok() ((uart_rx_buffer[0] == 'O' && uart_rx_buffer[1] == 'K'))
 
 void BT_send_comand(const char * cmd, int length) {
     uart_start_tx_string(cmd, length);
@@ -51,18 +49,6 @@ void BT_off() {
     }
 }
 
-void BT_soft_reset() {
-    BT_send_comand("AT+RESET", 8);
-    BT_STATUS.connected = 0;
-}
-
-void BT_hard_reset() {
-    BT_RESET_INV = 0;
-    _delay(100);
-    BT_RESET_INV = 1;
-    BT_STATUS.connected = 0;
-}
-
 void sendOneShot(uint8_t shot_number, shot_t * shot) {
     char msg[16];
     int size;
@@ -77,11 +63,7 @@ void sendSignal(const char * name, uint16_t duration, uint24_t time_ms) {
     uart_start_tx_string(msg, size);
 }
 
-void clear_args_buffer() {
-    for (int i = 0; i < UART_RX_BUF_SIZE; i++) {
-        bt_cmd_args_raw[i] = 0;
-    }
-}
+#define clear_args_buffer() { for (int i = 0; i < UART_RX_BUF_SIZE; i++) {bt_cmd_args_raw[i] = 0;}}
 
 void BT_define_action() {
     if (uart_rx_buffer[0] == 'D' && uart_rx_buffer[1] == 'A' && uart_rx_buffer[2] == 'A') {

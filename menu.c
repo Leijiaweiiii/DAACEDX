@@ -160,9 +160,9 @@ void SelectMenuItem(SettingsMenu_t* s) {
             s->selected = False;
             s->done = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
         default:
             break;
@@ -196,12 +196,12 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
         case StartLong:
             s->selected = True;
             s->done = True;
-            STATE_HANDLE_POWER_OFF;
+            STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
             s->selected = True;
             s->done = True;
-            STATE_HANDLE_TIMER_IDLE;
+            STATE_HANDLE_TIMER_IDLE();
             break;
         default:
             break;
@@ -232,9 +232,9 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
             s->selected = False;
             s->done = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
         default:
             break;
@@ -272,9 +272,9 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             sm->done = True;
             sm->selected = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
         default:
             break;
@@ -308,9 +308,9 @@ void SelectInteger(NumberSelection_t* sm) {
             sm->done = True;
             sm->selected = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE;
+        case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
         default:
             break;
@@ -346,14 +346,13 @@ void SelectDouble(NumberSelection_t* sm) {
             sm->fvalue = sm->fold_value;
             // Intentional failover to the next stage
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-            STATE_HANDLE_TIMER_IDLE;
+            STATE_HANDLE_TIMER_IDLE();
             break;
         default:
             break;
     }
     comandToHandle = None;
 }
-

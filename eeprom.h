@@ -52,11 +52,11 @@ uint8_t eeprom_spi_write(uint8_t data);
 //</editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="EEPROM Functions">
-void eeprom_init();
+#define eeprom_init eeprom_spi_init
 void eeprom_write_data(uint16_t address, uint8_t data);
 uint8_t eeprom_read_data(uint16_t address);
 uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes);
-void eeprom_busy_wait();
+#define eeprom_busy_wait() { while (eeprom_read_status_reg() & 0x01); }
 uint8_t eeprom_read_status_reg();
 void eeprom_write_array(uint16_t address, uint8_t * data, uint16_t size);
 void eeprom_write_wdata(uint16_t address, uint16_t data);

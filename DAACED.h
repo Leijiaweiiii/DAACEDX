@@ -22,12 +22,12 @@
 #include "DAACEDfont.h"
 #include "rtc.h"
 #include "lcd.h"
-#include "ui.h"
 #include "adc.h"
 #include "charger.h"
 #include "bluetooth.h"
 #include "eeprom.h"
 #include "random.h"
+#include "ui.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
@@ -35,10 +35,11 @@ volatile uint8_t current_sample_index = 0;
 volatile uint16_t timer_reload_value;
 volatile uint8_t amplitude_value;
 volatile int16_t dac_value;
-void sinus_dac_init();
+
+#define sinus_dac_init() { TRISFbits.TRISF5 = 0;ANSELFbits.ANSELF5 = 0;DAC1CON0 = 0b10100000;LATEbits.LATE2 = 1;}
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
-void start_sinus(uint16_t frequency);
-void stop_sinus();
+//void start_sinus(uint16_t frequency);
+#define stop_sinus() {    DAC1CON0bits.EN = 0; /* DAC Off */   LATEbits.LATE2 = 0; /* Driver OFF */}
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Backlight PWM functions">

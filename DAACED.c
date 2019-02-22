@@ -193,9 +193,7 @@ uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_
     return 0;
 }
 
-uint8_t is_power_of2(uint8_t n) {
-    return n && (!(n & (n - 1)));
-}
+#define is_power_of2(n) (n && (!(n & (n - 1))))
 
 uint8_t find_set_bit_position(uint8_t n) {
     if (!is_power_of2(n))
@@ -215,17 +213,6 @@ uint8_t sinus_table[3][32] = {
     {0x10, 0x10, 0xF, 0xF, 0xE, 0xC, 0xB, 0xA, 0x8, 0x6, 0x5, 0x4, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x4, 0x5, 0x6, 0x8, 0xA, 0xB, 0xC, 0xE, 0xF, 0xF, 0x10},
     {0x1F, 0x1F, 0x1E, 0x1C, 0x1A, 0x18, 0x15, 0x13, 0x10, 0xC, 0xA, 0x7, 0x5, 0x3, 0x1, 0x0, 0x0, 0x0, 0x1, 0x3, 0x5, 0x7, 0xA, 0xC, 0x10, 0x13, 0x15, 0x18, 0x1A, 0x1C, 0x1E, 0x1F}
 };
-
-void sinus_dac_init() {
-    TRISFbits.TRISF5 = 0;
-    ANSELFbits.ANSELF5 = 0;
-    DAC1CON0 = 0x00;
-    DAC1CON0bits.DAC1EN = 1; // DAC enabled. = 0b10100000;       // DAC enabled output on pin13 (RF5) with reference from VDD & VSS
-    DAC1CON0bits.OE1 = 1;
-    DAC1CON0bits.PSS = 0; // Vdd
-    DAC1CON0bits.NSS = 0; // Vss
-    LATEbits.LATE2 = 1; // Driver Enable
-}
 
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     float sinus_time_period_us = (1000000UL / (frequency * 2));
@@ -258,12 +245,6 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     }
     stop_sinus();
     ADC_ENABLE_INTERRUPT_ENVELOPE;
-}
-
-void stop_sinus() {
-    //    T0CON0bits.T0EN = 0; // Timer OFF
-    DAC1CON0bits.EN = 0; // DAC Off
-    LATEbits.LATE2 = 0; // Driver OFF
 }
 
 // </editor-fold>
@@ -680,12 +661,14 @@ void SetVolume() {
 
 void SetBeepTime(TBool Par) {
     NumberSelection_t d;
+    // Space optimization
+    float fv = (float) (Settings.BuzzerParDuration) / 1000;
     InitSettingsNumberDefaults((&d));
     if (Par) {
-        d.fvalue = (float) (Settings.BuzzerParDuration) / 1000;
+        d.fvalue = fv;
         strcpy(d.MenuTitle, "Par Duration ");
     } else {
-        d.fvalue = (float) (Settings.BuzzerStartDuration) / 1000;
+        d.fvalue = fv;
         strcpy(d.MenuTitle, "Start Duration ");
     }
     d.fmin = 0.050;
@@ -701,11 +684,13 @@ void SetBeepTime(TBool Par) {
 
     if (d.selected) {
         if (d.fvalue != d.fold_value) {
+            // Code space optimization
+            uint16_t duration = (int) (d.fvalue * 1000);
             if (Par) {
-                Settings.BuzzerParDuration = (int) (d.fvalue * 1000);
+                Settings.BuzzerParDuration = duration;
                 saveSettingsField(&Settings, &(Settings.BuzzerParDuration), 2);
             } else {
-                Settings.BuzzerStartDuration = (int) (d.fvalue * 1000);
+                Settings.BuzzerStartDuration = duration;
                 saveSettingsField(&Settings, &(Settings.BuzzerStartDuration), 2);
             }
         }
@@ -1025,7 +1010,7 @@ void SetMode() {
         if (oldPar != Settings.ParMode) {
             saveSettingsField(&Settings, &(Settings.ParMode), 1);
         }
-        STATE_HANDLE_TIMER_IDLE;
+        STATE_HANDLE_TIMER_IDLE();
     }
     set_par_mode(Settings.ParMode);
     CurPar_idx = 0;
@@ -1106,9 +1091,9 @@ void CountDownMode(time_t countdown) {
         display_big_font_label(msg);
         define_input_action();
         switch (comandToHandle) {
-            case StartLong:STATE_HANDLE_POWER_OFF;
+            case StartLong:STATE_HANDLE_POWER_OFF();
                 break;
-            case StartShort:STATE_HANDLE_TIMER_IDLE;
+            case StartShort:STATE_HANDLE_TIMER_IDLE();
                 break;
             case None:
                 break;
@@ -1124,7 +1109,7 @@ void CountDownMode(time_t countdown) {
     } while (!done && ui_state == SettingsScreen);
     if (done && minute == 0 && second == 0) {
         countdown_expired_signal();
-        STATE_HANDLE_TIMER_IDLE;
+        STATE_HANDLE_TIMER_IDLE();
     }
 }
 
@@ -1512,7 +1497,7 @@ void DoSettings(void) {
     } while (SettingsNotDone((&SettingsMenu)));
 
     if (ui_state == SettingsScreen) {
-        STATE_HANDLE_TIMER_IDLE;
+        STATE_HANDLE_TIMER_IDLE();
     } else {
         lcd_clear();
     }
@@ -1686,7 +1671,7 @@ void DoReview() {
     CurShoot = ShootString.TotShoots - 1;
     if (ShootString.TotShoots == 0) {
         Beep();
-        STATE_HANDLE_TIMER_IDLE;
+        STATE_HANDLE_TIMER_IDLE();
         return;
     }
     reviewChanged = True;
@@ -1708,11 +1693,11 @@ void DoReview() {
             case OkShort:
                 review_previous_string();
                 break;
-            case StartLong:STATE_HANDLE_POWER_OFF;
+            case StartLong:STATE_HANDLE_POWER_OFF();
                 break;
-            case StartShort:STATE_HANDLE_TIMER_IDLE;
+            case StartShort:STATE_HANDLE_TIMER_IDLE();
                 break;
-            case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN;
+            case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
                 break;
             default:
                 break;
@@ -2031,11 +2016,13 @@ void UpdateShotNow(ShotInput_t x) {
 
 void UpdateShot(time_t now, ShotInput_t input) {
     uint24_t dt, ddt;
+    // Index var is for code size optimisation.
+    uint8_t index = ShootString.TotShoots - 1;
     dt = (uint24_t) (now - ShootString_start_time);
     if (ShootString.TotShoots == 0) {
         ddt = 0;
     } else {
-        ddt = ShootString.shots[ShootString.TotShoots - 1].dt;
+        ddt = ShootString.shots[index].dt;
     }
     ddt = dt - ddt;
     //Don't count shoots less than Filter
@@ -2045,9 +2032,10 @@ void UpdateShot(time_t now, ShotInput_t input) {
             ShootString.shots[ShootString.TotShoots].is_flags = input;
             ShootString.TotShoots++;
         } else {
-            ShootString.shots[ShootString.TotShoots - 1].dt = dt;
-            ShootString.shots[ShootString.TotShoots - 1].is_flags = input;
-            ShootString.shots[ShootString.TotShoots - 1].ov = 1;
+            
+            ShootString.shots[index].dt = dt;
+            ShootString.shots[index].is_flags = input;
+            ShootString.shots[index].ov = 1;
         }
         InputFlags.FOOTER_CHANGED = True;
     }
