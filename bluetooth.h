@@ -125,7 +125,7 @@ extern "C" {
     void BT_init();
     void BT_off();
 
-#define BT_soft_reset() { BT_send_comand("AT+RESET", 8); BT_STATUS.connected = 0;}
+#define BT_soft_reset() { BT_send_comand(AT_RESET, 8); BT_STATUS.connected = 0;}
 #define BT_hard_reset() { BT_RESET_INV = 0; _delay(100); BT_RESET_INV = 1;BT_STATUS.connected = 0; }
 
     void sendOneShot(uint8_t shot_number, shot_t * shot);
