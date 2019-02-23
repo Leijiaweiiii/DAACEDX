@@ -16,7 +16,9 @@ extern "C" {
 
 // <editor-fold defaultstate="collapsed" desc="EEPROM Specificaion">
 /* EEPROM specification */
-#define EEPROM_PAGE_SIZE    (64)
+#define EEPROM_PAGE_SIZE        (64)
+#define EEPROM_PAGE_NUMBER(x)   (x>>6)
+#define EEPROM_RES_SIZE(x)      (x&63)
 // We're using 128kbit version
 #define EEPROM_MAX_SIZE     (0x4000)
 
@@ -64,6 +66,8 @@ void eeprom_write_tdata(uint16_t address, uint24_t data);
 uint16_t eeprom_read_wdata(uint16_t address);
 uint24_t eeprom_read_tdata(uint16_t address);
 void eeprom_clear_block(uint16_t start_address,uint16_t size);
+void eeprom_clear_block_bulk(uint16_t start_address, uint16_t size);
+void eeprom_write_array_bulk(uint16_t start_address, uint8_t * data, uint16_t size);
 //</editor-fold>
 
 

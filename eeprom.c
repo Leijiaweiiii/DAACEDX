@@ -30,13 +30,93 @@ void eeprom_spi_init() {
 
 uint8_t eeprom_spi_write(uint8_t data) {
     uint8_t temp_var = SSP2BUF; // Clear buffer.
-    UNUSED(temp_var);
-    PIR3bits.SSP2IF = 0; // Clear interrupt flag bit
-    SSP2CON1bits.WCOL = 0; // Clear write collision bit if any collision occurs
+    UNUSED(temp_var);           // Suppress warning
+    PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
+    SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
     SSP2BUF = data;
     while (SSP2STATbits.BF == 0);
+    PIR3bits.SSP2IF = 0;        // clear interrupt flag bit
+    return SSP2BUF;
+}
+
+uint8_t eeprom_spi_write_bulk(uint8_t * data, uint8_t size) {
+    uint8_t temp_var = SSP2BUF; // Clear buffer.
+    UNUSED(temp_var);           // Suppress warning
+    for (uint8_t i = 0; i<size; i++){
+        PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
+        SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
+        SSP2BUF = data[i];
+        while (SSP2STATbits.BF == 0);
+    }
     PIR3bits.SSP2IF = 0; // clear interrupt flag bit
     return SSP2BUF;
+}
+
+uint8_t eeprom_spi_write_bulk_const(uint8_t data, uint8_t size) {
+    uint8_t temp_var = SSP2BUF; // Clear buffer.
+    UNUSED(temp_var);           // Suppress warning
+    for (uint8_t i = 0; i<size; i++){
+        PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
+        SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
+        SSP2BUF = data;
+        while (SSP2STATbits.BF == 0);
+    }
+    PIR3bits.SSP2IF = 0; // clear interrupt flag bit
+    return SSP2BUF;
+}
+
+/**
+ * Write data in bulk mode. It's faster than byte by byte.
+ * Caution needed not to cross 64 byte page boundary
+ * @param address - start address
+ * @param data - pointer to data
+ * @param size - size in  bytes to write
+ */
+void eeprom_write_data_bulk(uint16_t address, uint8_t * data, uint8_t size) {
+    eeprom_busy_wait();
+
+    EEPROM_CS_SELECT();
+    eeprom_spi_write(CMD_WRSR);
+    eeprom_spi_write(0x02); // Enable Write Latch.
+    EEPROM_CS_DESELECT();
+
+    EEPROM_CS_SELECT();
+    eeprom_spi_write(CMD_WREN);
+    EEPROM_CS_DESELECT();
+
+    EEPROM_CS_SELECT();
+    eeprom_spi_write(CMD_WRITE);
+    eeprom_spi_write((uint8_t)MSB(address));
+    eeprom_spi_write((uint8_t)LSB(address));
+    eeprom_spi_write_bulk(data, size);
+    EEPROM_CS_DESELECT();
+}
+
+/**
+ * Write data in bulk mode. It's faster than byte by byte.
+ * Caution needed not to cross 64 byte page boundary
+ * @param address - start address
+ * @param data - pointer to data
+ * @param size - size in  bytes to write
+ */
+void eeprom_write_const_data_bulk(uint16_t address, uint8_t  data, uint8_t size) {
+    eeprom_busy_wait();
+
+    EEPROM_CS_SELECT();
+    eeprom_spi_write(CMD_WRSR);
+    eeprom_spi_write(0x02); // Enable Write Latch.
+    EEPROM_CS_DESELECT();
+
+    EEPROM_CS_SELECT();
+    eeprom_spi_write(CMD_WREN);
+    EEPROM_CS_DESELECT();
+
+    EEPROM_CS_SELECT();
+    eeprom_spi_write(CMD_WRITE);
+    eeprom_spi_write((uint8_t)MSB(address));
+    eeprom_spi_write((uint8_t)LSB(address));
+    eeprom_spi_write_bulk_const(data, size);
+    EEPROM_CS_DESELECT();
 }
 
 void eeprom_write_data(uint16_t address, uint8_t data) {
@@ -57,6 +137,42 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
     eeprom_spi_write((uint8_t)LSB(address));
     eeprom_spi_write(data);
     EEPROM_CS_DESELECT();
+}
+
+void eeprom_clear_block_bulk(uint16_t start_address, uint16_t size) {
+    // Split range to pages.
+    uint16_t first_page_write_size = EEPROM_RES_SIZE(start_address);
+    uint16_t last_page_write_size = EEPROM_RES_SIZE(start_address + size);
+    uint16_t last_write_addr = start_address + size;
+    last_write_addr -= last_page_write_size;
+
+    eeprom_write_const_data_bulk(start_address, 0x00, first_page_write_size);
+
+    for (uint16_t next_write_address = start_address + first_page_write_size;
+            next_write_address < start_address + size;
+            next_write_address += EEPROM_PAGE_SIZE) {
+        eeprom_write_const_data_bulk(next_write_address, 0x00, EEPROM_PAGE_SIZE);
+    }
+
+    eeprom_write_const_data_bulk(last_write_addr, 0x00, last_page_write_size);
+}
+
+void eeprom_write_array_bulk(uint16_t start_address, uint8_t * data, uint16_t size) {
+    // Split range to pages.
+    uint16_t first_page_write_size = EEPROM_RES_SIZE(start_address);
+    uint16_t last_page_write_size = EEPROM_RES_SIZE(start_address + size);
+    uint16_t last_write_addr = start_address + size;
+    last_write_addr -= last_page_write_size;
+
+    eeprom_write_data_bulk(start_address, data, first_page_write_size);
+    data += first_page_write_size;
+
+    for (uint16_t a = start_address + first_page_write_size; a < start_address + size; a += EEPROM_PAGE_SIZE) {
+        eeprom_write_data_bulk(a, data, EEPROM_PAGE_SIZE);
+        data += EEPROM_PAGE_SIZE;
+    }
+
+    eeprom_write_const_data_bulk(last_write_addr, data, last_page_write_size);
 }
 
 void eeprom_clear_block(uint16_t start_address, uint16_t size) {

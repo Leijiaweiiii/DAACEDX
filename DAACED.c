@@ -254,11 +254,11 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
 void clearHistory() {
     lcd_clear();
     lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-    eeprom_clear_block(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
+    eeprom_clear_block_bulk(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
 }
 
 void saveSettings() {
-    eeprom_write_array(SettingsStartAddress, Settings.data, SettingsDataSize);
+    eeprom_write_array_bulk(SettingsStartAddress, Settings.data, SettingsDataSize);
 }
 
 void getSettings() {
@@ -295,12 +295,12 @@ void restoreSettingsField(Settings_t * s, void * f, size_t l){
 }
 void saveSettingsField(Settings_t * s, void * f, size_t l) {
     int offset = f - s;
-    eeprom_write_array(SettingsStartAddress + offset, f, l);
+    eeprom_write_array_bulk(SettingsStartAddress + offset, f, l);
 }
 
 void savePar(uint8_t par_index) {
     int offset = &(Settings.ParTime) - (&Settings) + par_index;
-    eeprom_write_array(SettingsStartAddress + offset, Settings.data + offset, 3);
+    eeprom_write_array_bulk(SettingsStartAddress + offset, Settings.data + offset, 3);
 }
 
 void restorePar() {
@@ -347,14 +347,14 @@ void saveShootString(void) {
         index = 0;
     ShootString.latest = 1;
     addr = findStringAddress(index);
-    eeprom_write_array(addr, ShootString.data, Size_of_ShootString);
+    eeprom_write_array_bulk(addr, ShootString.data, Size_of_ShootString);
     eeprom_write_data(addr, 1);
 }
 
 void saveOneShot(uint8_t shot_number) {
     uint8_t index;
     uint16_t addr;
-    shot_t test0;
+//    shot_t test0;
     index = findCurStringIndex();
     addr = findStringAddress(index);
     if (shot_number == 0) {
@@ -369,8 +369,9 @@ void saveOneShot(uint8_t shot_number) {
     eeprom_write_data(addr, shot_number + 1);
     addr++;
     addr += shot_number * SIZE_OF_SHOT_T;
-    eeprom_write_array(addr, &(ShootString.shots[shot_number]), SIZE_OF_SHOT_T);
-    eeprom_read_array(addr, &(test0.data), SIZE_OF_SHOT_T);
+    eeprom_write_array_bulk(addr, &(ShootString.shots[shot_number]), SIZE_OF_SHOT_T);
+    //TODO: Remove
+//    eeprom_read_array(addr, &(test0.data), SIZE_OF_SHOT_T);
 }
 
 uint8_t last_saved_shot;
