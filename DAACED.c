@@ -347,14 +347,7 @@ void saveShootString(void) {
         index = 0;
     ShootString.latest = 1;
     addr = findStringAddress(index);
-    if(ShootString.TotShoots <= LAST_SHOTS_TO_SAVE){
-        uint16_t size = 2 + ShootString.TotShoots * sizeof(shot_t);
-        eeprom_write_array_bulk(addr, ShootString.data, size);
-    } else {
-        uint8_t second_shot_to_save = ShootString.TotShoots - LAST_SHOTS_TO_SAVE;
-        eeprom_write_array_bulk(addr, ShootString.data, Size_of_ShootString_header);
-        eeprom_write_array_bulk(addr, &(ShootString.shots[second_shot_to_save]), LAST_SHOTS_TO_SAVE*sizeof(shot_t));
-    }
+    eeprom_write_array_bulk(addr, ShootString.data, Size_of_ShootString);
     eeprom_write_data(addr, 1);
 }
 
@@ -1692,26 +1685,23 @@ void ReviewDisplay() {
     //1st ShootNumber 01, before it ShootNumber 00 time=0
     for (i = 0; i < SHOTS_ON_REVIEW_SCREEN; i++) {
         char * mode;
-        uint8_t subtrahend_index = (review_current_shot_index + i + 1) % ShootString.TotShoots;
-        uint8_t cur_shot_number = 1;
-        
-        
-        
+        uint8_t curr_index = (CurShoot + i) % ShootString.TotShoots;
+        uint8_t subtrahend_index = (CurShoot + i + 1) % ShootString.TotShoots;
         if (Settings.InputType == INPUT_TYPE_Microphone) {
             mode = ' ';
         } else {
-            mode = (ShootString.shots[review_current_shot_index].is_b) ? 'B' : ((ShootString.shots[review_current_shot_index].is_a) ? 'A' : ' ');
+            mode = (ShootString.shots[curr_index].is_b) ? 'B' : ((ShootString.shots[curr_index].is_a) ? 'A' : ' ');
         }
         // Handle cases with 1 and 2 shots nicely
         if (i != 0 || ShootString.TotShoots >= SHOTS_ON_REVIEW_SCREEN) {
             sprintf(message,
                     REVIEW_SHOT_FORMAT,
-                    cur_shot_number,
-                    (float) ShootString.shots[review_current_shot_index].dt / 1000,
+                    curr_index + 1,
+                    (float) ShootString.shots[curr_index].dt / 1000,
                     mode
                     );
             if (lcd_string_lenght(message, MediumFont) > 134
-                    ||((float) ShootString.shots[review_current_shot_index].dt / 1000 > 99.7))
+                    ||((float) ShootString.shots[curr_index].dt / 1000 > 99.7))
                 lcd_write_string(message, 1, line, SmallFont, (i != 1)&0x01);
             else
                 lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
@@ -1720,10 +1710,10 @@ void ReviewDisplay() {
         if (i == ShootString.TotShoots) break;
         // Don't print last diff at half line and not the latest
         if (i < SHOTS_ON_REVIEW_SCREEN - 1 &&
-                cur_shot_number != ShootString.TotShoots - 1) {
+                curr_index != ShootString.TotShoots - 1) {
             sprintf(message,
                     REVIEW_SPLIT_FORMAT,
-                    (float) (ShootString.shots[subtrahend_index].dt - ShootString.shots[review_current_shot_index].dt) / 1000);
+                    (float) (ShootString.shots[subtrahend_index].dt - ShootString.shots[curr_index].dt) / 1000);
             lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
@@ -1738,10 +1728,10 @@ void review_scroll_shot_up() {
         Beep();
         return;
     }
-    if (review_current_shot_index > 0) {
-        review_current_shot_index--;
+    if (CurShoot > 0) {
+        CurShoot--;
     } else {
-        review_current_shot_index = LAST_SHOTS_TO_SAVE;
+        CurShoot = ShootString.TotShoots;
     }
     reviewChanged = True;
 }
@@ -1751,10 +1741,10 @@ void review_scroll_shot_down() {
         Beep();
         return;
     }
-    if (review_current_shot_index <= LAST_SHOTS_TO_SAVE) {
-        review_current_shot_index++;
+    if (CurShoot < ShootString.TotShoots) {
+        CurShoot++;
     } else {
-        review_current_shot_index = 1;
+        CurShoot = 1;
     }
     reviewChanged = True;
 }
@@ -1775,7 +1765,7 @@ void review_previous_string() {
     }
     getShootString(CurShootString);
     reviewChanged = True;
-    review_current_shot_index = LAST_SHOTS_TO_SAVE - 1;
+    CurShoot = ShootString.TotShoots - 1;
 }
 
 void review_next_string() {
@@ -1790,13 +1780,13 @@ void review_next_string() {
     }
     getShootString(CurShootString);
     reviewChanged = True;
-    review_current_shot_index = LAST_SHOTS_TO_SAVE - 1;
+    CurShoot = ShootString.TotShoots - 1;
 }
 
 void DoReview() {
     getShootString(0);
     CurShootString = 0;
-    review_current_shot_index = LAST_SHOTS_TO_SAVE - 1;
+    CurShoot = ShootString.TotShoots - 1;
     if (ShootString.TotShoots == 0) {
         Beep();
         STATE_HANDLE_TIMER_IDLE();
@@ -2137,7 +2127,7 @@ void UpdateShotNow(ShotInput_t x) {
 void UpdateShot(time_t now, ShotInput_t input) {
     uint24_t dt, ddt;
     // Index var is for code size optimisation.
-    uint8_t index = ShootString.TotShoots;
+    uint8_t index = ShootString.TotShoots - 1;
     dt = (uint24_t) (now - ShootString_start_time);
     if (ShootString.TotShoots == 0) {
         ddt = 0;

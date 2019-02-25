@@ -11,11 +11,9 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-#define MAXSHOOTSTRINGS             (30)
-#define MAXSHOOT                    (250)
-#define LAST_SHOTS_TO_SAVE          (99)
+#define MAXSHOOTSTRINGS              (30)
+#define MAXSHOOT                     (100)
 #define Size_of_ShootString         (402)
-#define Size_of_ShootString_header  (2 + sizeof(shot_t))
 #define SIZE_OF_SHOT_T              (4)
 typedef union {
     uint8_t data[SIZE_OF_SHOT_T];
@@ -37,7 +35,7 @@ typedef union {
 } shot_t;
 
 typedef union {
-    uint8_t data[MAXSHOOT*sizeof(shot_t)+2];
+    uint8_t data[Size_of_ShootString];
 
     struct {
         uint8_t latest;

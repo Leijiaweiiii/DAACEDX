@@ -203,8 +203,7 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-//            save_shots_if_required();
-            saveShootString();
+            save_shots_if_required();
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
@@ -224,7 +223,7 @@ void HandleTimerEvents() {
 }
 
 void handle_timer_listening() {
-//    save_shots_if_required();
+    save_shots_if_required();
     update_shot_time_on_screen();
     print_header(false);
     print_footer();
@@ -232,18 +231,15 @@ void handle_timer_listening() {
 
     switch (comandToHandle) {
         case StartLong:
-            saveShootString();
             STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-            saveShootString();
             if (AutoStart) {
                 STATE_HANDLE_COUNTDOWN();
             }
             break;
         case ReviewLong:
         case ReviewShort:
-            saveShootString();
             STATE_HANDLE_REVIEW_SCREEN();
             break;
         case ChargerConnected:
@@ -317,6 +313,7 @@ void handle_countdown() {
             update_shot_time_on_screen();
             if (Settings.TotPar > 0)
                 StartParTimer();
+
             PlayStartSound();
             break;
         case ChargerConnected:
