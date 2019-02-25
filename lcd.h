@@ -266,6 +266,8 @@ void lcd_draw_fullsize_hline(uint8_t line,uint8_t data);
 void lcd_draw_vgrid_lines(uint8_t start_line);
 void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity);
+void lcd_sleep();
+void lcd_wakeup();
 // </editor-fold>
 
 #endif	/* LCD_H */

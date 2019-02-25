@@ -1965,6 +1965,7 @@ void StartListenShots(void) {
 
 void DoPowerOff() {
     DoCharging();
+    lcd_sleep();
     PWM6CONbits.EN = 0; // Disale PWM
     T2CONbits.ON = 0;
     CPUDOZEbits.IDLEN = 0;
@@ -1992,6 +1993,7 @@ void DoPowerOff() {
     PIE0bits.TMR0IE = 1;
     OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
     while (!OSCCON3bits.ORDY); // Wait new oscillator ready
+    lcd_wakeup();
 }
 
 void DoPowerOn() {

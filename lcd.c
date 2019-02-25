@@ -356,3 +356,13 @@ void display_message(const char * message) {
     lcd_fill_block(2, 98, 158, 112);
     lcd_write_string(message, 4, 101, BigFont, WHITE_OVER_BLACK);
 }
+
+void lcd_sleep(){
+    lcd_send_command(CMD_EXTENSION_1);  // Extension1 command.
+    lcd_send_command(CMD_SLEEP_IN);     // Enter sleep mode.
+}
+
+void lcd_wakeup(){
+    lcd_send_command(CMD_EXTENSION_1);  // Extension1 command.
+    lcd_send_command(CMD_SLEEP_OUT);          // Exit sleep mode.
+}
