@@ -433,6 +433,19 @@ TBool checkShotStringEmpty(uint8_t offset) {
 }
 // </editor-fold>
 
+void print_delay(char * str, const char * prefix){
+    switch (Settings.DelayMode) {
+        case DELAY_MODE_Instant: sprintf(str, "%s0.0 ", prefix);
+            break;
+        case DELAY_MODE_Fixed: sprintf(str, "%s3.0 ", prefix);
+            break;
+        case DELAY_MODE_Random: sprintf(str, "%sRND ", prefix);
+            break;
+        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f ", prefix, (float) (Settings.DelayTime) / 1000);
+            break;
+    }
+}
+
 // <editor-fold defaultstate="collapsed" desc="Settings">
 // <editor-fold defaultstate="collapsed" desc="Delay Settings">
 
@@ -607,7 +620,7 @@ void SetBacklight() {//PWM Backlight
     set_backlight(Settings.BackLightLevel);
 }
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Buzzer Settings">
+// <editor-fold defaultstate="collapsed" desc="Buzzer">
 
 void SetBeepFreq() {
     uint24_t tmp;
@@ -1185,7 +1198,7 @@ void SetCountDown() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Tilt">
 
-void SetTilt() {
+void SetOrientation() {
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, "Orientation");
@@ -1398,6 +1411,64 @@ void handle_bt_commands() {
 }
 
 // </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="Microphone">
+void SetMicrophone(){
+    InitSettingsMenuDefaults((&ma));
+    ma.menu = 0;
+    ma.TotalMenuItems = 2;
+    strcpy(ma.MenuTitle, " Microphone ");
+    sprintf(ma.MenuItem[0], " Sensitivity  - %d", Settings.Sensitivity);
+    sprintf(ma.MenuItem[1],  "  Filter - %1.2fs", (float) (Settings.Filter) / 1000);
+
+    do {
+        DisplaySettings((&ma));
+        SelectMenuItem((&ma));
+        if(ma.selected){
+            switch (ma.menu){
+                case 0:
+                    SetSens();
+                    ma.done = False;
+                    ma.selected = False;
+                    break;
+                case 1:
+                    SetFilter();
+                    ma.done = False;
+                    ma.selected = False;
+                    break;
+            }
+        }
+    } while (SettingsNotDone((&ma)));
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="Display">
+void SetDisplay(){
+    InitSettingsMenuDefaults((&ma));
+    ma.menu = 0;
+    ma.TotalMenuItems = 2;
+    strcpy(ma.MenuTitle, " Display ");
+    strcpy(ma.MenuItem[0], " Backlight ");
+    strcpy(ma.MenuItem[1],  "  Orientation  ");
+
+    do {
+        DisplaySettings((&ma));
+        SelectMenuItem((&ma));
+        switch (ma.menu){
+            case 0:
+                SetBacklight();
+                ma.done = False;
+                ma.selected = False;
+                break;
+            case 1:
+                SetOrientation();
+                ma.done = False;
+                ma.selected = False;
+                break;
+        }
+    } while (SettingsNotDone((&ma)));
+}
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Settings Menu">
 TBool userIsSure(const char * title){
     InitSettingsMenuDefaults((&ma));
@@ -1413,47 +1484,67 @@ TBool userIsSure(const char * title){
     } while (SettingsNotDone((&ma)));
     return (ma.menu == SMTH_DISABLED);
 }
+
+#define SETTINGS_INDEX_DELAY        0
+#define SETTINGS_INDEX_PAR          1
+#define SETTINGS_INDEX_BUZZER       2
+#define SETTINGS_INDEX_MIC          3
+#define SETTINGS_INDEX_MODE         4
+#define SETTINGS_INDEX_DISPLAY      5
+#define SETTINDS_INDEX_COUNTDOWN    6
+#define SETTINDS_INDEX_AUTOSTART    7
+#define SETTINDS_INDEX_CLOCK        8
+#define SETTINDS_INDEX_INPUT        9
+#define SETTINDS_INDEX_BLUETOOTH    10
+#define SETTINDS_INDEX_AUTO_POWER   11
+#define SETTINDS_INDEX_CLEAR        12
+#define SETTINDS_INDEX_RESET        13
+#define SETTINDS_INDEX_VERSION      14
+
 void DoSet(uint8_t menu) {
     lcd_clear();
     switch (menu) {
-        case 0:SetDelay();
+        case SETTINGS_INDEX_DELAY:
+            SetDelay();
             break;
-        case 1:SetPar((&ma)); // By reference because it's used both in 2nd and 3rd level menu
+        case SETTINGS_INDEX_PAR:SetPar((&ma)); // By reference because it's used both in 2nd and 3rd level menu
             break;
-        case 2:SetBeep();
+        case SETTINGS_INDEX_BUZZER:
+            SetBeep();
             break;
-        case 3:SetAutoStart();
+        case SETTINGS_INDEX_MIC:
+            SetMicrophone();
             break;
-        case 4:SetMode();
+        case SETTINDS_INDEX_AUTOSTART:
+            SetAutoStart();
             break;
-        case 5:SetClock();
+        case SETTINGS_INDEX_MODE:SetMode();
             break;
-        case 6:SetCountDown();
+        case SETTINGS_INDEX_DISPLAY:
+            SetDisplay();
             break;
-        case 7:SetTilt();
+        case SETTINDS_INDEX_CLOCK:SetClock();
             break;
-        case 8:SetBacklight();
+        case SETTINDS_INDEX_COUNTDOWN:SetCountDown();
             break;
-        case 9:SetSens();
+        case SETTINDS_INDEX_INPUT:
+            SetInput();
             break;
-        case 10:SetFilter();
+        case SETTINDS_INDEX_BLUETOOTH:
+            BlueTooth();
             break;
-        case 11:SetInput();
-            break;
-        case 12:BlueTooth();
-            break;
-        case 13:
+        case SETTINDS_INDEX_RESET:
             if(userIsSure(" Reset Settings ? ")){
                 getDefaultSettings();
                 saveSettings();
             }
             break;
-        case 14:
+        case SETTINDS_INDEX_CLEAR:
             if(userIsSure(" Clear History ? ")){
                 clearHistory();
             }
             break;
-        case 16: // For tests
+        case SETTINDS_INDEX_AUTO_POWER: // For tests
             SetAutoPowerOff();
             break;
     }
@@ -1462,27 +1553,52 @@ void DoSet(uint8_t menu) {
 
 void SetSettingsMenu() {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
-
-    SettingsMenu.TotalMenuItems = 17;
-
+    char tmpStr[16];
+    SettingsMenu.TotalMenuItems = 15;
     sprintf(SettingsMenu.MenuTitle, " Settings ");
-    sprintf(SettingsMenu.MenuItem[0], " Delay ");
-    sprintf(SettingsMenu.MenuItem[1], " Par ");
-    sprintf(SettingsMenu.MenuItem[2], " Buzzer ");
-    sprintf(SettingsMenu.MenuItem[3], " Auto Start ");
-    sprintf(SettingsMenu.MenuItem[4], " Timer Mode ");
-    sprintf(SettingsMenu.MenuItem[5], " Clock ");
+
+    print_delay(SettingsMenu.MenuItem[0], " Delay - ");
+    if (Settings.TotPar > 0) {
+        sprintf(SettingsMenu.MenuItem[1],
+                " Par - %d 1st: %3.2f ",
+                Settings.TotPar,
+                (float) Settings.ParTime[CurPar_idx] / 1000);
+    } else {
+        sprintf(SettingsMenu.MenuItem[1], " Par - Off ");
+    }
+    sprintf(SettingsMenu.MenuItem[2], " Buzzer - %dHz %d ",
+            Settings.BuzzerFrequency,
+            Settings.Volume);
+    sprintf(SettingsMenu.MenuItem[3], " Microphone ");
+    sprintf(SettingsMenu.MenuItem[4], " Timer Mode - %s ",
+            par_mode_header_names[Settings.ParMode]);
+    sprintf(SettingsMenu.MenuItem[5], " Display ");
     sprintf(SettingsMenu.MenuItem[6], " Countdown ");
-    sprintf(SettingsMenu.MenuItem[7], " Display Orientation ");
-    sprintf(SettingsMenu.MenuItem[8], " Backlight ");
-    sprintf(SettingsMenu.MenuItem[9], " Sensitivity ");
-    sprintf(SettingsMenu.MenuItem[10], " Filter ");
-    sprintf(SettingsMenu.MenuItem[11], " Input ");
-    sprintf(SettingsMenu.MenuItem[12], " Bluetooth ");
+    sprintf(SettingsMenu.MenuItem[7], " Autostart - %s ",
+            (Settings.AR_IS.Autostart)?"ON":"OFF");
+    sprintf(SettingsMenu.MenuItem[8], " Clock ");
+            switch (Settings.InputType) {
+            case INPUT_TYPE_Microphone:
+                sprintf(SettingsMenu.MenuItem[9], " Input - Microphone ");
+                break;
+            case INPUT_TYPE_A_and_B_single:
+                sprintf(SettingsMenu.MenuItem[9], " Input - A+B single ");
+                break;
+            case INPUT_TYPE_A_or_B_multiple:
+                sprintf(SettingsMenu.MenuItem[9], " Input - A/B multi ");
+                break;
+            default:
+                sprintf(SettingsMenu.MenuItem[9], " Input ");
+                break;
+        }
+
+    sprintf(SettingsMenu.MenuItem[10], " Bluetooth - %s ",
+            (Settings.AR_IS.BT)?"ON":"OFF");
+    sprintf(SettingsMenu.MenuItem[11], " Auto Power-off  - %s ",
+            (Settings.AR_IS.AutoPowerOff)?"ON":"OFF");
+    sprintf(SettingsMenu.MenuItem[12], " Clear History ");
     sprintf(SettingsMenu.MenuItem[13], " Reset Settings ");
-    sprintf(SettingsMenu.MenuItem[14], " Clear History ");
-    sprintf(SettingsMenu.MenuItem[15], " FW version: %02d ", Settings.version);
-    sprintf(SettingsMenu.MenuItem[16], " Auto Power OFF ");
+    sprintf(SettingsMenu.MenuItem[14], " FW version: %02d ", Settings.version);
 }
 
 void DoSettings(void) {
@@ -1498,6 +1614,7 @@ void DoSettings(void) {
             DoSet(SettingsMenu.menu);
             SettingsMenu.selected = False;
             lcd_clear();
+            SetSettingsMenu();
         }
         // Never exit on OK/Cancel case here, only on screen change
         SettingsMenu.done = False;
@@ -1824,17 +1941,7 @@ void print_footer() {
     print_label_at_footer_grid(message, 0, 0);
     sprintf(message, "Shots: %2d", ShootString.TotShoots);
     print_label_at_footer_grid(message, 1, 0);
-    switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: sprintf(message, " Delay: 0.0");
-            break;
-        case DELAY_MODE_Fixed: sprintf(message, " Delay: 3.0");
-            break;
-        case DELAY_MODE_Random: sprintf(message, " Delay: RND");
-            break;
-        case DELAY_MODE_Custom: sprintf(message, " Delay: %1.1f", (float) (Settings.DelayTime) / 1000);
-            break;
-    }
-    
+    print_delay(message," Delay: ");
     print_label_at_footer_grid(message, 0, 1);
 
     if (Settings.TotPar > 0 && CurPar_idx < Settings.TotPar) {
