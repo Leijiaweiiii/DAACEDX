@@ -508,7 +508,7 @@ TBool EditPar(uint8_t par_index) {
     b.fvalue = (float) (Settings.ParTime[par_index]) / 1000;
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index);
-    b.fstep = 0.05;
+    b.fstep = 0.01;
     b.format = "%3.2fs";
     b.done = False;
     lcd_clear();
