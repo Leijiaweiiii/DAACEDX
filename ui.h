@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #define LONG_PRESS_THRESHOLD_SEC    1000
-#define STICKY_THRESHOLD_SEC        1500
+#define STICKY_THRESHOLD            1500
 
     typedef enum {
         PowerOff = 0,

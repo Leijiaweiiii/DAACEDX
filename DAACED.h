@@ -117,16 +117,17 @@ union {
     uint8_t byte;
 
     struct {
-        unsigned A_RELEASED : 1;
-        unsigned B_RELEASED : 1;
-        unsigned KEY_RELEASED : 1;
-        unsigned WAKEUP : 1;
+        unsigned A_RELEASED     : 1;
+        unsigned B_RELEASED     : 1;
+        unsigned KEY_RELEASED   : 1;
         unsigned FOOTER_CHANGED : 1;
-        unsigned ADC_DETECTED : 1;
-        unsigned INITIALIZED : 1;
+        unsigned ADC_DETECTED   : 1;
+        unsigned INITIALIZED    : 1;
+        unsigned UNUSED         : 2;
     };
 } InputFlags;
 
+uint16_t LongPressCount = 0;
 typedef enum {
     Mic = 0b0001,
     A = 0b0010,

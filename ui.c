@@ -307,73 +307,64 @@ void handle_countdown() {
     comandToHandle = None;
 }
 
-TBool is_long_press() {
-    time_t duration = 0;
+TBool is_long_press(TBool repeatable) {
+    uint16_t duration = 0;
     do {
-        if (duration > STICKY_THRESHOLD_SEC)
-            break;
+        if (duration > STICKY_THRESHOLD - LongPressCount){
+            LongPressCount += (LongPressCount <= STICKY_THRESHOLD - 100)? 300:0;
+            InputFlags.KEY_RELEASED = repeatable;
+            return true;
+        }
         Delay(10);
         duration += 10;
     } while (Keypressed);
-    return duration >= LONG_PRESS_THRESHOLD_SEC;
-}
-
-TBool is_long_press_repeatable() {
-    time_t duration = 0;
-    do {
-        if (duration > STICKY_THRESHOLD_SEC)
-            return duration >= LONG_PRESS_THRESHOLD_SEC;
-        Delay(10);
-        duration += 10;
-    } while (Keypressed);
-
-    InputFlags.KEY_RELEASED = True; // Mark key released only here to avoid double sensing of key press
+    InputFlags.KEY_RELEASED = repeatable;
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
 void define_input_action() {
-    if (InputFlags.KEY_RELEASED && Keypressed) {
+    if (InputFlags.KEY_RELEASED  && Keypressed) {
         InputFlags.KEY_RELEASED = False;
         switch (Key) {
             case KeyRw:
-                if (is_long_press())
+                if (is_long_press(False))
                     comandToHandle = ReviewLong;
                 else
                     comandToHandle = ReviewShort;
                 break;
             case KeySt:
-                if (is_long_press())
+                if (is_long_press(False))
                     comandToHandle = StartLong;
                 else
                     comandToHandle = StartShort;
                 break;
             case KeyBk:
-                if (is_long_press())
+                if (is_long_press(False))
                     comandToHandle = BackLong;
                 else
                     comandToHandle = BackShort;
                 break;
             case KeyDw:
-                if (is_long_press_repeatable())
+                if (is_long_press(True))
                     comandToHandle = DownLong;
                 else
                     comandToHandle = DownShort;
                 break;
             case KeyUp:
-                if (is_long_press_repeatable())
+                if (is_long_press(True))
                     comandToHandle = UpLong;
                 else
                     comandToHandle = UpShort;
                 break;
             case KeyIn:
-                if (is_long_press())
+                if (is_long_press(False))
                     comandToHandle = OkLong;
                 else
                     comandToHandle = OkShort;
                 break;
             case KeyInDw:
                 // TODO: Remove when device fixed or for production
-                if (is_long_press())
+                if (is_long_press(False))
                     comandToHandle = StartLong;
                 else
                     comandToHandle = StartShort;

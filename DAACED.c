@@ -1987,7 +1987,7 @@ void DoPowerOff() {
     LATEbits.LATE6 = 1;
     LATEbits.LATE0 = 0;
     Sleep();
-    InputFlags.KEY_RELEASED = 1;
+    InputFlags.KEY_RELEASED = True;
     PIE0bits.TMR0IE = 1;
     OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
     while (!OSCCON3bits.ORDY); // Wait new oscillator ready
@@ -2240,6 +2240,7 @@ static void interrupt isr(void) {
         PIR0bits.TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;
+            LongPressCount = 0;
         }
         if (AUX_A) { // high is "open"
             InputFlags.A_RELEASED = True;
