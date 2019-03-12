@@ -42,6 +42,8 @@
 #define SWAP(x,y)               { x = x + y; y = x - y; x = x - y;}
 #define UNUSED(x)               (void)(x)
 #define ABS(x)                  ((x<0)?-x:x)
+#define MIN(x,y)                ((x<y)?x:y)
+#define MAX(x,y)                ((x<y)?y:x)
 
 #define LCD_CS_SELECT()         (LATFbits.LF3 = 0)
 #define LCD_CS_DESELECT()       (LATFbits.LF3 = 1)

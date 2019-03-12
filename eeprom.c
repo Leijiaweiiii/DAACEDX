@@ -139,40 +139,25 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
     EEPROM_CS_DESELECT();
 }
 
-void eeprom_clear_block_bulk(uint16_t start_address, uint16_t size) {
-    // Split range to pages.
-    uint16_t first_page_write_size = EEPROM_RES_SIZE(start_address);
-    uint16_t last_page_write_size = EEPROM_RES_SIZE(start_address + size);
-    uint16_t last_write_addr = start_address + size;
-    last_write_addr -= last_page_write_size;
-
-    eeprom_write_const_data_bulk(start_address, 0x00, first_page_write_size);
-
-    for (uint16_t next_write_address = start_address + first_page_write_size;
-            next_write_address < start_address + size;
-            next_write_address += EEPROM_PAGE_SIZE) {
-        eeprom_write_const_data_bulk(next_write_address, 0x00, EEPROM_PAGE_SIZE);
+void eeprom_clear_block_bulk(uint16_t address, uint16_t size) {
+    while(size>0){
+        uint16_t next_write_size = EEPROM_PAGE_SIZE - EEPROM_RES_SIZE(address);
+        next_write_size = MIN(size, next_write_size);
+        eeprom_write_const_data_bulk(address, 0x00, next_write_size);
+        address += next_write_size;
+        size -= next_write_size;
     }
-
-    eeprom_write_const_data_bulk(last_write_addr, 0x00, last_page_write_size);
 }
 
-void eeprom_write_array_bulk(uint16_t start_address, uint8_t * data, uint16_t size) {
-    // Split range to pages.
-    uint16_t first_page_write_size = EEPROM_RES_SIZE(start_address);
-    uint16_t last_page_write_size = EEPROM_RES_SIZE(start_address + size);
-    uint16_t last_write_addr = start_address + size;
-    last_write_addr -= last_page_write_size;
-
-    eeprom_write_data_bulk(start_address, data, first_page_write_size);
-    data += first_page_write_size;
-
-    for (uint16_t a = start_address + first_page_write_size; a < start_address + size; a += EEPROM_PAGE_SIZE) {
-        eeprom_write_data_bulk(a, data, EEPROM_PAGE_SIZE);
-        data += EEPROM_PAGE_SIZE;
+void eeprom_write_array_bulk(uint16_t address, uint8_t * data, uint16_t size) {
+    while(size>0){
+        uint16_t next_write_size = EEPROM_PAGE_SIZE - EEPROM_RES_SIZE(address);
+        next_write_size = MIN(size, next_write_size);
+        eeprom_write_data_bulk(address, data, next_write_size);
+        address += next_write_size;
+        size -= next_write_size;
+        data += next_write_size;
     }
-
-    eeprom_write_const_data_bulk(last_write_addr, data, last_page_write_size);
 }
 
 void eeprom_clear_block(uint16_t start_address, uint16_t size) {

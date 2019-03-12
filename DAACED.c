@@ -258,7 +258,7 @@ void clearHistory() {
 }
 
 void saveSettings() {
-    eeprom_write_array(SettingsStartAddress, Settings.data, SettingsDataSize);
+    eeprom_write_array_bulk(SettingsStartAddress, Settings.data, SettingsDataSize);
 }
 
 void getSettings() {
@@ -295,12 +295,12 @@ void restoreSettingsField(Settings_t * s, void * f, size_t l){
 }
 void saveSettingsField(Settings_t * s, void * f, size_t l) {
     int offset = f - s;
-    eeprom_write_array(SettingsStartAddress + offset, f, l);
+    eeprom_write_array_bulk(SettingsStartAddress + offset, f, l);
 }
 
 void savePar(uint8_t par_index) {
     int offset = &(Settings.ParTime) - (&Settings) + par_index;
-    eeprom_write_array(SettingsStartAddress + offset, Settings.data + offset, sizeof(uint24_t));
+    eeprom_write_array_bulk(SettingsStartAddress + offset, Settings.data + offset, sizeof(uint24_t));
 }
 
 void restorePar() {
