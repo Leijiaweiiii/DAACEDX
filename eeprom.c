@@ -42,10 +42,10 @@ uint8_t eeprom_spi_write(uint8_t data) {
 uint8_t eeprom_spi_write_bulk(uint8_t * data, uint8_t size) {
     uint8_t temp_var = SSP2BUF; // Clear buffer.
     UNUSED(temp_var);           // Suppress warning
-    for (uint8_t i = 0; i<size; i++){
+    while( 0 < size-- ){
         PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
         SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
-        SSP2BUF = data[i];
+        SSP2BUF = *(data++);
         while (SSP2STATbits.BF == 0);
     }
     PIR3bits.SSP2IF = 0; // clear interrupt flag bit
@@ -55,7 +55,7 @@ uint8_t eeprom_spi_write_bulk(uint8_t * data, uint8_t size) {
 uint8_t eeprom_spi_write_bulk_const(uint8_t data, uint8_t size) {
     uint8_t temp_var = SSP2BUF; // Clear buffer.
     UNUSED(temp_var);           // Suppress warning
-    for (uint8_t i = 0; i<size; i++){
+    while( 0 < size-- ){
         PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
         SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
         SSP2BUF = data;
