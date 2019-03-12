@@ -102,7 +102,6 @@ void decrement_menu_index(SettingsMenu_t * s) {
         s->page = ItemToPage(s->menu);
     } else Beep();
     s->redraw |= (oldPage != s->page);
-
 }
 
 void increment_menu_index(SettingsMenu_t * s) {

@@ -435,7 +435,7 @@ TBool checkShotStringEmpty(uint8_t offset) {
 
 void print_delay(char * str, const char * prefix){
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: sprintf(str, "%s0.0 ", prefix);
+        case DELAY_MODE_Instant: sprintf(str, "%sINST ", prefix);
             break;
         case DELAY_MODE_Fixed: sprintf(str, "%s3.0 ", prefix);
             break;
@@ -447,7 +447,7 @@ void print_delay(char * str, const char * prefix){
 }
 
 // <editor-fold defaultstate="collapsed" desc="Settings">
-// <editor-fold defaultstate="collapsed" desc="Delay Settings">
+// <editor-fold defaultstate="collapsed" desc="Delay">
 
 void SetCustomDelay() {
     NumberSelection_t n;
@@ -489,6 +489,7 @@ void SetDelay() {
             lcd_clear();
             sprintf(ma.MenuItem[DELAY_MODE_Custom], " Custom %3.1f sec. ",((double)Settings.DelayTime)/1000);
             ma.done = False;
+            Settings.DelayMode = ma.menu;
         }
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {
@@ -1418,8 +1419,8 @@ void SetMicrophone(){
     ma.menu = 0;
     ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, " Microphone ");
-    sprintf(ma.MenuItem[0], " Sensitivity  - %d", Settings.Sensitivity);
-    sprintf(ma.MenuItem[1],  "  Filter - %1.2fs", (float) (Settings.Filter) / 1000);
+    sprintf(ma.MenuItem[0], " Sensitivity  - %d ", Settings.Sensitivity);
+    sprintf(ma.MenuItem[1],  " Filter - %1.2fs ", (float) (Settings.Filter) / 1000);
 
     do {
         DisplaySettings((&ma));
@@ -1566,10 +1567,10 @@ void SetSettingsMenu() {
     } else {
         sprintf(SettingsMenu.MenuItem[1], " Par - Off ");
     }
-    sprintf(SettingsMenu.MenuItem[2], " Buzzer - %dHz %d ",
-            Settings.BuzzerFrequency,
-            Settings.Volume);
-    sprintf(SettingsMenu.MenuItem[3], " Microphone ");
+    sprintf(SettingsMenu.MenuItem[2], " Buzzer - %d %dHz ",
+            Settings.Volume, Settings.BuzzerFrequency);
+    sprintf(SettingsMenu.MenuItem[3], " Microphone - %d %0.2fs ",
+            Settings.Sensitivity, (float) Settings.Filter/1000);
     sprintf(SettingsMenu.MenuItem[4], " Timer Mode - %s ",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[5], " Display ");
