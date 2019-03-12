@@ -1980,8 +1980,8 @@ void DoPowerOff() {
     InputFlags.INITIALIZED = False;
     // Configure interrupt for wakeup
     INT0IE = 1;
-    // Disable RTC interrupt
-    RTC_TIMER_IE = 0;
+    // Enable RTC interrupt
+    RTC_TIMER_IE = 1;
     PORTEbits.RE0 = 0;
     PORTEbits.RE2 = 0;
     PORTEbits.RE6 = 1;
