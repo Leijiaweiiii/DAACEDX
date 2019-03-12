@@ -145,14 +145,14 @@ void tic_2_sec() {
     }
 }
 
-void set_time(uint8_t h, uint8_t m, uint8_t s) {
-    _hour = h;
-    _minute = m;
-}
+//void set_time(uint8_t h, uint8_t m, uint8_t s) {
+//    _hour = h;
+//    _minute = m;
+//}
 
-time_t get_corrected_time_msec() {
-    return rtc_time.unix_time_ms;
-}
+//time_t get_corrected_time_msec() {
+//    return rtc_time.unix_time_ms;
+//}
 
 uint16_t get_ms_corrected() {
     time_t msec = rtc_time_2k_msec;

@@ -45,7 +45,7 @@ uint8_t get_hour();
 uint8_t get_minute();
 void tic_2_sec();
 uint16_t get_ms_corrected();
-time_t get_corrected_time_msec();
-void set_time(uint8_t h, uint8_t m, uint8_t s);
+#define get_corrected_time_msec()   (rtc_time.unix_time_ms)
+#define set_time(h, m)              {_hour=h;_minute=m;}
 uint8_t get_time_source();
 #endif /* RTC_H */

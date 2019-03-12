@@ -1068,7 +1068,7 @@ void SetClock() {
         } while (SettingsNotDone((&ts)));
     }
     if (ts.selected && (h != get_hour() || ts.value != m)) {
-        set_time(h, ts.value, 0);
+        set_time(h, ts.value);
         comandToHandle = TimeChanged;
     }
 }
