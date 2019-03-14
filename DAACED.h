@@ -229,7 +229,7 @@ typedef union {
         uint8_t ParMode; // 5
         uint8_t TotPar; // 1 based      // 6
         uint8_t InputType; // 7
-        uint8_t Sensitivity; // 8
+        uint16_t Sensitivity; // 8
         uint16_t BuzzerFrequency; // 9
         uint16_t BuzzerParDuration; // A
         uint16_t BuzzerStartDuration; // B

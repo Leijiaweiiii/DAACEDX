@@ -1419,6 +1419,7 @@ void SetMicrophone(){
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
         if(ma.selected){
+            lcd_clear();
             switch (ma.menu){
                 case 0:
                     SetSens();
@@ -1431,6 +1432,7 @@ void SetMicrophone(){
                     ma.selected = False;
                     break;
             }
+            lcd_clear();
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -1448,17 +1450,22 @@ void SetDisplay(){
     do {
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
-        switch (ma.menu){
-            case 0:
-                SetBacklight();
-                ma.done = False;
-                ma.selected = False;
-                break;
-            case 1:
-                SetOrientation();
-                ma.done = False;
-                ma.selected = False;
-                break;
+        if(ma.selected){
+            lcd_clear();
+            switch (ma.menu){
+
+                case 0:
+                    SetBacklight();
+                    ma.done = False;
+                    ma.selected = False;
+                    break;
+                case 1:
+                    SetOrientation();
+                    ma.done = False;
+                    ma.selected = False;
+                    break;
+            }
+            lcd_clear();
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -2307,7 +2314,6 @@ void main(void) {
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
     while (True) {
-        frames++;
         //TODO: Integrate watchdog timer
         handle_ui();
     }
