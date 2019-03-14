@@ -2001,7 +2001,6 @@ void DoPowerOn() {
     PIC_init();
     LATEbits.LATE0 = 1;
     initialize_backlight();
-    set_backlight(2);
     spi_init();
     lcd_init();
     lcd_set_orientation();
@@ -2009,20 +2008,19 @@ void DoPowerOn() {
     eeprom_init();
 
     // TODO: Review power on sequence
-    set_backlight(Settings.BackLightLevel);
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
     GIE = 1; // enable global interrupts
     INT0IE = 0; // Disable wakeup interrupt
     init_ms_timer0();
     initialize_rtc_timer();
+    battery_mV = ADC_Read(BATTERY)*BAT_divider;
+    ADC_ENABLE_INTERRUPT_BATTERY;
     getSettings();
     init_bt();
     update_rtc_time();
     timer_idle_last_action_time = rtc_time.sec;
-    battery_mV = 5000;
     InputFlags.INITIALIZED = True;
     print_logo_splash();
-    ADC_ENABLE_INTERRUPT_BATTERY;
 }
 
 void DoCharging() {
@@ -2035,14 +2033,12 @@ void DoCharging() {
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                battery_mV = 5000;
                 break;
             case Complete:
                 LATEbits.LATE0 = 1;
                 lcd_clear();
-                sprintf(msg, "Charged  ");
+                sprintf(msg, "Charged ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                battery_mV = 5000;
                 break;
             case NotCharging:
                 STATE_HANDLE_POWER_OFF();
