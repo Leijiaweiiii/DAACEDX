@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #define LONG_PRESS_THRESHOLD_SEC    1000
-#define STICKY_THRESHOLD            1500
+#define STICKY_THRESHOLD            1200
 
     typedef enum {
         PowerOff = 0,
@@ -24,7 +24,8 @@ extern "C" {
         TimerListening,
         TimerCountdown,
         ReviewScreen,
-        SettingsScreen
+        SettingsScreen,
+        TimerCharging
     } UiState;
 
     UiState ui_state = TimerIdle;
@@ -44,7 +45,8 @@ extern "C" {
         BackLong,
         OkShort,
         OkLong,
-        TimeChanged
+        TimeChanged,
+        ChargerConnected
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 

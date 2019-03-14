@@ -8,6 +8,7 @@ void STATE_HANDLE_TIMER_IDLE()         {ui_state = TimerIdle;StopTimer();}
 void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
 void STATE_HANDLE_SETTINGS_SCREEN()    {ui_state = SettingsScreen;lcd_clear();}
 void STATE_HANDLE_COUNTDOWN()          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
+void STATE_HANDLE_CHARGER()            {ui_state = TimerCharging;lcd_clear();}
 
 
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
@@ -107,14 +108,21 @@ void handle_charger_connected() {
 
 void handle_power_off() {
     if (LATEbits.LATE0 == 1) {
-        lcd_clear();
         // if power is on, turn it off. Then we'll handle all the rest properly
         // Power off will sleep, then if wakeup occured, we'll handle power ON
         DoPowerOff();
-    } else if (comandToHandle == StartLong) {
-        STATE_HANDLE_POWER_ON();
-    } else {
-        DoPowerOff();
+    } else { 
+        switch(comandToHandle){
+            case StartLong:
+                STATE_HANDLE_POWER_ON();
+                break;
+            case ChargerConnected:
+                STATE_HANDLE_CHARGER();
+                break;
+            default:
+                DoPowerOff();
+                break;
+    }
     }
     comandToHandle = None;
 }
@@ -182,6 +190,9 @@ void handle_timer_idle() {
                 InputFlags.FOOTER_CHANGED = True;
             }
             break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            break;
         default:
             //All the rest ignoring
             break;
@@ -235,6 +246,10 @@ void handle_timer_listening() {
             saveShootString();
             STATE_HANDLE_REVIEW_SCREEN();
             break;
+        case ChargerConnected:
+            saveShootString();
+            STATE_HANDLE_CHARGER();
+            break;
         default:
             // All the rest keys handled inside the next handler.
             // As well as shoot events
@@ -253,6 +268,9 @@ void handle_review_screen() {
             break;
         case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
             break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            break;
         default:
             DoReview();
             break;
@@ -267,6 +285,9 @@ void handle_settings_screen() {
         case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
+            break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
             break;
         default:
             DoSettings();
@@ -297,6 +318,9 @@ void handle_countdown() {
             if (Settings.TotPar > 0)
                 StartParTimer();
             PlayStartSound();
+            break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
             break;
         default:
             // All the rest keys handled inside the next handler.
@@ -378,6 +402,8 @@ void define_input_action() {
         }
     }
     define_charger_state();
+    if(charger_state != NotCharging)
+        comandToHandle = ChargerConnected;
     handle_timer_idle_shutdown();
 }
 
@@ -399,7 +425,6 @@ void handle_ui() {
     define_input_action();
     BT_define_action();
     handle_bt_commands();
-    if (charger_state_changed) STATE_HANDLE_POWER_OFF();
     handle_low_battery();
     switch (ui_state) {
         case PowerOff:
@@ -419,6 +444,9 @@ void handle_ui() {
             break;
         case SettingsScreen:
             handle_settings_screen();
+            break;
+        case TimerCharging:
+            DoCharging();
             break;
         default:
             //We should never get here, nothing to do.
