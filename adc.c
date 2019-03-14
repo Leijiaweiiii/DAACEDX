@@ -60,9 +60,9 @@ int comp (const void * elem1, const void * elem2)
 //    return median_v;
 //}
 
-TBool AdcDetect(){
-    return ADC_MIDDLE_VALUE - cma_n>ADC_DETECTION_THRESHOLD;
-}
+//TBool AdcDetect(){
+//    return ADC_MIDDLE_VALUE - cma_n>ADC_DETECTION_THRESHOLD;
+//}
 
 uint16_t MeanValue(){
     uint16_t avg = 0;

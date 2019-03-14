@@ -26,17 +26,18 @@ void ADC_init();
 uint16_t ADC_Read(char selectedADC);
 uint16_t ADC_Read_average(char selectedADC);
 
-#define ADC_BUFFER_SIZE             7
-#define ADC_MID_BUFFER              4
+#define ADC_BUFFER_SIZE             2
+//#define ADC_MID_BUFFER              4
 
 uint16_t samples[ADC_BUFFER_SIZE];
-uint8_t head_index = 0;
-#define ADC_MIFDDLE_INDEX           ((head_index+ADC_MID_BUFFER)%ADC_BUFFER_SIZE)
-#define ADC_INC_HEAD_INDEX          {head_index = (head_index + 1)%ADC_BUFFER_SIZE;}
-#define ADC_BUFFER_PUT(x)           {samples[head_index] = x;}
-#define ADC_MIDDLE_VALUE            (samples[ADC_MIFDDLE_INDEX])
-#define ADC_LATEST_VALUE            (samples[head_index])
-#define ADC_DETECTION_THRESHOLD     200
+#define head_index                  0
+//#define ADC_MIFDDLE_INDEX           ((head_index+ADC_MID_BUFFER)%ADC_BUFFER_SIZE)
+//#define ADC_INC_HEAD_INDEX          {head_index = (head_index + 1)%ADC_BUFFER_SIZE;}
+#define ADC_BUFFER_PUT(x)           {samples[head_index] = samples[head_index + 1]; samples[head_index+1] = x;}
+//#define ADC_MIDDLE_VALUE            (samples[ADC_MIFDDLE_INDEX])
+#define ADC_LATEST_VALUE            (samples[head_index + 1])
+#define ADC_PREV_VALUE            (samples[head_index])
+//#define ADC_DETECTION_THRESHOLD     200
 #define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
 
 TBool AdcDetect();

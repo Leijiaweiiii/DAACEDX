@@ -236,7 +236,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
             if (Settings.InputType == INPUT_TYPE_Microphone && !(GO_nDONE)) {
                 if (!InputFlags.ADC_DETECTED) {
                     InputFlags.ADC_DETECTED = 1;
-                    samples[head_index] = ADC_SAMPLE_REG_16_BIT;
+                    ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
                     DetectMicShot();
                     ADCON0bits.ADGO = 1;
                 }
@@ -761,7 +761,7 @@ void SetSens() {//Sensitivity
     strcpy(s.MenuTitle, "Sensitivity");
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
-    s.max = 200;
+    s.max = 1024;
     s.min = 10;
     s.value = Settings.Sensitivity;
     s.old_value = Settings.Sensitivity;
@@ -1833,19 +1833,22 @@ void DoReview() {
 
 void DetectInit(void) {
     uint16_t Mean = 0;
-    uint16_t Peak = 0;
+    uint16_t Max = 0;
     uint16_t ADCvalue;
 
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
+            ADC_DISABLE_INTERRUPT;
             for (uint8_t i = 0; i < 64; i++) {
                 ADCvalue = ADC_Read(ENVELOPE);
                 Mean += ADCvalue;
-                if (Peak < ADCvalue) Peak = ADCvalue;
+                if (Max < ADCvalue) Max = ADCvalue;
             }
             Mean = Mean >> 6;
-            //    DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
-            DetectThreshold = Mean + Settings.Sensitivity;
+//                DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
+//            DetectThreshold = Mean + Settings.Sensitivity;
+            DetectThreshold = Settings.Sensitivity;
+            DetectSlopeThreshold = Settings.Sensitivity - Max;
             ADC_ENABLE_INTERRUPT_ENVELOPE;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -2186,47 +2189,47 @@ void check_timer_max_time() {
 }
 
 void update_screen_model() {
-    if (ui_state == TimerListening) {
-        switch (Settings.InputType) {
-            case INPUT_TYPE_A_or_B_multiple:
-                if (InputFlags.A_RELEASED && !AUX_A) {
-                    InputFlags.A_RELEASED = 0;
+    if (ui_state != TimerListening) return;
+    switch (Settings.InputType) {
+        case INPUT_TYPE_A_or_B_multiple:
+            if (InputFlags.A_RELEASED && !AUX_A) {
+                InputFlags.A_RELEASED = 0;
+                UpdateShotNow(A);
+            }
+            if (InputFlags.B_RELEASED && !AUX_B) {
+                InputFlags.B_RELEASED = 0;
+                UpdateShotNow(B);
+            }
+            break;
+        case INPUT_TYPE_A_and_B_single:
+            if (InputFlags.A_RELEASED && !AUX_A) {
+                InputFlags.A_RELEASED = 0;
+                if (ShootString.TotShoots == 0 || ShootString.shots[0].is_b) {
                     UpdateShotNow(A);
                 }
-                if (InputFlags.B_RELEASED && !AUX_B) {
-                    InputFlags.B_RELEASED = 0;
+            }
+            if (InputFlags.B_RELEASED && !AUX_B) {
+                InputFlags.B_RELEASED = 0;
+                if (ShootString.TotShoots == 0 || ShootString.shots[0].is_a) {
                     UpdateShotNow(B);
                 }
-                break;
-            case INPUT_TYPE_A_and_B_single:
-                if (InputFlags.A_RELEASED && !AUX_A) {
-                    InputFlags.A_RELEASED = 0;
-                    if (ShootString.TotShoots == 0 || ShootString.shots[0].is_b) {
-                        UpdateShotNow(A);
-                    }
-                }
-                if (InputFlags.B_RELEASED && !AUX_B) {
-                    InputFlags.B_RELEASED = 0;
-                    if (ShootString.TotShoots == 0 || ShootString.shots[0].is_a) {
-                        UpdateShotNow(B);
-                    }
-                }
-                if (ShootString.TotShoots == 2) timerEventToHandle = TimerTimeout;
-                break;
-        }
+            }
+            if (ShootString.TotShoots == 2) timerEventToHandle = TimerTimeout;
+            break;
     }
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 void DetectMicShot() {
-    if (ui_state == TimerListening) {
-        if (ADC_LATEST_VALUE > DetectThreshold) {
-            UpdateShotNow(Mic);
-        }
-    }
+    int diff = ADC_LATEST_VALUE - ADC_PREV_VALUE;
+    if (ui_state != TimerListening) return;
+    if (diff <= DetectSlopeThreshold) return; // Detect raise only
+    if (ADC_LATEST_VALUE < DetectThreshold) return; // only if greater than threshold
+    UpdateShotNow(Mic);
 }
 
+volatile uint8_t adcint_cnt = 0;
 static void interrupt isr(void) {
 
     if (PIR0bits.TMR0IF) {
@@ -2247,15 +2250,19 @@ static void interrupt isr(void) {
         InputFlags.ADC_DETECTED = 0;
     } 
     if (PIR1bits.ADIF) {
+        PIR1bits.ADIF = 0;
         if (ADPCH == ENVELOPE) {
-            ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-            DetectMicShot();
+            adcint_cnt++;
+            if( (adcint_cnt & 3) == 0){
+                ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
+                DetectMicShot();
+            }
         } else if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             battery_mV = min(adc_battery*BAT_divider, battery_mV);
+            ADC_DISABLE_INTERRUPT;
         }
-        PIR1bits.ADIF = 0;
     } 
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
@@ -2300,6 +2307,7 @@ void main(void) {
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
     while (True) {
+        frames++;
         //TODO: Integrate watchdog timer
         handle_ui();
     }

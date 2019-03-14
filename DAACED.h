@@ -174,10 +174,11 @@ uint8_t CurShootString; //Currently displayed string number 0..29
 #define DELAY_MODE_Custom 3
 
 #define DETECT_THRESHOLD_LEVELS 13
-#define DEFAULT_SENSITIVITY     70
+#define DEFAULT_SENSITIVITY     590
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
 uint16_t DetectThreshold;
+int16_t DetectSlopeThreshold;
 time_t countdown_start_time;
 
 #define MAXPAR 20
