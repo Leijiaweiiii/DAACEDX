@@ -139,8 +139,6 @@ void initialize_backlight() {
 
 void set_backlight(uint8_t level) {
     uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 1;
-    if (current_backlight == duty_cycle)
-        return;
     PWM6CONbits.EN = 0;
     if (duty_cycle == 0) {
         LATEbits.LATE6 = 1;
@@ -158,7 +156,6 @@ void set_backlight(uint8_t level) {
     } else if (duty_cycle == 100) {
         LATEbits.LATE6 = 0;
     }
-    current_backlight = duty_cycle;
 }
 
 uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_t *selectedPrescalar) {
@@ -593,23 +590,29 @@ void SetPar(SettingsMenu_t * m) {
 
 void SetBacklight() {//PWM Backlight
     NumberSelection_t b;
+    uint8_t tmpVal = Settings.BackLightLevel;
     strcpy(b.MenuTitle, "Backlight ");
     b.max = 9;
     b.min = 0;
     b.step = 1;
-    b.value = Settings.BackLightLevel;
+    b.value = tmpVal;
     b.old_value = b.value;
     b.format = "%u";
     b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        set_backlight(b.value);
+        if(b.value - Settings.BackLightLevel){
+            set_backlight(b.value);
+            Settings.BackLightLevel = b.value;
+        }
     } while (SettingsNotDone((&b)));
 
     if (b.selected && b.value != b.old_value) {
         Settings.BackLightLevel = b.value;
         saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
+    } else {
+        Settings.BackLightLevel = b.old_value;
     }
     set_backlight(Settings.BackLightLevel);
 }

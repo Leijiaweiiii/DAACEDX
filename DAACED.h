@@ -43,7 +43,6 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Backlight PWM functions">
-uint8_t current_backlight; // used to track power consumption
 void initialize_backlight();
 void set_backlight(uint8_t duty_cycle);
 uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_t *selectedPrescalar);

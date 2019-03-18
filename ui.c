@@ -133,14 +133,14 @@ void handle_timer_idle_shutdown() {
     time_t inactive_time;
     if (comandToHandle != None) {
         timer_idle_last_action_time = rtc_time.sec;
+        set_backlight(Settings.BackLightLevel);
+        return;
     }
     inactive_time = rtc_time.sec - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
         STATE_HANDLE_POWER_OFF();
     } else if (inactive_time > timer_idle_dim_timeout) {
         set_backlight(0);
-    } else {
-        set_backlight(Settings.BackLightLevel);
     }
 }
 
