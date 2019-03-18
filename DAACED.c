@@ -87,7 +87,6 @@
 #include "random.h"
 // </editor-fold>
 
-
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
 
 void PIC_init(void) {
@@ -268,6 +267,7 @@ void getSettings() {
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
     Settings.Sensitivity = DEFAULT_SENSITIVITY;
+    Settings.Slope = DEFAULT_SLOPE;
     Settings.Filter = 80; // ms
     Settings.AR_IS.Autostart = 1; // on
     Settings.AR_IS.AutoRotate = 0; // Off
@@ -779,6 +779,30 @@ void SetSens() {//Sensitivity
     }
 }
 
+void SetSlope() {//Sensitivity
+    NumberSelection_t s;
+    InitSettingsNumberDefaults((&s));
+    //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
+    strcpy(s.MenuTitle, "Slope");
+    //    s.max = DETECT_THRESHOLD_LEVELS;
+    //    s.min = 1;
+    s.max = 1024;
+    s.min = 10;
+    s.value = Settings.Slope;
+    s.old_value = Settings.Slope;
+    s.step = 1;
+    s.format = "%d";
+    do {
+        DisplayInteger(&s);
+        SelectInteger(&s);
+    } while (SettingsNotDone((&s)));
+    if (s.selected) {
+        Settings.Slope = s.value;
+        if (s.value != s.old_value) {
+            saveSettingsField(&Settings, &(Settings.Slope), 2);
+        }
+    }
+}
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Filter">
 
@@ -1407,13 +1431,18 @@ void handle_bt_commands() {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Microphone">
-void SetMicrophone(){
-    InitSettingsMenuDefaults((&ma));
-    ma.menu = 0;
-    ma.TotalMenuItems = 2;
+void fillMicrophoneMenu(){
+    ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], " Sensitivity  - %d ", Settings.Sensitivity);
     sprintf(ma.MenuItem[1],  " Filter - %1.2fs ", (float) (Settings.Filter) / 1000);
+    sprintf(ma.MenuItem[2],  " Slope - %d ", Settings.Slope);
+}
+
+void SetMicrophone(){
+    InitSettingsMenuDefaults((&ma));
+    ma.menu = 0;
+    fillMicrophoneMenu();
 
     do {
         DisplaySettings((&ma));
@@ -1423,16 +1452,18 @@ void SetMicrophone(){
             switch (ma.menu){
                 case 0:
                     SetSens();
-                    ma.done = False;
-                    ma.selected = False;
                     break;
                 case 1:
                     SetFilter();
-                    ma.done = False;
-                    ma.selected = False;
+                    break;
+                case 3:
+                    SetSlope();
                     break;
             }
             lcd_clear();
+            ma.done = False;
+            ma.selected = False;
+            fillMicrophoneMenu();
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -1855,7 +1886,7 @@ void DetectInit(void) {
 //                DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
 //            DetectThreshold = Mean + Settings.Sensitivity;
             DetectThreshold = Settings.Sensitivity;
-            DetectSlopeThreshold = Settings.Sensitivity - Max;
+            DetectSlopeThreshold = Settings.Slope;
             ADC_ENABLE_INTERRUPT_ENVELOPE;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;

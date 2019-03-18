@@ -175,6 +175,7 @@ uint8_t CurShootString; //Currently displayed string number 0..29
 
 #define DETECT_THRESHOLD_LEVELS 13
 #define DEFAULT_SENSITIVITY     590
+#define DEFAULT_SLOPE           200
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
 uint16_t DetectThreshold;
@@ -207,7 +208,7 @@ extern const char * par_mode_header_names[];
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
 // size of Settings fields + custom par + auto par
-#define SettingsDataSize            (0x108)
+#define SettingsDataSize            (0x108 + 2)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -230,6 +231,7 @@ typedef union {
         uint8_t TotPar; // 1 based      // 6
         uint8_t InputType; // 7
         uint16_t Sensitivity; // 8
+        uint16_t Slope;
         uint16_t BuzzerFrequency; // 9
         uint16_t BuzzerParDuration; // A
         uint16_t BuzzerStartDuration; // B
