@@ -649,7 +649,7 @@ void SetVolume() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
     if (Settings.Volume > 3) Settings.Volume = 3;
-    strcpy(b.MenuTitle, "Volume");
+    strcpy(b.MenuTitle, "Set Volume");
     b.min = 0;
     b.max = 3;
     b.step = 1;
@@ -758,7 +758,7 @@ void SetSens() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
     //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
-    strcpy(s.MenuTitle, "Sensitivity");
+    strcpy(s.MenuTitle, "Set Sensitivity");
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
     s.max = 1024;
@@ -783,7 +783,7 @@ void SetSlope() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
     //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
-    strcpy(s.MenuTitle, "Slope");
+    strcpy(s.MenuTitle, "Set Slope");
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
     s.max = 1024;
@@ -809,7 +809,7 @@ void SetSlope() {//Sensitivity
 void SetFilter() {
     if (Settings.Filter > 100) Settings.Filter = 100;
     NumberSelection_t f;
-    strcpy(f.MenuTitle, "Filter");
+    strcpy(f.MenuTitle, "Set Filter");
     f.fmin = 0.02;
     f.fmax = 0.12;
     f.fstep = 0.01;
@@ -833,7 +833,7 @@ void SetAutoStart() {
     TBool orgset;
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, "Autostart");
+    strcpy(ma.MenuTitle, "Auto Start");
     strcpy(ma.MenuItem[0], " Auto Start OFF ");
     strcpy(ma.MenuItem[1], " Auto Start ON ");
     orgset = AutoStart;
@@ -1023,7 +1023,7 @@ void SetMode() {
     uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 10;
-    strcpy(ma.MenuTitle, "Timer Mode");
+    strcpy(ma.MenuTitle, "Select Mode");
     for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
         strcpy(ma.MenuItem[i], par_mode_menu_names[i]);
     }
@@ -1065,7 +1065,7 @@ void SetClock() {
     ts.value = h;
     ts.old_value = ts.value;
     ts.step = 1;
-    strcpy(ts.MenuTitle, " Clock");
+    strcpy(ts.MenuTitle, "Set Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
     set_screen_title(ts.MenuTitle);
     do {
@@ -1156,7 +1156,7 @@ TBool SetCustomCountDown() {
     uint8_t minute, second;
     char msg[16];
     InitSettingsNumberDefaults((&ts));
-    strcpy(ts.MenuTitle, "Custom Count");
+    strcpy(ts.MenuTitle, "Set Time");
 
     // in seconds
     ts.value = Settings.CustomCDtime;
@@ -1190,7 +1190,7 @@ TBool SetCustomCountDown() {
 void SetCountDown() {
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 3;
-    strcpy(ma.MenuTitle, "Countdown");
+    strcpy(ma.MenuTitle, "Set Countdown");
     strcpy(ma.MenuItem[0], " 3 minutes ");
     strcpy(ma.MenuItem[1], " 5 minutes ");
     strcpy(ma.MenuItem[2], " Custom ");
@@ -1240,7 +1240,7 @@ void SetOrientation() {
 void SetInput() {
     uint8_t orgset;
     InitSettingsMenuDefaults((&ma));
-    strcpy(ma.MenuTitle, "Input Source");
+    strcpy(ma.MenuTitle, "Select Source");
     strcpy(ma.MenuItem[INPUT_TYPE_Microphone], " Microphone ");
     strcpy(ma.MenuItem[INPUT_TYPE_A_or_B_multiple], " A or B (multiple) ");
     strcpy(ma.MenuItem[INPUT_TYPE_A_and_B_single], " A and B (single) ");
@@ -1274,7 +1274,7 @@ void init_bt() {
 void SetAutoPowerOff() {
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, "Auto Off");
+    strcpy(ma.MenuTitle, "Auto Power-Off");
     strcpy(ma.MenuItem[SMTH_DISABLED], "Disabled");
     strcpy(ma.MenuItem[SMTH_ENABLED], "Enabled");
     ma.menu = Settings.AR_IS.AutoPowerOff;
@@ -1292,7 +1292,7 @@ void SetAutoPowerOff() {
 void BlueTooth() {
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, "Bluetooth");
+    strcpy(ma.MenuTitle, "Set Bluetooth");
     strcpy(ma.MenuItem[SMTH_DISABLED], "Disabled");
     strcpy(ma.MenuItem[SMTH_ENABLED], "Enabled");
     ma.menu = Settings.AR_IS.BT;
@@ -1474,7 +1474,7 @@ void SetDisplay(){
     InitSettingsMenuDefaults((&ma));
     ma.menu = 0;
     ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, " Display ");
+    strcpy(ma.MenuTitle, "Set Display ");
     strcpy(ma.MenuItem[0], " Backlight ");
     strcpy(ma.MenuItem[1],  "  Orientation  ");
 
