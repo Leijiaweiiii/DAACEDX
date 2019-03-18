@@ -281,9 +281,9 @@ void getDefaultSettings() {
     Settings.BackLightLevel = 1; // Most dimmed visible
     Settings.TotPar = 0; // Par Off
     Settings.ParMode = ParMode_Regular;
-    CurPar_idx = 0;
-    for (uint8_t i = 0; i < MAXPAR; i++) {
-        Settings.ParTime[i] = 0;
+    CurPar_idx = MAXPAR;
+    while (CurPar_idx > 0) {
+        Settings.ParTime[CurPar_idx--] = 0.0;
     }
 }
 void restoreSettingsField(Settings_t * s, void * f, size_t l){
@@ -496,7 +496,7 @@ TBool EditPar(uint8_t par_index) {
     NumberSelection_t b;
     b.fmin = 0.1;
     b.fmax = 99.9;
-    b.fvalue = (float) (Settings.ParTime[par_index]) / 1000;
+    b.fvalue = Settings.ParTime[par_index];
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index);
     b.fstep = 0.01;
@@ -508,7 +508,7 @@ TBool EditPar(uint8_t par_index) {
         SelectDouble(&b);
     } while (SettingsNotDone((&b)));
     if (b.selected) {
-        Settings.ParTime[par_index] = (long) (b.fvalue * 1000);
+        Settings.ParTime[par_index] = b.fvalue;
         savePar(par_index);
     }
     return b.selected;
@@ -517,7 +517,7 @@ TBool EditPar(uint8_t par_index) {
 void FillParSettings(SettingsMenu_t * m) {
     uint8_t i = 0;
     for (i = 0; i < Settings.TotPar; i++) {
-        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, (float) (Settings.ParTime[i]) / 1000);
+        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, Settings.ParTime[i]);
     }
     if (i < MAXPAR)
         strcpy(m->MenuItem[i], "Add ");
@@ -529,10 +529,9 @@ void FillParSettings(SettingsMenu_t * m) {
 }
 
 void clear_par() {
-    for (uint8_t i = 0; i < Settings.TotPar; i++) {
-        Settings.ParTime[i] = 0;
+    while (0 < Settings.TotPar) {
+        Settings.ParTime[Settings.TotPar--] = 0.0;
     }
-    Settings.TotPar = 0;
 }
 
 void HandleParMenuSelection(SettingsMenu_t * m) {
@@ -545,20 +544,19 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             if (m->menu < MAXPAR) {
                 TBool res = False;
 
-                Settings.ParTime[Settings.TotPar] = 1000; // Default setting 1 second
+                Settings.ParTime[Settings.TotPar] = 1.0; // Default setting 1 second
                 res = EditPar(Settings.TotPar);
                 if (res) { // Roll back if not selected
                     Settings.TotPar++;
                     m->menu++;
                 } else {
-                    Settings.ParTime[Settings.TotPar] = 0;
+                    Settings.ParTime[Settings.TotPar] = 0.0;
                 }
             }
         } else if (m->menu == (m->TotalMenuItems - 2)) {
             // Delete last PAR
             if (Settings.TotPar > 0) {
-                Settings.TotPar--;
-                Settings.ParTime[Settings.TotPar] = 0;
+                Settings.ParTime[Settings.TotPar--] = 0.0;
                 m->menu--;
             }
         } else if (m->menu == (m->TotalMenuItems - 1)) {
@@ -858,81 +856,81 @@ void SetAutoStart() {
 
 void fill_par_bianci() {
     Settings.TotPar = 12;
-    Settings.ParTime[0] = 3000;
-    Settings.ParTime[1] = 4000;
-    Settings.ParTime[2] = 8000;
-    Settings.ParTime[3] = 4000;
-    Settings.ParTime[4] = 5000;
-    Settings.ParTime[5] = 6000;
-    Settings.ParTime[6] = 5000;
-    Settings.ParTime[7] = 6000;
-    Settings.ParTime[8] = 7000;
-    Settings.ParTime[9] = 7000;
-    Settings.ParTime[10] = 10000;
-    Settings.ParTime[11] = 15000;
+    Settings.ParTime[0] = 3.000;
+    Settings.ParTime[1] = 4.000;
+    Settings.ParTime[2] = 8.000;
+    Settings.ParTime[3] = 4.000;
+    Settings.ParTime[4] = 5.000;
+    Settings.ParTime[5] = 6.000;
+    Settings.ParTime[6] = 5.000;
+    Settings.ParTime[7] = 6.000;
+    Settings.ParTime[8] = 7.000;
+    Settings.ParTime[9] = 7.000;
+    Settings.ParTime[10] = 10.000;
+    Settings.ParTime[11] = 15.000;
 }
 
 void fill_par_barricade() {
     Settings.TotPar = 8;
-    Settings.ParTime[0] = 5000;
-    Settings.ParTime[1] = 5000;
-    Settings.ParTime[2] = 6000;
-    Settings.ParTime[3] = 6000;
-    Settings.ParTime[4] = 7000;
-    Settings.ParTime[5] = 7000;
-    Settings.ParTime[6] = 8000;
-    Settings.ParTime[7] = 8000;
+    Settings.ParTime[0] = 5.000;
+    Settings.ParTime[1] = 5.000;
+    Settings.ParTime[2] = 6.000;
+    Settings.ParTime[3] = 6.000;
+    Settings.ParTime[4] = 7.000;
+    Settings.ParTime[5] = 7.000;
+    Settings.ParTime[6] = 8.000;
+    Settings.ParTime[7] = 8.000;
 }
 
 void fill_par_falling_plate() {
     Settings.TotPar = 8;
-    Settings.ParTime[0] = 6000;
-    Settings.ParTime[1] = 6000;
-    Settings.ParTime[2] = 7000;
-    Settings.ParTime[3] = 7000;
-    Settings.ParTime[4] = 8000;
-    Settings.ParTime[5] = 8000;
-    Settings.ParTime[6] = 9000;
-    Settings.ParTime[7] = 9000;
+    Settings.ParTime[0] = 6.000;
+    Settings.ParTime[1] = 6.000;
+    Settings.ParTime[2] = 7.000;
+    Settings.ParTime[3] = 7.000;
+    Settings.ParTime[4] = 8.000;
+    Settings.ParTime[5] = 8.000;
+    Settings.ParTime[6] = 9.000;
+    Settings.ParTime[7] = 9.000;
 }
 
 int fill_par_moving_target() {
     for (uint8_t i = 0; i < 12; i++) {
-        Settings.ParTime[i] = 6000;
+        Settings.ParTime[i] = 6.000;
     }
 }
 
 void fill_par_nra_ppc_a() {
     Settings.TotPar = 4;
-    Settings.ParTime[0] = 20000;
-    Settings.ParTime[1] = 90000;
-    Settings.ParTime[2] = 165000;
-    Settings.ParTime[3] = 12000;
+    Settings.ParTime[0] = 20.000;
+    Settings.ParTime[1] = 90.000;
+    Settings.ParTime[2] = 16.5000;
+    Settings.ParTime[3] = 12.000;
 }
 
 void fill_par_nra_ppc_b() {
     Settings.TotPar = 5;
-    Settings.ParTime[0] = 20000;
-    Settings.ParTime[1] = 12000;
-    Settings.ParTime[2] = 90000;
-    Settings.ParTime[3] = 12000;
-    Settings.ParTime[4] = 120000;
+    Settings.ParTime[0] = 20.000;
+    Settings.ParTime[1] = 12.000;
+    Settings.ParTime[2] = 90.000;
+    Settings.ParTime[3] = 12.000;
+    Settings.ParTime[4] = 12.0000;
 }
 
 void fill_par_nra_ppc_c() {
     Settings.TotPar = 4;
-    Settings.ParTime[0] = 20000;
-    Settings.ParTime[1] = 90000;
-    Settings.ParTime[2] = 12000;
-    Settings.ParTime[3] = 165000;
+    Settings.ParTime[0] = 20.000;
+    Settings.ParTime[1] = 90.000;
+    Settings.ParTime[2] = 12.000;
+    Settings.ParTime[3] = 16.5000;
 }
 
 void fill_par_nra_ppc_d() {
     Settings.TotPar = 4;
-    Settings.ParTime[0] = 8000;
-    Settings.ParTime[1] = 20000;
-    Settings.ParTime[2] = 20000;
-    Settings.ParTime[3] = 90000;
+    Settings.ParTime[0] = 8.000;
+    Settings.ParTime[1] = 20.000;
+    Settings.ParTime[2] = 20.000;
+    Settings.ParTime[3] = 90.000;
 }
 // </editor-fold>
 
@@ -941,12 +939,11 @@ void set_par_mode(int m) {
     restoreSettingsField(&Settings, &(Settings.Volume), 1);
     restoreSettingsField(&Settings, &(Settings.Sensitivity), 2);
     switch (m) {
-        case ParMode_Regular:
-            CurPar_idx = 0; // Intentially fall-through
-            restorePar();
-            break;
         case ParMode_Silent:
-            Settings.Volume = 0;
+            Settings.Volume = 0; // Intentional fall-through
+        case ParMode_Regular:
+            CurPar_idx = 0;
+            restorePar();
             break;
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
@@ -1038,7 +1035,6 @@ void SetMode() {
         DisplaySettings((&ma));
         SelectMenuItemCircular((&ma));
         if(ma.selected && ma.done && ma.menu == ParMode_CUSTOM){
-            // TODO: Allocate EEPROM for custom PAR
             restorePar();
             lcd_clear();
             SetPar(&mx);
@@ -1321,7 +1317,7 @@ void bt_set_par() {
         par_time = strtol(*endp + 1, endp, 10);
         // Par time between 1ms and 99000ms
         if (par_time > 0 && par_time < 99901) {
-            Settings.ParTime[par_idx - 1] = par_time;
+            Settings.ParTime[par_idx - 1] = (float) par_time / 1000;
             Settings.TotPar = par_idx;
             savePar(par_idx);
             saveSettingsField(&Settings, &(Settings.TotPar), 1);
@@ -1368,7 +1364,7 @@ void bt_get_pars() {
     char msg[16];
     if (Settings.TotPar > 0) {
         for (uint8_t i = 0; i < Settings.TotPar; i++) {
-            length = sprintf(msg, "%d,%d\n", i + 1, Settings.ParTime[i]);
+            length = sprintf(msg, "%d,%u\n", i + 1, (long)(Settings.ParTime[i] * 1000));
             sendString(msg, length);
         }
     } else {
@@ -1381,7 +1377,7 @@ void handle_bt_commands() {
     char msg[16];
     switch (BT_COMMAND) {
         case BT_SendVersion:
-            length = sprintf(msg, "%d\n", Settings.version);
+            length = sprintf(msg, "%u\n", Settings.version);
             sendString(msg, length);
             break;
         case BT_StartTimer:
@@ -1477,9 +1473,9 @@ void SetDisplay(){
     InitSettingsMenuDefaults((&ma));
     ma.menu = 0;
     ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, "Set Display ");
-    strcpy(ma.MenuItem[0], " Backlight ");
-    strcpy(ma.MenuItem[1],  "  Orientation  ");
+    sprintf(ma.MenuTitle, "Set Display ");
+    sprintf(ma.MenuItem[0], " Backlight - %d ", Settings.BackLightLevel);
+    sprintf(ma.MenuItem[1],  "  Orientation  ");
 
     do {
         DisplaySettings((&ma));
@@ -1487,9 +1483,9 @@ void SetDisplay(){
         if(ma.selected){
             lcd_clear();
             switch (ma.menu){
-
                 case 0:
                     SetBacklight();
+                    sprintf(ma.MenuItem[0], " Backlight - %d ", Settings.BackLightLevel);
                     ma.done = False;
                     ma.selected = False;
                     break;
@@ -1597,7 +1593,7 @@ void SetSettingsMenu() {
         sprintf(SettingsMenu.MenuItem[1],
                 " Par - %d 1st: %3.2f ",
                 Settings.TotPar,
-                (float) Settings.ParTime[CurPar_idx] / 1000);
+                Settings.ParTime[CurPar_idx]);
     } else {
         sprintf(SettingsMenu.MenuItem[1], " Par - Off ");
     }
@@ -1978,7 +1974,7 @@ void print_footer() {
     print_label_at_footer_grid(message, 0, 1);
 
     if (Settings.TotPar > 0 && CurPar_idx < Settings.TotPar) {
-        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, (float) Settings.ParTime[CurPar_idx] / 1000);
+        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
     } else {
         sprintf(message, "Par: Off");
     }
@@ -1996,7 +1992,7 @@ void StartListenShots(void) {
 // <editor-fold defaultstate="collapsed" desc="Power functions">
 
 void DoPowerOff() {
-//    lcd_clear();
+    lcd_clear(); // Remove remaining picture on power on
     lcd_sleep();
     PWM6CONbits.EN = 0; // Disale PWM
     T2CONbits.ON = 0;
@@ -2084,7 +2080,7 @@ void DoCharging() {
 // <editor-fold defaultstate="collapsed" desc="Service functions">
 
 void PlayParSound() {
-    sendSignal("PAR", Settings.BuzzerParDuration, Settings.ParTime[CurPar_idx]);
+    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -2209,8 +2205,10 @@ void increment_par() {
 
 void check_par_expired() {
     if (ParNowCounting) {
+        long par_ms = (long)(Settings.ParTime[CurPar_idx] * 1000);
         update_rtc_time();
-        if (rtc_time.unix_time_ms - parStartTime_ms > Settings.ParTime[CurPar_idx]) {
+        
+        if (rtc_time.unix_time_ms - parStartTime_ms > par_ms) {
             ParNowCounting = false;
             timerEventToHandle = ParEvent;
         }
@@ -2327,7 +2325,6 @@ static void interrupt isr(void) {
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     DoPowerOn();
-    ei();
     getSettings();
     if (Settings.version != FW_VERSION) {
         clearHistory();
@@ -2335,7 +2332,6 @@ void main(void) {
         saveSettings();
     }
     set_backlight(Settings.BackLightLevel);
-    set_par_mode(Settings.ParMode);
     // Initialization End
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Main">

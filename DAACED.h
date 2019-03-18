@@ -228,6 +228,7 @@ typedef union {
         uint8_t Filter; // 4
         uint8_t ParMode; // 5
         uint8_t TotPar; // 1 based      // 6
+        uint8_t TotParBak;
         uint8_t InputType; // 7
         uint16_t Sensitivity; // 8
         uint16_t Slope;
@@ -236,8 +237,8 @@ typedef union {
         uint16_t BuzzerStartDuration; // B
         time_t DelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
-        uint24_t ParTime[MAXPAR]; //in 1mS unit
-        uint24_t CustomParTime[MAXPAR]; //in 1mS unit
+        float ParTime[MAXPAR]; //in decimal seconds unit
+        uint24_t ParBackup[MAXPAR]; //in 1mS unit
         AutoPar_t AutoPar[MAXPAR];
     };
 } Settings_t;
