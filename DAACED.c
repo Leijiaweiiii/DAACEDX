@@ -620,13 +620,13 @@ void SetBeepFreq() {
     uint24_t tmp;
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b))
-    b.min = 800;
+    b.min = 1000;
     b.max = 3000;
     b.value = Settings.BuzzerFrequency;
     b.old_value = b.value;
     tmp = b.value;
-    strcpy(b.MenuTitle, "  Tone");
-    b.step = 100;
+    strcpy(b.MenuTitle, "Set Frequency");
+    b.step = 500;
     b.format = "%dHz";
     do {
         DisplayInteger(&b);
