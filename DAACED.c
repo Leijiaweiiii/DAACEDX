@@ -987,13 +987,13 @@ void set_par_mode(int m) {
 
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
     " Normal Timer ",
-    " Silent Mode",
-    " Spy Mode",
-    " Repetitive Mode",
+    " Silent Mode ",
+    " Spy Mode ",
+    " Repetitive Mode ",
     " Custom ",
     " Bianchi: Practical ",
     " Bianchi: Barricade ",
-    " Bianchi: Falling Plate",
+    " Bianchi: Falling Plate ",
     " Bianchi: Moving Targ. ",
     " NRA-PPC: A ",
     " NRA-PPC: B ",
@@ -1003,26 +1003,26 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
 };
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
-    "   Timer",
-    "  Silent",
-    " Spy Mode",
-    " Repetitive",
-    "   Custom ",
-    "  Practical",
-    "  Barricade",
+    "Timer",
+    "Silent",
+    "Spy Mode",
+    "Repetitive",
+    "Custom",
+    "Practical",
+    "Barricade",
     "Falling Plate",
     "Moving Targ",
-    " NRA-PPC A ",
-    " NRA-PPC B ",
-    " NRA-PPC C ",
-    " NRA-PPC D ",
-    " Auto Par "
+    "NRA-PPC A",
+    "NRA-PPC B",
+    "NRA-PPC C",
+    "NRA-PPC D",
+    "Auto Par"
 };
 
 void SetMode() {
     uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults((&ma));
-    ma.TotalMenuItems = 10;
+    ma.TotalMenuItems = TOT_PAR_MODES;
     strcpy(ma.MenuTitle, "Select Mode");
     for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
         strcpy(ma.MenuItem[i], par_mode_menu_names[i]);
@@ -1587,7 +1587,7 @@ void SetSettingsMenu() {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
     char tmpStr[16];
     SettingsMenu.TotalMenuItems = 15;
-    sprintf(SettingsMenu.MenuTitle, " Settings ");
+    sprintf(SettingsMenu.MenuTitle, "Settings ");
 
     print_delay(SettingsMenu.MenuItem[0], " Delay - ");
     if (Settings.TotPar > 0) {
@@ -1602,7 +1602,7 @@ void SetSettingsMenu() {
             Settings.Volume, Settings.BuzzerFrequency);
     sprintf(SettingsMenu.MenuItem[3], " Microphone - %d %0.2fs ",
             Settings.Sensitivity, (float) Settings.Filter/1000);
-    sprintf(SettingsMenu.MenuItem[4], " Timer Mode - %s ",
+    sprintf(SettingsMenu.MenuItem[4], " Mode - %s ",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[5], " Display ");
     sprintf(SettingsMenu.MenuItem[6], " Countdown ");
@@ -1634,8 +1634,6 @@ void SetSettingsMenu() {
 }
 
 void DoSettings(void) {
-    set_screen_title("Settings");
-
     InitSettingsMenuDefaults((&SettingsMenu));
     SetSettingsMenu();
     lcd_clear();

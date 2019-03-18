@@ -148,13 +148,13 @@ void handle_timer_idle() {
     if (Settings.ParMode == ParMode_Regular) {
         switch (Settings.InputType) {
             case INPUT_TYPE_Microphone:
-                set_screen_title("       Mic ");
+                set_screen_title("      Mic ");
                 break;
             case INPUT_TYPE_A_and_B_single:
-                set_screen_title(" A+B single ");
+                set_screen_title("A+B single ");
                 break;
             case INPUT_TYPE_A_or_B_multiple:
-                set_screen_title(" A/B multi ");
+                set_screen_title("A/B multi ");
                 break;
         }
     } else {
