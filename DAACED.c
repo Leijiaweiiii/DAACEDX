@@ -936,7 +936,7 @@ void fill_par_nra_ppc_d() {
 void set_par_mode(int m) {
     // Draw back from destructive modes
     restoreSettingsField(&Settings, &(Settings.Volume), 1);
-    restoreSettingsField(&Settings, &(Settings.Sensitivity), 1);
+    restoreSettingsField(&Settings, &(Settings.Sensitivity), 2);
     switch (m) {
         case ParMode_Regular:
             CurPar_idx = 0; // Intentially fall-through
