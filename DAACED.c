@@ -1455,7 +1455,7 @@ void SetMicrophone(){
                 case 1:
                     SetFilter();
                     break;
-                case 3:
+                case 2:
                     SetSlope();
                     break;
             }
