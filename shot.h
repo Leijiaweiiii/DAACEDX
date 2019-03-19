@@ -12,7 +12,8 @@
 extern "C" {
 #endif
 #define MAXSHOOTSTRINGS              (30)
-#define MAXSHOOT                     (100)
+#define MAX_REGISTERED_SHOTS        (250)
+#define MAX_SAVED_SHOTS             (100)
 #define Size_of_ShootString         (402)
 #define SIZE_OF_SHOT_T              (4)
 typedef union {
@@ -26,8 +27,7 @@ typedef union {
                 unsigned is_mic : 1;
                 unsigned is_a : 1;
                 unsigned is_b : 1;
-                unsigned ov : 1;// The overflow shot
-                unsigned unused : 4;
+                unsigned unused : 5;
             };
         };
         uint24_t dt;
@@ -41,7 +41,7 @@ typedef union {
         uint8_t latest;
         uint8_t TotShoots; //Total shoots in current string
 
-        shot_t shots[MAXSHOOT]; //in 1mS unit
+        shot_t shots[MAX_REGISTERED_SHOTS]; //in 1mS unit
     };
 } ShootString_t;
 

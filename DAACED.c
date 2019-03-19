@@ -371,24 +371,6 @@ void saveOneShot(uint8_t shot_number) {
 //    eeprom_read_array(addr, &(test0.data), SIZE_OF_SHOT_T);
 }
 
-uint8_t last_saved_shot;
-
-void save_shots_if_required() {
-    uint8_t const_shots;
-    const_shots = ShootString.TotShoots; // TotShots changed in the interrupt, so let's save it here for the calculation
-    UNUSED(const_shots); // trick for compiler not to optimize this variable and put it in RAM
-    if (last_saved_shot < const_shots) {
-        do {
-            saveOneShot(last_saved_shot);
-            sendOneShot(last_saved_shot, &(ShootString.shots[last_saved_shot]));
-            last_saved_shot++;
-        } while (last_saved_shot < const_shots);
-    } else if (ShootString.shots[last_saved_shot - 1].ov) {
-        saveOneShot(last_saved_shot - 1);
-        sendOneShot(last_saved_shot - 1, &(ShootString.shots[last_saved_shot - 1]));
-    }
-}
-
 void send_all_shots() {
     for (uint8_t shot = 0; shot < ShootString.TotShoots; shot++) {
         sendOneShot(shot, &(ShootString.shots[shot]));
@@ -1983,7 +1965,6 @@ void print_footer() {
 }
 
 void StartListenShots(void) {
-    last_saved_shot = 0;
     ShootString_start_time = rtc_time.unix_time_ms;
     DetectInit();
 }
@@ -2171,15 +2152,13 @@ void UpdateShot(time_t now, ShotInput_t input) {
     ddt = dt - ddt;
     //Don't count shoots less than Filter
     if (ddt > Settings.Filter) {
-        if (ShootString.TotShoots < MAXSHOOT) {
+        if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
             ShootString.shots[ShootString.TotShoots].dt = dt;
             ShootString.shots[ShootString.TotShoots].is_flags = input;
             ShootString.TotShoots++;
         } else {
-            
             ShootString.shots[index].dt = dt;
             ShootString.shots[index].is_flags = input;
-            ShootString.shots[index].ov = 1;
         }
         InputFlags.FOOTER_CHANGED = True;
     }
