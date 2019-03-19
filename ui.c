@@ -64,8 +64,6 @@ void update_shot_time_on_screen() {
     print_big_time_label(t);
 }
 
-uint8_t old_time_str_len = 0;
-
 void print_big_time_label(const uint24_t t) {
     char message[16];
     float tf;
