@@ -56,11 +56,9 @@ void print_shot_origin(const shot_t * s) {
 
 void update_shot_time_on_screen() {
     uint24_t t = 0;
-    if (ShootString.TotShoots > 0) {
-        uint8_t index = ShootString.TotShoots - 1;
-        t = ShootString.shots[index].dt;
-        print_shot_origin(&(ShootString.shots[index]));
-    }
+    uint8_t index = get_shot_index_in_arr(top_shot_index());
+    t = ShootString.shots[index].dt;
+    print_shot_origin(&(ShootString.shots[index]));
     print_big_time_label(t);
 }
 

@@ -160,10 +160,11 @@ time_t timer_idle_last_action_time;
 ShootString_t ShootString;
 time_t ShootString_start_time;
 
+ShootString_t ReviewString;
 #define MAX_MEASUREMENT_TIME    999000
-uint8_t CurShoot; //The current shoot of the displayed string
+uint8_t TopShotIndex; //The current shoot of the displayed string
 uint8_t CurShootString; //Currently displayed string number 0..29
-
+uint8_t ReviewTopShotDefault;
 #define SHOTS_ON_REVIEW_SCREEN      3
 
 
@@ -266,8 +267,6 @@ uint8_t print_header(TBool hide_time);
 void print_footer();
 uint8_t print_title(TBool hide_time);
 void handle_rotation();
-void UpdateShot(time_t now, ShotInput_t input);
-void UpdateShotNow(ShotInput_t x);
 void DoAdcGraph();
 void DoDiagnostics();
 void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uint8_t grid_y);
@@ -281,4 +280,6 @@ void DetectMicShot();
 void handle_bt_commands();
 void set_par_mode(int m);
 void increment_par();
+uint8_t top_shot_index();
+
 #endif /*  _DAACED_H_ */

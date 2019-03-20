@@ -14,8 +14,11 @@ extern "C" {
 #define MAXSHOOTSTRINGS              (30)
 #define MAX_REGISTERED_SHOTS        (250)
 #define MAX_SAVED_SHOTS             (100)
-#define Size_of_ShootString         (402)
-#define SIZE_OF_SHOT_T              (4)
+
+#define SIZE_OF_SHOT_T              (5)
+#define Size_of_ShootString         (2 + SIZE_OF_SHOT_T * (MAX_SAVED_SHOTS))
+uint8_t get_shot_index_in_arr( uint8_t x);
+
 typedef union {
     uint8_t data[SIZE_OF_SHOT_T];
 
@@ -30,6 +33,7 @@ typedef union {
                 unsigned unused : 5;
             };
         };
+        uint8_t sn;
         uint24_t dt;
     };
 } shot_t;
@@ -40,8 +44,7 @@ typedef union {
     struct {
         uint8_t latest;
         uint8_t TotShoots; //Total shoots in current string
-
-        shot_t shots[MAX_REGISTERED_SHOTS]; //in 1mS unit
+        shot_t shots[MAX_SAVED_SHOTS]; //in 1mS unit
     };
 } ShootString_t;
 
