@@ -1,0 +1,22 @@
+ #0123456789SplitAB.+singleMicmultiLowBatteryPleaseChargePleaseWaitINSTRNDShots-:String<>stDelayParOffOnChargingCharged
+CustomDelaysInstantFixedsec.RandomCustomParSettingsAddMaxParreachedDeleteLastAllParSettingsBacklightSetFrequencyHzSetVolume
+ParStartDurationsFrequencyHzTestBeepBuzzerSensitivitySlopeFilterAutoStartONOFF
+Normal Timer
+Silent Mode
+Spy Mode
+Repetitive Mode
+Custom
+Bianchi: Practical
+Bianchi: Barricade
+Bianchi: Falling Plate
+Bianchi: Moving Targ.
+NRA-PPC: A
+NRA-PPC: B
+NRA-PPC: C
+NRA-PPC: D
+Auto Par
+SelectModeSetClockTimeCountdownminutesCustomOrientationUprightUpside-DownAuto
+SelectSourceMicrophoneAorB(multiple)single
+AutoPoerOffEnabledDisabledBluetoSensitivityFilterSlopeoth
+DisplayBacklightOrientationYesNoResetHistoryClear
+SettingsDelatParBuzzerMicroModeDisplayCountdownAutostartONOFFClockInputphoneFWversion:

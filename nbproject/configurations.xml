@@ -51,6 +51,7 @@
       <itemPath>Makefile</itemPath>
       <itemPath>MyConfig.mc3</itemPath>
     </logicalFolder>
+    <itemPath>Strings.lst.txt</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>.</Elem>
