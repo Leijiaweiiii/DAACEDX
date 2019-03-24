@@ -325,12 +325,6 @@ void lcd_set_orientation() {
         case ORIENTATION_INVERTED:
             setOrientationInverted();
             break;
-        case ORIENTATION_AUTO:
-            if(OrientationSensor == ORIENTATION_NORMAL)
-                setOrientationNormal();
-            else
-                setOrientationInverted();
-            break;
         default:
             // Do nothing, it's an error state
             break;

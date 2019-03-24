@@ -1245,11 +1245,10 @@ void SetCountDown() {
 
 void SetOrientation() {
     InitSettingsMenuDefaults((&ma));
-    ma.TotalMenuItems = 3;
+    ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, "Orientation");
     strcpy(ma.MenuItem[ORIENTATION_NORMAL], "Upright");
     strcpy(ma.MenuItem[ORIENTATION_INVERTED], "Upside-down");
-    strcpy(ma.MenuItem[ORIENTATION_AUTO], "Auto");
     ma.menu = Orientation;
 
     do {
