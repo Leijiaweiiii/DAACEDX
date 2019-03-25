@@ -2,7 +2,7 @@
 #define RTC_H
 #include "xc.h"
 #include "DAACEDcommon.h"
-#include <time.h>
+
 
 #define RTC_TIMER_IE    (PIE5bits.TMR1IE)
 #define RTC_TIMER_IF    (PIR5bits.TMR1IF)

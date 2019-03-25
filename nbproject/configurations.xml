@@ -20,6 +20,7 @@
       <itemPath>eeprom.h</itemPath>
       <itemPath>random.h</itemPath>
       <itemPath>shot.h</itemPath>
+      <itemPath>sinus.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -44,6 +45,7 @@
       <itemPath>eeprom.c</itemPath>
       <itemPath>daaced_logo.c</itemPath>
       <itemPath>random.c</itemPath>
+      <itemPath>sinus.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

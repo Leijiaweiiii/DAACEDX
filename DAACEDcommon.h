@@ -11,6 +11,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include <time.h>
 
 #define FW_VERSION (0x23)
 // <editor-fold defaultstate="collapsed" desc="General">

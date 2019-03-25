@@ -204,43 +204,18 @@ uint8_t find_set_bit_position(uint8_t n) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
-uint8_t sinus_table[3][32] = {
-    {0x8, 0x8, 0x8, 0x7, 0x7, 0x6, 0x6, 0x5, 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x2, 0x3, 0x4, 0x5, 0x6, 0x6, 0x7, 0x7, 0x8, 0x8},
-    {0x10, 0x10, 0xF, 0xF, 0xE, 0xC, 0xB, 0xA, 0x8, 0x6, 0x5, 0x4, 0x2, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x1, 0x2, 0x4, 0x5, 0x6, 0x8, 0xA, 0xB, 0xC, 0xE, 0xF, 0xF, 0x10},
-    {0x1F, 0x1F, 0x1E, 0x1C, 0x1A, 0x18, 0x15, 0x13, 0x10, 0xC, 0xA, 0x7, 0x5, 0x3, 0x1, 0x0, 0x0, 0x0, 0x1, 0x3, 0x5, 0x7, 0xA, 0xC, 0x10, 0x13, 0x15, 0x18, 0x1A, 0x1C, 0x1E, 0x1F}
-};
 
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
-    float sinus_time_period_us = (1000000UL / (frequency * 2));
-    uint32_t sinus_sample_update_period_us = (uint32_t) (sinus_time_period_us / 57.0); ///32.0)+0.5f);
-    int32_t no_of_cycles = ((int32_t) duration * 580) / sinus_time_period_us; //1000
-
+    uint8_t findex = frequency/100;
     // Don't beep ever in silent modes
-    if (Settings.ParMode == ParMode_Silent
-            || Settings.ParMode == ParMode_Spy) return; 
-    ADC_DISABLE_INTERRUPT;
-    if (amplitude != 0) sinus_dac_init();
-
-    //TODO: Stop sound when button pressed
-    while (no_of_cycles--) {
-        for (uint8_t count = 0; count < 32; count++) {
-            // it's wrong for amplitude == 0, but the DAC disabled for Amplitude == 0, so it's not a problem
-            dac_value = sinus_table[amplitude - 1][count];
-            DAC1CON1 = dac_value;
-            for (uint16_t delay = 0; delay < sinus_sample_update_period_us; delay++)
-                __delay_us(1);
-            if (Settings.InputType == INPUT_TYPE_Microphone && !(GO_nDONE)) {
-                if (!InputFlags.ADC_DETECTED) {
-                    InputFlags.ADC_DETECTED = 1;
-                    ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-                    DetectMicShot();
-                    ADCON0bits.ADGO = 1;
-                }
-            }
-        }
-    }
-    stop_sinus();
-    ADC_ENABLE_INTERRUPT_ENVELOPE;
+    if (Settings.ParMode == ParMode_Silent) return;
+    if (Settings.ParMode == ParMode_Spy) return;
+    if (amplitude == 0) return;
+    amplitude_index = amplitude - 1;
+    sinus_dac_init();
+    sinus_duration_timer_init(duration);
+    sinus_value_timer_init(findex);
+    beep_start = rtc_time.unix_time_ms;
 }
 
 // </editor-fold>
@@ -644,24 +619,92 @@ void SetBacklight() {//PWM Backlight
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Buzzer">
+void SetPre() {
+    uint24_t tmp;
+    NumberSelection_t b;
+    InitSettingsNumberDefaults((&b))
+    b.min = 0;
+    b.max = 5;
+    b.value = 2;
+    b.old_value = b.value;
+    tmp = b.value;
+    strcpy(b.MenuTitle, "Set Prescaler");
+    b.step = 1;
+    b.format = "%d";
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+        if (b.value != tmp) {
+            generate_sinus(1, 0, 1000);
+            tmp = b.value;
+            sinus_s[0].PRE = tmp;
+        }
+    } while (SettingsNotDone((&b)));
+}
+
+void SetPos() {
+    uint24_t tmp;
+    NumberSelection_t b;
+    InitSettingsNumberDefaults((&b))
+    b.min = 1;
+    b.max = 16;
+    b.value = 5;
+    b.old_value = b.value;
+    tmp = b.value;
+    strcpy(b.MenuTitle, "Set Postscale");
+    b.step = 1;
+    b.format = "%d";
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+        if (b.value != tmp) {
+            generate_sinus(1, 0, 1000);
+            tmp = b.value;
+            sinus_s[0].POS = tmp;
+        }
+    } while (SettingsNotDone((&b)));
+}
+
+void SetPR() {
+    uint24_t tmp;
+    NumberSelection_t b;
+    InitSettingsNumberDefaults((&b))
+    b.min = 1;
+    b.max = 255;
+    b.value = 150;
+    b.old_value = b.value;
+    tmp = b.value;
+    strcpy(b.MenuTitle, "Set PR");
+    b.step = 1;
+    b.format = "%d";
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+        if (b.value != tmp) {
+            generate_sinus(1, 0, 1000);
+            tmp = b.value;
+            sinus_s[0].PR = tmp;
+        }
+    } while (SettingsNotDone((&b)));
+}
 
 void SetBeepFreq() {
     uint24_t tmp;
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b))
-    b.min = 1000;
+    b.min = 800;
     b.max = 3000;
     b.value = Settings.BuzzerFrequency;
     b.old_value = b.value;
     tmp = b.value;
     strcpy(b.MenuTitle, "Set Frequency");
-    b.step = 500;
+    b.step = 100;
     b.format = "%dHz";
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
         if (b.value != tmp) {
-            generate_sinus(1, b.value, 50);
+            generate_sinus(1, b.value, 1000);
             tmp = b.value;
         }
     } while (SettingsNotDone((&b)));
@@ -2296,7 +2339,16 @@ void DetectMicShot() {
 
 volatile uint8_t adcint_cnt = 0;
 static void interrupt isr(void) {
-
+    // sinus value interrupt
+    if (PIR5bits.TMR4IF){
+        PIR5bits.TMR4IF = 0;
+        sinus_value_expired();
+    }
+    // sinus duration interrupt
+    if (PIR5bits.TMR8IF){
+        PIR5bits.TMR8IF = 0;
+        sinus_duration_expired();
+    }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean
