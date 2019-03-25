@@ -1161,7 +1161,7 @@ const FONT_CHAR_INFO patuaOne_22ptDescriptors[] =
 const FONT_INFO patuaOne_22ptFontInfo =
 {
 	27, /*  Character height */
-    2,  /* Character Spacing */
+    0,  /* Character Spacing */
 	' ', /*  Start character */
 	'z', /*  End character */
 	patuaOne_22ptDescriptors, /*  Character descriptor array */
