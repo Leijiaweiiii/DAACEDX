@@ -40,17 +40,18 @@ void print_shot_origin(const shot_t * s) {
                 BLACK_OVER_WHITE
                 );
         lcd_clear_block(3, y_pos + MediumFont->height, 35, y_pos + 2 * MediumFont->height);
-    } else if (s->is_b) {
+        return;
+    }
+    if (s->is_b) {
         lcd_clear_block(3, y_pos, 35, y_pos + MediumFont->height);
-        y_pos += MediumFont->height;
-        if (s->is_b) {
-            lcd_write_string(
-                    "B",
-                    3,
-                    y_pos, MediumFont,
-                    BLACK_OVER_WHITE
-                    );
-        }
+        lcd_write_string(
+                "B",
+                3,
+                y_pos + MediumFont->height,
+                MediumFont,
+                BLACK_OVER_WHITE
+                );
+        return;
     }
 }
 
