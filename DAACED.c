@@ -704,7 +704,7 @@ void SetBeepFreq() {
         DisplayInteger(&b);
         SelectInteger(&b);
         if (b.value != tmp) {
-            generate_sinus(1, b.value, 1000);
+            generate_sinus(1, b.value, 50);
             tmp = b.value;
         }
     } while (SettingsNotDone((&b)));
