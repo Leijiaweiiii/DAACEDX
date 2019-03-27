@@ -260,6 +260,10 @@ void getDefaultSettings() {
     while (CurPar_idx > 0) {
         Settings.ParTime[CurPar_idx--] = 0.0;
     }
+    // TODO: Define proper defaults
+    Settings.RepetitiveEdgeTime = 5000;
+    Settings.RepetitiveFaceTime = 4000;
+    Settings.RepetitiveRepeat = 5;
 }
 void restoreSettingsField(Settings_t * s, void * f, size_t l){
     int offset = f - s;
@@ -744,7 +748,7 @@ void SetVolume() {
         }
     }
 }
-
+#define SEC_FIELD_DISPLAY_FORMAT    " %1.2fs "
 void SetBeepTime(TBool Par) {
     NumberSelection_t d;
     // Space optimization
@@ -762,7 +766,7 @@ void SetBeepTime(TBool Par) {
     d.fstep = 0.050;
     d.fold_value = d.fvalue;
     d.done = False;
-    d.format = " %1.2fs ";
+    d.format = SEC_FIELD_DISPLAY_FORMAT;
     do {
         DisplayDouble(&d);
         SelectDouble(&d);
@@ -1004,7 +1008,7 @@ void fill_par_nra_ppc_d() {
     Settings.ParTime[3] = 90.000;
 }
 // </editor-fold>
-
+// <editor-fold defaultstate="collapsed" desc="Par Mode">
 void set_par_mode(int m) {
     // Draw back from destructive modes
     restoreSettingsField(&Settings, &(Settings.Volume), 1);
@@ -1089,7 +1093,115 @@ const char * par_mode_header_names[TOT_PAR_MODES] = {
     "NRA-PPC D",
     "Auto Par"
 };
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Repetitive Mode">
+void SetFaceTime() {
+    NumberSelection_t b;
+    InitSettingsNumberDefaults((&b));
+    strcpy(b.MenuTitle, "Set Face");
+    b.fmin = 0.1;
+    b.fmax = 99.9;
+    b.fstep = 0.01;
+    b.format = SEC_FIELD_DISPLAY_FORMAT;
+    b.fvalue = (float) Settings.RepetitiveFaceTime / 1000;
+    b.fold_value = b.fvalue;
+    do {
+        DisplayInteger(&b);
+        SelectDouble(&b);
+    } while (SettingsNotDone((&b)));
+    if (b.selected) {
+        Settings.RepetitiveFaceTime = (uint16_t)(b.fvalue * 1000);
+        if (b.fvalue != b.fold_value) {
+            saveSettingsField(&Settings, &(Settings.RepetitiveFaceTime), 2);
+        }
+    }
+}
 
+void SetEdgeTime() {
+    NumberSelection_t b;
+    InitSettingsNumberDefaults((&b));
+    strcpy(b.MenuTitle, "Set Edge Time");
+    b.fmin = 0.1;
+    b.fmax = 99.9;
+    b.fstep = 0.01;
+    b.format = SEC_FIELD_DISPLAY_FORMAT;
+    b.fvalue = (float) Settings.RepetitiveEdgeTime / 1000;
+    b.fold_value = b.fvalue;
+    do {
+        DisplayInteger(&b);
+        SelectDouble(&b);
+    } while (SettingsNotDone((&b)));
+    if (b.selected) {
+        Settings.RepetitiveEdgeTime = (uint16_t)(b.fvalue * 1000);
+        if (b.fvalue != b.fold_value) {
+            saveSettingsField(&Settings, &(Settings.RepetitiveEdgeTime), 2);
+        }
+    }
+}
+
+void SetRepeat() {
+    NumberSelection_t b;
+    InitSettingsNumberDefaults((&b));
+    strcpy(b.MenuTitle, "Set Repeat");
+    b.min = 1;
+    b.max = 99;
+    b.step = 1;
+    b.format = " %u ";
+    b.value = Settings.RepetitiveRepeat;
+    b.old_value = b.value;
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+    } while (SettingsNotDone((&b)));
+    if (b.selected) {
+        Settings.RepetitiveRepeat = b.value;
+        if (b.value != b.old_value) {
+            saveSettingsField(&Settings, &(Settings.RepetitiveRepeat), 1);
+        }
+    }
+}
+
+#define FACE_IDX        0
+#define EDGE_IDX        1
+#define REPEAT_IDX      2
+void setRepetitiveMenu(){
+    strcpy(mx.MenuTitle, "Repetitive Mode ");
+    mx.TotalMenuItems = 3;
+    sprintf(mx.MenuItem[FACE_IDX]," Face - %1.2fs ", (float) Settings.RepetitiveFaceTime / 1000);
+    sprintf(mx.MenuItem[EDGE_IDX]," Edge - %1.2fs ", (float) Settings.RepetitiveEdgeTime / 1000);
+    sprintf(mx.MenuItem[REPEAT_IDX]," Repeat - %d ", Settings.RepetitiveRepeat);
+}
+void SetRepetitiveMode(){
+    InitSettingsMenuDefaults((&mx));
+    do {
+        setBuzzerMenu();
+        DisplaySettings((&mx));
+        SelectMenuItem((&mx));
+        if (mx.selected) {
+            lcd_clear();
+            switch (mx.menu) {
+                case FACE_IDX:
+                    SetFaceTime();
+                    break;
+                case EDGE_IDX:
+                    SetEdgeTime();
+                    break;
+                case REPEAT_IDX:
+                    SetRepeat();
+                    break;
+                case 3:
+                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+                    break;
+            }
+            // Here we want it done only when back pressed
+            // i.e. not selected and done
+            mx.done = False;
+            mx.selected = False;
+            lcd_clear();
+        }
+    } while (SettingsNotDone((&mx)));
+}
+// </editor-fold>
 void SetMode() {
     uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults((&ma));
@@ -1105,12 +1217,21 @@ void SetMode() {
     do {
         DisplaySettings((&ma));
         SelectMenuItemCircular((&ma));
-        if(ma.selected && ma.done && ma.menu == ParMode_CUSTOM){
-            restorePar();
-            lcd_clear();
-            SetPar(&mx);
-            ma.selected = False;
-            ma.done = False;
+        if(ma.selected && ma.done){
+            switch (ma.menu){
+                case ParMode_CUSTOM:
+                    restorePar();
+                    lcd_clear();
+                    SetPar(&mx);
+                    ma.selected = False;
+                    ma.done = False;
+                    break;
+                case ParMode_Repetitive:
+                    SetRepetitiveMode();
+                    ma.selected = False;
+                    ma.done = False;
+                    break;
+            }
         }
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {

@@ -196,7 +196,7 @@ extern const char * par_mode_header_names[];
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
 // size of Settings fields + custom par + auto par
-#define SettingsDataSize            (0x108 + 2)
+#define SettingsDataSize            (0x108 + 2 + 5)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -224,6 +224,9 @@ typedef union {
         uint16_t BuzzerFrequency; // 9
         uint16_t BuzzerParDuration; // A
         uint16_t BuzzerStartDuration; // B
+        uint16_t RepetitiveFaceTime;
+        uint16_t RepetitiveEdgeTime;
+        uint8_t RepetitiveRepeat;
         time_t DelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
         float ParTime[MAXPAR]; //in decimal seconds unit
