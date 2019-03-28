@@ -2458,7 +2458,6 @@ void DetectMicShot() {
     UpdateShotNow(Mic);
 }
 
-volatile uint8_t adcint_cnt = 0;
 static void interrupt isr(void) {
     // sinus value interrupt
     if (PIR5bits.TMR4IF){
@@ -2490,11 +2489,8 @@ static void interrupt isr(void) {
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
         if (ADPCH == ENVELOPE) {
-            adcint_cnt++;
-            if( (adcint_cnt & 3) == 0){
-                ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-                DetectMicShot();
-            }
+            ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
+            DetectMicShot();
         } else if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
