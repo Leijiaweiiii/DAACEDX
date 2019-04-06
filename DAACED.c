@@ -2291,8 +2291,7 @@ void DoCharging() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Service functions">
 
-void PlayParSound() {
-    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
+void StartPlayParSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -2300,16 +2299,10 @@ void PlayParSound() {
         LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
-    if (Settings.InputType == INPUT_TYPE_Microphone) {
-        TRISDbits.TRISD1 = 0;
-        TRISDbits.TRISD2 = 0;
-        LATDbits.LATD1 = 0;
-        LATDbits.LATD2 = 0;
-    }
+    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
 }
 
-void PlayStartSound() {
-    sendSignal("START", Settings.BuzzerStartDuration, 0.0);
+void StartPlayStartSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
@@ -2317,12 +2310,7 @@ void PlayStartSound() {
         LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
-    if (Settings.InputType == INPUT_TYPE_Microphone) {
-        TRISDbits.TRISD1 = 0;
-        TRISDbits.TRISD2 = 0;
-        LATDbits.LATD1 = 0;
-        LATDbits.LATD2 = 0;
-    }
+    sendSignal("START", Settings.BuzzerStartDuration, 0.0);
 }
 
 void StartParTimer() {
@@ -2512,6 +2500,15 @@ static void interrupt isr(void) {
     if (PIR5bits.TMR8IF){
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
+        // If we turned off the sound, turn off external sound too
+        if(LATEbits.LATE2 == 0){
+            if (Settings.InputType == INPUT_TYPE_Microphone) {
+                TRISDbits.TRISD1 = 0;
+                TRISDbits.TRISD2 = 0;
+                LATDbits.LATD1 = 0;
+                LATDbits.LATD2 = 0;
+            }
+        }
     }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;

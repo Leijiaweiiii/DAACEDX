@@ -204,7 +204,7 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
-            PlayParSound();
+            StartPlayParSound();
             switch(Settings.ParMode){
                 case ParMode_Regular:
                     if(Settings.TotPar > 0){
@@ -329,7 +329,7 @@ void handle_countdown() {
                         StartParTimer();
                     break;
             }
-            PlayStartSound();
+            StartPlayStartSound();
             break;
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
