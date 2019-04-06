@@ -230,7 +230,7 @@ typedef union {
         time_t DelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
         float ParTime[MAXPAR]; //in decimal seconds unit
-        uint24_t ParBackup[MAXPAR]; //in 1mS unit
+        float ParBackup[MAXPAR]; //in 1mS unit
         AutoPar_t AutoPar[MAXPAR];
     };
 } Settings_t;
