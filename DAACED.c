@@ -1105,7 +1105,7 @@ void SetFaceTime() {
     strcpy(b.MenuTitle, "Set Face");
     b.fmin = 0.1;
     b.fmax = 99.9;
-    b.fstep = 0.01;
+    b.fstep = 0.1;
     b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
     b.fvalue = (float) Settings.RepetitiveFaceTime / 1000;
     b.fold_value = b.fvalue;
