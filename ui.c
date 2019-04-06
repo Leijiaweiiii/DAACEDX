@@ -204,15 +204,23 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
-            if (Settings.TotPar > 0) {
-                if (Settings.ParMode == ParMode_Regular) {
-                    CurPar_idx++;
-                    StartParTimer();
-                } else {
-                    increment_par();
-                }
-            }
             PlayParSound();
+            switch(Settings.ParMode){
+                case ParMode_Regular:
+                    if(Settings.TotPar > 0){
+                        CurPar_idx++;
+                        StartParTimer();
+                    }
+                    break;
+                case ParMode_Repetitive:
+                    ParNowCounting = true;
+                    InputFlags.FOOTER_CHANGED = True;
+                    parStartTime_ms = rtc_time.unix_time_ms;
+                    break;
+                default:
+                    increment_par();
+                    break;
+            }
             break;
             // By default do nothing
     }
@@ -310,9 +318,17 @@ void handle_countdown() {
             ui_state = TimerListening;
             StartListenShots();
             update_shot_time_on_screen();
-            if (Settings.TotPar > 0)
-                StartParTimer();
-
+            switch(Settings.ParMode){
+                case ParMode_Repetitive:
+                    ParNowCounting = true;
+                    InputFlags.FOOTER_CHANGED = True;
+                    parStartTime_ms = rtc_time.unix_time_ms;
+                    break;
+                default:
+                    if (Settings.TotPar > 0)
+                        StartParTimer();
+                    break;
+            }
             PlayStartSound();
             break;
         case ChargerConnected:

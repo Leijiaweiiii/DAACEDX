@@ -236,6 +236,10 @@ typedef union {
 } Settings_t;
 volatile Settings_t Settings;
 
+uint8_t repetitive_counter = 0;
+enum {Face = 0, Edge = 1} repetitive_state;
+uint16_t repetitive_time = 0;
+
 #include "menu.h"
 SettingsMenu_t ma; // Submenu for second level menu
 SettingsMenu_t mx; // Submenu for third level menu

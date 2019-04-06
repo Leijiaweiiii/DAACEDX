@@ -264,6 +264,9 @@ void getDefaultSettings() {
     Settings.RepetitiveEdgeTime = 5000;
     Settings.RepetitiveFaceTime = 4000;
     Settings.RepetitiveRepeat = 5;
+    repetitive_time = Settings.RepetitiveFaceTime;
+    repetitive_state = Face;
+    repetitive_counter = 0;
 }
 void restoreSettingsField(Settings_t * s, void * f, size_t l){
     int offset = f - s;
@@ -749,6 +752,7 @@ void SetVolume() {
     }
 }
 #define SEC_FIELD_DISPLAY_FORMAT    " %1.2fs "
+#define SEC_FIELD_DISPLAY_FORMAT_SHORT    " %1.1fs "
 void SetBeepTime(TBool Par) {
     NumberSelection_t d;
     // Space optimization
@@ -1102,7 +1106,7 @@ void SetFaceTime() {
     b.fmin = 0.1;
     b.fmax = 99.9;
     b.fstep = 0.01;
-    b.format = SEC_FIELD_DISPLAY_FORMAT;
+    b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
     b.fvalue = (float) Settings.RepetitiveFaceTime / 1000;
     b.fold_value = b.fvalue;
     do {
@@ -1123,8 +1127,8 @@ void SetEdgeTime() {
     strcpy(b.MenuTitle, "Set Edge Time");
     b.fmin = 0.1;
     b.fmax = 99.9;
-    b.fstep = 0.01;
-    b.format = SEC_FIELD_DISPLAY_FORMAT;
+    b.fstep = 0.1;
+    b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
     b.fvalue = (float) Settings.RepetitiveEdgeTime / 1000;
     b.fold_value = b.fvalue;
     do {
@@ -1144,7 +1148,7 @@ void SetRepeat() {
     InitSettingsNumberDefaults((&b));
     strcpy(b.MenuTitle, "Set Repeat");
     b.min = 1;
-    b.max = 99;
+    b.max = 10;
     b.step = 1;
     b.format = " %u ";
     b.value = Settings.RepetitiveRepeat;
@@ -1174,7 +1178,7 @@ void setRepetitiveMenu(){
 void SetRepetitiveMode(){
     InitSettingsMenuDefaults((&mx));
     do {
-        setBuzzerMenu();
+        setRepetitiveMenu();
         DisplaySettings((&mx));
         SelectMenuItem((&mx));
         if (mx.selected) {
@@ -1223,13 +1227,10 @@ void SetMode() {
                     restorePar();
                     lcd_clear();
                     SetPar(&mx);
-                    ma.selected = False;
-                    ma.done = False;
                     break;
                 case ParMode_Repetitive:
+                    lcd_clear();
                     SetRepetitiveMode();
-                    ma.selected = False;
-                    ma.done = False;
                     break;
             }
         }
@@ -2169,12 +2170,28 @@ void print_footer() {
     print_delay(message," Delay: ");
     print_label_at_footer_grid(message, 0, 1);
 
-    if (Settings.TotPar > 0 && CurPar_idx < Settings.TotPar) {
-        sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
-    } else {
-        sprintf(message, "Par: Off");
+    switch(Settings.ParMode){
+        case ParMode_Repetitive:
+            if (ui_state == TimerIdle){
+                sprintf(message,"Face%d:%3.1f",
+                    1,
+                    (float) Settings.RepetitiveFaceTime / 1000);
+            } else {
+                sprintf(message,"%s%d:%3.1f",
+                    (repetitive_state==Face)?"Face":"Edge",
+                    repetitive_counter + 1,
+                    (float) repetitive_time / 1000);
+            }
+            break;
+        default:
+            if (Settings.TotPar > 0 && CurPar_idx < Settings.TotPar) {
+                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
+            } else {
+                sprintf(message, "Par: Off");
+            }
+        break;
     }
-    //        sprintf(message, "%d", battery_mV);
+//    sprintf(message, "%u", PORTD&0x7);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -2321,8 +2338,15 @@ void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
     ADC_ENABLE_INTERRUPT_BATTERY; // To get accurate battery readings if someone actively uses timer in Autostart mode
-    if (Settings.ParMode == ParMode_Regular) {
-        CurPar_idx = 0;
+    switch(Settings.ParMode){
+        case ParMode_Regular:
+            CurPar_idx = 0;
+            break;
+        case ParMode_Repetitive:
+            repetitive_counter = 0;
+            repetitive_state = Face;
+            repetitive_time = Settings.RepetitiveFaceTime;
+            break;
     }
     InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
@@ -2385,8 +2409,6 @@ void check_countdown_expired() {
     update_rtc_time();
     if (rtc_time.unix_time_ms - countdown_start_time > Settings.DelayTime) {
         comandToHandle = CountdownExpired;
-    } else {
-        Delay(20);
     }
 }
 
@@ -2401,12 +2423,34 @@ void increment_par() {
 
 void check_par_expired() {
     if (ParNowCounting) {
-        long par_ms = (long)(Settings.ParTime[CurPar_idx] * 1000);
         update_rtc_time();
-        
-        if (rtc_time.unix_time_ms - parStartTime_ms > par_ms) {
-            ParNowCounting = false;
-            timerEventToHandle = ParEvent;
+        switch (Settings.ParMode) {
+            case ParMode_Repetitive:
+                if(rtc_time.unix_time_ms - parStartTime_ms < repetitive_time) break;
+                if(repetitive_counter < Settings.RepetitiveRepeat) {
+                    if(repetitive_state == Face){
+                        repetitive_state = Edge;
+                        repetitive_time = Settings.RepetitiveEdgeTime;
+                    } else {
+                        repetitive_state = Face;
+                        repetitive_time = Settings.RepetitiveFaceTime;
+                        repetitive_counter++;
+                    }
+                    timerEventToHandle = ParEvent;
+                } else {
+                    timerEventToHandle = TimerTimeout;
+                }
+                InputFlags.FOOTER_CHANGED = True;
+                break;
+            default:
+            {
+                long par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
+                if (rtc_time.unix_time_ms - parStartTime_ms > par_ms) {
+                    ParNowCounting = false;
+                    timerEventToHandle = ParEvent;
+                }
+                break;
+            }
         }
     }
 }
