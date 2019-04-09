@@ -204,6 +204,8 @@ void HandleTimerEvents() {
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
+            // turn light ON on PAR sound
+            timer_idle_last_action_time = rtc_time.sec;
             StartPlayParSound();
             switch(Settings.ParMode){
                 case ParMode_Regular:

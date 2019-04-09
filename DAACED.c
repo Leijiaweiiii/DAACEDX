@@ -1193,9 +1193,6 @@ void SetRepetitiveMode(){
                 case REPEAT_IDX:
                     SetRepeat();
                     break;
-                case 3:
-                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
-                    break;
             }
             // Here we want it done only when back pressed
             // i.e. not selected and done
@@ -2425,8 +2422,6 @@ void check_par_expired() {
                         repetitive_counter++;
                     }
                     timerEventToHandle = ParEvent;
-                } else {
-                    timerEventToHandle = TimerTimeout;
                 }
                 InputFlags.FOOTER_CHANGED = True;
                 break;
