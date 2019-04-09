@@ -261,9 +261,9 @@ void getDefaultSettings() {
         Settings.ParTime[CurPar_idx--] = 0.0;
     }
     // TODO: Define proper defaults
-    Settings.RepetitiveEdgeTime = 5000;
-    Settings.RepetitiveFaceTime = 4000;
-    Settings.RepetitiveRepeat = 5;
+    Settings.RepetitiveEdgeTime = 0;
+    Settings.RepetitiveFaceTime = 0;
+    Settings.RepetitiveRepeat = 0;
     repetitive_time = Settings.RepetitiveFaceTime;
     repetitive_state = Face;
     repetitive_counter = 0;
@@ -1103,7 +1103,7 @@ void SetFaceTime() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
     strcpy(b.MenuTitle, "Set Face");
-    b.fmin = 0.1;
+    b.fmin = 0.0;
     b.fmax = 99.9;
     b.fstep = 0.1;
     b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
@@ -1125,7 +1125,7 @@ void SetEdgeTime() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
     strcpy(b.MenuTitle, "Set Edge Time");
-    b.fmin = 0.1;
+    b.fmin = 0.0;
     b.fmax = 99.9;
     b.fstep = 0.1;
     b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
