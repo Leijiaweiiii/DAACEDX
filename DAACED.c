@@ -1813,7 +1813,7 @@ void SetSettingsMenu() {
                 sprintf(SettingsMenu.MenuItem[9], "Input|A+B single");
                 break;
             case INPUT_TYPE_A_or_B_multiple:
-                sprintf(SettingsMenu.MenuItem[9], "Input|A/B multi");
+                sprintf(SettingsMenu.MenuItem[9], "Input|A or B multi");
                 break;
             default:
                 sprintf(SettingsMenu.MenuItem[9], "Input");
