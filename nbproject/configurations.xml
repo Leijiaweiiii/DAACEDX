@@ -54,6 +54,8 @@
       <itemPath>MyConfig.mc3</itemPath>
     </logicalFolder>
     <itemPath>Strings.lst.txt</itemPath>
+    <itemPath>SmnallFontChars.txt</itemPath>
+    <itemPath>MediumFontChars.txt</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>.</Elem>
