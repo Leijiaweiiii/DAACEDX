@@ -33,13 +33,13 @@ extern "C" {
 
             struct {
                 unsigned done           : 1;
-                unsigned redraw         : 1;
+                unsigned changed        : 1;
                 unsigned selected       : 1;
                 unsigned UNUSED         : 6;
             };
         };
     } SettingsMenu_t;
-#define InitSettingsMenuDefaults(m)     {m->done = False;m->menu = 0;m->page = 0;m->selected = False;}
+#define InitSettingsMenuDefaults(m)     {m->done = False;m->menu = 0;m->page = 0;m->selected = False; m->changed = True;}
 #define InitSettingsNumberDefaults(m)   {m->done = False;m->selected = False;}
 #define ItemToPage(x)                   (x/MENU_PAGE_SIZE)
 #define SettingsNotDone(x)              ((!x->done) && ui_state == SettingsScreen)    

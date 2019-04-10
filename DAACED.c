@@ -403,6 +403,7 @@ TBool checkShotStringEmpty(uint8_t offset) {
 }
 // </editor-fold>
 
+// <editor-fold defaultstate="collapsed" desc="Helper functions">
 void print_delay(char * str, const char * prefix){
     switch (Settings.DelayMode) {
         case DELAY_MODE_Instant: sprintf(str, "%sINST", prefix);
@@ -445,6 +446,7 @@ uint8_t get_rev_shot_index_in_arr(uint8_t x, uint8_t totShots){
     
     return get_shot_index_in_arr(x);
 }
+// </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Settings">
 // <editor-fold defaultstate="collapsed" desc="Delay">
@@ -474,10 +476,10 @@ void SetDelay() {
     uint8_t oldValue = Settings.DelayMode;
     InitSettingsMenuDefaults((&ma));
     strcpy(ma.MenuTitle, "Delay");
-    strcpy(ma.MenuItem[DELAY_MODE_Instant], " Instant ");
-    strcpy(ma.MenuItem[DELAY_MODE_Fixed], " Fixed 3.0 sec. ");
-    strcpy(ma.MenuItem[DELAY_MODE_Random], " Random");
-    sprintf(ma.MenuItem[DELAY_MODE_Custom], " Custom %3.1f sec. ",((double)Settings.DelayTime)/1000);
+    strcpy(ma.MenuItem[DELAY_MODE_Instant], "Instant");
+    strcpy(ma.MenuItem[DELAY_MODE_Fixed], "Fixed|3.0 sec.");
+    strcpy(ma.MenuItem[DELAY_MODE_Random], "Random");
+    sprintf(ma.MenuItem[DELAY_MODE_Custom], "Custom|%3.1f sec.",((double)Settings.DelayTime)/1000);
     ma.TotalMenuItems = 4;
     ma.menu = Settings.DelayMode;
 
@@ -487,9 +489,10 @@ void SetDelay() {
         if (ma.done && ma.selected && ma.menu == DELAY_MODE_Custom) {
             SetCustomDelay();
             lcd_clear();
-            sprintf(ma.MenuItem[DELAY_MODE_Custom], " Custom %3.1f sec. ",((double)Settings.DelayTime)/1000);
-            ma.done = False;
+            sprintf(ma.MenuItem[DELAY_MODE_Custom], "Custom|%3.1f sec.",((double)Settings.DelayTime)/1000);
             Settings.DelayMode = ma.menu;
+            ma.changed = True;
+            ma.done = False;
         }
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {
@@ -547,6 +550,7 @@ void clear_par() {
 void HandleParMenuSelection(SettingsMenu_t * m) {
     if (m->selected) {
         m->selected = False;
+        m->changed = True;
         if (m->menu < (m->TotalMenuItems - 3)) {
             EditPar(m->menu);
         } else if (m->menu == (m->TotalMenuItems - 3)) {
@@ -792,9 +796,9 @@ void SetBeepTime(TBool Par) {
 }
 
 void setBuzzerMenu(){
-    sprintf(ma.MenuItem[0], " Frequency - %dHz ", Settings.BuzzerFrequency);
-    sprintf(ma.MenuItem[1], " Volume - %d ", Settings.Volume);
-    sprintf(ma.MenuItem[2], " Par Duration - %1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
+    sprintf(ma.MenuItem[0], " Frequency|%dHz ", Settings.BuzzerFrequency);
+    sprintf(ma.MenuItem[1], " Volume|%d ", Settings.Volume);
+    sprintf(ma.MenuItem[2], " Par Duration|%1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
     strcpy(ma.MenuItem[3], " Test Beep ");
     ma.TotalMenuItems = 4;
 }
@@ -827,6 +831,7 @@ void SetBeep() {
             // i.e. not selected and done
             ma.done = False;
             ma.selected = False;
+            ma.changed = True;
             lcd_clear();
         }
     } while (SettingsNotDone((&ma)));
@@ -1171,9 +1176,9 @@ void SetRepeat() {
 void setRepetitiveMenu(){
     strcpy(mx.MenuTitle, "Repetitive Mode ");
     mx.TotalMenuItems = 3;
-    sprintf(mx.MenuItem[FACE_IDX]," Face - %1.2fs ", (float) Settings.RepetitiveFaceTime / 1000);
-    sprintf(mx.MenuItem[EDGE_IDX]," Edge - %1.2fs ", (float) Settings.RepetitiveEdgeTime / 1000);
-    sprintf(mx.MenuItem[REPEAT_IDX]," Repeat - %d ", Settings.RepetitiveRepeat);
+    sprintf(mx.MenuItem[FACE_IDX],"Face|%1.2fs", (float) Settings.RepetitiveFaceTime / 1000);
+    sprintf(mx.MenuItem[EDGE_IDX],"Edge|%1.2fs", (float) Settings.RepetitiveEdgeTime / 1000);
+    sprintf(mx.MenuItem[REPEAT_IDX],"Repeat|%d", Settings.RepetitiveRepeat);
 }
 void SetRepetitiveMode(){
     InitSettingsMenuDefaults((&mx));
@@ -1230,6 +1235,7 @@ void SetMode() {
                     SetRepetitiveMode();
                     break;
             }
+            ma.changed = True;
         }
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {
@@ -1289,7 +1295,7 @@ void countdown_expired_signal() {
                     Settings.BuzzerFrequency,
                     50
                     );
-            Delay(50);
+            Delay(100);
         }
         if (Keypressed)
             break;
@@ -1380,9 +1386,9 @@ void SetCountDown() {
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, "Set Countdown");
-    strcpy(ma.MenuItem[0], " 3 minutes ");
-    strcpy(ma.MenuItem[1], " 5 minutes ");
-    strcpy(ma.MenuItem[2], " Custom ");
+    strcpy(ma.MenuItem[0], "3 minutes");
+    strcpy(ma.MenuItem[1], "5 minutes");
+    strcpy(ma.MenuItem[2], "Custom");
 
     //Main Screen
     do {
@@ -1429,9 +1435,9 @@ void SetInput() {
     uint8_t orgset;
     InitSettingsMenuDefaults((&ma));
     strcpy(ma.MenuTitle, "Select Source");
-    strcpy(ma.MenuItem[INPUT_TYPE_Microphone], " Microphone ");
-    strcpy(ma.MenuItem[INPUT_TYPE_A_or_B_multiple], " A or B (multiple) ");
-    strcpy(ma.MenuItem[INPUT_TYPE_A_and_B_single], " A and B (single) ");
+    strcpy(ma.MenuItem[INPUT_TYPE_Microphone], "Microphone");
+    strcpy(ma.MenuItem[INPUT_TYPE_A_or_B_multiple], "A or B (multiple)");
+    strcpy(ma.MenuItem[INPUT_TYPE_A_and_B_single], "A and B (single)");
     ma.TotalMenuItems = 3;
     orgset = Settings.InputType;
     ma.menu = Settings.InputType;
@@ -1622,9 +1628,9 @@ void handle_bt_commands() {
 void fillMicrophoneMenu(){
     ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, " Microphone ");
-    sprintf(ma.MenuItem[0], " Sensitivity  - %d ", Settings.Sensitivity);
-    sprintf(ma.MenuItem[1],  " Filter - %1.2fs ", (float) (Settings.Filter) / 1000);
-    sprintf(ma.MenuItem[2],  " Slope - %d ", Settings.Slope);
+    sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
+    sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 1000);
+    sprintf(ma.MenuItem[2],  "Slope|%d", Settings.Slope);
 }
 
 void SetMicrophone(){
@@ -1648,10 +1654,11 @@ void SetMicrophone(){
                     SetSlope();
                     break;
             }
+            fillMicrophoneMenu();
             lcd_clear();
             ma.done = False;
             ma.selected = False;
-            fillMicrophoneMenu();
+            ma.changed = True;
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -1663,8 +1670,8 @@ void SetDisplay(){
     ma.menu = 0;
     ma.TotalMenuItems = 2;
     sprintf(ma.MenuTitle, "Set Display ");
-    sprintf(ma.MenuItem[0], " Backlight - %d ", Settings.BackLightLevel);
-    sprintf(ma.MenuItem[1],  "  Orientation  ");
+    sprintf(ma.MenuItem[0], "Backlight|%d", Settings.BackLightLevel);
+    sprintf(ma.MenuItem[1],  "Orientation");
 
     do {
         DisplaySettings((&ma));
@@ -1674,7 +1681,7 @@ void SetDisplay(){
             switch (ma.menu){
                 case 0:
                     SetBacklight();
-                    sprintf(ma.MenuItem[0], " Backlight - %d ", Settings.BackLightLevel);
+                    sprintf(ma.MenuItem[0], "Backlight|%d", Settings.BackLightLevel);
                     ma.done = False;
                     ma.selected = False;
                     break;
@@ -1685,6 +1692,7 @@ void SetDisplay(){
                     break;
             }
             lcd_clear();
+            ma.changed = True;
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -1777,48 +1785,48 @@ void SetSettingsMenu() {
     SettingsMenu.TotalMenuItems = 15;
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
-    print_delay(SettingsMenu.MenuItem[0], "Delay - ");
+    print_delay(SettingsMenu.MenuItem[0], "Delay|");
     if (Settings.TotPar > 0) {
         sprintf(SettingsMenu.MenuItem[1],
-                "Par - %d 1st: %3.2f ",
+                "Par|%d 1st: %3.2f",
                 Settings.TotPar,
                 Settings.ParTime[CurPar_idx]);
     } else {
-        sprintf(SettingsMenu.MenuItem[1], "Par - Off");
+        sprintf(SettingsMenu.MenuItem[1], "Par|Off");
     }
-    sprintf(SettingsMenu.MenuItem[2], "Buzzer - %d %dHz",
+    sprintf(SettingsMenu.MenuItem[2], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
-    sprintf(SettingsMenu.MenuItem[3], "Microphone - %d %0.2f",
+    sprintf(SettingsMenu.MenuItem[3], "Microphone|%d %0.2f",
             Settings.Sensitivity, (float) Settings.Filter/1000);
-    sprintf(SettingsMenu.MenuItem[4], "Mode - %s",
+    sprintf(SettingsMenu.MenuItem[4], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[5], "Display");
     sprintf(SettingsMenu.MenuItem[6], "Countdown");
-    sprintf(SettingsMenu.MenuItem[7], "Autostart - %s",
+    sprintf(SettingsMenu.MenuItem[7], "Autostart|%s",
             (Settings.AR_IS.Autostart)?"ON":"OFF");
     sprintf(SettingsMenu.MenuItem[8], "Clock");
             switch (Settings.InputType) {
             case INPUT_TYPE_Microphone:
-                sprintf(SettingsMenu.MenuItem[9], "Input - Microphone");
+                sprintf(SettingsMenu.MenuItem[9], "Input|Microphone");
                 break;
             case INPUT_TYPE_A_and_B_single:
-                sprintf(SettingsMenu.MenuItem[9], "Input - A+B single");
+                sprintf(SettingsMenu.MenuItem[9], "Input|A+B single");
                 break;
             case INPUT_TYPE_A_or_B_multiple:
-                sprintf(SettingsMenu.MenuItem[9], "Input - A/B multi");
+                sprintf(SettingsMenu.MenuItem[9], "Input|A/B multi");
                 break;
             default:
                 sprintf(SettingsMenu.MenuItem[9], "Input");
                 break;
         }
 
-    sprintf(SettingsMenu.MenuItem[10], "Bluetooth - %s",
+    sprintf(SettingsMenu.MenuItem[10], "Bluetooth|%s",
             (Settings.AR_IS.BT)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[11], "Auto Power-off  - %s",
+    sprintf(SettingsMenu.MenuItem[11], "Auto Power-off|%s",
             (Settings.AR_IS.AutoPowerOff)?"ON":"OFF");
     sprintf(SettingsMenu.MenuItem[12], "Clear History");
     sprintf(SettingsMenu.MenuItem[13], "Reset Settings");
-    sprintf(SettingsMenu.MenuItem[14], "FW version: %02d", Settings.version);
+    sprintf(SettingsMenu.MenuItem[14], "FW version|%02d", Settings.version);
 }
 
 void DoSettings(void) {
@@ -1830,9 +1838,10 @@ void DoSettings(void) {
         SelectMenuItemCircular(&SettingsMenu);
         if (SettingsMenu.selected) {
             DoSet(SettingsMenu.menu);
-            SettingsMenu.selected = False;
             lcd_clear();
             SetSettingsMenu();
+            SettingsMenu.selected = False;
+            SettingsMenu.changed = True;
         }
         // Never exit on OK/Cancel case here, only on screen change
         SettingsMenu.done = False;
@@ -1894,6 +1903,7 @@ void ReviewDisplay() {
             last_shot_index,
             halfline = 16;
     char message[20];
+    FONT_INFO * font;
     // We're assuming here that Medium font has even number of bytes heigh
     if (!reviewChanged) return;
     uint8_t totShots = ReviewString.TotShoots;
@@ -1928,11 +1938,14 @@ void ReviewDisplay() {
                     mode
                     );
             if (lcd_string_lenght(message, MediumFont) > 134
-                    ||((float) ReviewString.shots[curr_index].dt / 1000 > 99.7)
+                    ||(ReviewString.shots[curr_index].dt > 99700)
                     || ReviewString.shots[curr_index].sn > 99)
-                lcd_write_string(message, 1, line, SmallFont, (i != 1)&0x01);
+                font = SmallFont;
             else
-                lcd_write_string(message, 1, line, MediumFont, (i != 1)&0x01);
+                font = MediumFont;
+            uint8_t x_pos = lcd_write_string(message, 0, line, font, (i != 1));
+            x_pos -= font->character_spacing * 3;
+            lcd_send_block_d(x_pos, line, 134, line + font->height, (i == 1));
         }
         line += halfline;
         if (i == totShots) break;

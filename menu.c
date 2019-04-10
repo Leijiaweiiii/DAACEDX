@@ -73,27 +73,39 @@ void DisplayInteger(NumberSelection_t* s) {
 }
 
 void DisplaySettings(SettingsMenu_t* sm) {
-    uint8_t y_pos, lineh, x_pos, polarity;
+    uint8_t y_pos, lineh, x_pos,x1_pos, polarity, delim_index;
     uint16_t i;
-    char * str;
+    char str[MAXItemLenght];
+    if (! sm->changed) return;
+    sm->changed = False;
     set_screen_title(sm->MenuTitle);
     print_header(true);
     y_pos = UI_HEADER_END_LINE;
     lineh = SmallFont->height;
-    if (sm->redraw) {
-        lcd_clear();
-        sm->redraw = False;
-    }
 
     // TODO: Move page calculations here to handle menu changes during menu operation
     for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
-        str = sm->MenuItem[i];
+        strcpy(str, sm->MenuItem[i]);
         polarity = (sm->menu != i);
-        x_pos = 0;
-        x_pos += lcd_write_char(' ',x_pos, y_pos, SmallFont, polarity);
-        x_pos += lcd_write_string(str, x_pos, y_pos, SmallFont, polarity);
-        x_pos -= SmallFont->character_spacing * 3; // TODO: Check why it's 3 spacings more and not one
-        lcd_send_block_d(x_pos,y_pos,LCD_WIDTH,y_pos += lineh, !polarity);
+        x1_pos = LCD_WIDTH;
+        // Highlight the line if required
+        lcd_send_block_d(0, y_pos, LCD_WIDTH, y_pos + lineh, !polarity);
+        // Find split of the menu. Split by "|"
+        delim_index = 0;
+        while ( str[delim_index] != '|'
+                 && delim_index < MAXItemLenght) delim_index++;
+        // Print the value part of the menu
+        if(delim_index > 0 && delim_index < MAXItemLenght){
+            str[delim_index] = 0; // Mark the delimiter 
+            delim_index ++;
+            x1_pos -= lcd_string_lenght(str + delim_index, SmallFont);
+            x1_pos -= SmallFont->character_spacing;
+            lcd_write_string(str + delim_index, x1_pos, y_pos, SmallFont, polarity);
+        }
+        // Print the nemy name part of the menu
+        x_pos = SmallFont->character_spacing;
+        lcd_write_string(str, x_pos, y_pos, SmallFont, polarity);
+        y_pos += lineh;
     }
 }
 
@@ -103,7 +115,7 @@ void decrement_menu_index(SettingsMenu_t * s) {
         s->menu--;
         s->page = ItemToPage(s->menu);
     } else Beep();
-    s->redraw |= (oldPage != s->page);
+    s->changed = True;
 }
 
 void increment_menu_index(SettingsMenu_t * s) {
@@ -112,7 +124,7 @@ void increment_menu_index(SettingsMenu_t * s) {
         s->menu++;
         s->page = ItemToPage(s->menu);
     } else Beep();
-    s->redraw |= (oldPage != s->page);
+    s->changed = True;
 }
 
 void decrement_menu_index_inf(SettingsMenu_t * s) {
@@ -123,7 +135,7 @@ void decrement_menu_index_inf(SettingsMenu_t * s) {
         s->menu = s->TotalMenuItems - 1;
     }
     s->page = ItemToPage(s->menu);
-    s->redraw |= (oldPage != s->page);
+    s->changed = True;
 
 }
 
@@ -135,7 +147,7 @@ void increment_menu_index_inf(SettingsMenu_t * s) {
         s->menu = 0;
     }
     s->page = ItemToPage(s->menu);
-    s->redraw |= (oldPage != s->page);
+    s->changed = True;
 }
 
 void SelectMenuItem(SettingsMenu_t* s) {
