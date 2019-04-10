@@ -405,13 +405,13 @@ TBool checkShotStringEmpty(uint8_t offset) {
 
 void print_delay(char * str, const char * prefix){
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: sprintf(str, "%sINST ", prefix);
+        case DELAY_MODE_Instant: sprintf(str, "%sINST", prefix);
             break;
-        case DELAY_MODE_Fixed: sprintf(str, "%s3.0 ", prefix);
+        case DELAY_MODE_Fixed: sprintf(str, "%s3.0", prefix);
             break;
-        case DELAY_MODE_Random: sprintf(str, "%sRND ", prefix);
+        case DELAY_MODE_Random: sprintf(str, "%sRND", prefix);
             break;
-        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f ", prefix, (float) (Settings.DelayTime) / 1000);
+        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f", prefix, (float) (Settings.DelayTime) / 1000);
             break;
     }
 }
@@ -1065,20 +1065,20 @@ void set_par_mode(int m) {
 }
 
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
-    " Normal Timer ",
-    " Silent Mode ",
-    " Spy Mode ",
-    " Repetitive Mode ",
-    " Custom ",
-    " Bianchi: Practical ",
-    " Bianchi: Barricade ",
-    " Bianchi: Falling Plate ",
-    " Bianchi: Moving Targ. ",
-    " NRA-PPC: A ",
-    " NRA-PPC: B ",
-    " NRA-PPC: C ",
-    " NRA-PPC: D ",
-    " Auto Par "
+    "Normal Timer",
+    "Silent Mode",
+    "Spy Mode",
+    "Repetitive Mode",
+    "Custom",
+    "Bianchi: Practical",
+    "Bianchi: Barricade",
+    "Bianchi: Falling Plate",
+    "Bianchi: Moving Targ.",
+    "NRA-PPC: A",
+    "NRA-PPC: B",
+    "NRA-PPC: C",
+    "NRA-PPC: D",
+    "Auto Par"
 };
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
@@ -1777,48 +1777,48 @@ void SetSettingsMenu() {
     SettingsMenu.TotalMenuItems = 15;
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
-    print_delay(SettingsMenu.MenuItem[0], " Delay - ");
+    print_delay(SettingsMenu.MenuItem[0], "Delay - ");
     if (Settings.TotPar > 0) {
         sprintf(SettingsMenu.MenuItem[1],
-                " Par - %d 1st: %3.2f ",
+                "Par - %d 1st: %3.2f ",
                 Settings.TotPar,
                 Settings.ParTime[CurPar_idx]);
     } else {
-        sprintf(SettingsMenu.MenuItem[1], " Par - Off ");
+        sprintf(SettingsMenu.MenuItem[1], "Par - Off");
     }
-    sprintf(SettingsMenu.MenuItem[2], " Buzzer - %d %dHz ",
+    sprintf(SettingsMenu.MenuItem[2], "Buzzer - %d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
-    sprintf(SettingsMenu.MenuItem[3], " Microphone - %d %0.2fs ",
+    sprintf(SettingsMenu.MenuItem[3], "Microphone - %d %0.2f",
             Settings.Sensitivity, (float) Settings.Filter/1000);
-    sprintf(SettingsMenu.MenuItem[4], " Mode - %s ",
+    sprintf(SettingsMenu.MenuItem[4], "Mode - %s",
             par_mode_header_names[Settings.ParMode]);
-    sprintf(SettingsMenu.MenuItem[5], " Display ");
-    sprintf(SettingsMenu.MenuItem[6], " Countdown ");
-    sprintf(SettingsMenu.MenuItem[7], " Autostart - %s ",
+    sprintf(SettingsMenu.MenuItem[5], "Display");
+    sprintf(SettingsMenu.MenuItem[6], "Countdown");
+    sprintf(SettingsMenu.MenuItem[7], "Autostart - %s",
             (Settings.AR_IS.Autostart)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[8], " Clock ");
+    sprintf(SettingsMenu.MenuItem[8], "Clock");
             switch (Settings.InputType) {
             case INPUT_TYPE_Microphone:
-                sprintf(SettingsMenu.MenuItem[9], " Input - Microphone ");
+                sprintf(SettingsMenu.MenuItem[9], "Input - Microphone");
                 break;
             case INPUT_TYPE_A_and_B_single:
-                sprintf(SettingsMenu.MenuItem[9], " Input - A+B single ");
+                sprintf(SettingsMenu.MenuItem[9], "Input - A+B single");
                 break;
             case INPUT_TYPE_A_or_B_multiple:
-                sprintf(SettingsMenu.MenuItem[9], " Input - A/B multi ");
+                sprintf(SettingsMenu.MenuItem[9], "Input - A/B multi");
                 break;
             default:
-                sprintf(SettingsMenu.MenuItem[9], " Input ");
+                sprintf(SettingsMenu.MenuItem[9], "Input");
                 break;
         }
 
-    sprintf(SettingsMenu.MenuItem[10], " Bluetooth - %s ",
+    sprintf(SettingsMenu.MenuItem[10], "Bluetooth - %s",
             (Settings.AR_IS.BT)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[11], " Auto Power-off  - %s ",
+    sprintf(SettingsMenu.MenuItem[11], "Auto Power-off  - %s",
             (Settings.AR_IS.AutoPowerOff)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[12], " Clear History ");
-    sprintf(SettingsMenu.MenuItem[13], " Reset Settings ");
-    sprintf(SettingsMenu.MenuItem[14], " FW version: %02d ", Settings.version);
+    sprintf(SettingsMenu.MenuItem[12], "Clear History");
+    sprintf(SettingsMenu.MenuItem[13], "Reset Settings");
+    sprintf(SettingsMenu.MenuItem[14], "FW version: %02d", Settings.version);
 }
 
 void DoSettings(void) {

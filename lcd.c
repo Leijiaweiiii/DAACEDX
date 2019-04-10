@@ -166,18 +166,14 @@ uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     return strlng;
 }
 
-void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
+uint8_t lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     if (str_ptr == NULL) return;
     //TODO: There is a bug that prints bright pages at spacing when polarity is WHITE_OVER_BLACK
     while (*str_ptr) {
         x_pos += lcd_write_char(*str_ptr, x_pos, y_pos, font, polarity);
         ++str_ptr;
         if (*str_ptr) {
-            if (polarity == WHITE_OVER_BLACK) {
-                lcd_fill_block(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-            } else {
-                lcd_clear_block(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height);
-            }
+            lcd_send_block_d(x_pos, y_pos, x_pos + font->character_spacing, y_pos + font->height, !polarity);
             x_pos += font->character_spacing;
         }
         if (x_pos >= LCD_WIDTH) {
@@ -186,6 +182,7 @@ void lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const F
             y_pos %= LCD_HEIGHT;
         }
     }
+    return x_pos;
 }
 // </editor-fold>
 

@@ -73,11 +73,12 @@ void DisplayInteger(NumberSelection_t* s) {
 }
 
 void DisplaySettings(SettingsMenu_t* sm) {
-    uint8_t p, lineh;
+    uint8_t y_pos, lineh, x_pos, polarity;
     uint16_t i;
+    char * str;
     set_screen_title(sm->MenuTitle);
     print_header(true);
-    p = UI_HEADER_END_LINE;
+    y_pos = UI_HEADER_END_LINE;
     lineh = SmallFont->height;
     if (sm->redraw) {
         lcd_clear();
@@ -86,12 +87,13 @@ void DisplaySettings(SettingsMenu_t* sm) {
 
     // TODO: Move page calculations here to handle menu changes during menu operation
     for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
-        if (sm->menu == i) {
-            lcd_write_string(sm->MenuItem[i], 3, p, SmallFont, WHITE_OVER_BLACK);
-        } else {
-            lcd_write_string(sm->MenuItem[i], 3, p, SmallFont, BLACK_OVER_WHITE);
-        }
-        p += lineh;
+        str = sm->MenuItem[i];
+        polarity = (sm->menu != i);
+        x_pos = 0;
+        x_pos += lcd_write_char(' ',x_pos, y_pos, SmallFont, polarity);
+        x_pos += lcd_write_string(str, x_pos, y_pos, SmallFont, polarity);
+        x_pos -= SmallFont->character_spacing * 3; // TODO: Check why it's 3 spacings more and not one
+        lcd_send_block_d(x_pos,y_pos,LCD_WIDTH,y_pos += lineh, !polarity);
     }
 }
 
