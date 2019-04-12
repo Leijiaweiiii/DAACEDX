@@ -405,15 +405,15 @@ TBool checkShotStringEmpty(uint8_t offset) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Helper functions">
-void print_delay(char * str, const char * prefix){
+void print_delay(char * str, const char * prefix, const char * postfix){
     switch (Settings.DelayMode) {
         case DELAY_MODE_Instant: sprintf(str, "%sINST", prefix);
             break;
-        case DELAY_MODE_Fixed: sprintf(str, "%s3.0", prefix);
+        case DELAY_MODE_Fixed: sprintf(str, "%s3.0%s", prefix, postfix);
             break;
         case DELAY_MODE_Random: sprintf(str, "%sRND", prefix);
             break;
-        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f", prefix, (float) (Settings.DelayTime) / 1000);
+        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f%s", prefix, (float) (Settings.DelayTime) / 1000, postfix);
             break;
     }
 }
@@ -1506,19 +1506,19 @@ void SetCountDown() {
 // <editor-fold defaultstate="collapsed" desc="Tilt">
 
 void SetOrientation() {
-    InitSettingsMenuDefaults((&ma));
-    ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, "Orientation");
-    strcpy(ma.MenuItem[ORIENTATION_NORMAL], "Upright");
-    strcpy(ma.MenuItem[ORIENTATION_INVERTED], "Upside-down");
-    ma.menu = Orientation;
+    InitSettingsMenuDefaults((&mx));
+    mx.TotalMenuItems = 2;
+    strcpy(mx.MenuTitle, "Orientation");
+    strcpy(mx.MenuItem[ORIENTATION_NORMAL], "Upright");
+    strcpy(mx.MenuItem[ORIENTATION_INVERTED], "Upside-down");
+    mx.menu = Orientation;
 
     do {
-        DisplaySettings((&ma));
-        SelectMenuItem((&ma));
-    } while (SettingsNotDone((&ma)));
-    if (ma.selected && Orientation != ma.menu) {
-        Orientation = ma.menu;
+        DisplaySettings((&mx));
+        SelectMenuItem((&mx));
+    } while (SettingsNotDone((&mx)));
+    if (mx.selected && Orientation != mx.menu) {
+        Orientation = mx.menu;
         saveSettingsField(&Settings, &(Settings.AR_IS), 1);
     }
 }
@@ -1759,13 +1759,17 @@ void SetMicrophone(){
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Display">
-void SetDisplay(){
-    InitSettingsMenuDefaults((&ma));
-    ma.menu = 0;
+void SetDisplayMenu(){
     ma.TotalMenuItems = 2;
     sprintf(ma.MenuTitle, "Set Display ");
     sprintf(ma.MenuItem[0], "Backlight|%d", Settings.BackLightLevel);
-    sprintf(ma.MenuItem[1],  "Orientation");
+    sprintf(ma.MenuItem[1],  "Orientation|%s", Orientation?"Down":"Up");
+}
+
+void SetDisplay(){
+    InitSettingsMenuDefaults((&ma));
+    ma.menu = 0;
+    SetDisplayMenu();
 
     do {
         DisplaySettings((&ma));
@@ -1775,7 +1779,6 @@ void SetDisplay(){
             switch (ma.menu){
                 case 0:
                     SetBacklight();
-                    sprintf(ma.MenuItem[0], "Backlight|%d", Settings.BackLightLevel);
                     ma.done = False;
                     ma.selected = False;
                     break;
@@ -1787,6 +1790,7 @@ void SetDisplay(){
             }
             lcd_clear();
             ma.changed = True;
+            SetDisplayMenu();
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -1879,7 +1883,7 @@ void SetSettingsMenu() {
     SettingsMenu.TotalMenuItems = 15;
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
-    print_delay(SettingsMenu.MenuItem[0], "Delay|");
+    print_delay(SettingsMenu.MenuItem[0], "Delay|"," Sec.");
     if (Settings.TotPar > 0) {
         sprintf(SettingsMenu.MenuItem[1],
                 "Par|%d 1st: %3.2f",
@@ -1894,7 +1898,9 @@ void SetSettingsMenu() {
             Settings.Sensitivity, (float) Settings.Filter/1000);
     sprintf(SettingsMenu.MenuItem[4], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
-    sprintf(SettingsMenu.MenuItem[5], "Display");
+    sprintf(SettingsMenu.MenuItem[5], "Display|%s %u",
+            Orientation ? "Down" : "Up",
+            Settings.BackLightLevel);
     sprintf(SettingsMenu.MenuItem[6], "Countdown");
     sprintf(SettingsMenu.MenuItem[7], "Autostart|%s",
             (Settings.AR_IS.Autostart)?"ON":"OFF");
@@ -2271,7 +2277,7 @@ void print_footer() {
     print_label_at_footer_grid(message, 0, 0);
     sprintf(message, "Shots: %2d", ShootString.TotShoots);
     print_label_at_footer_grid(message, 1, 0);
-    print_delay(message," Delay: ");
+    print_delay(message," Delay: ","");
     print_label_at_footer_grid(message, 0, 1);
 
     switch(Settings.ParMode){
