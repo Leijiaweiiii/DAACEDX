@@ -177,6 +177,9 @@ void SelectMenuItem(SettingsMenu_t* s) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            break;
         default:
             break;
     }
@@ -216,6 +219,9 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
             s->done = True;
             STATE_HANDLE_TIMER_IDLE();
             break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            break;
         default:
             break;
     }
@@ -248,6 +254,9 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE();
+            break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
             break;
         default:
             break;
@@ -289,6 +298,9 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE();
             break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            break;
         default:
             break;
     }
@@ -324,6 +336,9 @@ void SelectInteger(NumberSelection_t* sm) {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:STATE_HANDLE_TIMER_IDLE();
+            break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
             break;
         default:
             break;
@@ -363,6 +378,9 @@ void SelectDouble(NumberSelection_t* sm) {
             break;
         case StartShort:
             STATE_HANDLE_TIMER_IDLE();
+            break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
             break;
         default:
             break;

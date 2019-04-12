@@ -80,6 +80,7 @@ extern "C" {
     void STATE_HANDLE_REVIEW_SCREEN();
     void STATE_HANDLE_SETTINGS_SCREEN();
     void STATE_HANDLE_COUNTDOWN();
+    void STATE_HANDLE_CHARGER();
 #ifdef	__cplusplus
 }
 #endif

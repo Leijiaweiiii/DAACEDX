@@ -2059,6 +2059,9 @@ void DoReview() {
                 break;
             case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
                 break;
+            case ChargerConnected:
+                STATE_HANDLE_CHARGER();
+            break;
             default:
                 break;
         }
