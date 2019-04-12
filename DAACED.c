@@ -245,6 +245,7 @@ void getDefaultSettings() {
     Settings.AR_IS.AutoRotate = 0; // Off
     Settings.AR_IS.BT = 0; // Off by default
     Settings.AR_IS.AutoPowerOff = 1; // ON by default
+    Settings.AR_IS.Clock24h = 1;     // 24h by default
     Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 2000; // Hz
     Settings.BuzzerParDuration = 300; // ms
@@ -1253,7 +1254,7 @@ void SetMode() {
 
 void SetClock() {
     NumberSelection_t ts;
-    uint8_t h = get_hour(), m = get_minute();
+    uint8_t h = _hour, m = _minute;
     InitSettingsNumberDefaults((&ts));
     ts.min = 0;
     ts.max = 23;
@@ -1279,10 +1280,103 @@ void SetClock() {
             SelectIntegerCircular(&ts);
         } while (SettingsNotDone((&ts)));
     }
-    if (ts.selected && (h != get_hour() || ts.value != m)) {
+    if (ts.selected && (h != _hour || ts.value != m)) {
         set_time(h, ts.value);
-        comandToHandle = TimeChanged;
     }
+}
+
+void SetClockMode(){
+    NumberSelection_t ts;
+    InitSettingsNumberDefaults((&ts));
+    ts.format = "%uh";
+    ts.max = 24;
+    ts.min = 12;
+    ts.step = 12;
+    ts.value = Settings.AR_IS.Clock24h? 24: 12;
+    ts.old_value = ts.value;
+    do {
+        DisplayInteger((&ts));
+        SelectInteger((&ts));
+    } while (SettingsNotDone((&ts)));
+    if(ts.value != ts.old_value){
+        Settings.AR_IS.Clock24h = (ts.value==24);
+        saveSettingsField(&Settings,&(Settings.AR_IS),1);
+    }
+}
+void SetHour(){
+    NumberSelection_t ts;
+    InitSettingsNumberDefaults((&ts));
+    strcpy(ts.MenuTitle,"Set Hour");
+    ts.format = "%u";
+    ts.max = 23;
+    ts.min = 0;
+    ts.step = 1;
+    ts.value = _hour;
+    ts.old_value = ts.value;
+    do {
+        DisplayInteger((&ts));
+        SelectIntegerCircular((&ts));
+    } while (SettingsNotDone((&ts)));
+    if(ts.selected) _hour = ts.value;
+}
+
+void SetMinute(){
+    NumberSelection_t ts;
+    InitSettingsNumberDefaults((&ts));
+    strcpy(ts.MenuTitle,"Set Minute");
+    ts.format = "%u";
+    ts.max = 59;
+    ts.min = 0;
+    ts.step = 1;
+    ts.value = _minute;
+    ts.old_value = ts.value;
+    do {
+        DisplayInteger((&ts));
+        SelectIntegerCircular((&ts));
+    } while (SettingsNotDone((&ts)));
+    if(ts.selected) _minute = ts.value;
+}
+
+void SetClockMenuItems(){
+    sprintf(ma.MenuItem[0], "Clock Mode|%uh",Settings.AR_IS.Clock24h?24:12);
+    sprintf(ma.MenuItem[1], "Hour|%u",get_hour(Settings.AR_IS.Clock24h));
+    sprintf(ma.MenuItem[2], "Minute|%u",get_minute());
+    sprintf(ma.MenuItem[3], "Clock|");
+    rtc_print_time((ma.MenuItem[3] + 6),Settings.AR_IS.Clock24h);
+    ma.TotalMenuItems = 4;
+}
+void SetClockMenu(){
+    InitSettingsMenuDefaults((&ma));
+
+    strcpy(ma.MenuTitle, "Set Clock");
+    SetClockMenuItems();
+    //Main Screen
+    do {
+        DisplaySettings((&ma));
+        SelectMenuItem((&ma));
+        if(ma.selected && ma.done){
+            lcd_clear();
+            switch (ma.menu){
+                case 0:
+                    SetClockMode();
+                    break;
+                case 1:
+                    SetHour();
+                    break;
+                case 2:
+                    SetMinute();
+                    break;
+                case 3:
+                    SetClock();
+                    break;
+            }
+            lcd_clear();
+            ma.changed = True;
+            ma.selected = False;
+            ma.done = False;
+            SetClockMenuItems();
+        }
+    } while (SettingsNotDone((&ma)));
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
@@ -1751,7 +1845,7 @@ void DoSet(uint8_t menu) {
         case SETTINGS_INDEX_DISPLAY:
             SetDisplay();
             break;
-        case SETTINDS_INDEX_CLOCK:SetClock();
+        case SETTINDS_INDEX_CLOCK:SetClockMenu();
             break;
         case SETTINDS_INDEX_COUNTDOWN:SetCountDown();
             break;
@@ -1804,21 +1898,22 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuItem[6], "Countdown");
     sprintf(SettingsMenu.MenuItem[7], "Autostart|%s",
             (Settings.AR_IS.Autostart)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[8], "Clock");
-            switch (Settings.InputType) {
-            case INPUT_TYPE_Microphone:
-                sprintf(SettingsMenu.MenuItem[9], "Input|Microphone");
-                break;
-            case INPUT_TYPE_A_and_B_single:
-                sprintf(SettingsMenu.MenuItem[9], "Input|A+B single");
-                break;
-            case INPUT_TYPE_A_or_B_multiple:
-                sprintf(SettingsMenu.MenuItem[9], "Input|A or B multi");
-                break;
-            default:
-                sprintf(SettingsMenu.MenuItem[9], "Input");
-                break;
-        }
+    strcpy(SettingsMenu.MenuItem[8], "Clock|");
+    rtc_print_time((SettingsMenu.MenuItem[8] + 6), Settings.AR_IS.Clock24h);
+    switch (Settings.InputType) {
+        case INPUT_TYPE_Microphone:
+            sprintf(SettingsMenu.MenuItem[9], "Input|Microphone");
+            break;
+        case INPUT_TYPE_A_and_B_single:
+            sprintf(SettingsMenu.MenuItem[9], "Input|A+B single");
+            break;
+        case INPUT_TYPE_A_or_B_multiple:
+            sprintf(SettingsMenu.MenuItem[9], "Input|A or B multi");
+            break;
+        default:
+            sprintf(SettingsMenu.MenuItem[9], "Input");
+            break;
+    }
 
     sprintf(SettingsMenu.MenuItem[10], "Bluetooth|%s",
             (Settings.AR_IS.BT)?"ON":"OFF");
@@ -2115,12 +2210,8 @@ uint8_t print_title(TBool settings) {
     char message[30];
     uint8_t title_pos = 5;
     if(!settings){
-        sprintf(message,
-                "%02d:%02d ",
-                get_hour(),
-                get_minute());
-        lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
-        title_pos = 55;
+        rtc_print_time(message, Settings.AR_IS.Clock24h);
+        title_pos = lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
     }
     sprintf(message, "%s", ScreenTitle);
     lcd_write_string(message, title_pos, 0, SmallFont, BLACK_OVER_WHITE);

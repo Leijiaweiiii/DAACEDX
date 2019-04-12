@@ -95,7 +95,8 @@ typedef union {
         unsigned BT             : 1;
         unsigned Aux            : 1;
         unsigned AutoPowerOff   : 1;
-        unsigned unused         : 2;
+        unsigned Clock24h       : 1;
+        unsigned unused         : 1;
     };
 
 } AR_IS_T;

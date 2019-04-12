@@ -122,8 +122,9 @@ void init_ms_timer0() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Time setting functions">
 
-uint8_t get_hour() {
-    return _hour;
+uint8_t get_hour(TBool format24h) {
+    if (format24h) return _hour;
+    return (_hour > 12) ? _hour - 12 : _hour;
 }
 
 uint8_t get_minute() {
@@ -166,3 +167,19 @@ void update_rtc_time() {
     rtc_time.unix_time_ms = (rtc_time.sec * 2000) + rtc_time.msec;
 }
 // </editor-fold>
+
+/**
+ * 
+ * @param buff - buffer to print time there
+ * @param format24h - boolean indicating if it's 24 or 12 hours format
+ * @return bytes count written to buffer
+ */
+uint8_t rtc_print_time(char * buff, TBool format24h){
+    if(format24h)
+        return sprintf(buff,"%02u:%02u",_hour,_minute);
+
+    uint8_t h = _hour;
+    if(h > 12) h -= 12;
+    if (h == 0) h = 12;
+    return sprintf(buff,"%02u:%02u%c", h, _minute, IsHourAM(_hour)?'a':'p');
+}
