@@ -711,7 +711,7 @@ void SetBeepFreq() {
     tmp = b.value;
     strcpy(b.MenuTitle, "Set Frequency");
     b.step = 100;
-    b.format = "%dHz";
+    b.format = "%u";
     do {
         DisplayInteger(&b);
         SelectInteger(&b);

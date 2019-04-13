@@ -56,6 +56,7 @@
     <itemPath>Strings.lst.txt</itemPath>
     <itemPath>SmnallFontChars.txt</itemPath>
     <itemPath>MediumFontChars.txt</itemPath>
+    <itemPath>BigFontChars.txt</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>.</Elem>

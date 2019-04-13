@@ -9,7 +9,7 @@ void display_big_font_label(const char * msg) {
     FONT_INFO * font = BigFont;
 
     len = lcd_string_lenght(msg, font);
-    if (len + 20 > LCD_WIDTH) {
+    if (len > LCD_WIDTH) {
         font = MediumFont;
         len = lcd_string_lenght(msg, font);
     }
