@@ -1308,7 +1308,7 @@ void SetHour(){
     NumberSelection_t ts;
     InitSettingsNumberDefaults((&ts));
     strcpy(ts.MenuTitle,"Set Hour");
-    ts.format = "%u";
+    ts.format = "%02u";
     ts.max = 23;
     ts.min = 0;
     ts.step = 1;
@@ -1325,7 +1325,7 @@ void SetMinute(){
     NumberSelection_t ts;
     InitSettingsNumberDefaults((&ts));
     strcpy(ts.MenuTitle,"Set Minute");
-    ts.format = "%u";
+    ts.format = "%02u";
     ts.max = 59;
     ts.min = 0;
     ts.step = 1;
@@ -1340,8 +1340,8 @@ void SetMinute(){
 
 void SetClockMenuItems(){
     sprintf(ma.MenuItem[0], "Clock Format|%uh",Settings.AR_IS.Clock24h?24:12);
-    sprintf(ma.MenuItem[1], "Hour|%u",get_hour(Settings.AR_IS.Clock24h));
-    sprintf(ma.MenuItem[2], "Minute|%u",get_minute());
+    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(Settings.AR_IS.Clock24h));
+    sprintf(ma.MenuItem[2], "Minute|%02u",get_minute());
     sprintf(ma.MenuItem[3], "Clock|");
     rtc_print_time((ma.MenuItem[3] + 6),Settings.AR_IS.Clock24h);
     ma.TotalMenuItems = 4;
