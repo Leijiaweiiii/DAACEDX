@@ -191,6 +191,10 @@ void handle_timer_idle() {
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
             break;
+        case OpenCountdown:
+            STATE_HANDLE_SETTINGS_SCREEN();
+            SetCountDown();
+            break;
         default:
             //All the rest ignoring
             break;
@@ -402,14 +406,10 @@ void define_input_action() {
                     comandToHandle = OkShort;
                 break;
             case KeyInDw:
-                // TODO: Remove when device fixed or for production
-                if (is_long_press(False))
-                    comandToHandle = StartLong;
-                else
-                    comandToHandle = StartShort;
+
                 break;
             case KeyInUp:
-
+                comandToHandle = OpenCountdown;
                 break;
             default:
                 //user can press anything, but we can handle only specific gestures

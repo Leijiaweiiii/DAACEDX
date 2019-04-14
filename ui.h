@@ -46,7 +46,8 @@ extern "C" {
         OkShort,
         OkLong,
         TimeChanged,
-        ChargerConnected
+        ChargerConnected,
+        OpenCountdown
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 
