@@ -2644,8 +2644,8 @@ static void interrupt isr(void) {
         } else if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
-            battery_mV = min(adc_battery*BAT_divider, battery_mV);
-            ADC_DISABLE_INTERRUPT;
+            battery_mV = adc_battery*BAT_divider;
+//            ADC_DISABLE_INTERRUPT;
         }
     } 
     if (RTC_TIMER_IF) {
