@@ -1881,54 +1881,54 @@ void DoSet(uint8_t menu) {
 void SetSettingsMenu() {
     //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
     char tmpStr[16];
-    SettingsMenu.TotalMenuItems = 15;
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
-    print_delay(SettingsMenu.MenuItem[0], "Delay|"," Sec.");
+    print_delay(SettingsMenu.MenuItem[SETTINGS_INDEX_DELAY], "Delay|"," Sec.");
     if (Settings.TotPar > 0) {
-        sprintf(SettingsMenu.MenuItem[1],
+        sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
                 "Par|%d 1st: %3.2f",
                 Settings.TotPar,
                 Settings.ParTime[CurPar_idx]);
     } else {
-        sprintf(SettingsMenu.MenuItem[1], "Par|Off");
+        sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
     }
-    sprintf(SettingsMenu.MenuItem[2], "Buzzer|%d %dHz",
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
-    sprintf(SettingsMenu.MenuItem[3], "Microphone|%d %0.2f",
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%d %0.2f",
             Settings.Sensitivity, (float) Settings.Filter/1000);
-    sprintf(SettingsMenu.MenuItem[4], "Mode|%s",
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MODE], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
-    sprintf(SettingsMenu.MenuItem[5], "Display|%s %u",
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_DISPLAY], "Display|%s %u",
             Orientation ? "Down" : "Up",
             Settings.BackLightLevel);
-    sprintf(SettingsMenu.MenuItem[6], "Countdown");
-    sprintf(SettingsMenu.MenuItem[7], "Autostart|%s",
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_COUNTDOWN], "Countdown");
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_AUTOSTART], "Autostart|%s",
             (Settings.AR_IS.Autostart)?"ON":"OFF");
-    strcpy(SettingsMenu.MenuItem[8], "Clock|");
-    rtc_print_time((SettingsMenu.MenuItem[8] + 6), Settings.AR_IS.Clock24h);
+    strcpy(SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK], "Clock|");
+    rtc_print_time((SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK] + 6), Settings.AR_IS.Clock24h);
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
-            sprintf(SettingsMenu.MenuItem[9], "Input|Microphone");
+            sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_INPUT], "Input|Microphone");
             break;
         case INPUT_TYPE_A_and_B_single:
-            sprintf(SettingsMenu.MenuItem[9], "Input|A+B single");
+            sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_INPUT], "Input|A+B single");
             break;
         case INPUT_TYPE_A_or_B_multiple:
-            sprintf(SettingsMenu.MenuItem[9], "Input|A or B multi");
+            sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_INPUT], "Input|A or B multi");
             break;
         default:
-            sprintf(SettingsMenu.MenuItem[9], "Input");
+            sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_INPUT], "Input");
             break;
     }
 
-    sprintf(SettingsMenu.MenuItem[10], "Bluetooth|%s",
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_BLUETOOTH], "Bluetooth|%s",
             (Settings.AR_IS.BT)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[11], "Auto Power-off|%s",
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_AUTO_POWER], "Auto Power-off|%s",
             (Settings.AR_IS.AutoPowerOff)?"ON":"OFF");
-    sprintf(SettingsMenu.MenuItem[12], "Clear History");
-    sprintf(SettingsMenu.MenuItem[13], "Reset Settings");
-    sprintf(SettingsMenu.MenuItem[14], "FW version|%02d", Settings.version);
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_CLEAR], "Clear History");
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_RESET], "Reset Settings");
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_VERSION], "FW version|%02d", Settings.version);
+    SettingsMenu.TotalMenuItems = 14;
 }
 
 void DoSettings(void) {
