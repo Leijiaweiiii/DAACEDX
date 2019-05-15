@@ -6,28 +6,23 @@ void BT_send_comand(const char * cmd, int length) {
     uart_start_tx_string(cmd, length);
     uart_rx_handled();
     while (!uart_flags.tx_complete);
-    Delay(100);
+    Delay(20);
     asm(" nop");
 }
 
+void get_mac_address(){
+    BT_send_comand("AT91", 4);
+    // TODO: Tsake only 3 last bytes
+    strncpy(mac_addr, uart_rx_buffer, 24);
+}
+
 void BT_init() {
-    // TODO: Try connect to last known device
+    int len;
     BT_hard_reset();
-    Delay(100);
-    BT_send_comand("AT", 2);
-    if (at_ok()) {
-        // Set high speed
-        BT_send_comand("AT+BAUD4", 8);
-        uart_set_high_speed;
-        BT_send_comand("AT", 2);
-        if (!at_ok()) {
-            uart_set_low_speed;
-            BT_hard_reset();
-        }
-    }
-    BT_send_comand("AT+NAMERAZOR", 12);
-    BT_send_comand("AT+PWRM1", 8); // Disable auto sleep when powered ON
-    BT_send_comand("AT+NOTI1", 8);
+    Delay(30);
+    get_mac_address();
+    len = sprintf(device_name_cmd,"AT01RAZOR:%s",mac_addr);
+    BT_send_comand(device_name_cmd, len);
     uart_rx_handled();
     BT_STATUS.initialized = 1;
     BT_STATUS.connected = 0;
@@ -35,16 +30,10 @@ void BT_init() {
 
 void BT_off() {
     if (BT_STATUS.initialized) {
-        BT_send_comand("AT", 2);
-        Delay(20);
-        BT_send_comand("AT+PWRM0", 8);
-        Delay(45);
-        BT_send_comand("AT+UART1", 8);
-        Delay(45);
-        BT_send_comand("AT+SLEEP", 8);
+        BT_send_comand("FUN_CMD_SLEEP_ENABLED", 22);
         BT_STATUS.initialized = 0;
         BT_STATUS.connected = 0;
-        Delay(100);
+        Delay(5);
         uart_disable();
     }
 }

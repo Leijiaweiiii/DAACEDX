@@ -1550,7 +1550,7 @@ void SetInput() {
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void init_bt() {
-    if (Settings.AR_IS.BT && BT_PRESENT) {
+    if (Settings.AR_IS.BT) {
         init_uart();
         BT_init();
     } else {
@@ -1925,7 +1925,7 @@ void SetSettingsMenu() {
             (Settings.AR_IS.AutoPowerOff)?"ON":"OFF");
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_CLEAR], "Clear History");
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_RESET], "Reset Settings");
-    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_VERSION], "FW version|%02d", Settings.version);
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_VERSION], "Bt/FW|%s/%02d", device_id, Settings.version);
     SettingsMenu.TotalMenuItems = 14;
 }
 
@@ -2242,7 +2242,7 @@ void print_batery_info() {
 }
 
 void print_bt_indication(){
-    if (BT_PRESENT && BT_STATUS.connected) {
+    if (BT_STATUS.connected) {
         lcd_draw_bitmap(LCD_WIDTH - 50, 0, &bt_bitmap_data);
     } else {
         lcd_clear_block(

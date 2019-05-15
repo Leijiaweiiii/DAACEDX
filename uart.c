@@ -22,7 +22,7 @@ void init_uart(void) {
     BAUD1CONbits.BRG16 = 1; // 16 bit baud rate counter
     TX1STAbits.BRGH = 0;
     BAUD1CONbits.SCKP = 0; // Data on falling edge
-    uart_set_low_speed;
+    uart_set_high_speed;
     TX1STAbits.TX9 = 0; // 8 bits TX
     TX1STAbits.TXEN = 1; // TX Enabled
     TX1IF = 0;

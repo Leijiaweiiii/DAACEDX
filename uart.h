@@ -11,13 +11,13 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-#define UART_RX_BUF_SIZE 64
-#define UART_TX_BUF_SIZE 64
+#define UART_RX_BUF_SIZE 32
+#define UART_TX_BUF_SIZE 32
     char uart_rx_buffer[UART_RX_BUF_SIZE];
     volatile unsigned char rx_head=0;
     char uart_tx_buff[UART_TX_BUF_SIZE];
     volatile unsigned char tx_head=0,tx_size=0;
-    struct{
+    volatile struct{
         unsigned rx_handled     :1;
         unsigned tx_complete    :1;
         unsigned                :6;
