@@ -76,10 +76,10 @@ volatile time_t beep_start;
 volatile time_t beep_duration;
 
 
-#define sinus_dac_init() { TRISFbits.TRISF5 = 0;ANSELFbits.ANSELF5 = 0;DAC1CON0 = 0b10100000;LATEbits.LATE2 = 1;}
+#define sinus_dac_init() { LATEbits.LATE1 = 1; TRISFbits.TRISF5 = 0; ANSELFbits.ANSELF5 = 0; DAC1CON0 = 0b10100000; LATEbits.LATE2 = 1;}
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
 //void start_sinus(uint16_t frequency);
-#define stop_sinus() {DAC1CON0bits.EN = 0; /* DAC Off */   LATEbits.LATE2 = 0; /* Driver OFF */}
+#define stop_sinus() {DAC1CON0bits.EN = 0; /* DAC Off */   LATEbits.LATE2 = 0; /* Driver OFF */ LATEbits.LATE1 = 0; /*5v Power Pupply Off*/}
 void sinus_duration_expired();
 void sinus_value_expired();
 void sinus_duration_timer_init(int16_t duration);
