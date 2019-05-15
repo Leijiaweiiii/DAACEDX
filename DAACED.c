@@ -239,7 +239,6 @@ void getSettings() {
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
     Settings.Sensitivity = DEFAULT_SENSITIVITY;
-    Settings.Slope = DEFAULT_SLOPE;
     Settings.Filter = 80; // ms
     Settings.AR_IS.Autostart = 1; // on
     Settings.AR_IS.AutoRotate = 0; // Off
@@ -847,11 +846,11 @@ void SetSens() {//Sensitivity
     strcpy(s.MenuTitle, "Set Sensitivity");
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
-    s.max = 1024;
-    s.min = 10;
+    s.max = 700;
+    s.min = 25;
     s.value = Settings.Sensitivity;
     s.old_value = Settings.Sensitivity;
-    s.step = 1;
+    s.step = 25;
     s.format = "%d";
     do {
         DisplayInteger(&s);
@@ -865,30 +864,6 @@ void SetSens() {//Sensitivity
     }
 }
 
-void SetSlope() {//Sensitivity
-    NumberSelection_t s;
-    InitSettingsNumberDefaults((&s));
-    //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
-    strcpy(s.MenuTitle, "Set Slope");
-    //    s.max = DETECT_THRESHOLD_LEVELS;
-    //    s.min = 1;
-    s.max = 1024;
-    s.min = 10;
-    s.value = Settings.Slope;
-    s.old_value = Settings.Slope;
-    s.step = 1;
-    s.format = "%d";
-    do {
-        DisplayInteger(&s);
-        SelectInteger(&s);
-    } while (SettingsNotDone((&s)));
-    if (s.selected) {
-        Settings.Slope = s.value;
-        if (s.value != s.old_value) {
-            saveSettingsField(&Settings, &(Settings.Slope), 2);
-        }
-    }
-}
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Filter">
 
@@ -1721,11 +1696,10 @@ void handle_bt_commands() {
 
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 void fillMicrophoneMenu(){
-    ma.TotalMenuItems = 3;
+    ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 1000);
-    sprintf(ma.MenuItem[2],  "Slope|%d", Settings.Slope);
 }
 
 void SetMicrophone(){
@@ -1744,9 +1718,6 @@ void SetMicrophone(){
                     break;
                 case 1:
                     SetFilter();
-                    break;
-                case 2:
-                    SetSlope();
                     break;
             }
             fillMicrophoneMenu();
@@ -2186,16 +2157,15 @@ void DetectInit(void) {
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
             ADC_DISABLE_INTERRUPT;
-            for (uint8_t i = 0; i < 64; i++) {
-                ADCvalue = ADC_Read(ENVELOPE);
-                Mean += ADCvalue;
-                if (Max < ADCvalue) Max = ADCvalue;
-            }
-            Mean = Mean >> 6;
-//                DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
+//            for (uint8_t i = 0; i < 64; i++) {
+//                ADCvalue = ADC_Read(MICROPHONE);
+//                Mean += ADCvalue;
+//                if (Max < ADCvalue) Max = ADCvalue;
+//            }
+//            Mean = Mean >> 6;
+//            DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
 //            DetectThreshold = Mean + Settings.Sensitivity;
             DetectThreshold = Settings.Sensitivity;
-            DetectSlopeThreshold = Settings.Slope;
             ADC_ENABLE_INTERRUPT_ENVELOPE;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -2592,10 +2562,8 @@ void update_screen_model() {
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
 void DetectMicShot() {
-    int diff = ADC_LATEST_VALUE - ADC_PREV_VALUE;
     if (ui_state != TimerListening) return;
-    if (diff <= DetectSlopeThreshold) return; // Detect raise only
-    if (ADC_LATEST_VALUE < DetectThreshold) return; // only if greater than threshold
+    if (ADC_LATEST_VALUE > DetectThreshold) return; // Detecting negative spikes
     UpdateShotNow(Mic);
 }
 
