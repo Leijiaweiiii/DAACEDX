@@ -239,6 +239,7 @@ void getSettings() {
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
     Settings.Sensitivity = DEFAULT_SENSITIVITY;
+    Settings.Attenuator = ATTENUATOR_00_DBm;
     Settings.Filter = 80; // ms
     Settings.AR_IS.Autostart = 1; // on
     Settings.AR_IS.AutoRotate = 0; // Off
@@ -860,6 +861,28 @@ void SetSens() {//Sensitivity
         Settings.Sensitivity = s.value;
         if (s.value != s.old_value) {
             saveSettingsField(&Settings, &(Settings.Sensitivity), 2);
+        }
+    }
+}
+
+void SetAtt() {//Sensitivity
+    NumberSelection_t s;
+    InitSettingsNumberDefaults((&s));
+    strcpy(s.MenuTitle, "Set Attenuator");
+    s.max = 3;
+    s.min = 0;
+    s.value = Settings.Attenuator;
+    s.old_value = Settings.Attenuator;
+    s.step = 1;
+    s.format = "%d";
+    do {
+        DisplayInteger(&s);
+        SelectInteger(&s);
+    } while (SettingsNotDone((&s)));
+    if (s.selected) {
+        Settings.Attenuator = s.value;
+        if (s.value != s.old_value) {
+            saveSettingsField(&Settings, &(Settings.Attenuator), 1);
         }
     }
 }
@@ -1696,10 +1719,11 @@ void handle_bt_commands() {
 
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 void fillMicrophoneMenu(){
-    ma.TotalMenuItems = 2;
+    ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 1000);
+    sprintf(ma.MenuItem[2],  "Attenuator|%d", Settings.Attenuator);
 }
 
 void SetMicrophone(){
@@ -1718,6 +1742,9 @@ void SetMicrophone(){
                     break;
                 case 1:
                     SetFilter();
+                    break;
+                case 2:
+                    SetAtt();
                     break;
             }
             fillMicrophoneMenu();
@@ -2166,6 +2193,7 @@ void DetectInit(void) {
 //            DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
 //            DetectThreshold = Mean + Settings.Sensitivity;
             DetectThreshold = Settings.Sensitivity;
+            SetAttenuator(Settings.Attenuator);
             ADC_ENABLE_INTERRUPT_ENVELOPE;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -2287,6 +2315,8 @@ void StartListenShots(void) {
 void DoPowerOff() {
     lcd_clear(); // Remove remaining picture on power on
     lcd_sleep();
+    LATG = 0;
+    TRISG = 0xFF; // Disable PortG output driver
     PWM6CONbits.EN = 0; // Disale PWM
     T2CONbits.ON = 0;
     CPUDOZEbits.IDLEN = 0;
@@ -2326,6 +2356,7 @@ void DoPowerOn() {
     lcd_init();
     lcd_set_orientation();
     ADC_init();
+    InitAttenuator;
     eeprom_init();
 
     // TODO: Review power on sequence

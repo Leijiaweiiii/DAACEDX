@@ -75,7 +75,21 @@ uint8_t find_set_bit_position(uint8_t n);
 #define Start                (Key==KeySt)
 #define Stop                 (Key==KeyRw)
 // </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="Attenuator">
+/*
+  0dBm Q1A 0 Q1b 0
+-10dBm Q1A 1 Q1b 0
+-20dBm Q1A 0 Q1b 1
+-30dBm Q1A 1 Q1b 1
+ */
+#define ATTENUATOR_00_DBm   0b00
+#define ATTENUATOR_10_DBm   0b01
+#define ATTENUATOR_20_DBm   0b10
+#define ATTENUATOR_30_DBM   0b11
+#define SetAttenuator(x)    { LATG = 0x03 & x; }
+#define InitAttenuator      { TRISG = 0b11111100; LATG = 0;}
 
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Ports">
 
 #define BuzzerPeriod          50            //[10uSec]  = 10/Freq
@@ -196,8 +210,8 @@ extern const char * par_mode_header_names[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-// size of Settings fields + custom par + auto par
-#define SettingsDataSize            (0x108 + 5)
+
+#define SettingsDataSize            (0x108 + 5 + 1)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -220,6 +234,7 @@ typedef union {
         uint8_t TotPar; // 1 based      // 6
         uint8_t TotParBak;
         uint8_t InputType; // 7
+        uint8_t Attenuator;
         uint16_t Sensitivity; // 8
         uint16_t BuzzerFrequency; // 9
         uint16_t BuzzerParDuration; // A
