@@ -2333,12 +2333,10 @@ void DoPowerOff() {
     INT0IE = 1;
     // Enable RTC interrupt
     RTC_TIMER_IE = 1;
-    PORTEbits.RE0 = 0;
-    PORTEbits.RE2 = 0;
-    PORTEbits.RE6 = 1;
-    LATEbits.LATE2 = 0;
-    LATEbits.LATE6 = 1;
-    LATEbits.LATE0 = 0;
+    LATEbits.LATE1 = 0;     // +5V
+    LATEbits.LATE2 = 0;     // BUZZER driver
+    LATEbits.LATE6 = 0;     // Backlight
+    LATEbits.LATE0 = 0;     // +3
     Sleep();
     InputFlags.KEY_RELEASED = True;
     PIE0bits.TMR0IE = 1;
