@@ -30,7 +30,7 @@ void BT_init() {
 
 void BT_off() {
     if (BT_STATUS.initialized) {
-        BT_send_comand("FUN_CMD_SLEEP_ENABLED", 22);
+        BT_send_comand("FUN_CMD_SLEEP_ENABLEID", 22);
         BT_STATUS.initialized = 0;
         BT_STATUS.connected = 0;
         Delay(5);
