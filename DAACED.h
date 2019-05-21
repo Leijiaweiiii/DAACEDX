@@ -86,8 +86,8 @@ uint8_t find_set_bit_position(uint8_t n);
 #define ATTENUATOR_10_DBm   0b01
 #define ATTENUATOR_20_DBm   0b10
 #define ATTENUATOR_30_DBM   0b11
-#define SetAttenuator(x)    { LATG = 0x03 & x; }
-#define InitAttenuator      { TRISG = 0b11111100; LATG = 0;}
+#define SetAttenuator(x)    { LATGbits.LATG0 = x & 1; LATGbits.LATG1 = (x & 2) >> 1; }
+#define InitAttenuator()    { TRISG = 0b11111100; LATG = 0;}
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Ports">

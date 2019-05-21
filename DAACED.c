@@ -2315,7 +2315,7 @@ void StartListenShots(void) {
 void DoPowerOff() {
     lcd_clear(); // Remove remaining picture on power on
     lcd_sleep();
-    LATG = 0;
+    LATG = 0;     // Attenuator
     TRISG = 0xFF; // Disable PortG output driver
     PWM6CONbits.EN = 0; // Disale PWM
     T2CONbits.ON = 0;
@@ -2356,7 +2356,7 @@ void DoPowerOn() {
     lcd_init();
     lcd_set_orientation();
     ADC_init();
-    InitAttenuator;
+    InitAttenuator();
     eeprom_init();
 
     // TODO: Review power on sequence
