@@ -2637,7 +2637,7 @@ static void interrupt isr(void) {
     } 
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
-        if (ADPCH == ENVELOPE) {
+        if (ADPCH == MICROPHONE) {
             ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
             DetectMicShot();
         } else if (ADPCH == BATTERY) {
