@@ -138,6 +138,7 @@ void initialize_backlight() {
 }
 
 void set_backlight(uint8_t level) {
+    level = 10 - level; // Inversion circuit introduced
     uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 1;
     PWM6CONbits.EN = 0;
     if (duty_cycle == 0) {
@@ -1926,7 +1927,7 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_CLEAR], "Clear History");
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_RESET], "Reset Settings");
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_VERSION], "Bt/FW|%s/%02d", device_id, Settings.version);
-    SettingsMenu.TotalMenuItems = 14;
+    SettingsMenu.TotalMenuItems = 15;
 }
 
 void DoSettings(void) {
@@ -2301,6 +2302,7 @@ void print_footer() {
         break;
     }
 //    sprintf(message, "%u", PORTD&0x7);
+    sprintf(message, "%u", ADC_LATEST_VALUE);
     print_label_at_footer_grid(message, 1, 1);
 }
 
