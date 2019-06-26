@@ -123,39 +123,40 @@ void PIC_init(void) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Backlight PWM Function">
-
+uint8_t current_dc;
 void initialize_backlight() {
     uint8_t PRvalue, prescalar;
     TRISEbits.TRISE6 = 0; // Disable output.
     PWM6CON = 0; // Clear register.
     find_optimal_PWM_settings(1000, &PRvalue, &prescalar);
-
+    RE6PPS = 0x0A; // PPS setting.
     // Initialize Timer2.
     PIR5bits.TMR2IF = 0; // Clear timer interrupt flag.
     T2CLKCON = 0b001; // Timer2 clock source = Fosc/4;
     T2CONbits.CKPS = find_set_bit_position(prescalar);
     PR2 = PRvalue;
+    current_dc = 0xFF;
 }
+
 
 void set_backlight(uint8_t level) {
     uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 1;
+    // if not changing brightness
+    if(duty_cycle == current_dc) return;
+    // when changing, turn everything off
     PWM6CONbits.EN = 0;
-    if (duty_cycle == 0) {
-        LATEbits.LATE6 = 0;
-    } else if (duty_cycle > 0 && duty_cycle < 100) {
-        uint16_t ON_value;
-        uint8_t PR_value = PR2;
-        ON_value = (duty_cycle * (PR_value + 1)) / 25;
-        PWM6DCH = (ON_value >> 2);
-        PWM6DCL = ((ON_value & 0x0003) << 6);
-        T2CONbits.ON = 1; // Start timer.
-        PWM6CONbits.EN = 1; // Enable PWM.
-        LATEbits.LATE6 = 0;
-        RE6PPS = 0x0A; // PPS setting.
-        PWM6CONbits.POL = 1; // Polarity.
-    } else if (duty_cycle == 100) {
-        LATEbits.LATE6 = 0;
-    }
+    LATEbits.LATE6 = 0;
+    // if need to turn off - remain shut down
+    if (duty_cycle == 0 || duty_cycle > 99) return;
+    // Otherwise set the new duty cycle
+    uint16_t ON_value;
+    uint8_t PR_value = PR2;
+    ON_value = (duty_cycle * (PR_value + 1)) / 25;
+    PWM6DCH = (ON_value >> 2);
+    PWM6DCL = ((ON_value & 0x0003) << 6);
+    T2CONbits.ON = 1; // Start timer.
+    PWM6CONbits.EN = 1; // Enable PWM.
+    PWM6CONbits.POL = 1; // Polarity.
 }
 
 uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_t *selectedPrescalar) {
