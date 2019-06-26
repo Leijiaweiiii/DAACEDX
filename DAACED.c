@@ -138,11 +138,10 @@ void initialize_backlight() {
 }
 
 void set_backlight(uint8_t level) {
-    level = 10 - level; // Inversion circuit introduced
     uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 1;
     PWM6CONbits.EN = 0;
     if (duty_cycle == 0) {
-        LATEbits.LATE6 = 1;
+        LATEbits.LATE6 = 0;
     } else if (duty_cycle > 0 && duty_cycle < 100) {
         uint16_t ON_value;
         uint8_t PR_value = PR2;
