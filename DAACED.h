@@ -177,7 +177,7 @@ uint8_t ReviewTopShotDefault;
 #define DELAY_MODE_Custom 3
 
 #define DETECT_THRESHOLD_LEVELS 13
-#define DEFAULT_SENSITIVITY     625
+#define DEFAULT_SENSITIVITY     750
 
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 

@@ -848,7 +848,7 @@ void SetSens() {//Sensitivity
     strcpy(s.MenuTitle, "Set Sensitivity");
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
-    s.max = 700;
+    s.max = 800;
     s.min = 25;
     s.value = Settings.Sensitivity;
     s.old_value = Settings.Sensitivity;
@@ -2631,7 +2631,7 @@ static void interrupt isr(void) {
             InputFlags.B_RELEASED = True;
         }
         update_screen_model();
-        if (ADPCH == ENVELOPE)
+        if (ADPCH == MICROPHONE)
             ADCON0bits.ADGO = 1;
         InputFlags.ADC_DETECTED = 0;
     } 
