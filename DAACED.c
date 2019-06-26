@@ -2302,7 +2302,7 @@ void print_footer() {
         break;
     }
 //    sprintf(message, "%u", PORTD&0x7);
-    sprintf(message, "%u", ADC_LATEST_VALUE);
+//    sprintf(message, "%u", ADC_LATEST_VALUE);
     print_label_at_footer_grid(message, 1, 1);
 }
 
