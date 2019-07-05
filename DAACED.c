@@ -144,19 +144,22 @@ void set_backlight(uint8_t level) {
     // if not changing brightness
     if(duty_cycle == current_dc) return;
     // when changing, turn everything off
-    PWM6CONbits.EN = 0;
-    LATEbits.LATE6 = 0;
+    PWM6CON = 0;
+    TRISEbits.TRISE6 = 1; // Enable output, to reset value
+    LATEbits.LATE6 = 0; // Clear PWM pin
+    current_dc = duty_cycle;
     // if need to turn off - remain shut down
     if (duty_cycle == 0 || duty_cycle > 99) return;
     // Otherwise set the new duty cycle
+    TRISEbits.TRISE6 = 0; // Disable output driver to led PWM work
     uint16_t ON_value;
     uint8_t PR_value = PR2;
     ON_value = (duty_cycle * (PR_value + 1)) / 25;
     PWM6DCH = (ON_value >> 2);
     PWM6DCL = ((ON_value & 0x0003) << 6);
+    PWM6CONbits.POL = 0; // Polarity.
     T2CONbits.ON = 1; // Start timer.
     PWM6CONbits.EN = 1; // Enable PWM.
-    PWM6CONbits.POL = 1; // Polarity.
 }
 
 uint8_t find_optimal_PWM_settings(int32_t freq, uint8_t *selectedPRvalue, uint8_t *selectedPrescalar) {
@@ -2319,7 +2322,7 @@ void DoPowerOff() {
     lcd_sleep();
     LATG = 0;     // Attenuator
     TRISG = 0xFF; // Disable PortG output driver
-    PWM6CONbits.EN = 0; // Disale PWM
+    PWM6CON = 0; // Disale PWM
     T2CONbits.ON = 0;
     CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
