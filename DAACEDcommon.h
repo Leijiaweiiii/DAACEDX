@@ -13,7 +13,7 @@
 #include "string.h"
 #include <time.h>
 
-#define FW_VERSION (0x29)
+#define FW_VERSION (42)
 // <editor-fold defaultstate="collapsed" desc="General">
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ            (64000000UL) //64MHz
