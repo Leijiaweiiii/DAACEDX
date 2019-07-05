@@ -93,10 +93,10 @@ extern "C" {
     // TODO: Continue
     // </editor-fold>
 
-    char mac_addr[24]; // For the case they send ASCII
+    char mac_addr[13]; // 12 is the length + 1 for null
     char device_name_cmd[32];
     char * device_name = device_name_cmd + 4;
-    char * device_id = device_name_cmd + 5 + 4;
+    char * device_id = mac_addr + 6;
     union {
         unsigned status_byte : 8;
 

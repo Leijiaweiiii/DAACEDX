@@ -14,6 +14,12 @@ void uart_rx_handled() {
     RC1IE = 1;
 }
 
+void uart_tx_completed() {
+    for (int i = 0; i < UART_TX_BUF_SIZE; i++) {
+        uart_tx_buffer[i] = 0;
+    }
+}
+
 void init_uart(void) {
     // Configure C6 = TX and C7 = RX
     RX1PPS = 0x17; // RX - C7

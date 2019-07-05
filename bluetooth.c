@@ -7,23 +7,35 @@ void BT_send_comand(const char * cmd, int length) {
     uart_rx_handled();
     while (!uart_flags.tx_complete);
     Delay(20);
-    asm(" nop");
+    uart_tx_completed();
 }
 
 void get_mac_address(){
-    BT_send_comand("AT91", 4);
-    // TODO: Tsake only 3 last bytes
-    strncpy(mac_addr, uart_rx_buffer, 24);
+    do {
+        BT_send_comand("AT91", 4);
+        Delay(20);
+        strncpy(mac_addr, uart_rx_buffer, 13);
+    } while (0 == mac_addr[0]);
+    uart_rx_handled();
+}
+
+void set_device_name(){
+    int len;
+    char * res[24]; // 20 for the name + 3 for OK: + 2 for NULL
+    for(uint8_t i = 0;i<24;i++) res[i] = 0;
+    len = sprintf(device_name_cmd,"AT01RAZOR-%s", device_id);
+    do {
+        BT_send_comand(device_name_cmd, len);
+        Delay(20);
+        strncpy(res, uart_rx_buffer, 24);
+    } while ((char)res[0] != 'O'); // Waiting for "OK:xxx..x"
+    uart_rx_handled();
 }
 
 void BT_init() {
-    int len;
     BT_hard_reset();
-    Delay(30);
     get_mac_address();
-    len = sprintf(device_name_cmd,"AT01RAZOR:%s",mac_addr);
-    BT_send_comand(device_name_cmd, len);
-    uart_rx_handled();
+    set_device_name();
     BT_STATUS.initialized = 1;
     BT_STATUS.connected = 0;
 }
@@ -33,7 +45,7 @@ void BT_off() {
         BT_send_comand("FUN_CMD_SLEEP_ENABLEID", 22);
         BT_STATUS.initialized = 0;
         BT_STATUS.connected = 0;
-        Delay(5);
+        Delay(400);
         uart_disable();
     }
 }
@@ -67,16 +79,16 @@ void BT_define_action() {
         // DAA prefix - our commands
         uart_rx_handled();
         BT_STATUS.connected = 1;
-    } else if (at_ok()) {
-        if (uart_rx_buffer[4] == 'O') { // CONN, LOST
-            if (uart_rx_buffer[3] == 'L' && uart_rx_buffer[5] == 'S') {
-                BT_STATUS.connected = 0;
-                uart_rx_handled();
-            } else if (uart_rx_buffer[3] == 'C' && uart_rx_buffer[5] == 'N') {
-                BT_STATUS.connected = 1;
-                uart_rx_handled();
-            }
-        }
+//    } else if (at_ok()) {
+//        if (uart_rx_buffer[4] == 'O') { // CONN, LOST
+//            if (uart_rx_buffer[3] == 'L' && uart_rx_buffer[5] == 'S') {
+//                BT_STATUS.connected = 0;
+//                uart_rx_handled();
+//            } else if (uart_rx_buffer[3] == 'C' && uart_rx_buffer[5] == 'N') {
+//                BT_STATUS.connected = 1;
+//                uart_rx_handled();
+//            }
+//        }
     } else {
         uint8_t const_head = rx_head;
         UNUSED(const_head); // Don't optimize and memory barrier
