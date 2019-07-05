@@ -2358,10 +2358,13 @@ void DoPowerOn() {
     spi_init();
     lcd_init();
     lcd_set_orientation();
+    eeprom_init();
+    getSettings();
+    set_backlight(Settings.BackLightLevel);
+    // Continue initialisation during the logo
+    lcd_draw_bitmap(0, 0, &daaced_logo);
     ADC_init();
     InitAttenuator();
-    eeprom_init();
-
     // TODO: Review power on sequence
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
     GIE = 1; // enable global interrupts
@@ -2370,12 +2373,11 @@ void DoPowerOn() {
     initialize_rtc_timer();
     battery_mV = ADC_Read(BATTERY)*BAT_divider;
     ADC_ENABLE_INTERRUPT_BATTERY;
-    getSettings();
     init_bt();
+    Delay(1500); // Assuming BT initialisation takes 0.5s
     update_rtc_time();
     timer_idle_last_action_time = rtc_time.sec;
     InputFlags.INITIALIZED = True;
-    print_logo_splash();
 }
 
 void DoCharging() {

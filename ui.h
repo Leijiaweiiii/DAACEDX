@@ -73,7 +73,6 @@ extern "C" {
     void handle_timer_idle_shutdown();
     void handle_ui();
     void StopTimer();
-#define print_logo_splash() { lcd_draw_bitmap(0, 0, &daaced_logo);Delay(2000); }
 
     void STATE_HANDLE_POWER_OFF();
     void STATE_HANDLE_POWER_ON();
