@@ -23,7 +23,7 @@ void set_device_name(){
     int len;
     char * res[24]; // 20 for the name + 3 for OK: + 2 for NULL
     for(uint8_t i = 0;i<24;i++) res[i] = 0;
-    len = sprintf(device_name_cmd,"AT01RAZOR-%s", device_id);
+    len = sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION);
     do {
         BT_send_comand(device_name_cmd, len);
         Delay(20);

@@ -95,8 +95,7 @@ extern "C" {
 
     char mac_addr[13]; // 12 is the length + 1 for null
     char device_name_cmd[32];
-    char * device_name = device_name_cmd + 4;
-    char * device_id = mac_addr + 6;
+#define device_id (mac_addr + 6)
     union {
         unsigned status_byte : 8;
 
