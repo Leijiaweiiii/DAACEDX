@@ -36,7 +36,7 @@ void init_uart(void) {
     uart_rx_handled();
 }
 
-#define send_next_byte() { TX1REG = uart_tx_buff[tx_head]; tx_head++; TX1IE = 1; }
+#define send_next_byte() { TX1REG = uart_tx_buffer[tx_head]; tx_head++; TX1IE = 1; }
 
 void uart_start_tx_string(const char * str, const uint8_t size) {
     // Wait until previous buffer sent
@@ -48,11 +48,11 @@ void uart_start_tx_string(const char * str, const uint8_t size) {
             break;
         }
     }
-    strcpy(uart_tx_buff, str);
+    strcpy(uart_tx_buffer, str);
     if(size<tx_size){
         // old command longer
         for (uint8_t i = size;i<tx_size;i++){
-            uart_tx_buff[i] = 0;
+            uart_tx_buffer[i] = 0;
         }
     }
     tx_size = size;

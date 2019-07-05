@@ -15,7 +15,7 @@ extern "C" {
 #define UART_TX_BUF_SIZE 32
     char uart_rx_buffer[UART_RX_BUF_SIZE];
     volatile unsigned char rx_head=0;
-    char uart_tx_buff[UART_TX_BUF_SIZE];
+    char uart_tx_buffer[UART_TX_BUF_SIZE];
     volatile unsigned char tx_head=0,tx_size=0;
     volatile struct{
         unsigned rx_handled     :1;
