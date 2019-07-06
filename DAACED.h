@@ -125,7 +125,8 @@ union {
         unsigned FOOTER_CHANGED : 1;
         unsigned ADC_DETECTED   : 1;
         unsigned INITIALIZED    : 1;
-        unsigned UNUSED         : 2;
+        unsigned NEW_SHOT       : 1;
+        unsigned UNUSED         : 1;
     };
 } InputFlags;
 
@@ -162,7 +163,7 @@ time_t timer_idle_last_action_time;
 #include "shot.h"
 ShootString_t ShootString;
 time_t ShootString_start_time;
-
+uint8_t last_sent_index; // last shot sent to BT 
 ShootString_t ReviewString;
 #define MAX_MEASUREMENT_TIME    999000
 uint8_t TopShotIndex; //The current shoot of the displayed string

@@ -361,8 +361,19 @@ void saveOneShot(uint8_t shot_number) {
 }
 
 void send_all_shots() {
-    for (uint8_t shot = 0; shot < ShootString.TotShoots; shot++) {
-        sendOneShot(shot, &(ShootString.shots[shot]));
+    ShootString_t * ss = (ui_state == TimerListening)?&ShootString:&ReviewString;
+    for (uint8_t shot = 0; shot < ss -> TotShoots; shot++) {
+        sendOneShot(&(ss -> shots[shot]));
+        Delay(50);
+    }
+}
+
+void sendShotsIfRequired(){
+    // Send shots only when in detection state
+    if( ui_state != TimerListening ) return;
+    uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
+    while(last_sent_index != last_shot_index || ShootString.TotShoots == MAX_REGISTERED_SHOTS){
+        sendOneShot(&(ShootString.shots[last_sent_index++]));
         Delay(50);
     }
 }
@@ -1630,7 +1641,8 @@ void bt_set_par() {
         par_time = strtol(*endp + 1, endp, 10);
         // Par time between 1ms and 99000ms
         if (par_time > 0 && par_time < 99901) {
-            Settings.ParTime[par_idx - 1] = (float) par_time / 1000;
+            float par_time_f = (float) par_time / 1000;
+            Settings.ParTime[par_idx - 1] = par_time_f;
             Settings.TotPar = par_idx;
             savePar(par_idx);
             saveSettingsField(&Settings, &(Settings.TotPar), 1);
@@ -1689,6 +1701,7 @@ void bt_get_pars() {
 void handle_bt_commands() {
     uint8_t length = 0;
     char msg[20];
+    sendShotsIfRequired();
     switch (BT_COMMAND) {
         case BT_SendVersion:
             length = sprintf(msg, "%u\n", Settings.version);
@@ -2394,6 +2407,7 @@ void print_footer() {
 
 void StartListenShots(void) {
     ShootString_start_time = rtc_time.unix_time_ms;
+    last_sent_index = 0;
     DetectInit();
 }
 // </editor-fold>
@@ -2592,6 +2606,7 @@ void UpdateShot(time_t now, ShotInput_t input) {
         }
         
         InputFlags.FOOTER_CHANGED = True;
+        InputFlags.NEW_SHOT = True;
     }
 }
 

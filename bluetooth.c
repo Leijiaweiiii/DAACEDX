@@ -43,10 +43,10 @@ void BT_off() {
     BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
 }
 
-void sendOneShot(uint8_t shot_number, shot_t * shot) {
+void sendOneShot(shot_t * shot) {
     char msg[16];
     int size;
-    size = sprintf(msg, "%d,%d,%d\n", shot_number + 1, shot->is_flags, shot->dt);
+    size = sprintf(msg, "%u,%u,%lu\n", shot->sn, shot->is_flags, 0x00FFFFFF & shot->dt);
     uart_start_tx_string(msg, size);
 }
 
@@ -60,12 +60,15 @@ void sendSignal(const char * name, uint16_t duration, uint24_t time_ms) {
 #define clear_args_buffer() { for (int i = 0; i < UART_RX_BUF_SIZE; i++) {bt_cmd_args_raw[i] = 0;}}
 
 void BT_define_action() {
+    uint8_t cmd_len = 3;
+    char tmp_b[8]; //TODO: allocate temporary short strings only once
     if (uart_rx_buffer[0] == 'D' && uart_rx_buffer[1] == 'A' && uart_rx_buffer[2] == 'A') {
         int cmd = atoi(uart_rx_buffer + 3);
         if (cmd >= 0) {
+            cmd_len += sprintf(tmp_b, "%d", cmd);
             BT_COMMAND = (BT_COMMAND_T) cmd;
             clear_args_buffer();
-            strncpy(bt_cmd_args_raw, uart_rx_buffer + 4, UART_RX_BUF_SIZE - 4);
+            strncpy(bt_cmd_args_raw, uart_rx_buffer + cmd_len, UART_RX_BUF_SIZE - cmd_len);
         } else {
             BT_COMMAND = BT_None;
         }
