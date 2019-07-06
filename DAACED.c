@@ -2229,6 +2229,20 @@ uint8_t print_title(TBool settings) {
 void print_batery_info() {
     uint8_t col = LCD_WIDTH - 35;
     uint8_t num_bars = number_of_battery_bars();
+    switch(num_bars){
+        case 0:
+        case 1:
+            num_bars = 1;
+            break;
+        case 2:
+        case 3:
+            num_bars = 3;
+            break;
+        case 4:
+        case 5:
+            num_bars = 5;
+            break;
+    }
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
 
