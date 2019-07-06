@@ -38,7 +38,6 @@ void BT_init() {
 }
 
 void BT_off() {
-    BT_send_comand("FUN_CMD_SLEEP_ENABLEID", 22);
     BT_STATUS.connected = 0;
     uart_disable();
     BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
@@ -66,7 +65,7 @@ void BT_define_action() {
         if (cmd >= 0) {
             BT_COMMAND = (BT_COMMAND_T) cmd;
             clear_args_buffer();
-            strcpy(bt_cmd_args_raw, uart_rx_buffer + 4);
+            strncpy(bt_cmd_args_raw, uart_rx_buffer + 4, UART_RX_BUF_SIZE - 4);
         } else {
             BT_COMMAND = BT_None;
         }

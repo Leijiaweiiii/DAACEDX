@@ -45,6 +45,11 @@ void init_uart(void) {
 #define send_next_byte() { TX1REG = uart_tx_buffer[tx_head]; tx_head++; TX1IE = 1; }
 
 void uart_start_tx_string(const char * str, const uint8_t size) {
+    // if no TX enabled just don't send anything and unlock everyone who may be waiting this
+    if(TX1STAbits.TXEN == 0){
+        uart_flags.tx_complete = 1;
+        return;
+    }
     // Wait until previous buffer sent
     while (!uart_flags.tx_complete){
         uint8_t const_tx_head = tx_head;
@@ -54,7 +59,7 @@ void uart_start_tx_string(const char * str, const uint8_t size) {
             break;
         }
     }
-    strcpy(uart_tx_buffer, str);
+    strncpy(uart_tx_buffer, str, size);
     if(size<tx_size){
         // old command longer
         for (uint8_t i = size;i<tx_size;i++){
