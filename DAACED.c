@@ -275,10 +275,12 @@ void getDefaultSettings() {
     repetitive_state = Face;
     repetitive_counter = 0;
 }
+
 void restoreSettingsField(Settings_t * s, void * f, size_t l){
     int offset = f - s;
     eeprom_read_array(SettingsStartAddress + offset, f, l);
 }
+
 void saveSettingsField(Settings_t * s, void * f, size_t l) {
     int offset = f - s;
     eeprom_write_array_bulk(SettingsStartAddress + offset, f, l);
@@ -361,6 +363,7 @@ void saveOneShot(uint8_t shot_number) {
 void send_all_shots() {
     for (uint8_t shot = 0; shot < ShootString.TotShoots; shot++) {
         sendOneShot(shot, &(ShootString.shots[shot]));
+        Delay(50);
     }
 }
 
@@ -1611,6 +1614,8 @@ void BlueTooth() {
     if (ma.selected && Settings.AR_IS.BT != ma.menu) {
         Settings.AR_IS.BT = ma.menu;
         saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        lcd_clear();
+        lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
         init_bt();
     }
 }
@@ -1674,6 +1679,7 @@ void bt_get_pars() {
         for (uint8_t i = 0; i < Settings.TotPar; i++) {
             length = sprintf(msg, "%d,%u\n", i + 1, (long)(Settings.ParTime[i] * 1000));
             sendString(msg, length);
+            Delay(50);
         }
     } else {
         DAA_MSG_EMPTY;
@@ -1682,14 +1688,14 @@ void bt_get_pars() {
 
 void handle_bt_commands() {
     uint8_t length = 0;
-    char msg[16];
+    char msg[20];
     switch (BT_COMMAND) {
         case BT_SendVersion:
             length = sprintf(msg, "%u\n", Settings.version);
             sendString(msg, length);
             break;
         case BT_StartTimer:
-            STATE_HANDLE_COUNTDOWN;
+            STATE_HANDLE_COUNTDOWN();
             break;
         case BT_GetLastString:
             if (ShootString.TotShoots > 0) {
@@ -2205,6 +2211,7 @@ void DoReview() {
         ReviewDisplay();
         define_input_action();
         BT_define_action();
+        handle_bt_commands();
         switch (comandToHandle) {
             case UpShort:
                 review_scroll_shot_up();
@@ -2440,6 +2447,7 @@ void DoPowerOn() {
     set_backlight(Settings.BackLightLevel);
     // Continue initialisation during the logo
     lcd_draw_bitmap(0, 0, &daaced_logo);
+    
     ADC_init();
     InitAttenuator();
     // TODO: Review power on sequence
@@ -2732,7 +2740,8 @@ static void interrupt isr(void) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             battery_mV = adc_battery*BAT_divider;
-//            ADC_DISABLE_INTERRUPT;
+//            battery_min_mV = MIN(battery_mV, battery_min_mV);
+            ADC_DISABLE_INTERRUPT;
         }
     } 
     if (RTC_TIMER_IF) {
@@ -2759,7 +2768,22 @@ static void interrupt isr(void) {
     }
 }
 // </editor-fold>
-
+void battery_test(){
+    int i = 0;
+        char msg[64];
+        do {
+            i++;
+            ADC_DISABLE_INTERRUPT;
+            generate_sinus(3,1800,500);
+            for (int j = 0; j < 1000;j+=10){
+                ADC_ENABLE_INTERRUPT_BATTERY;
+                Delay(10);
+            }
+            sprintf(msg, "%u %04d/%04dmV", i, battery_mV, battery_min_mV);
+            lcd_clear();
+            lcd_write_string(msg,2,40,SmallFont,BLACK_OVER_WHITE);
+        } while (battery_mV > battery_voltage_thresholds[5] || Key == 0);
+}
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     DoPowerOn();

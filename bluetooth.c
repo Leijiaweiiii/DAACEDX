@@ -6,14 +6,13 @@ void BT_send_comand(const char * cmd, int length) {
     uart_start_tx_string(cmd, length);
     uart_rx_handled();
     while (!uart_flags.tx_complete);
-    Delay(20);
+    Delay(55);
     uart_tx_completed();
 }
 
 void get_mac_address(){
     do {
         BT_send_comand("AT91", 4);
-        Delay(20);
         strncpy(mac_addr, uart_rx_buffer, 13);
     } while (0 == mac_addr[0]);
     uart_rx_handled();
@@ -26,7 +25,6 @@ void set_device_name(){
     len = sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION);
     do {
         BT_send_comand(device_name_cmd, len);
-        Delay(20);
         strncpy(res, uart_rx_buffer, 24);
     } while ((char)res[0] != 'O'); // Waiting for "OK:xxx..x"
     uart_rx_handled();
@@ -36,18 +34,14 @@ void BT_init() {
     BT_hard_reset();
     get_mac_address();
     set_device_name();
-    BT_STATUS.initialized = 1;
     BT_STATUS.connected = 0;
 }
 
 void BT_off() {
-    if (BT_STATUS.initialized) {
-        BT_send_comand("FUN_CMD_SLEEP_ENABLEID", 22);
-        BT_STATUS.initialized = 0;
-        BT_STATUS.connected = 0;
-        Delay(400);
-        uart_disable();
-    }
+    BT_send_comand("FUN_CMD_SLEEP_ENABLEID", 22);
+    BT_STATUS.connected = 0;
+    uart_disable();
+    BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
 }
 
 void sendOneShot(uint8_t shot_number, shot_t * shot) {
@@ -68,7 +62,7 @@ void sendSignal(const char * name, uint16_t duration, uint24_t time_ms) {
 
 void BT_define_action() {
     if (uart_rx_buffer[0] == 'D' && uart_rx_buffer[1] == 'A' && uart_rx_buffer[2] == 'A') {
-        int8_t cmd = uart_rx_buffer[3] - '0';
+        int cmd = atoi(uart_rx_buffer + 3);
         if (cmd >= 0) {
             BT_COMMAND = (BT_COMMAND_T) cmd;
             clear_args_buffer();
@@ -96,4 +90,9 @@ void BT_define_action() {
         if (rx_head == const_head)
             uart_rx_handled();
     }
+}
+
+void sendString(const char * x, size_t y)    {
+    uart_rx_handled(); // TODO: Check if required
+    uart_start_tx_string(x,y);
 }

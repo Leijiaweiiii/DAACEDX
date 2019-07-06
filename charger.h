@@ -45,6 +45,7 @@ extern "C" {
     char * charger_text_state();
     uint16_t battery_voltage_thresholds[] = {3930, 3850, 3760, 3660, 3420, 3350};
     uint16_t battery_mV = 0;
+    uint16_t battery_min_mV = 4096;
 #define battery_low         (battery_mV<battery_voltage_thresholds[5])
     uint8_t number_of_battery_bars();
     

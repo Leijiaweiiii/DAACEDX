@@ -11,7 +11,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-#define UART_RX_BUF_SIZE 64
+#define UART_RX_BUF_SIZE 48
 #define UART_TX_BUF_SIZE 32
     char uart_rx_buffer[UART_RX_BUF_SIZE];
     volatile unsigned char rx_head=0;

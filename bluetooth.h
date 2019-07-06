@@ -117,6 +117,8 @@ extern "C" {
         BT_Find = 7,
         BT_GetPars = 8,
         BT_SetDelay = 9,
+        BT_GetBatteryMV = 10,
+        BT_GetStats = 11,
         BT_None = 127
     } BT_COMMAND_T;
     BT_COMMAND_T BT_COMMAND = BT_None;
@@ -129,12 +131,12 @@ extern "C" {
     void BT_off();
 
 #define BT_soft_reset() { BT_send_comand(AT_RESET, 8); BT_STATUS.connected = 0;}
-#define BT_hard_reset() { BT_RESET_INV = 0; _delay(100); BT_RESET_INV = 1;BT_STATUS.connected = 0; }
+#define BT_hard_reset() { BT_RESET_INV = 0; Delay(500); BT_RESET_INV = 1; BT_STATUS.connected = 0; }
 
     void sendOneShot(uint8_t shot_number, shot_t * shot);
     void sendSignal(const char * name, uint16_t duration, uint24_t time_ms);
     void BT_define_action();
-#define sendString(x, y)    {uart_rx_handled();uart_start_tx_string(x,y);}
+    void sendString(const char * x, size_t y);
 #define DAA_MSG_OK       {sendString("OK\n",3);}
 #define DAA_MSG_ERROR    {sendString("ERROR\n",6);}
 #define DAA_MSG_EMPTY    {sendString("EMPTY\n",6);}
