@@ -435,6 +435,8 @@ void handle_low_battery() {
         lcd_write_string(msg, 40, UI_CHARGING_LBL_Y - MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
         sprintf(msg, "Please Charge");
         lcd_write_string(msg, 30, UI_CHARGING_LBL_Y + MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
+        Stats.LowPower++;
+        saveStats();
         Delay(3000);
     }
 }

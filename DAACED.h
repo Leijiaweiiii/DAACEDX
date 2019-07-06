@@ -210,8 +210,8 @@ extern const char * par_mode_header_names[];
 
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
-
-#define SettingsDataSize            (0x108 + 5 + 1)
+// 270 bytes
+#define SettingsDataSize            (264 + 5 + 1)
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -251,6 +251,7 @@ typedef union {
 } Settings_t;
 volatile Settings_t Settings;
 
+
 uint8_t repetitive_counter = 0;
 enum {Face = 0, Edge = 1} repetitive_state;
 uint16_t repetitive_time = 0;
@@ -259,6 +260,26 @@ uint16_t repetitive_time = 0;
 SettingsMenu_t ma; // Submenu for second level menu
 SettingsMenu_t mx; // Submenu for third level menu
 SettingsMenu_t SettingsMenu;
+
+
+#define StatsDataSize   ((5 + 3 + TOT_PAR_MODES + MAXMenuItems)*2 + 2 * 4)
+#define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + 4)
+typedef union{
+    uint8_t data[StatsDataSize];
+    struct{
+        uint32_t PowerOn;
+        uint32_t Signal;
+        uint16_t Review;
+        uint16_t Settings;
+        uint16_t Charging;
+        uint16_t Charged;
+        uint16_t LowPower;
+        uint16_t InputModes[3];
+        uint16_t Modes[TOT_PAR_MODES];
+        uint16_t Menu[MAXMenuItems];
+    };
+} Stats_t;
+Stats_t Stats;
 
 // </editor-fold>
 
@@ -292,5 +313,7 @@ void set_par_mode(int m);
 void increment_par();
 uint8_t top_shot_index();
 void SetCountDown();
+void saveStatsField(void * f, size_t l);
+void saveStats();
 
 #endif /*  _DAACED_H_ */

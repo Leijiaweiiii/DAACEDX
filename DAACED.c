@@ -220,6 +220,8 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
     beep_start = rtc_time.unix_time_ms;
+    Stats.Signal++;
+    saveStatsField(&(Stats.Signal), 4);
 }
 
 // </editor-fold>
@@ -405,6 +407,19 @@ TBool checkShotStringEmpty(uint8_t offset) {
     t = eeprom_read_data(addr);
     t = eeprom_read_data(addr);
     return (t == 0);
+}
+
+void saveStats() {
+    eeprom_write_array_bulk(StatsStartAddress, Stats.data, sizeof(Stats_t));
+}
+
+void getStats() {
+    eeprom_read_array(StatsStartAddress, Stats.data, StatsDataSize);
+}
+
+void saveStatsField(void * f, size_t l) {
+    int offset = f - &Stats;
+    eeprom_write_array_bulk(StatsStartAddress + offset, f, l);
 }
 // </editor-fold>
 
@@ -1249,6 +1264,7 @@ void SetMode() {
         STATE_HANDLE_TIMER_IDLE();
     }
     set_par_mode(Settings.ParMode);
+    Stats.Modes[Settings.ParMode]++;
     CurPar_idx = 0;
 }
 // </editor-fold>
@@ -1549,6 +1565,7 @@ void SetInput() {
     if (Settings.InputType != orgset) {
         saveSettingsField(&Settings, &(Settings.InputType), 1);
     }
+    Stats.InputModes[Settings.InputType]++;
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
@@ -1702,7 +1719,42 @@ void handle_bt_commands() {
             DAA_MSG_LISTEN;
             countdown_expired_signal();
             break;
-        case BT_None:
+        case BT_GetStats:
+            length = sprintf(msg,"PowerOn,%u\n",Stats.PowerOn);
+            sendString(msg, length);
+            length = sprintf(msg,"Signal,%u\n",Stats.Signal);
+            Delay(50);
+            sendString(msg, length);
+            length = sprintf(msg,"Review,%u\n",Stats.Review);
+            Delay(50);
+            sendString(msg, length);
+            length = sprintf(msg,"Settings,%u\n",Stats.Settings);
+            Delay(50);
+            sendString(msg, length);
+            length = sprintf(msg,"Charging,%u\n",Stats.Charging);
+            Delay(50);
+            sendString(msg, length);
+            length = sprintf(msg,"Charged,%u\n",Stats.Charged);
+            Delay(50);
+            sendString(msg, length);
+            length = sprintf(msg,"LowPower,%u\n",Stats.LowPower);
+            Delay(50);
+            sendString(msg, length);
+            for(uint8_t i=0;i<3;i++){
+                length = sprintf(msg,"Input-%u,%u\n",i,Stats.InputModes[i]);
+                Delay(50);
+                sendString(msg, length);
+            }
+            for(uint8_t i=0;i<TOT_PAR_MODES;i++){
+                length = sprintf(msg,"Mode-%u,%u\n",i,Stats.Modes[i]);
+                Delay(50);
+                sendString(msg, length);
+            }
+            for(uint8_t i=0;i<MAXMenuItems;i++){
+                length = sprintf(msg,"Menu-%u,%u\n",i,Stats.Menu[i]);
+                Delay(50);
+                sendString(msg, length);
+            }
             break;
         case BT_GetPars:
             bt_get_pars();
@@ -1710,6 +1762,12 @@ void handle_bt_commands() {
         case BT_SetDelay:
             bt_set_delay();
             DAA_MSG_OK;
+            break;
+        case BT_GetBatteryMV:
+            length = sprintf(msg,"%u", battery_mV);
+            sendString(msg, length);
+            break;
+        case BT_None:
             break;
         default:
             DAA_MSG_NOT_SUPPORTED;
@@ -1830,6 +1888,7 @@ TBool userIsSure(const char * title){
 #define SETTINDS_INDEX_VERSION      14
 
 void DoSet(uint8_t menu) {
+    Stats.Menu[menu]++;
     lcd_clear();
     switch (menu) {
         case SETTINGS_INDEX_DELAY:
@@ -1934,6 +1993,7 @@ void SetSettingsMenu() {
 
 void DoSettings(void) {
     InitSettingsMenuDefaults((&SettingsMenu));
+    Stats.Settings++;
     SetSettingsMenu();
     lcd_clear();
     do {
@@ -1955,6 +2015,7 @@ void DoSettings(void) {
     } else {
         lcd_clear();
     }
+    saveStats();
 }
 // </editor-fold>
 // </editor-fold>
@@ -2137,6 +2198,8 @@ void DoReview() {
         STATE_HANDLE_TIMER_IDLE();
         return;
     }
+    Stats.Review++;
+    saveStatsField(&(Stats.Review), 2);
     reviewChanged = True;
     do {
         ReviewDisplay();
@@ -2373,6 +2436,7 @@ void DoPowerOn() {
     lcd_set_orientation();
     eeprom_init();
     getSettings();
+    getStats();
     set_backlight(Settings.BackLightLevel);
     // Continue initialisation during the logo
     lcd_draw_bitmap(0, 0, &daaced_logo);
@@ -2387,6 +2451,8 @@ void DoPowerOn() {
     battery_mV = ADC_Read(BATTERY)*BAT_divider;
     ADC_ENABLE_INTERRUPT_BATTERY;
     init_bt();
+    Stats.PowerOn++;
+    saveStatsField(&(Stats.PowerOn), 4);
     Delay(1500); // Assuming BT initialisation takes 0.5s
     update_rtc_time();
     timer_idle_last_action_time = rtc_time.sec;
@@ -2403,12 +2469,16 @@ void DoCharging() {
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                Stats.Charging++;
+                saveStatsField(&(Stats.Charging), 2);
                 break;
             case Complete:
                 LATEbits.LATE0 = 1;
                 lcd_clear();
                 sprintf(msg, "Charged ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                Stats.Charged++;
+                saveStatsField(&(Stats.Charged), 2);
                 break;
             case NotCharging:
                 STATE_HANDLE_POWER_OFF();
