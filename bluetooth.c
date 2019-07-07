@@ -68,7 +68,7 @@ void BT_define_action() {
             cmd_len += sprintf(tmp_b, "%d", cmd);
             BT_COMMAND = (BT_COMMAND_T) cmd;
             clear_args_buffer();
-            strncpy(bt_cmd_args_raw, uart_rx_buffer + cmd_len, UART_RX_BUF_SIZE - cmd_len);
+            strncpy(bt_cmd_args_raw, uart_rx_buffer + cmd_len + 1, UART_RX_BUF_SIZE - cmd_len - 1); // 1 is for delimiter to use with commands with parameters
         } else {
             BT_COMMAND = BT_None;
         }
