@@ -329,14 +329,14 @@ void saveShootString(void) {
         return;
     index = findCurStringIndex();
     addr = findStringAddress(index);
-    eeprom_write_data(addr, 0);
+    eeprom_write_data(addr, 0);// clear latest flag
     index++;
     if (index >= MAXSHOOTSTRINGS)
         index = 0;
     ShootString.latest = 1;
     addr = findStringAddress(index);
     eeprom_write_array_bulk(addr, ShootString.data, Size_of_ShootString);
-    eeprom_write_data(addr, 1);
+    eeprom_write_data(addr, 1); // Set latest flag
 }
 
 void saveOneShot(uint8_t shot_number) {
