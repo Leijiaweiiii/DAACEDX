@@ -69,8 +69,6 @@ void initialize_rtc_timer() {
     // Real time counter will count 2 seconds forever.
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
-    PMD1bits.TMR5MD = 0; // Enable perepherial timer 5
-    PMD1bits.TMR3MD = 0; // Enable perepherial timer 3
     PMD1bits.TMR1MD = 0; // Enable perepherial timer 1
 
     OSCCON3bits.SOSCPWR = 1; // High power mode for secondary oscillator
@@ -84,24 +82,7 @@ void initialize_rtc_timer() {
     T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
     T1CONbits.RD16 = 1;
 
-    // Configure RTC counter which will be counting seconds and should be used for time setting
-
-    TMR3CLKbits.CS = 0b1001; // TIMER3 clock source is TIMER1
-    T3CONbits.CKPS = 0b00; // don't prescale - we need seconds
-    T3CONbits.NOT_SYNC = 1; // Async for operation during sleep
-    T3CONbits.RD16 = 1;
-    T3GCONbits.GE = 0; // Timer is always counting
-
-
-    TMR5CLKbits.CS = 0b1010; // TIMER5 clock source is TIMER3
-    T5CONbits.CKPS = 0b00; // don't prescale - we need seconds
-    T5CONbits.NOT_SYNC = 1; // Async for operation during sleep
-    T5CONbits.RD16 = 1;
-    T5GCONbits.GE = 0; // Timer is always counting
-
     T1CONbits.ON = 1; //TIMER1 start.
-    T3CONbits.ON = 1; //TIMER3 start.
-    T5CONbits.ON = 1; //TIMER5 start.
     RTC_TIMER_IE = 1; // Enable timer interrupt.
     INTCONbits.PEIE = 1;
 }
@@ -132,6 +113,7 @@ uint8_t get_minute() {
 }
 
 void tic_2_sec() {
+    unix_time_ms_sec += 2000;
     _2sec++;
     if (_2sec == 30) {
         _2sec = 0;
@@ -161,10 +143,8 @@ uint16_t get_ms_corrected() {
 }
 
 void update_rtc_time() {
-    rtc_time.sec_lsb = TMR3;
-    rtc_time.sec_msb = TMR5;
-    rtc_time.msec = correction_table[rtc_time_2k_msec];
-    rtc_time.unix_time_ms = (rtc_time.sec * 2000) + rtc_time.msec;
+    msec = correction_table[rtc_time_2k_msec];
+    unix_time_ms = unix_time_ms_sec + msec;
 }
 // </editor-fold>
 

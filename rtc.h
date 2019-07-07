@@ -17,19 +17,9 @@
 
 // Timer3 counting output of timer1 which is 2 seconds
 extern const uint16_t correction_table[];
-typedef struct{
-    union{
-        time_t sec;
-        struct{
-            uint16_t sec_lsb;
-            uint16_t sec_msb;
-        };
-    };
-    time_t unix_time_ms;
-    uint16_t msec;
-}rtc_time_t;
-rtc_time_t rtc_time;
-uint8_t _hour,_minute,_2sec;
+volatile time_t unix_time_ms, unix_time_ms_sec = 0;
+volatile uint16_t msec;
+volatile uint8_t _hour,_minute,_2sec;
 void set_rtc_time(time_t x);
 // Taking only 10 bits - the MSB is 2 seconds
 #define rtc_time_2k_msec    (TMR1>>5)

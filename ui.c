@@ -89,7 +89,7 @@ void print_big_time_label(const uint24_t t) {
 
 void update_countdown_time_on_screen() {
     update_rtc_time();
-    uint24_t reminder = Settings.DelayTime - rtc_time.unix_time_ms + countdown_start_time;
+    uint24_t reminder = Settings.DelayTime - unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
 
@@ -130,11 +130,11 @@ void handle_timer_idle_shutdown() {
     update_rtc_time();
     time_t inactive_time;
     if (comandToHandle != None) {
-        timer_idle_last_action_time = rtc_time.sec;
+        timer_idle_last_action_time = _2sec / 2;
         set_backlight(Settings.BackLightLevel);
         return;
     }
-    inactive_time = rtc_time.sec - timer_idle_last_action_time;
+    inactive_time = _2sec / 2 - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
         STATE_HANDLE_POWER_OFF();
         return;
@@ -212,7 +212,7 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
-            timer_idle_last_action_time = rtc_time.sec;
+            timer_idle_last_action_time = _2sec / 2;
             StartPlayParSound();
             switch(Settings.ParMode){
                 case ParMode_Regular:
@@ -224,7 +224,7 @@ void HandleTimerEvents() {
                 case ParMode_Repetitive:
                     ParNowCounting = true;
                     InputFlags.FOOTER_CHANGED = True;
-                    parStartTime_ms = rtc_time.unix_time_ms;
+                    parStartTime_ms = unix_time_ms;
                     break;
                 default:
                     increment_par();
@@ -331,7 +331,7 @@ void handle_countdown() {
                 case ParMode_Repetitive:
                     ParNowCounting = true;
                     InputFlags.FOOTER_CHANGED = True;
-                    parStartTime_ms = rtc_time.unix_time_ms;
+                    parStartTime_ms = unix_time_ms;
                     break;
                 default:
                     if (Settings.TotPar > 0)

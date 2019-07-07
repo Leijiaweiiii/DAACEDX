@@ -219,7 +219,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     sinus_dac_init();
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
-    beep_start = rtc_time.unix_time_ms;
+    beep_start = unix_time_ms;
     Stats.Signal++;
     saveStatsField(&(Stats.Signal), 4);
 }
@@ -1433,14 +1433,14 @@ void countdown_expired_signal() {
 void CountDownMode(time_t countdown) {
     char msg[16];
     time_t reminder = countdown * 1000;
-    time_t stop_time = rtc_time.unix_time_ms + reminder + 1;
+    time_t stop_time = unix_time_ms + reminder + 1;
     uint8_t minute, second;
     TBool done = False;
     lcd_clear();
     do {
         print_header(true);
         update_rtc_time();
-        reminder = (stop_time - rtc_time.unix_time_ms) / 1000;
+        reminder = (stop_time - unix_time_ms) / 1000;
         minute = reminder / 60;
         second = reminder % 60;
         sprintf(msg,
@@ -2406,7 +2406,7 @@ void print_footer() {
 }
 
 void StartListenShots(void) {
-    ShootString_start_time = rtc_time.unix_time_ms;
+    ShootString_start_time = unix_time_ms;
     last_sent_index = 0;
     DetectInit();
 }
@@ -2477,7 +2477,7 @@ void DoPowerOn() {
     saveStatsField(&(Stats.PowerOn), 4);
     Delay(1500); // Assuming BT initialisation takes 0.5s
     update_rtc_time();
-    timer_idle_last_action_time = rtc_time.sec;
+    timer_idle_last_action_time = _2sec / 2;
     InputFlags.INITIALIZED = True;
 }
 
@@ -2540,7 +2540,7 @@ void StartParTimer() {
     if (CurPar_idx < Settings.TotPar) {
         ParNowCounting = true;
         InputFlags.FOOTER_CHANGED = True;
-        parStartTime_ms = rtc_time.unix_time_ms;
+        parStartTime_ms = unix_time_ms;
     }
 }
 
@@ -2572,7 +2572,7 @@ void StartCountdownTimer() {
             break;
     }
     update_rtc_time();
-    countdown_start_time = rtc_time.unix_time_ms;
+    countdown_start_time = unix_time_ms;
     ShootString_start_time = countdown_start_time;
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
@@ -2612,13 +2612,13 @@ void UpdateShot(time_t now, ShotInput_t input) {
 
 void UpdateShotNow(ShotInput_t x) {
     update_rtc_time();
-    timer_idle_last_action_time = rtc_time.sec;
-    UpdateShot(rtc_time.unix_time_ms, x);
+    timer_idle_last_action_time = _2sec / 2;
+    UpdateShot(unix_time_ms, x);
 }
 
 void check_countdown_expired() {
     update_rtc_time();
-    if (rtc_time.unix_time_ms - countdown_start_time > Settings.DelayTime) {
+    if (unix_time_ms - countdown_start_time > Settings.DelayTime) {
         comandToHandle = CountdownExpired;
     }
 }
@@ -2637,7 +2637,7 @@ void check_par_expired() {
         update_rtc_time();
         switch (Settings.ParMode) {
             case ParMode_Repetitive:
-                if(rtc_time.unix_time_ms - parStartTime_ms < repetitive_time) break;
+                if(unix_time_ms - parStartTime_ms < repetitive_time) break;
                 if(repetitive_counter < Settings.RepetitiveRepeat) {
                     if(repetitive_state == Face){
                         repetitive_state = Edge;
@@ -2654,7 +2654,7 @@ void check_par_expired() {
             default:
             {
                 long par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
-                if (rtc_time.unix_time_ms - parStartTime_ms > par_ms) {
+                if (unix_time_ms - parStartTime_ms > par_ms) {
                     ParNowCounting = false;
                     timerEventToHandle = ParEvent;
                 }
@@ -2665,7 +2665,7 @@ void check_par_expired() {
 }
 
 void check_timer_max_time() {
-    if (rtc_time.unix_time_ms - ShootString_start_time >= MAX_MEASUREMENT_TIME) {
+    if (unix_time_ms - ShootString_start_time >= MAX_MEASUREMENT_TIME) {
         timerEventToHandle = TimerTimeout;
     }
 }
@@ -2761,7 +2761,6 @@ static void interrupt isr(void) {
     } 
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        update_rtc_time();
         InputFlags.FOOTER_CHANGED = 1;
         tic_2_sec();
         if (ui_state == PowerOff) {
