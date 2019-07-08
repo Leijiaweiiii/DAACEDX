@@ -1372,11 +1372,11 @@ void SetMinute(){
 
 void SetClockMenuItems(){
     sprintf(ma.MenuItem[0], "Clock Format|%uh",Settings.AR_IS.Clock24h?24:12);
-    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(Settings.AR_IS.Clock24h));
-    sprintf(ma.MenuItem[2], "Minute|%02u",get_minute());
-    sprintf(ma.MenuItem[3], "Clock|");
+//    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(Settings.AR_IS.Clock24h));
+//    sprintf(ma.MenuItem[2], "Minute|%02u",get_minute());
+    sprintf(ma.MenuItem[1], "Clock|");
     rtc_print_time((ma.MenuItem[3] + 6),Settings.AR_IS.Clock24h);
-    ma.TotalMenuItems = 4;
+    ma.TotalMenuItems = 2;
 }
 void SetClockMenu(){
     InitSettingsMenuDefaults((&ma));
@@ -1393,13 +1393,13 @@ void SetClockMenu(){
                 case 0:
                     SetClockMode();
                     break;
+//                case 1:
+//                    SetHour();
+//                    break;
+//                case 2:
+//                    SetMinute();
+//                    break;
                 case 1:
-                    SetHour();
-                    break;
-                case 2:
-                    SetMinute();
-                    break;
-                case 3:
                     SetClock();
                     break;
             }
