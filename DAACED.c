@@ -2442,17 +2442,8 @@ void DoPowerOff() {
     LATEbits.LATE2 = 0;     // BUZZER driver
     LATEbits.LATE6 = 0;     // Backlight
     LATEbits.LATE0 = 0;     // +3
-    PMD1 = 0b11111101;
-    PMD2 = 0xFF;
-    PMD2 = 0xFF;
-    PMD0bits.NVMMD = 1;
-    PMD0bits.SCANMD = 1;
-    PMD0bits.CRCMD = 1;
-    PMD0bits.FVRMD = 1;
-    PMD0bits.SYSCMD = 1;
     VREGCON = 2;
     Sleep();
-
     InputFlags.KEY_RELEASED = True;
     PIE0bits.TMR0IE = 1;
     OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
