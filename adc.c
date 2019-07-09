@@ -15,7 +15,7 @@ void ADC_init() {
     ADREFbits.ADNREF = 0;   // VSS
     ADREFbits.ADPREF = 0;   // VDD
     ADREF = 0b00000011; // ADC connected to FVR
-    PMD0bits.FVRMD = 1; // Turn ON FRV perepherial
+    PMD0bits.FVRMD = 0; // Turn ON FRV perepherial
     FVRCONbits.EN = 1;
     while (!FVRCONbits.RDY);
     FVRCONbits.ADFVR=0b10;
