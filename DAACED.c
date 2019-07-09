@@ -2318,11 +2318,11 @@ void print_batery_info() {
     switch(num_bars){
         case 0:
         case 1:
-            num_bars = 1;
+            num_bars = 0;
             break;
         case 2:
         case 3:
-            num_bars = 3;
+            num_bars = 2;
             break;
         case 4:
         case 5:
