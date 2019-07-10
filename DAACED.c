@@ -2417,20 +2417,19 @@ void StartListenShots(void) {
 // <editor-fold defaultstate="collapsed" desc="Power functions">
 void PowerOffSound(){
     generate_sinus(1,1260,80);
-    Delay(80);
+    Delay(100);
     generate_sinus(1,960,80);
-    Delay(80);
+    Delay(100);
     generate_sinus(1,880,300);
     Delay(300);
 }
 
 void PowerOnSound(){
     generate_sinus(1,880,80);
-    Delay(80);
+    Delay(100);
     generate_sinus(1,960,80);
-    Delay(80);
+    Delay(100);
     generate_sinus(1,1260,300);
-//    Delay(300);
 }
 
 void DoPowerOff() {
