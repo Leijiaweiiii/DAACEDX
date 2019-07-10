@@ -548,7 +548,7 @@ TBool EditPar(uint8_t par_index) {
     b.fmax = 99.9;
     b.fvalue = Settings.ParTime[par_index];
     b.fold_value = b.fvalue;
-    sprintf(b.MenuTitle, "Par %d Settings ", par_index);
+    sprintf(b.MenuTitle, "Par %d Settings ", par_index + 1);
     b.fstep = 0.01;
     b.format = "%3.2fs";
     b.done = False;
@@ -570,11 +570,11 @@ void FillParSettings(SettingsMenu_t * m) {
         sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, Settings.ParTime[i]);
     }
     if (i < MAXPAR)
-        strcpy(m->MenuItem[i], "Add ");
+        strncpy(m->MenuItem[i], "Add ", MAXItemLenght);
     else
-        strcpy(m->MenuItem[i], "Max Par reached ");
-    strcpy(m->MenuItem[++i], "Delete Last ");
-    strcpy(m->MenuItem[++i], "Delete All ");
+        strncpy(m->MenuItem[i], "Max Par reached ", MAXItemLenght);
+    strncpy(m->MenuItem[++i], "Delete Last ", MAXItemLenght);
+    strncpy(m->MenuItem[++i], "Delete All ", MAXItemLenght);
     m->TotalMenuItems = i + 1;
 }
 
@@ -592,29 +592,41 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
             EditPar(m->menu);
         } else if (m->menu == (m->TotalMenuItems - 3)) {
             // Add new par
-            if (m->menu < MAXPAR) {
+            if (Settings.TotPar < MAXPAR) {
                 TBool res = False;
 
                 Settings.ParTime[Settings.TotPar] = 1.0; // Default setting 1 second
                 res = EditPar(Settings.TotPar);
                 if (res) { // Roll back if not selected
                     Settings.TotPar++;
+                    uint8_t oldPage = m->page;
                     m->menu++;
+                    m->page = ItemToPage(m->menu);
+                    m->changed = True;
+                    m->page_changed = (oldPage != m->page);
                 } else {
                     Settings.ParTime[Settings.TotPar] = 0.0;
                 }
+            } else {
+                Beep();
             }
         } else if (m->menu == (m->TotalMenuItems - 2)) {
             // Delete last PAR
             if (Settings.TotPar > 0) {
                 Settings.ParTime[Settings.TotPar--] = 0.0;
-                m->menu--;
+                    uint8_t oldPage = m->page;
+                    m->menu--;
+                    m->page = ItemToPage(m->menu);
+                    m->changed = True;
+                    m->page_changed = (oldPage != m->page);
             }
         } else if (m->menu == (m->TotalMenuItems - 1)) {
             // Clear PAR
             clear_par();
             m->menu = 0;
             m->page = 0;
+            m->page_changed = True; 
+            m->changed = True;
         }
         lcd_clear();
     }

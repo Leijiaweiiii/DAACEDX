@@ -186,7 +186,8 @@ uint16_t DetectThreshold;
 int16_t DetectSlopeThreshold;
 time_t countdown_start_time;
 
-#define MAXPAR 20
+// Should not be more than we can display in menu items
+#define MAXPAR 14
 volatile int8_t CurPar_idx = 0; //The par index
 volatile TBool ParNowCounting = false;
 time_t parStartTime_ms;
