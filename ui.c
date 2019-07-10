@@ -2,7 +2,7 @@
 #include "DAACED.h"
 
 // These may be macros but moved here for space optimization
-void STATE_HANDLE_POWER_OFF()          {ui_state = PowerOff;PowerOffSound();}
+void STATE_HANDLE_POWER_OFF()          {if(ui_state != PowerOff) PowerOffSound(); ui_state = PowerOff;}
 void STATE_HANDLE_POWER_ON()           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
 void STATE_HANDLE_TIMER_IDLE()         {ui_state = TimerIdle;StopTimer();}
 void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
@@ -129,12 +129,12 @@ void handle_timer_idle_shutdown() {
     if (!Settings.AR_IS.AutoPowerOff) return;
     update_rtc_time();
     time_t inactive_time;
-    if (comandToHandle != None) {
-        timer_idle_last_action_time = _2sec;
+    if (comandToHandle != None || ui_state == TimerListening) {
+        timer_idle_last_action_time = unix_time_ms_sec;
         set_backlight(Settings.BackLightLevel);
         return;
     }
-    inactive_time = _2sec - timer_idle_last_action_time;
+    inactive_time = unix_time_ms_sec - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
         STATE_HANDLE_POWER_OFF();
         return;
@@ -212,7 +212,7 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
-            timer_idle_last_action_time = _2sec;
+            timer_idle_last_action_time = unix_time_ms_sec;
             StartPlayParSound();
             switch(Settings.ParMode){
                 case ParMode_Regular:

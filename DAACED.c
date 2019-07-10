@@ -2502,7 +2502,7 @@ void DoPowerOn() {
     
 //    Delay(700); // Assuming BT initialisation takes 0.5s
     update_rtc_time();
-    timer_idle_last_action_time = _2sec;
+    timer_idle_last_action_time = unix_time_ms_sec;
     InputFlags.INITIALIZED = True;
 }
 
@@ -2638,7 +2638,7 @@ void UpdateShot(time_t now, ShotInput_t input) {
 
 void UpdateShotNow(ShotInput_t x) {
     update_rtc_time();
-    timer_idle_last_action_time = _2sec;
+    timer_idle_last_action_time = unix_time_ms_sec;
     UpdateShot(unix_time_ms, x);
 }
 
