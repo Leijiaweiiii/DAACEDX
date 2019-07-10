@@ -126,7 +126,7 @@ union {
         unsigned UNUSED         : 1;
         unsigned INITIALIZED    : 1;
         unsigned NEW_SHOT       : 1;
-        unsigned UNUSED         : 1;
+        unsigned BEEP_GUARD     : 1;
     };
 } InputFlags;
 
