@@ -35,7 +35,8 @@ extern "C" {
                 unsigned done           : 1;
                 unsigned changed        : 1;
                 unsigned selected       : 1;
-                unsigned UNUSED         : 6;
+                unsigned page_changed   : 1;
+                unsigned UNUSED         : 5;
             };
         };
     } SettingsMenu_t;

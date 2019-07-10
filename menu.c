@@ -75,6 +75,7 @@ void DisplaySettings(SettingsMenu_t* sm) {
     uint16_t i;
     char str[MAXItemLenght];
     if (! sm->changed) return;
+    if (sm->page_changed) lcd_clear();
     sm->changed = False;
     set_screen_title(sm->MenuTitle);
     print_header(true);
@@ -114,6 +115,7 @@ void decrement_menu_index(SettingsMenu_t * s) {
         s->page = ItemToPage(s->menu);
     } else Beep();
     s->changed = True;
+    s->page_changed = (oldPage != s->page);
 }
 
 void increment_menu_index(SettingsMenu_t * s) {
@@ -123,6 +125,7 @@ void increment_menu_index(SettingsMenu_t * s) {
         s->page = ItemToPage(s->menu);
     } else Beep();
     s->changed = True;
+    s->page_changed = (oldPage != s->page);
 }
 
 void decrement_menu_index_inf(SettingsMenu_t * s) {
@@ -134,7 +137,7 @@ void decrement_menu_index_inf(SettingsMenu_t * s) {
     }
     s->page = ItemToPage(s->menu);
     s->changed = True;
-
+    s->page_changed = (oldPage != s->page);
 }
 
 void increment_menu_index_inf(SettingsMenu_t * s) {
@@ -146,6 +149,7 @@ void increment_menu_index_inf(SettingsMenu_t * s) {
     }
     s->page = ItemToPage(s->menu);
     s->changed = True;
+    s->page_changed = (oldPage != s->page);
 }
 
 void SelectMenuItem(SettingsMenu_t* s) {
