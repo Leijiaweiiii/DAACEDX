@@ -262,7 +262,7 @@ void getDefaultSettings() {
     Settings.Volume = 2; // Middle strength sound.
     Settings.CustomCDtime = 240; // 4 minutes in sec
     Settings.DelayMode = DELAY_MODE_Fixed;
-    Settings.DelayTime = 3000; // ms before start signal
+    Settings.CUstomDelayTime = 2500; // ms before start signal
     Settings.BackLightLevel = 1; // Most dimmed visible
     Settings.TotPar = 0; // Par Off
     Settings.ParMode = ParMode_Regular;
@@ -449,7 +449,7 @@ void print_delay(char * str, const char * prefix, const char * postfix){
             break;
         case DELAY_MODE_Random: sprintf(str, "%sRND", prefix);
             break;
-        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f%s", prefix, (float) (Settings.DelayTime) / 1000, postfix);
+        case DELAY_MODE_Custom: sprintf(str, "%s%1.1f%s", prefix, (float) (Settings.CUstomDelayTime) / 1000, postfix);
             break;
     }
 }
@@ -495,7 +495,7 @@ void SetCustomDelay() {
     n.fmin = 0.1;
     n.fmax = 10.0;
     n.fstep = 0.1;
-    n.fvalue = (float) Settings.DelayTime / 1000;
+    n.fvalue = (float) Settings.CUstomDelayTime / 1000;
     n.fold_value = n.fvalue;
     n.format = " %2.1fs ";
     lcd_clear();
@@ -503,9 +503,9 @@ void SetCustomDelay() {
         DisplayDouble(&n);
         SelectDouble(&n);
     } while (SettingsNotDone((&n)));
-    Settings.DelayTime = (time_t) (n.fvalue * 1000);
+    Settings.CUstomDelayTime = (time_t) (n.fvalue * 1000);
     if (n.fold_value != n.fvalue) {
-        saveSettingsField(&Settings, &(Settings.DelayTime), 4);
+        saveSettingsField(&Settings, &(Settings.CUstomDelayTime), 4);
     }
 }
 
@@ -516,7 +516,7 @@ void SetDelay() {
     strcpy(ma.MenuItem[DELAY_MODE_Instant], "Instant");
     strcpy(ma.MenuItem[DELAY_MODE_Fixed], "Fixed|3.0 sec.");
     strcpy(ma.MenuItem[DELAY_MODE_Random], "Random");
-    sprintf(ma.MenuItem[DELAY_MODE_Custom], "Custom|%3.1f sec.",((double)Settings.DelayTime)/1000);
+    sprintf(ma.MenuItem[DELAY_MODE_Custom], "Custom|%3.1f sec.",((double)Settings.CUstomDelayTime)/1000);
     ma.TotalMenuItems = 4;
     ma.menu = Settings.DelayMode;
 
@@ -526,7 +526,7 @@ void SetDelay() {
         if (ma.done && ma.selected && ma.menu == DELAY_MODE_Custom) {
             SetCustomDelay();
             lcd_clear();
-            sprintf(ma.MenuItem[DELAY_MODE_Custom], "Custom|%3.1f sec.",((double)Settings.DelayTime)/1000);
+            sprintf(ma.MenuItem[DELAY_MODE_Custom], "Custom|%3.1f sec.",((double)Settings.CUstomDelayTime)/1000);
             Settings.DelayMode = ma.menu;
             ma.changed = True;
             ma.done = False;
@@ -1679,8 +1679,8 @@ void bt_set_delay() {
     time = atoi(bt_cmd_args_raw);
     if (time > -1 && time < 10000) {
         Settings.DelayMode = DELAY_MODE_Custom;
-        Settings.DelayTime = time;
-        saveSettingsField(&Settings, &(Settings.DelayTime), 4);
+        Settings.CUstomDelayTime = time;
+        saveSettingsField(&Settings, &(Settings.CUstomDelayTime), 4);
         saveSettingsField(&Settings, &(Settings.DelayMode), 1);
     } else {
         DAA_MSG_ERROR;
@@ -2574,15 +2574,16 @@ void StartCountdownTimer() {
     }
     InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: Settings.DelayTime = 2; // To allow battery reading and not interfere with detection
+        case DELAY_MODE_Instant: runtimeDelayTime = 2; // To allow battery reading and not interfere with detection
             break;
-        case DELAY_MODE_Fixed: Settings.DelayTime = 3000;
+        case DELAY_MODE_Fixed: runtimeDelayTime = 3000;
             break;
         case DELAY_MODE_Random:
-            Settings.DelayTime = 2000 + random16(3000);// from 2s to 5s random delay
+            runtimeDelayTime = 1000 + random16(3000);// from 2s to 5s random delay
             break;
         case DELAY_MODE_Custom:
-            eeprom_read_array(SettingAddress(Settings, Settings.DelayTime), (uint8_t *)&(Settings.DelayTime), 4);
+            eeprom_read_array(SettingAddress(Settings, Settings.CUstomDelayTime), (uint8_t *)&(Settings.CUstomDelayTime), 4);
+            runtimeDelayTime = Settings.CUstomDelayTime;
             break;
     }
     update_rtc_time();
@@ -2591,7 +2592,7 @@ void StartCountdownTimer() {
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
     }
-    length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, Settings.DelayTime);
+    length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, Settings.CUstomDelayTime);
     sendString(msg, length);
 }
 
@@ -2632,7 +2633,7 @@ void UpdateShotNow(ShotInput_t x) {
 
 void check_countdown_expired() {
     update_rtc_time();
-    if (unix_time_ms - countdown_start_time > Settings.DelayTime) {
+    if (unix_time_ms - countdown_start_time > runtimeDelayTime) {
         comandToHandle = CountdownExpired;
     }
 }

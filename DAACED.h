@@ -243,7 +243,7 @@ typedef union {
         uint16_t RepetitiveFaceTime;
         uint16_t RepetitiveEdgeTime;
         uint8_t RepetitiveRepeat;
-        time_t DelayTime; // mS         // C
+        time_t CUstomDelayTime; // mS         // C
         time_t CustomCDtime; // sec TODO: Reduce storage type
         float ParTime[MAXPAR]; //in decimal seconds unit
         float ParBackup[MAXPAR]; //in 1mS unit
@@ -252,7 +252,7 @@ typedef union {
 } Settings_t;
 volatile Settings_t Settings;
 
-
+uint16_t runtimeDelayTime = 2500;
 uint8_t repetitive_counter = 0;
 enum {Face = 0, Edge = 1} repetitive_state;
 uint16_t repetitive_time = 0;

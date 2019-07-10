@@ -89,7 +89,7 @@ void print_big_time_label(const uint24_t t) {
 
 void update_countdown_time_on_screen() {
     update_rtc_time();
-    uint24_t reminder = Settings.DelayTime - unix_time_ms + countdown_start_time;
+    uint24_t reminder = runtimeDelayTime - unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
 
