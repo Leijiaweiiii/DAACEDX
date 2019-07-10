@@ -143,7 +143,7 @@ void initialize_backlight() {
 
 
 void set_backlight(uint8_t level) {
-    uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 8;
+    uint8_t duty_cycle = (level == 0) ? 0 : level * 10 - 1;
     // if not changing brightness
     if(duty_cycle == current_dc) return;
     // when changing, turn everything off
