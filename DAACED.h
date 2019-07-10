@@ -123,7 +123,7 @@ union {
         unsigned B_RELEASED     : 1;
         unsigned KEY_RELEASED   : 1;
         unsigned FOOTER_CHANGED : 1;
-        unsigned ADC_DETECTED   : 1;
+        unsigned UNUSED         : 1;
         unsigned INITIALIZED    : 1;
         unsigned NEW_SHOT       : 1;
         unsigned UNUSED         : 1;
@@ -183,7 +183,6 @@ uint8_t ReviewTopShotDefault;
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
 uint16_t DetectThreshold;
-int16_t DetectSlopeThreshold;
 time_t countdown_start_time;
 
 // Should not be more than we can display in menu items

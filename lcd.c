@@ -167,7 +167,7 @@ uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
 }
 
 uint8_t lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    if (str_ptr == NULL) return;
+    if (str_ptr == NULL) return 0;
     //TODO: There is a bug that prints bright pages at spacing when polarity is WHITE_OVER_BLACK
     while (*str_ptr) {
         x_pos += lcd_write_char(*str_ptr, x_pos, y_pos, font, polarity);

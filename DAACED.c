@@ -2770,7 +2770,6 @@ static void interrupt isr(void) {
         update_screen_model();
         if (ADPCH == MICROPHONE)
             ADCON0bits.ADGO = 1;
-        InputFlags.ADC_DETECTED = 0;
     } 
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
@@ -2782,7 +2781,6 @@ static void interrupt isr(void) {
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             battery_mV = adc_battery*BAT_divider;
             BAT_BUFFER_PUT(battery_mV);
-//            battery_min_mV = MIN(battery_mV, battery_min_mV);
             ADC_DISABLE_INTERRUPT;
         }
     } 
