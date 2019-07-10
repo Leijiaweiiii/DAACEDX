@@ -1472,8 +1472,8 @@ void CountDownMode(time_t countdown) {
     } while (!done && ui_state == SettingsScreen);
     if (done && minute == 0 && second == 0) {
         countdown_expired_signal();
-        STATE_HANDLE_TIMER_IDLE();
     }
+    STATE_HANDLE_TIMER_IDLE();
 }
 
 TBool SetCustomCountDown() {
