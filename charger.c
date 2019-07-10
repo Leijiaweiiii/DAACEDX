@@ -4,9 +4,19 @@
 uint8_t number_of_battery_bars(){
     uint8_t res = 0;
     for(uint8_t i = 0;i<5;i++){
-        if(battery_voltage_thresholds[i]<battery_mV){
+        if(battery_voltage_thresholds[i]<battery_average()){
             res++;
         }
+    }
+    switch(res){
+        case 2:
+        case 3:
+            res = 3;
+            break;
+        case 4:
+        case 5:
+            res = 5;
+            break;
     }
     return res;
 }
@@ -27,3 +37,9 @@ void define_charger_state() {
     }
 }
 
+uint16_t battery_average(){
+    uint16_t res = 0;
+    for(uint8_t i = 0;i<BAT_BUFFER_SIZE;i++)
+        res += bat_samples[i];
+    return (res >> BAT_BUFFER_SIZE_SHIFT);
+}

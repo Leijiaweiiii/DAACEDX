@@ -72,3 +72,9 @@ uint16_t MeanValue(){
     
     return avg>>4;
 }
+void BAT_BUFFER_PUT(uint16_t x)
+{
+    uint8_t iii = 0;
+    for (;iii + 1 < BAT_BUFFER_SIZE; iii++) bat_samples[iii] = bat_samples[iii + 1];
+    bat_samples[iii] = x;
+}

@@ -1786,7 +1786,7 @@ void handle_bt_commands() {
             DAA_MSG_OK;
             break;
         case BT_GetBatteryMV:
-            length = sprintf(msg,"%u", battery_mV);
+            length = sprintf(msg,"%u", battery_average());
             sendString(msg, length);
             break;
         case BT_None:
@@ -2315,20 +2315,7 @@ uint8_t print_title(TBool settings) {
 void print_batery_info() {
     uint8_t col = LCD_WIDTH - 35;
     uint8_t num_bars = number_of_battery_bars();
-    switch(num_bars){
-        case 0:
-        case 1:
-            num_bars = 0;
-            break;
-        case 2:
-        case 3:
-            num_bars = 2;
-            break;
-        case 4:
-        case 5:
-            num_bars = 5;
-            break;
-    }
+
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
 
@@ -2551,7 +2538,7 @@ void StartParTimer() {
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
-    ADC_ENABLE_INTERRUPT_BATTERY; // To get accurate battery readings if someone actively uses timer in Autostart mode
+//    ADC_ENABLE_INTERRUPT_BATTERY; // To get accurate battery readings if someone actively uses timer in Autostart mode
     switch(Settings.ParMode){
         case ParMode_Regular:
             CurPar_idx = 0;
@@ -2759,6 +2746,7 @@ static void interrupt isr(void) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             battery_mV = adc_battery*BAT_divider;
+            BAT_BUFFER_PUT(battery_mV);
 //            battery_min_mV = MIN(battery_mV, battery_min_mV);
             ADC_DISABLE_INTERRUPT;
         }
@@ -2797,10 +2785,10 @@ void battery_test(){
                 ADC_ENABLE_INTERRUPT_BATTERY;
                 Delay(10);
             }
-            sprintf(msg, "%u %04d/%04dmV", i, battery_mV, battery_min_mV);
+            sprintf(msg, "%u %04d/%04d/%04dmV", i, battery_mV, battery_min_mV, battery_average());
             lcd_clear();
             lcd_write_string(msg,2,40,SmallFont,BLACK_OVER_WHITE);
-        } while (battery_mV > battery_voltage_thresholds[5] || Key == 0);
+        } while (battery_average() > battery_voltage_thresholds[5] || Key == 0);
 }
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">

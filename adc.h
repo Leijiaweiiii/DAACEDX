@@ -39,6 +39,10 @@ uint16_t samples[ADC_BUFFER_SIZE];
 #define ADC_PREV_VALUE            (samples[head_index])
 //#define ADC_DETECTION_THRESHOLD     200
 #define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
+#define BAT_BUFFER_SIZE             8
+#define BAT_BUFFER_SIZE_SHIFT       3
+uint16_t bat_samples [BAT_BUFFER_SIZE];
+void BAT_BUFFER_PUT(uint16_t x);
 
 TBool AdcDetect();
 uint16_t median();
