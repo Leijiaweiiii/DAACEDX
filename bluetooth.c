@@ -32,8 +32,11 @@ void set_device_name(){
 
 void BT_init() {
     BT_hard_reset();
-    get_mac_address();
-    set_device_name();
+    // After the battery reset the first boot will be long.
+    if(0 == mac_addr[0]){
+        get_mac_address();
+        set_device_name();
+    }
     BT_STATUS.connected = 0;
 }
 

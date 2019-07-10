@@ -316,5 +316,6 @@ uint8_t top_shot_index();
 void SetCountDown();
 void saveStatsField(void * f, size_t l);
 void saveStats();
+void PowerOffSound();
 
 #endif /*  _DAACED_H_ */

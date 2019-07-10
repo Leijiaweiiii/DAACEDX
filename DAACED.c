@@ -2403,6 +2403,23 @@ void StartListenShots(void) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Power functions">
+void PowerOffSound(){
+    generate_sinus(1,1260,80);
+    Delay(80);
+    generate_sinus(1,960,80);
+    Delay(80);
+    generate_sinus(1,880,300);
+    Delay(300);
+}
+
+void PowerOnSound(){
+    generate_sinus(1,880,80);
+    Delay(80);
+    generate_sinus(1,960,80);
+    Delay(80);
+    generate_sinus(1,1260,300);
+//    Delay(300);
+}
 
 void DoPowerOff() {
     lcd_clear(); // Remove remaining picture on power on
@@ -2451,7 +2468,7 @@ void DoPowerOn() {
     getStats();
     set_backlight(Settings.BackLightLevel);
     // Continue initialisation during the logo
-    lcd_draw_bitmap(0, 0, &daaced_logo);
+//    lcd_draw_bitmap(0, 0, &daaced_logo);
     
     ADC_init();
     InitAttenuator();
@@ -2461,12 +2478,18 @@ void DoPowerOn() {
     INT0IE = 0; // Disable wakeup interrupt
     init_ms_timer0();
     initialize_rtc_timer();
-    battery_mV = ADC_Read(BATTERY)*BAT_divider;
+    for(uint8_t i = 0;i<BAT_BUFFER_SIZE;i++){
+        battery_mV = ADC_Read(BATTERY)*BAT_divider;
+        BAT_BUFFER_PUT(battery_mV);
+        Delay(10);
+    }
     ADC_ENABLE_INTERRUPT_BATTERY;
     init_bt();
     Stats.PowerOn++;
     saveStatsField(&(Stats.PowerOn), 4);
-    Delay(1500); // Assuming BT initialisation takes 0.5s
+    PowerOnSound();
+    
+//    Delay(700); // Assuming BT initialisation takes 0.5s
     update_rtc_time();
     timer_idle_last_action_time = _2sec / 2;
     InputFlags.INITIALIZED = True;

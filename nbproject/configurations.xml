@@ -43,7 +43,6 @@
       <itemPath>PatuaOne_22pts.c</itemPath>
       <itemPath>PatuaOne_62pt.c</itemPath>
       <itemPath>eeprom.c</itemPath>
-      <itemPath>daaced_logo.c</itemPath>
       <itemPath>random.c</itemPath>
       <itemPath>sinus.c</itemPath>
     </logicalFolder>
@@ -213,6 +212,7 @@
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
