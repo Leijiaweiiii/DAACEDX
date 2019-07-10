@@ -130,11 +130,11 @@ void handle_timer_idle_shutdown() {
     update_rtc_time();
     time_t inactive_time;
     if (comandToHandle != None) {
-        timer_idle_last_action_time = _2sec / 2;
+        timer_idle_last_action_time = _2sec;
         set_backlight(Settings.BackLightLevel);
         return;
     }
-    inactive_time = _2sec / 2 - timer_idle_last_action_time;
+    inactive_time = _2sec - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
         STATE_HANDLE_POWER_OFF();
         return;
@@ -212,7 +212,7 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
-            timer_idle_last_action_time = _2sec / 2;
+            timer_idle_last_action_time = _2sec;
             StartPlayParSound();
             switch(Settings.ParMode){
                 case ParMode_Regular:
