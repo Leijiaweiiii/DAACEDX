@@ -151,9 +151,9 @@ typedef struct {
 #define Orientation Settings.AR_IS.AutoRotate
 // Automatic orientation
 #define OrientationSensor PORTAbits.RA0
-// Automatic shutdown after timeout 20 minutes (in 2 sec intervals))
-#define timer_idle_shutdown_timeout 600000L
-// Dim light after 46 seconds (in 2 sec intervals)
+// Automatic shutdown after timeout 20 minutes
+#define timer_idle_shutdown_timeout 1200000L
+// Dim light after 46 seconds 
 #define timer_idle_dim_timeout      45000L
 time_t timer_idle_last_action_time;
 
