@@ -56,7 +56,7 @@ void sendOneShot(shot_t * shot) {
 void sendSignal(const char * name, uint16_t duration, uint24_t time_ms) {
     char msg[16];
     int size;
-    size = sprintf(msg, "%s,%d,%d\n", name, duration, time_ms);
+    size = sprintf(msg, "%s,%u,%lu\n", name, duration, time_ms);
     uart_start_tx_string(msg, size);
 }
 

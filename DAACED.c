@@ -1430,7 +1430,7 @@ void SetClockMenu(){
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="CountDown">
 
-void countdown_expired_signal() {
+uint8_t countdown_expired_signal() {
     for (uint8_t i = 0; i < 5; i++) {
         for (uint8_t j = 0; j < 4; j++) {
             generate_sinus(
@@ -1441,9 +1441,10 @@ void countdown_expired_signal() {
             Delay(100);
         }
         if (Keypressed)
-            break;
+            return False;
         Delay(400);
     }
+    return True;
 }
 
 void CountDownMode(time_t countdown) {
@@ -1662,6 +1663,8 @@ void bt_set_par() {
             Settings.TotPar = par_idx;
             savePar(par_idx);
             saveSettingsField(&Settings, &(Settings.TotPar), 1);
+            Stats.Menu[SETTINGS_INDEX_PAR]++;
+            saveStats();
             DAA_MSG_OK;
         } else {
             DAA_MSG_ERROR;
@@ -1681,6 +1684,8 @@ void bt_set_mode() {
         lcd_clear_block(0, 0, LCD_WIDTH, UI_HEADER_END_LINE);
         Settings.ParMode = mode;
         saveSettingsField(&Settings, &(Settings.ParMode), 1);
+        Stats.Modes[mode]++;
+        saveStats();
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
@@ -1690,11 +1695,12 @@ void bt_set_mode() {
 void bt_set_delay() {
     int time = 0;
     time = atoi(bt_cmd_args_raw);
-    if (time > -1 && time < 10000) {
+    if (time > -1 && time < 10001) {
         Settings.DelayMode = DELAY_MODE_Custom;
         Settings.CUstomDelayTime = time;
         saveSettingsField(&Settings, &(Settings.CUstomDelayTime), 4);
         saveSettingsField(&Settings, &(Settings.DelayMode), 1);
+        DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
     }
@@ -1752,7 +1758,11 @@ void handle_bt_commands() {
             break;
         case BT_Find:
             DAA_MSG_LISTEN;
-            countdown_expired_signal();
+            if(countdown_expired_signal()){
+                DAA_MSG_OK;
+            } else {
+                DAA_MSG_ERROR;
+            }
             break;
         case BT_GetStats:
             length = sprintf(msg,"PowerOn,%u\n",Stats.PowerOn);
@@ -1796,7 +1806,6 @@ void handle_bt_commands() {
             break;
         case BT_SetDelay:
             bt_set_delay();
-            DAA_MSG_OK;
             break;
         case BT_GetBatteryMV:
             length = sprintf(msg,"%u", battery_average());
@@ -1808,6 +1817,9 @@ void handle_bt_commands() {
             DAA_MSG_NOT_SUPPORTED;
             break;
     }
+    // Don't let the timer sleep if it's actively used remotely
+    if(BT_COMMAND != BT_None)
+        timer_idle_last_action_time = unix_time_ms_sec;
     BT_COMMAND = BT_None;
 }
 
@@ -1905,22 +1917,6 @@ TBool userIsSure(const char * title){
     } while (SettingsNotDone((&ma)));
     return (ma.menu == SMTH_DISABLED);
 }
-
-#define SETTINGS_INDEX_DELAY        0
-#define SETTINGS_INDEX_PAR          1
-#define SETTINGS_INDEX_BUZZER       2
-#define SETTINGS_INDEX_MIC          3
-#define SETTINGS_INDEX_MODE         4
-#define SETTINGS_INDEX_DISPLAY      5
-#define SETTINDS_INDEX_COUNTDOWN    6
-#define SETTINDS_INDEX_AUTOSTART    7
-#define SETTINDS_INDEX_CLOCK        8
-#define SETTINDS_INDEX_INPUT        9
-#define SETTINDS_INDEX_BLUETOOTH    10
-#define SETTINDS_INDEX_AUTO_POWER   11
-#define SETTINDS_INDEX_CLEAR        12
-#define SETTINDS_INDEX_RESET        13
-#define SETTINDS_INDEX_VERSION      14
 
 void DoSet(uint8_t menu) {
     Stats.Menu[menu]++;
@@ -2547,6 +2543,7 @@ void StartPlayParSound() {
         LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
+    // TODO: Test here timings
     sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
 }
 
@@ -2558,6 +2555,7 @@ void StartPlayStartSound() {
         LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+    // TODO: Test here timings
     sendSignal("START", Settings.BuzzerStartDuration, 0.0);
 }
 
@@ -2604,7 +2602,7 @@ void StartCountdownTimer() {
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ShootString.data[i] = 0;
     }
-    length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, Settings.CUstomDelayTime);
+    length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, runtimeDelayTime);
     sendString(msg, length);
 }
 

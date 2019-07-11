@@ -261,7 +261,21 @@ uint16_t repetitive_time = 0;
 SettingsMenu_t ma; // Submenu for second level menu
 SettingsMenu_t mx; // Submenu for third level menu
 SettingsMenu_t SettingsMenu;
-
+#define SETTINGS_INDEX_DELAY        0
+#define SETTINGS_INDEX_PAR          1
+#define SETTINGS_INDEX_BUZZER       2
+#define SETTINGS_INDEX_MIC          3
+#define SETTINGS_INDEX_MODE         4
+#define SETTINGS_INDEX_DISPLAY      5
+#define SETTINDS_INDEX_COUNTDOWN    6
+#define SETTINDS_INDEX_AUTOSTART    7
+#define SETTINDS_INDEX_CLOCK        8
+#define SETTINDS_INDEX_INPUT        9
+#define SETTINDS_INDEX_BLUETOOTH    10
+#define SETTINDS_INDEX_AUTO_POWER   11
+#define SETTINDS_INDEX_CLEAR        12
+#define SETTINDS_INDEX_RESET        13
+#define SETTINDS_INDEX_VERSION      14
 
 #define StatsDataSize   ((5 + 3 + TOT_PAR_MODES + MAXMenuItems)*2 + 2 * 4)
 #define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + 4)
