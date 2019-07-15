@@ -239,11 +239,11 @@ void clearHistory() {
 }
 
 void saveSettings() {
-    eeprom_write_array_bulk(SettingsStartAddress, Settings.data, SettingsDataSize);
+    eeprom_write_array_bulk(SettingsStartAddress, &Settings, sizeof(Settings_t));
 }
 
 void getSettings() {
-    eeprom_read_array(SettingsStartAddress, Settings.data, SettingsDataSize);
+    eeprom_read_array(SettingsStartAddress, &Settings, sizeof(Settings_t));
 }
 
 void getDefaultSettings() {
@@ -291,13 +291,13 @@ void saveSettingsField(Settings_t * s, void * f, size_t l) {
 }
 
 void savePar(uint8_t par_index) {
-    int offset = &(Settings.ParTime) - (&Settings) + par_index;
-    eeprom_write_array_bulk(SettingsStartAddress + offset, Settings.data + offset, sizeof(uint24_t));
+    int offset = currentParSet - (&Settings) + par_index;
+    eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof(float));
 }
 
 void restorePar() {
-    int offset = &(Settings.ParTime) - (&Settings);
-    eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, MAXPAR);
+    int offset = Settings.ParTime - (&Settings);
+    eeprom_read_array(SettingsStartAddress + offset, currentParSet, MAXPAR);
     offset = (&(Settings.TotPar))-(&Settings);
     Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
 }
@@ -339,7 +339,7 @@ void saveShootString(void) {
         index = 0;
     ShootString.latest = 1;
     addr = findStringAddress(index);
-    eeprom_write_array_bulk(addr, ShootString.data, Size_of_ShootString);
+    eeprom_write_array_bulk(addr, &ShootString, Size_of_ShootString);
     eeprom_write_data(addr, 1); // Set latest flag
 }
 
@@ -391,7 +391,7 @@ void getShootString(uint8_t offset) {
     else
         index = MAXSHOOTSTRINGS - offset + index;
     addr = findStringAddress(index);
-    eeprom_read_array(addr, ShootString.data, Size_of_ShootString);    
+    eeprom_read_array(addr, &ShootString, Size_of_ShootString);    
     ReviewString.shots[0] = ShootString.shots[0];
     ReviewString.TotShoots = ShootString.TotShoots;
 
@@ -428,11 +428,11 @@ TBool checkShotStringEmpty(uint8_t offset) {
 }
 
 void saveStats() {
-    eeprom_write_array_bulk(StatsStartAddress, Stats.data, sizeof(Stats_t));
+    eeprom_write_array_bulk(StatsStartAddress, &Stats, sizeof(Stats_t));
 }
 
 void getStats() {
-    eeprom_read_array(StatsStartAddress, Stats.data, StatsDataSize);
+    eeprom_read_array(StatsStartAddress, &Stats, sizeof(Stats_t));
 }
 
 void saveStatsField(void * f, size_t l) {
@@ -2599,8 +2599,9 @@ void StartCountdownTimer() {
     update_rtc_time();
     countdown_start_time = unix_time_ms;
     ShootString_start_time = countdown_start_time;
+
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
-        ShootString.data[i] = 0;
+        ((uint8_t *)(&ShootString))[i] = 0;
     }
     length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, runtimeDelayTime);
     sendString(msg, length);

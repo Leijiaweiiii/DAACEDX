@@ -212,7 +212,7 @@ extern const char * par_mode_header_names[];
 #define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
 // 270 bytes
-#define SettingsDataSize            (264 + 5 + 1)
+#define SettingsDataSize            (sizeof(Settings_t))
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
@@ -221,34 +221,30 @@ typedef struct {
     uint24_t par;
 } AutoPar_t;
 
-typedef union {
-    uint8_t data[SettingsDataSize];
-
-    struct {
-        uint8_t version; // 0
-        AR_IS_T AR_IS;
-        uint8_t DelayMode; // 1
-        uint8_t Volume; // 2
-        uint8_t BackLightLevel; // 3
-        uint8_t Filter; // 4
-        uint8_t ParMode; // 5
-        uint8_t TotPar; // 1 based      // 6
-        uint8_t TotParBak;
-        uint8_t InputType; // 7
-        uint8_t Attenuator;
-        uint16_t Sensitivity; // 8
-        uint16_t BuzzerFrequency; // 9
-        uint16_t BuzzerParDuration; // A
-        uint16_t BuzzerStartDuration; // B
-        uint16_t RepetitiveFaceTime;
-        uint16_t RepetitiveEdgeTime;
-        uint8_t RepetitiveRepeat;
-        time_t CUstomDelayTime; // mS         // C
-        time_t CustomCDtime; // sec TODO: Reduce storage type
-        float ParTime[MAXPAR]; //in decimal seconds unit
-        float ParBackup[MAXPAR]; //in 1mS unit
-        AutoPar_t AutoPar[MAXPAR];
-    };
+typedef struct {
+    uint8_t version; // 0
+    AR_IS_T AR_IS;
+    uint8_t DelayMode; // 1
+    uint8_t Volume; // 2
+    uint8_t BackLightLevel; // 3
+    uint8_t Filter; // 4
+    uint8_t ParMode; // 5
+    uint8_t TotPar; // 1 based      // 6
+    uint8_t TotCustomPar;
+    uint8_t InputType; // 7
+    uint8_t Attenuator;
+    uint16_t Sensitivity; // 8
+    uint16_t BuzzerFrequency; // 9
+    uint16_t BuzzerParDuration; // A
+    uint16_t BuzzerStartDuration; // B
+    uint16_t RepetitiveFaceTime;
+    uint16_t RepetitiveEdgeTime;
+    uint8_t RepetitiveRepeat;
+    time_t CUstomDelayTime; // mS         // C
+    time_t CustomCDtime; // sec TODO: Reduce storage type
+    float ParTime[MAXPAR]; //in decimal seconds unit
+    float CustomPar[MAXPAR]; //in 1mS unit
+    AutoPar_t AutoPar[MAXPAR];
 } Settings_t;
 volatile Settings_t Settings;
 
@@ -277,23 +273,21 @@ SettingsMenu_t SettingsMenu;
 #define SETTINDS_INDEX_RESET        13
 #define SETTINDS_INDEX_VERSION      14
 
-#define StatsDataSize   ((5 + 3 + TOT_PAR_MODES + MAXMenuItems)*2 + 2 * 4)
+
 #define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + 4)
-typedef union{
-    uint8_t data[StatsDataSize];
-    struct{
-        uint32_t PowerOn;
-        uint32_t Signal;
-        uint16_t Review;
-        uint16_t Settings;
-        uint16_t Charging;
-        uint16_t Charged;
-        uint16_t LowPower;
-        uint16_t InputModes[3];
-        uint16_t Modes[TOT_PAR_MODES];
-        uint16_t Menu[MAXMenuItems];
-    };
+typedef struct{
+    uint32_t PowerOn;
+    uint32_t Signal;
+    uint16_t Review;
+    uint16_t Settings;
+    uint16_t Charging;
+    uint16_t Charged;
+    uint16_t LowPower;
+    uint16_t InputModes[3];
+    uint16_t Modes[TOT_PAR_MODES];
+    uint16_t Menu[MAXMenuItems];
 } Stats_t;
+#define StatsDataSize   (sizeof(Stats_t))
 Stats_t Stats;
 
 // </editor-fold>
