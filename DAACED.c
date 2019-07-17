@@ -242,8 +242,21 @@ void saveSettings() {
     eeprom_write_array_bulk(SettingsStartAddress, &Settings, sizeof(Settings_t));
 }
 
-void getSettings() {
+void restoreSettings() {
     eeprom_read_array(SettingsStartAddress, &Settings, sizeof(Settings_t));
+}
+
+void replaceParWithCustom(){
+    Settings.TotPar = Settings.TotCustomPar;
+    for (uint8_t i = 0; i < MAXPAR;i++){
+        Settings.ParTime[i] = Settings.CustomPar[i];
+    }
+}
+void getSettings(){
+    restoreSettings();
+    if(Settings.ParMode == ParMode_CUSTOM){
+        replaceParWithCustom();
+    }
 }
 
 void getDefaultSettings() {
@@ -251,11 +264,11 @@ void getDefaultSettings() {
     Settings.Sensitivity = DEFAULT_SENSITIVITY;
     Settings.Attenuator = ATTENUATOR_00_DBm;
     Settings.Filter = 80; // ms
-    Settings.AR_IS.Autostart = 1; // on
-    Settings.AR_IS.AutoRotate = 0; // Off
-    Settings.AR_IS.BT = 0; // Off by default
-    Settings.AR_IS.AutoPowerOff = 1; // ON by default
-    Settings.AR_IS.Clock24h = 1;     // 24h by default
+    Settings.AR_IS.Autostart = On; // on
+    Settings.AR_IS.AutoRotate = Off; // Off
+    Settings.AR_IS.BT = Off; // Off by default
+    Settings.AR_IS.AutoPowerOff = On; // ON by default
+    Settings.AR_IS.Clock24h = On;     // 24h by default
     Settings.AR_IS.StartSound = On;  // ON by default
     Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 2000; // Hz
@@ -266,11 +279,11 @@ void getDefaultSettings() {
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.CUstomDelayTime = 2500; // ms before start signal
     Settings.BackLightLevel = 1; // Most dimmed visible
-    Settings.TotPar = 0; // Par Off
+    Settings.TotPar = Off; // Par Off
     Settings.ParMode = ParMode_Regular;
     CurPar_idx = MAXPAR;
     while (CurPar_idx > 0) {
-        Settings.ParTime[CurPar_idx--] = 0.0;
+        Settings.ParTime[--CurPar_idx] = 0.0;
     }
     // TODO: Define proper defaults
     Settings.RepetitiveEdgeTime = 0;
@@ -279,6 +292,7 @@ void getDefaultSettings() {
     repetitive_time = Settings.RepetitiveFaceTime;
     repetitive_state = Face;
     repetitive_counter = 0;
+    saveSettings();
 }
 
 void restoreSettingsField(Settings_t * s, void * f, size_t l){
@@ -292,15 +306,34 @@ void saveSettingsField(Settings_t * s, void * f, size_t l) {
 }
 
 void savePar(uint8_t par_index) {
-    int offset = currentParSet - (&Settings) + par_index;
+    int offset = Settings.ParTime - (&Settings) + par_index;
     eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof(float));
+}
+
+void storePar(){
+    int offset = &(Settings.ParTime) - (&Settings);
+    saveSettingsField(&Settings, &(Settings.TotPar), 1);
+    eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof(float) * MAXPAR); 
 }
 
 void restorePar() {
     int offset = Settings.ParTime - (&Settings);
-    eeprom_read_array(SettingsStartAddress + offset, currentParSet, MAXPAR);
+    eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, sizeof(float) * MAXPAR);
     offset = (&(Settings.TotPar))-(&Settings);
     Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
+}
+
+void storeCustom(){
+    int offset = &(Settings.CustomPar) - (&Settings);
+    saveSettingsField(&Settings,&(Settings.TotCustomPar),1);
+    eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof(float) * MAXPAR);   
+}
+
+void restoreCustom(){
+    int offset = &(Settings.CustomPar) - (&Settings);
+    eeprom_read_array(SettingsStartAddress + offset, &(Settings.CustomPar), sizeof(float) * MAXPAR);
+    offset = (&(Settings.TotCustomPar))-(&Settings);
+    Settings.TotCustomPar = eeprom_read_data(SettingsStartAddress + offset);    
 }
 
 uint16_t findStringAddress(uint8_t index_in_eeprom) {
@@ -544,11 +577,11 @@ void SetDelay() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Par">
 
-TBool EditPar(uint8_t par_index) {
+TBool EditPar(uint8_t par_index, float * pars) {
     NumberSelection_t b;
     b.fmin = 0.1;
     b.fmax = 99.9;
-    b.fvalue = Settings.ParTime[par_index];
+    b.fvalue = pars[par_index];
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index + 1);
     b.fstep = 0.01;
@@ -559,17 +592,16 @@ TBool EditPar(uint8_t par_index) {
         DisplayDouble(&b);
         SelectDouble(&b);
     } while (SettingsNotDone((&b)));
-    if (b.selected) {
-        Settings.ParTime[par_index] = b.fvalue;
-        savePar(par_index);
+    if (b.selected){
+        pars[par_index] = b.fvalue;
     }
     return b.selected;
 }
 
-void FillParSettings(SettingsMenu_t * m) {
+void FillParSettings(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
     uint8_t i = 0;
-    for (i = 0; i < Settings.TotPar; i++) {
-        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, Settings.ParTime[i]);
+    for (i = 0; i < tot_par; i++) {
+        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, pars[i]);
     }
     if (i < MAXPAR)
         strncpy(m->MenuItem[i], "Add ", MAXItemLenght);
@@ -580,51 +612,52 @@ void FillParSettings(SettingsMenu_t * m) {
     m->TotalMenuItems = i + 1;
 }
 
-void clear_par() {
-    while (0 < Settings.TotPar) {
-        Settings.ParTime[Settings.TotPar--] = 0.0;
+uint8_t clear_par(float * pars, uint8_t tot_par) {
+    while (0 < tot_par) {
+        pars[--tot_par] = 0.0;
     }
+    return tot_par;
 }
 
-void HandleParMenuSelection(SettingsMenu_t * m) {
+uint8_t HandleParMenuSelection(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
+    if(m->done) return tot_par;
     if (m->selected) {
         m->selected = False;
         m->changed = True;
         if (m->menu < (m->TotalMenuItems - 3)) {
-            EditPar(m->menu);
+            EditPar(m->menu, pars);
         } else if (m->menu == (m->TotalMenuItems - 3)) {
             // Add new par
-            if (Settings.TotPar < MAXPAR) {
+            if (tot_par < MAXPAR) {
                 TBool res = False;
 
-                Settings.ParTime[Settings.TotPar] = 1.0; // Default setting 1 second
-                res = EditPar(Settings.TotPar);
+                pars[tot_par] = 1.0; // Default setting 1 second
+                res = EditPar(tot_par++, pars);
                 if (res) { // Roll back if not selected
-                    Settings.TotPar++;
                     uint8_t oldPage = m->page;
                     m->menu++;
                     m->page = ItemToPage(m->menu);
                     m->changed = True;
                     m->page_changed = (oldPage != m->page);
                 } else {
-                    Settings.ParTime[Settings.TotPar] = 0.0;
+                    pars[tot_par] = 0.0;
                 }
             } else {
                 Beep();
             }
         } else if (m->menu == (m->TotalMenuItems - 2)) {
             // Delete last PAR
-            if (Settings.TotPar > 0) {
-                Settings.ParTime[Settings.TotPar--] = 0.0;
-                    uint8_t oldPage = m->page;
-                    m->menu--;
-                    m->page = ItemToPage(m->menu);
-                    m->changed = True;
-                    m->page_changed = (oldPage != m->page);
+            if (tot_par > 0) {
+                pars[tot_par--] = 0.0;
+                uint8_t oldPage = m->page;
+                m->menu--;
+                m->page = ItemToPage(m->menu);
+                m->changed = True;
+                m->page_changed = (oldPage != m->page);
             }
         } else if (m->menu == (m->TotalMenuItems - 1)) {
             // Clear PAR
-            clear_par();
+            tot_par = clear_par(pars,tot_par);
             m->menu = 0;
             m->page = 0;
             m->page_changed = True; 
@@ -632,21 +665,20 @@ void HandleParMenuSelection(SettingsMenu_t * m) {
         }
         lcd_clear();
     }
+    return tot_par;
 }
 
-void SetPar(SettingsMenu_t * m) {
-    uint8_t oldTotPar = Settings.TotPar;
+uint8_t SetPar(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
+    uint8_t oldTotPar = tot_par;
     InitSettingsMenuDefaults(m);
     strcpy(m->MenuTitle, "Par Settings ");
     do {
-        FillParSettings(m);
+        FillParSettings(m, pars, tot_par);
         DisplaySettings(m);
         SelectBinaryMenuItem(m);
-        HandleParMenuSelection(m);
+        tot_par = HandleParMenuSelection(m, pars, tot_par);
     } while (SettingsNotDone(m));
-    if (Settings.TotPar != oldTotPar) {
-        saveSettingsField(&Settings, &(Settings.TotPar), 1);
-    }
+    return tot_par;
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Backlight">
@@ -1101,7 +1133,6 @@ void set_par_mode(int m) {
             Settings.Volume = 0; // Intentional fall-through
         case ParMode_Regular:
             CurPar_idx = 0;
-            restorePar();
             break;
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
@@ -1111,7 +1142,7 @@ void set_par_mode(int m) {
         case ParMode_Repetitive:
             break;
         case ParMode_CUSTOM:
-            restorePar();
+            replaceParWithCustom();
             break;
         case ParMode_Practical:
             fill_par_bianci();
@@ -1299,10 +1330,16 @@ void SetMode() {
         SelectMenuItemCircular((&ma));
         if(ma.selected && ma.done){
             switch (ma.menu){
+                case ParMode_Regular:
+                case ParMode_Spy:
+                case ParMode_Silent:
+                    getSettings();// Restore pars
+                    break;
                 case ParMode_CUSTOM:
-                    restorePar();
                     lcd_clear();
-                    SetPar(&mx);
+                    Settings.TotCustomPar = SetPar(&mx,Settings.CustomPar,Settings.TotCustomPar);
+                    saveSettings();
+                    replaceParWithCustom();
                     break;
                 case ParMode_Repetitive:
                     lcd_clear();
@@ -1696,7 +1733,7 @@ void bt_set_par() {
             DAA_MSG_ERROR;
         }
     } else if (par_idx == 0) {
-        clear_par();
+        clear_par(Settings.ParTime,Settings.TotPar);
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
@@ -1741,6 +1778,7 @@ void bt_set_mode() {
         Stats.Modes[mode]++;
         saveStats();
         DAA_MSG_OK;
+        
     } else {
         DAA_MSG_ERROR;
     }
@@ -1757,6 +1795,20 @@ void bt_set_delay() {
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
+    }
+}
+
+void bt_get_custom(){
+    uint8_t length = 0;
+    char msg[16];
+    if (Settings.TotCustomPar > 0) {
+        for (uint8_t i = 0; i < Settings.TotCustomPar; i++) {
+            length = sprintf(msg, "%d,%u\n", i + 1, (long)(Settings.CustomPar[i] * 1000));
+            sendString(msg, length);
+            Delay(50);
+        }
+    } else {
+        DAA_MSG_EMPTY;
     }
 }
 
@@ -1794,10 +1846,16 @@ void handle_bt_commands() {
             }
             break;
         case BT_SetPar:
-            bt_set_par();
+                bt_set_par();
             break;
+        case BT_SetCustom:
+                bt_set_custom();
+            break;
+        case BT_GetCustomSequence:
+            bt_get_custom();
         case BT_SetMode:
             bt_set_mode();
+            set_par_mode(Settings.ParMode);
             break;
         case BT_ClearHistory:
             DAA_MSG_WAIT;
@@ -1807,7 +1865,6 @@ void handle_bt_commands() {
             break;
         case BT_DefaultSettings:
             getDefaultSettings();
-            saveSettings();
             DAA_MSG_OK;
             break;
         case BT_Find:
@@ -1979,7 +2036,15 @@ void DoSet(uint8_t menu) {
         case SETTINGS_INDEX_DELAY:
             SetDelay();
             break;
-        case SETTINGS_INDEX_PAR:SetPar((&ma)); // By reference because it's used both in 2nd and 3rd level menu
+        case SETTINGS_INDEX_PAR:
+            if(Settings.ParMode == ParMode_CUSTOM){
+                Settings.TotCustomPar = SetPar((&ma), Settings.CustomPar, Settings.TotCustomPar);
+                saveSettings();
+                replaceParWithCustom();// I know it's kind'a hacky but don't have time for different par mechanizms
+            } else {
+                Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
+                saveSettings();
+            }
             break;
         case SETTINGS_INDEX_BUZZER:
             SetBeep();
@@ -2008,7 +2073,6 @@ void DoSet(uint8_t menu) {
         case SETTINDS_INDEX_RESET:
             if(userIsSure(" Reset Settings ? ")){
                 getDefaultSettings();
-                saveSettings();
             }
             break;
         case SETTINDS_INDEX_CLEAR:
@@ -2029,11 +2093,12 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
     print_delay(SettingsMenu.MenuItem[SETTINGS_INDEX_DELAY], "Delay|"," Sec.");
+    
     if (Settings.TotPar > 0) {
         sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
                 "Par|%d 1st: %3.2f",
                 Settings.TotPar,
-                Settings.ParTime[CurPar_idx]);
+                Settings.ParTime[0]);
     } else {
         sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
     }
@@ -2888,11 +2953,9 @@ void battery_test(){
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     DoPowerOn();
-    getSettings();
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
-        saveSettings();
     }
     set_backlight(Settings.BackLightLevel);
     getShootString(0); // Show last shot properly after fresh boot
