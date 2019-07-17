@@ -119,6 +119,8 @@ extern "C" {
         BT_SetDelay = 9,
         BT_GetBatteryMV = 10,
         BT_GetStats = 11,
+        BT_SetCustom = 12,
+        BT_GetCustomSequence = 13,
         BT_None = 127
     } BT_COMMAND_T;
     BT_COMMAND_T BT_COMMAND = BT_None;

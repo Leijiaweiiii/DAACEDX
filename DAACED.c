@@ -1703,6 +1703,34 @@ void bt_set_par() {
     }
 }
 
+void bt_set_custom() {
+    long par_idx = 0;
+    long par_time = 0;
+    char * endp[1];
+    par_idx = strtol(bt_cmd_args_raw, endp, 10);
+
+    if (par_idx > 0 && par_idx <= MAXPAR) {
+        par_time = strtol(*endp + 1, endp, 10);
+        // Par time between 1ms and 99000ms
+        if (par_time > 0 && par_time < 99901) {
+            float par_time_f = (float) par_time / 1000;
+            Settings.CustomPar[par_idx - 1] = par_time_f;
+            Settings.TotCustomPar = par_idx;
+            storeCustom();
+            Stats.Menu[SETTINGS_INDEX_PAR]++;
+            saveStats();
+            DAA_MSG_OK;
+        } else {
+            DAA_MSG_ERROR;
+        }
+    } else if (par_idx == 0) {
+        clear_par(Settings.ParTime,Settings.TotPar);
+        DAA_MSG_OK;
+    } else {
+        DAA_MSG_ERROR;
+    }
+}
+
 void bt_set_mode() {
     int mode = 0;
     mode = atoi(bt_cmd_args_raw);
