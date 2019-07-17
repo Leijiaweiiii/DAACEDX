@@ -256,6 +256,7 @@ void getDefaultSettings() {
     Settings.AR_IS.BT = 0; // Off by default
     Settings.AR_IS.AutoPowerOff = 1; // ON by default
     Settings.AR_IS.Clock24h = 1;     // 24h by default
+    Settings.AR_IS.StartSound = On;  // ON by default
     Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 2000; // Hz
     Settings.BuzzerParDuration = 300; // ms
@@ -845,12 +846,34 @@ void SetBeepTime(TBool Par) {
     }
 }
 
+void SetStartSound(){
+    TBool orgset;
+    InitSettingsMenuDefaults((&ma));
+    ma.TotalMenuItems = 2;
+    strcpy(ma.MenuTitle, "Startup sound");
+    strcpy(ma.MenuItem[Off], " OFF ");
+    strcpy(ma.MenuItem[On], " ON ");
+    orgset = Settings.AR_IS.StartSound;
+    ma.menu = Settings.AR_IS.StartSound;
+    do {
+        DisplaySettings((&ma));
+        SelectMenuItem((&ma));
+    } while (SettingsNotDone((&ma)));
+    if (ma.selected) {
+        Settings.AR_IS.StartSound = ma.menu;
+        if (Settings.AR_IS.StartSound != orgset) {
+            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        }
+    }
+
+}
 void setBuzzerMenu(){
     sprintf(ma.MenuItem[0], " Frequency|%dHz ", Settings.BuzzerFrequency);
     sprintf(ma.MenuItem[1], " Volume|%d ", Settings.Volume);
     sprintf(ma.MenuItem[2], " Par Duration|%1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
-    strcpy(ma.MenuItem[3], " Test Beep ");
-    ma.TotalMenuItems = 4;
+    sprintf(ma.MenuItem[3], " Startup sound|%s ", Settings.AR_IS.StartSound?"ON":"OFF");
+    strcpy(ma.MenuItem[4], " Test Beep ");
+    ma.TotalMenuItems = 5;
 }
 
 void SetBeep() {
@@ -874,6 +897,9 @@ void SetBeep() {
                     SetBeepTime(True);
                     break;
                 case 3:
+                    SetStartSound();
+                    break;
+                case 4:
                     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
                     break;
             }
@@ -2024,6 +2050,7 @@ void SetSettingsMenu() {
 
 void DoSettings(void) {
     InitSettingsMenuDefaults((&SettingsMenu));
+    getSettings(); // Edit the copy from the EEPROM because of manipulations with PAR time in custom mode
     Stats.Settings++;
     SetSettingsMenu();
     lcd_clear();
@@ -2413,6 +2440,7 @@ void StartListenShots(void) {
 
 // <editor-fold defaultstate="collapsed" desc="Power functions">
 void PowerOffSound(){
+    if(Settings.AR_IS.StartSound == Off) return;
     generate_sinus(1,1260,80);
     Delay(100);
     generate_sinus(1,960,80);
@@ -2422,6 +2450,7 @@ void PowerOffSound(){
 }
 
 void PowerOnSound(){
+    if(Settings.AR_IS.StartSound == Off) return;
     generate_sinus(1,880,80);
     Delay(100);
     generate_sinus(1,960,80);

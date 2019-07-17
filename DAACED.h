@@ -110,7 +110,7 @@ typedef union {
         unsigned Aux            : 1;
         unsigned AutoPowerOff   : 1;
         unsigned Clock24h       : 1;
-        unsigned unused         : 1;
+        unsigned StartSound     : 1;
     };
 
 } AR_IS_T;
@@ -247,6 +247,7 @@ typedef struct {
     AutoPar_t AutoPar[MAXPAR];
 } Settings_t;
 volatile Settings_t Settings;
+
 
 uint16_t runtimeDelayTime = 2500;
 uint8_t repetitive_counter = 0;
