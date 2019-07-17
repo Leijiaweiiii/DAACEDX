@@ -755,12 +755,12 @@ void SetBeepFreq() {
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b))
     b.min = 800;
-    b.max = 3000;
+    b.max = 2600;
     b.value = Settings.BuzzerFrequency;
     b.old_value = b.value;
     tmp = b.value;
     strcpy(b.MenuTitle, "Set Frequency");
-    b.step = 100;
+    b.step = 600;
     b.format = "%u";
     do {
         DisplayInteger(&b);
