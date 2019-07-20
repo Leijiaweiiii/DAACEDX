@@ -955,10 +955,10 @@ void SetSens() {//Sensitivity
     //    s.max = DETECT_THRESHOLD_LEVELS;
     //    s.min = 1;
     s.max = 800;
-    s.min = 25;
+    s.min = 5;
     s.value = Settings.Sensitivity;
     s.old_value = Settings.Sensitivity;
-    s.step = 25;
+    s.step = 5;
     s.format = "%d";
     do {
         DisplayInteger(&s);
@@ -972,7 +972,7 @@ void SetSens() {//Sensitivity
     }
 }
 
-void SetAtt() {//Sensitivity
+void SetAtt() {
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
     strcpy(s.MenuTitle, "Set Attenuator");
@@ -990,6 +990,24 @@ void SetAtt() {//Sensitivity
         Settings.Attenuator = s.value;
         if (s.value != s.old_value) {
             saveSettingsField(&Settings, &(Settings.Attenuator), 1);
+        }
+    }
+}
+void SetMicSource() {
+    InitSettingsMenuDefaults((&mx));
+    strncpy(mx.MenuTitle, "Set Mic Source", MAXItemLenght);
+    strncpy(mx.MenuItem[0],"Envelope", MAXItemLenght);
+    strncpy(mx.MenuItem[1],"Microphone", MAXItemLenght);
+    mx.TotalMenuItems = 2;
+    mx.menu = Settings.AR_IS.MIC_SRC;
+    do {
+        DisplaySettings((&mx));
+        SelectMenuItem((&mx));
+    } while (SettingsNotDone((&mx)));
+    if (mx.selected) {
+        if (mx.menu != Settings.AR_IS.MIC_SRC) {
+            Settings.AR_IS.MIC_SRC = mx.menu;
+            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
         }
     }
 }
@@ -1938,11 +1956,12 @@ void handle_bt_commands() {
 
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 void fillMicrophoneMenu(){
-    ma.TotalMenuItems = 3;
+    ma.TotalMenuItems = 4;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 1000);
     sprintf(ma.MenuItem[2],  "Attenuator|%d", Settings.Attenuator);
+    sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
 }
 
 void SetMicrophone(){
@@ -1964,6 +1983,9 @@ void SetMicrophone(){
                     break;
                 case 2:
                     SetAtt();
+                    break;
+                case 3:
+                    SetMicSource();
                     break;
             }
             fillMicrophoneMenu();
@@ -2402,17 +2424,19 @@ void DetectInit(void) {
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
             ADC_DISABLE_INTERRUPT;
-//            for (uint8_t i = 0; i < 64; i++) {
-//                ADCvalue = ADC_Read(MICROPHONE);
-//                Mean += ADCvalue;
-//                if (Max < ADCvalue) Max = ADCvalue;
-//            }
-//            Mean = Mean >> 6;
+            if(Settings.AR_IS.MIC_SRC) shot_detection_source = MICROPHONE;
+            else shot_detection_source = ENVELOPE;
+            for (uint8_t i = 0; i < 64; i++) {
+                ADCvalue = ADC_Read(shot_detection_source);
+                Mean += ADCvalue;
+                if (Max < ADCvalue) Max = ADCvalue;
+            }
+            Mean = Mean >> 6;
 //            DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
-//            DetectThreshold = Mean + Settings.Sensitivity;
-            DetectThreshold = Settings.Sensitivity;
+            DetectThreshold = Mean - Settings.Sensitivity;
+//            DetectThreshold = Settings.Sensitivity;
             SetAttenuator(Settings.Attenuator);
-            ADC_ENABLE_INTERRUPT_ENVELOPE;
+            ADC_ENABLE_INTERRUPT_SHOT_DETECTION;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
             TRISDbits.TRISD1 = 0;
@@ -2895,12 +2919,12 @@ static void interrupt isr(void) {
             InputFlags.B_RELEASED = True;
         }
         update_screen_model();
-        if (ADPCH == MICROPHONE)
+        if (ADPCH == shot_detection_source)
             ADCON0bits.ADGO = 1;
     } 
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
-        if (ADPCH == MICROPHONE) {
+        if (ADPCH == shot_detection_source) {
             ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
             DetectMicShot();
         } else if (ADPCH == BATTERY) {

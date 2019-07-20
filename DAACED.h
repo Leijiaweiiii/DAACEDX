@@ -107,7 +107,7 @@ typedef union {
         unsigned AutoRotate     : 2;
         unsigned Autostart      : 1;
         unsigned BT             : 1;
-        unsigned Aux            : 1;
+        unsigned MIC_SRC        : 1;
         unsigned AutoPowerOff   : 1;
         unsigned Clock24h       : 1;
         unsigned StartSound     : 1;
@@ -178,7 +178,7 @@ uint8_t ReviewTopShotDefault;
 #define DELAY_MODE_Custom 3
 
 #define DETECT_THRESHOLD_LEVELS 13
-#define DEFAULT_SENSITIVITY     750
+#define DEFAULT_SENSITIVITY     50
 
 const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
 
