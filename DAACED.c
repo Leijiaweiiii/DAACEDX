@@ -2586,10 +2586,9 @@ void DoPowerOff() {
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
     BT_off();
     while (Keypressed); // Wait to button to release
-    OSCCON3bits.CSWHOLD = 0; // Switch OSC when ready
-    OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
-    while (!OSCCON3bits.ORDY); // Wait new oscillator ready
+    OSCCON3bits.CSWHOLD = 1; // Switch OSC when ready
     OSCENbits.HFOEN = 0; // Disable HFINTOSC
+    OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
     ADC_DISABLE_INTERRUPT;
     InputFlags.INITIALIZED = False;
     // Configure interrupt for wakeup
@@ -2601,11 +2600,12 @@ void DoPowerOff() {
     LATEbits.LATE6 = 0;     // Backlight
     LATEbits.LATE0 = 0;     // +3
     VREGCON = 2;
+    OSCCON3bits.CSWHOLD = 0; // Switch OSC
     Sleep();
     InputFlags.KEY_RELEASED = True;
     PIE0bits.TMR0IE = 1;
     OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
-    while (!OSCCON3bits.ORDY); // Wait new oscillator ready
+    OSCCON3bits.CSWHOLD = 0; // Switch OSC when ready
     lcd_wakeup();
 }
 

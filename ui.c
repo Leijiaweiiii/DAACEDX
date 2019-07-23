@@ -105,22 +105,16 @@ void handle_charger_connected() {
 }
 
 void handle_power_off() {
-    if (LATEbits.LATE0 == 1) {
-        // if power is on, turn it off. Then we'll handle all the rest properly
-        // Power off will sleep, then if wakeup occured, we'll handle power ON
-        DoPowerOff();
-    } else { 
-        switch(comandToHandle){
-            case StartLong:
-                STATE_HANDLE_POWER_ON();
-                break;
-            case ChargerConnected:
-                STATE_HANDLE_CHARGER();
-                break;
-            default:
-                DoPowerOff();
-                break;
-    }
+    switch(comandToHandle){
+        case StartLong:
+            STATE_HANDLE_POWER_ON();
+            break;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            break;
+        default:
+            DoPowerOff();
+            break;
     }
     comandToHandle = None;
 }
@@ -443,12 +437,16 @@ void handle_low_battery() {
 
 void handle_ui() {
     define_input_action();
+    if(ui_state == PowerOff){
+        handle_power_off();
+        return;
+    }
     BT_define_action();
     handle_bt_commands();
     handle_low_battery();
     switch (ui_state) {
         case PowerOff:
-            handle_power_off();
+            // Handled separately
             break;
         case TimerIdle:
             handle_timer_idle();
