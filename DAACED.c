@@ -236,6 +236,7 @@ void clearHistory() {
     lcd_clear();
     lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
     eeprom_clear_block_bulk(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
+    getShootString(0);
 }
 
 void saveSettings() {
