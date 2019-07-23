@@ -2281,7 +2281,6 @@ void ReviewDisplay() {
             else
                 font = MediumFont;
             uint8_t x_pos = lcd_write_string(message, 0, line, font, (i != 1));
-            x_pos -= font->character_spacing * 3;
             lcd_send_block_d(x_pos, line, 134, line + font->height, (i == 1));
         }
         line += halfline;
