@@ -458,7 +458,6 @@ TBool checkShotStringEmpty(uint8_t offset) {
         index = MAXSHOOTSTRINGS - offset + index;
     addr = findStringAddress(index) + 1; // offset of TotShots
     t = eeprom_read_data(addr);
-    t = eeprom_read_data(addr);
     return (t == 0);
 }
 
@@ -2251,7 +2250,7 @@ void ReviewDisplay() {
     // Stat line
     sprintf(ScreenTitle,
             REVIEW_TOTAL_SHOT_FORMAT,
-            ReviewString.shots[last_shot_index].sn,
+            ReviewString.TotShoots,
             (float) ReviewString.shots[last_shot_index].dt / 1000
             );
     print_header(true);
@@ -2332,15 +2331,19 @@ void review_scroll_shot_down() {
 void review_previous_string() {
     if (CurShootString > 0) {
         CurShootString--;
-        if (checkShotStringEmpty(CurShootString)) {
+        getShootString(CurShootString);
+        if (ReviewString.TotShoots == 0) {
             Beep();
             CurShootString++;
+            getShootString(CurShootString);
         }
     } else {
         CurShootString = MAXSHOOTSTRINGS - 1;
-        if (checkShotStringEmpty(CurShootString)) {
+        getShootString(CurShootString);
+        if (ReviewString.TotShoots == 0) {
             Beep();
             CurShootString = 0;
+            getShootString(CurShootString);
         }
     }
     getShootString(CurShootString);
@@ -2351,9 +2354,11 @@ void review_previous_string() {
 void review_next_string() {
     if (CurShootString < MAXSHOOTSTRINGS - 1) {
         CurShootString++;
-        if (checkShotStringEmpty(CurShootString)) {
+        getShootString(CurShootString);
+        if (ReviewString.TotShoots == 0) {
             Beep();
             CurShootString--;
+            getShootString(CurShootString);
         }
     } else {
         CurShootString = 0;
@@ -2367,7 +2372,7 @@ void DoReview() {
     getShootString(0);
     CurShootString = 0;
     TopShotIndex = ReviewTopShotDefault;
-    if (ShootString.TotShoots == 0) {
+    if (ReviewString.TotShoots == 0) {
         Beep();
         STATE_HANDLE_TIMER_IDLE();
         return;
