@@ -2577,10 +2577,12 @@ void print_footer() {
             }
             break;
         default:
-            if (Settings.TotPar > 0 && CurPar_idx < Settings.TotPar) {
-                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
-            } else {
+            if (Settings.TotPar == 0) {
                 sprintf(message, "Par: Off");
+            } else if(CurPar_idx == Settings.TotPar){
+                sprintf(message, "Par%2d:%3.2f", CurPar_idx, Settings.ParTime[CurPar_idx - 1]);
+            } else {
+                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
             }
         break;
     }
