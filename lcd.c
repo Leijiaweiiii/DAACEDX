@@ -84,10 +84,11 @@ void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2) {
 }
 
 void lcd_clear_data_ram() {
-    lcd_prepare_send_data(0, 0, LCD_WIDTH, LCD_MAX_PAGES);
-    for (uint16_t index = 0; index < LCD_MAX_PAGES * LCD_WIDTH; index++) {
-        lcd_send_data(LCD_WHITE_PAGE);
-    }
+//    lcd_prepare_send_data(0, 0, LCD_WIDTH, LCD_MAX_PAGES);
+//    for (uint16_t index = 0; index < LCD_MAX_PAGES * LCD_WIDTH; index++) {
+//        lcd_send_data(LCD_WHITE_PAGE);
+//    }
+    lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
 }
 
 // write char directly to the screen
@@ -237,7 +238,7 @@ void lcd_init() {
 
     lcd_send_command(CMD_INVERSION_OFF);
     lcd_send_command(CMD_EXTENSION_2); // Extension2 command.
-    lcd_send_command(CMD_PWR_SRC_INT); // Use internel oscillator.
+    lcd_send_command(CMD_PWR_SRC_INT); // Use internal oscillator.
 
     lcd_send_command(CMD_EXTENSION_1); // Extension1 command.
     lcd_send_command(CMD_ICON_DISABLE); // Disable ICON RAM.
