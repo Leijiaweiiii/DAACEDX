@@ -2,48 +2,52 @@
 #include "lcd.h"
 #include "ui.h"
 #include "DAACED.h"
-uint8_t old_label_len = 0;
 
+uint8_t old_label_start = 0;
+uint8_t old_label_end = 0;
 void display_big_font_label(const char * msg) {
     uint16_t len = 0;
+    uint8_t old_label_len = old_label_end - old_label_start + 3;
     FONT_INFO * font = BigFont;
 
-    len = lcd_string_lenght(msg, font);
+    len = lcd_string_lenght(msg, font) - font->character_spacing;
     if (len > LCD_WIDTH) {
         font = MediumFont;
         len = lcd_string_lenght(msg, font);
     }
     if (len != old_label_len) {
-        uint8_t block_start = (LCD_WIDTH - old_label_len) / 2;
         lcd_clear_block(
-                block_start,
+                0,
                 UI_HEADER_END_LINE + 24,
-                block_start + old_label_len,
+                LCD_WIDTH,
                 UI_HEADER_END_LINE + 24 + BigFont->height);
-        old_label_len = len;
+        old_label_start = (LCD_WIDTH - len) / 2;
     }
-    lcd_write_string(msg, (LCD_WIDTH - len) / 2, UI_HEADER_END_LINE + 24, font, BLACK_OVER_WHITE);
+    old_label_end = lcd_write_string(msg, old_label_start, UI_HEADER_END_LINE + 24, font, BLACK_OVER_WHITE);
+    old_label_end -= font->character_spacing;
 }
 
 void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
     char msg[16];
     print_header(true);
-    sprintf(msg, "%02d:%02d", hour, minute);
+    rtc_print_time_full(msg, hour, minute, Settings.AR_IS.Clock24h);
     display_big_font_label(msg);
     update_rtc_time();
-    if (msec < 500 ||
-            (msec > 1000 && msec < 1500)) {
-        uint8_t block_start, block_end, margin;
-        margin = (LCD_WIDTH - old_label_len) / 2;
+    if ((MSB(msec) >>2)%2 ) {
+        uint8_t block_start, block_end;
         if (state == 0) {
-            block_start = margin;
-            sprintf(msg, "%02d", hour);
-            block_end = block_start + lcd_string_lenght(msg, BigFont);
+            block_start = old_label_start;
+            block_end = old_label_end - lcd_string_lenght(msg + 3, BigFont);
+            block_end -= 10; // 3*BigFont->character_spacing + 1 IDK why 1
         } else {
-            block_end = LCD_WIDTH - margin;
-            sprintf(msg, "%02d", minute);
-            block_start = block_end - lcd_string_lenght(msg, BigFont);
-            block_start -= 1;
+            block_end = old_label_end;
+            if( ! Settings.AR_IS.Clock24h){
+                block_end -= lcd_string_lenght("p", BigFont);
+                block_end += 3;// BigFont->character_spacing
+            }
+            block_end += 3; // BigFont->character_spacing - save memory
+            block_start = old_label_end - lcd_string_lenght(msg + 3, BigFont);
+            block_start += 3; // BigFont->character_spacing - save memory
         }
         lcd_clear_block(
                 block_start,

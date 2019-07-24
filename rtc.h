@@ -39,6 +39,7 @@ uint16_t get_ms_corrected();
 #define set_time(h, m)              {_hour=h;_minute=m;}
 uint8_t get_time_source();
 uint8_t rtc_print_time(char * buff, TBool format24h);
+uint8_t rtc_print_time_full(char * buff, uint8_t h, uint8_t  m, TBool format24h);
 
 #define IsHourAM(x)    ((x < 12))
 #endif /* RTC_H */

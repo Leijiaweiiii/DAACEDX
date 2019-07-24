@@ -148,6 +148,17 @@ void update_rtc_time() {
 }
 // </editor-fold>
 
+
+uint8_t rtc_print_time_full(char * buff, uint8_t _h, uint8_t  _m, TBool format24h){
+    if(format24h)
+        return sprintf(buff,"%02u:%02u",_h,_m);
+
+    uint8_t h = _h;
+    if(h > 12) h -= 12;
+    if (h == 0) h = 12;
+    return sprintf(buff,"%02u:%02u%c", h, _m, IsHourAM(_h)?'a':'p');
+}
+
 /**
  * 
  * @param buff - buffer to print time there
@@ -155,11 +166,5 @@ void update_rtc_time() {
  * @return bytes count written to buffer
  */
 uint8_t rtc_print_time(char * buff, TBool format24h){
-    if(format24h)
-        return sprintf(buff,"%02u:%02u",_hour,_minute);
-
-    uint8_t h = _hour;
-    if(h > 12) h -= 12;
-    if (h == 0) h = 12;
-    return sprintf(buff,"%02u:%02u%c", h, _minute, IsHourAM(_hour)?'a':'p');
+    return rtc_print_time_full(buff, _hour, _minute, format24h);
 }

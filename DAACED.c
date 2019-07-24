@@ -670,9 +670,8 @@ uint8_t HandleParMenuSelection(SettingsMenu_t * m, float * pars, uint8_t tot_par
 }
 
 uint8_t SetPar(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
-    uint8_t oldTotPar = tot_par;
     InitSettingsMenuDefaults(m);
-    strcpy(m->MenuTitle, "Par Settings ");
+    strncpy(m->MenuTitle, "Par Settings ", MAXMenuTitleLength);
     do {
         FillParSettings(m, pars, tot_par);
         DisplaySettings(m);
@@ -2146,8 +2145,6 @@ void DoSet(uint8_t menu) {
 }
 
 void SetSettingsMenu() {
-    //{"Delay","Par","Beep","Auto","Mode","Clock","CountDown","Tilt","Bklight","Input","BT","Diag"};
-    char tmpStr[16];
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
     print_delay(SettingsMenu.MenuItem[SETTINGS_INDEX_DELAY], "Delay|"," Sec.");

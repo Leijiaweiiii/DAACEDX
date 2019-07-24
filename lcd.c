@@ -21,6 +21,7 @@ void spi_init() {
 uint8_t spi_write(uint8_t data) {
     LCD_CS_SELECT();
     unsigned char temp_var = SSP1BUF; // Clear buffer.
+    UNUSED(temp_var);
     PIR3bits.SSP1IF = 0; // clear interrupt flag bit
     SSP1CON1bits.WCOL = 0; // clear write collision bit if any collision occurs
 
