@@ -32,8 +32,8 @@ uint16_t contrast_value = 0x0135;
 #define LCD_MAX_ADDRESS         (0xA2)
 #define LCD_MAX_PAGES           (20)
 //uint16_t contrast_value = 0x0125; // Empirical starting value
-#define contrast_lsb            (0x25)
-#define contrast_msb            (0x4)
+#define contrast_lsb            (LSB(Settings.ContrastValue))
+#define contrast_msb            (MSB(Settings.ContrastValue))
 #define UI_HEADER_END_LINE      (32)
 #define UI_DIAG_GRID_START_LINE (39)
 #define UI_COUNTER_START_PIXEL  (0)
@@ -232,7 +232,7 @@ const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 #define LCD_DUTY_CICLE_128      (0x7F)
 #define LCD_DUTY_CICLE_160      (0x9F)
 #define LCD_DUTY_CICLE_162      (0xA1)
-
+#define DEFAULT_CONTRAST_VALUE  (0x0425)
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="SPI functions definitions">
@@ -268,6 +268,7 @@ void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity);
 void lcd_sleep();
 void lcd_wakeup();
+void lcd_set_contrast(uint16_t contrast_value);
 // </editor-fold>
 
 #endif	/* LCD_H */

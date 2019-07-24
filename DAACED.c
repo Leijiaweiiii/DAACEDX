@@ -280,6 +280,7 @@ void getDefaultSettings() {
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.CUstomDelayTime = 2500; // ms before start signal
     Settings.BackLightLevel = 1; // Most dimmed visible
+    Settings.ContrastValue = DEFAULT_CONTRAST_VALUE;
     Settings.TotPar = Off; // Par Off
     Settings.ParMode = ParMode_Regular;
     CurPar_idx = MAXPAR;
@@ -710,6 +711,35 @@ void SetBacklight() {//PWM Backlight
         Settings.BackLightLevel = b.old_value;
     }
     set_backlight(Settings.BackLightLevel);
+}
+
+void SetContrast() {//PWM Backlight
+    NumberSelection_t b;
+    uint16_t tmpVal = Settings.ContrastValue;
+    strcpy(b.MenuTitle, "Contrast");
+    b.max = 0x0450;
+    b.min = 0x0400;
+    b.step = 1;
+    b.value = tmpVal;
+    b.old_value = b.value;
+    b.format = "%u";
+    b.done = False;
+    do {
+        DisplayInteger(&b);
+        SelectInteger(&b);
+        if(b.value - tmpVal){
+            lcd_set_contrast(b.value);
+            tmpVal = b.value;
+        }
+    } while (SettingsNotDone((&b)));
+
+    if (b.selected && b.value != b.old_value) {
+        Settings.ContrastValue = b.value;
+        saveSettingsField(&Settings, &(Settings.ContrastValue), 2);
+    } else {
+        Settings.ContrastValue = b.old_value;
+    }
+    lcd_set_contrast(Settings.ContrastValue);
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Buzzer">
@@ -2000,10 +2030,11 @@ void SetMicrophone(){
 
 // <editor-fold defaultstate="collapsed" desc="Display">
 void SetDisplayMenu(){
-    ma.TotalMenuItems = 2;
+    ma.TotalMenuItems = 3;
     sprintf(ma.MenuTitle, "Set Display ");
-    sprintf(ma.MenuItem[0], "Backlight|%d", Settings.BackLightLevel);
+    sprintf(ma.MenuItem[0], "Backlight|%u", Settings.BackLightLevel);
     sprintf(ma.MenuItem[1],  "Orientation|%s", Orientation?"Down":"Up");
+    sprintf(ma.MenuItem[2],  "Contrast|%u", Settings.ContrastValue);
 }
 
 void SetDisplay(){
@@ -2024,6 +2055,11 @@ void SetDisplay(){
                     break;
                 case 1:
                     SetOrientation();
+                    ma.done = False;
+                    ma.selected = False;
+                    break;
+                case 2:
+                    SetContrast();
                     ma.done = False;
                     ma.selected = False;
                     break;
@@ -2624,11 +2660,9 @@ void DoPowerOn() {
     lcd_set_orientation();
     eeprom_init();
     getSettings();
+    lcd_set_contrast(Settings.ContrastValue);
     getStats();
     set_backlight(Settings.BackLightLevel);
-    // Continue initialisation during the logo
-//    lcd_draw_bitmap(0, 0, &daaced_logo);
-    
     ADC_init();
     InitAttenuator();
     // TODO: Review power on sequence
@@ -2648,7 +2682,6 @@ void DoPowerOn() {
     saveStatsField(&(Stats.PowerOn), 4);
     PowerOnSound();
     
-//    Delay(700); // Assuming BT initialisation takes 0.5s
     update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     InputFlags.INITIALIZED = True;

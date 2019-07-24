@@ -187,7 +187,11 @@ uint8_t lcd_write_string(const char* str_ptr, uint8_t x_pos, uint8_t y_pos, cons
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="LCD functions implementations">
-
+void lcd_set_contrast(uint16_t contrast_value){
+    lcd_send_command(CMD_SET_VOP); // Set Vop.
+    lcd_send_data(LSB(contrast_value)); // 16 Volts.
+    lcd_send_data(MSB(contrast_value));
+}
 void lcd_init() {
     LCD_CS_DESELECT();
 
@@ -207,9 +211,7 @@ void lcd_init() {
 
     lcd_send_command(CMD_POWER_CON); // Power control.
     lcd_send_data(0x0B); // Regulator, Follower and Booster ON.
-    lcd_send_command(CMD_SET_VOP); // Set Vop.
-    lcd_send_data(contrast_lsb); // 16 Volts.
-    lcd_send_data(contrast_msb);
+    lcd_set_contrast(DEFAULT_CONTRAST_VALUE);
 
     lcd_send_command(CMD_EXTENSION_2); // Extension2 commands.
     lcd_send_command(CMD_ANALOG_CKT); // Analog Circuit set.
@@ -251,21 +253,19 @@ void lcd_clear() {
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
     lcd_set_orientation();
 }
-/*
+
 void lcd_increase_contrast() {
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DISPLAY_ON);
     lcd_send_command(CMD_VOP_CON_INC_VOP);
-    contrast_value++;
 }
 
 void lcd_decrease_contrast() {
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DISPLAY_ON);
     lcd_send_command(CMD_VOP_CON_DEC_VOP);
-    contrast_value--;
 }
-*/
+
 void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
     char msg[10];
     sprintf(msg, "%d", Int);
