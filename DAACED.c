@@ -479,7 +479,7 @@ void saveStatsField(void * f, size_t l) {
 // <editor-fold defaultstate="collapsed" desc="Helper functions">
 void print_delay(char * str, const char * prefix, const char * postfix){
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: sprintf(str, "%sINST", prefix);
+        case DELAY_MODE_Instant: sprintf(str, "%s0.00", prefix);
             break;
         case DELAY_MODE_Fixed: sprintf(str, "%s3.0%s", prefix, postfix);
             break;
