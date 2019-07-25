@@ -408,13 +408,23 @@ void send_all_shots() {
     }
 }
 
+time_t last_sent_time = 0L;
 void sendShotsIfRequired(){
     // Send shots only when in detection state
     if( ui_state != TimerListening ) return;
+    if( ! BT_STATUS.connected) return;
+    update_rtc_time();
+    if(unix_time_ms - last_sent_time < 50 )return; // Don't send faster than once in 50ms
+    uint8_t index_to_send = get_shot_index_in_arr(last_sent_index);
     uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
-    while(last_sent_index != last_shot_index || ShootString.TotShoots == MAX_REGISTERED_SHOTS){
-        sendOneShot(&(ShootString.shots[last_sent_index++]));
-        Delay(50);
+    if(ShootString.TotShoots < MAX_REGISTERED_SHOTS && index_to_send != last_shot_index){
+        sendOneShot(&(ShootString.shots[index_to_send]));
+        last_sent_index++;
+        last_sent_time = unix_time_ms;
+        InputFlags.NEW_SHOT = False;
+    } else if  (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT) {
+        InputFlags.NEW_SHOT = False;
+        sendOneShot(&(ShootString.shots[last_shot_index]));
     }
 }
 
