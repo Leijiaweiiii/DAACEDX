@@ -136,7 +136,7 @@ extern "C" {
 #define BT_hard_reset() { BT_RESET_INV = 0; Delay(500); BT_RESET_INV = 1; BT_STATUS.connected = 0; }
 
     void sendOneShot(shot_t * shot);
-    void sendSignal(const char * name, uint16_t duration, uint24_t time_ms);
+    void sendSignal(const char * name, uint16_t duration, time_t time_ms);
     void BT_define_action();
     void sendString(const char * x, size_t y);
 #define DAA_MSG_OK       {sendString("OK\n",3);}

@@ -210,6 +210,7 @@ void HandleTimerEvents() {
             StartPlayParSound();
             switch(Settings.ParMode){
                 case ParMode_Regular:
+                    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
                     if(Settings.TotPar > 0){
                         CurPar_idx++;
                         StartParTimer();
@@ -219,9 +220,11 @@ void HandleTimerEvents() {
                     ParNowCounting = true;
                     InputFlags.FOOTER_CHANGED = True;
                     parStartTime_ms = unix_time_ms;
+                    sendSignal("PAR", Settings.BuzzerParDuration, repetitive_state==Face?Settings.RepetitiveEdgeTime:Settings.RepetitiveFaceTime);
                     break;
                 default:
                     increment_par();
+                    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
                     break;
             }
             break;

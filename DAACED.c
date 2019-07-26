@@ -2737,8 +2737,6 @@ void StartPlayParSound() {
         LATDbits.LATD2 = 1;
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerParDuration);
-    // TODO: Test here timings
-    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
 }
 
 void StartPlayStartSound() {
@@ -2750,7 +2748,7 @@ void StartPlayStartSound() {
     }
     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
     // TODO: Test here timings
-    sendSignal("START", Settings.BuzzerStartDuration, 0.0);
+    sendSignal("START", Settings.BuzzerStartDuration, 0L);
 }
 
 void StartParTimer() {
