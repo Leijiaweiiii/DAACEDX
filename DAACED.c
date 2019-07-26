@@ -1365,6 +1365,7 @@ void SetRepetitiveMode(){
             // i.e. not selected and done
             mx.done = False;
             mx.selected = False;
+            mx.changed = True;
             lcd_clear();
         }
     } while (SettingsNotDone((&mx)));
