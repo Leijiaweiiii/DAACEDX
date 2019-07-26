@@ -501,9 +501,8 @@ void print_delay(char * str, const char * prefix, const char * postfix){
 }
 
 uint8_t top_shot_index(){
-    if ( ShootString.TotShoots < MAX_REGISTERED_SHOTS) 
-        return ShootString.TotShoots - 1;
-    return ShootString.TotShoots;
+    if(ShootString.TotShoots == 0) return 0;
+    return ShootString.TotShoots - 1;
 }
 
 uint8_t get_shot_index_in_arr(uint8_t x){
@@ -2804,6 +2803,8 @@ void UpdateShot(time_t now, ShotInput_t input) {
     // Index var is for code size optimisation.
     uint8_t index , prev_index;
     index = get_shot_index_in_arr(ShootString.TotShoots);
+    if(ShootString.TotShoots == MAX_REGISTERED_SHOTS)
+        index--;
     prev_index = get_shot_index_in_arr(top_shot_index()); // function used for optimization
 
     dt = (uint24_t) (now - ShootString_start_time);
@@ -2820,9 +2821,8 @@ void UpdateShot(time_t now, ShotInput_t input) {
         ShootString.shots[index].is_flags = input;
         if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
             ShootString.TotShoots++;
-            ShootString.shots[index].sn = ShootString.TotShoots;
         }
-        
+        ShootString.shots[index].sn = ShootString.TotShoots;
         InputFlags.FOOTER_CHANGED = True;
         InputFlags.NEW_SHOT = True;
     }
