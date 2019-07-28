@@ -3,8 +3,6 @@
 #include "ui.h"
 #include "DAACED.h"
 
-uint8_t old_label_start = 0;
-uint8_t old_label_end = 0;
 void display_big_font_label(const char * msg) {
     uint16_t len = 0;
     uint8_t old_label_len = old_label_end - old_label_start + 3;
@@ -20,41 +18,36 @@ void display_big_font_label(const char * msg) {
                 0,
                 UI_HEADER_END_LINE + 24,
                 LCD_WIDTH,
-                UI_HEADER_END_LINE + 24 + BigFont->height);
-        old_label_start = (LCD_WIDTH - len) / 2;
+                UI_HEADER_END_LINE + 15 + BigFont->height);
     }
+    old_label_start = (LCD_WIDTH - len) / 2;
     old_label_end = lcd_write_string(msg, old_label_start, UI_HEADER_END_LINE + 24, font, BLACK_OVER_WHITE);
     old_label_end -= font->character_spacing;
 }
 
 void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
-    char msg[16];
+    char msg[8];
+    uint8_t block_start, block_end;
     print_header(true);
     rtc_print_time_full(msg, hour, minute, Settings.AR_IS.Clock24h);
     display_big_font_label(msg);
-    update_rtc_time();
-    if ((MSB(msec) >>2)%2 ) {
-        uint8_t block_start, block_end;
-        if (state == 0) {
-            block_start = old_label_start;
-            block_end = old_label_end - lcd_string_lenght(msg + 3, BigFont);
-            block_end -= 10; // 3*BigFont->character_spacing + 1 IDK why 1
-        } else {
-            block_end = old_label_end;
-            if( ! Settings.AR_IS.Clock24h){
-                block_end -= lcd_string_lenght("p", BigFont);
-                block_end += 3;// BigFont->character_spacing
-            }
-            block_end += 3; // BigFont->character_spacing - save memory
-            block_start = old_label_end - lcd_string_lenght(msg + 3, BigFont);
-            block_start += 3; // BigFont->character_spacing - save memory
+    if (state == 0) {
+        block_start = old_label_start;
+        block_end = old_label_end - lcd_string_lenght(msg + 3, BigFont);
+        block_end -= 10; // 3*BigFont->character_spacing + 1 IDK why 1
+    } else {
+        block_end = old_label_end;
+        if( ! Settings.AR_IS.Clock24h){
+            block_end -= lcd_string_lenght("p", BigFont);
+            block_end += 3;// BigFont->character_spacing
         }
-        lcd_clear_block(
-                block_start,
-                UI_HEADER_END_LINE + 24,
-                block_end,
-                UI_HEADER_END_LINE + 24 + BigFont->height);
+        block_end += 3; // BigFont->character_spacing - save memory
+        block_start = old_label_end - lcd_string_lenght(msg + 3, BigFont);
+        block_start += 3; // BigFont->character_spacing - save memory
     }
+    // UI_HEADER_END_LINE + 24 + 80 + 1 = 32 + 24 + 80 + 1 = 136
+    lcd_draw_hline(128, 0, LCD_WIDTH, LCD_WHITE_PAGE);
+    lcd_draw_hline(128, block_start, block_end, LCD_TOP_LINE_PAGE);
 }
 
 void DisplayDouble(NumberSelection_t* s) {
@@ -285,6 +278,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             } else {
                 sm->value = sm->min;
             }
+            sm->redraw = True;
             break;
         case DownLong:
         case DownShort:
@@ -293,6 +287,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             } else {
                 sm->value = sm->max;
             }
+            sm->redraw = True;
             break;
         case BackShort:
         case BackLong:
@@ -303,6 +298,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
         case OkLong:
             sm->done = True;
             sm->selected = True;
+            sm->redraw = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
@@ -326,12 +322,14 @@ void SelectInteger(NumberSelection_t* sm) {
         case UpShort:
             if (sm->value < sm->max) {
                 sm->value += sm->step;
+                sm->redraw = True;
             } else Beep();
             break;
         case DownLong:
         case DownShort:
             if (sm->value > sm->min) {
                 sm->value -= sm->step;
+                sm->redraw = True;
             } else Beep();
             break;
         case BackShort:
@@ -343,6 +341,7 @@ void SelectInteger(NumberSelection_t* sm) {
         case OkLong:
             sm->done = True;
             sm->selected = True;
+            sm->redraw = True;
             break;
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
@@ -366,12 +365,14 @@ void SelectDouble(NumberSelection_t* sm) {
         case UpShort:
             if (sm->fvalue < sm->fmax) {
                 sm->fvalue += sm->fstep;
+                sm->redraw = True;
             } else Beep();
             break;
         case DownLong:
         case DownShort:
             if (sm->fvalue > sm->fmin) {
                 sm->fvalue -= sm->fstep;
+                sm->redraw = True;
             } else Beep();
             break;
         case OkShort:

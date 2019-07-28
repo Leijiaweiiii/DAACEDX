@@ -51,9 +51,9 @@ uint8_t x_offset = 0, y_offset = 0;
 #define UI_FOOTER_GRID_Y(x,y)   (y+x*UI_FOOTER_GRID_HEIGH)
 #define LCD_BLACK_PAGE          0xFF
 #define LCD_WHITE_PAGE          0x00
-#define LCD_TOP_LINE_PAGE       0xC0
+#define LCD_BOT_LINE_PAGE       0xC0
 #define LCD_MID_LINE_PAGE       0x18
-#define LCD_BOT_LINE_PAGE       0x03
+#define LCD_TOP_LINE_PAGE       0x03
 
 #define LCD_GRAPH_HEIGTH       12
 #define LCD_GRAPH_START_PAGE    y_offset+3
@@ -262,13 +262,14 @@ void lcd_send_data(uint8_t data);
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
 void lcd_increase_contrast();
 void lcd_decrease_contrast();
-void lcd_draw_fullsize_hline(uint8_t line,uint8_t data);
+#define lcd_draw_fullsize_hline(line,data) {lcd_draw_hline(line, 0, LCD_WIDTH, data);}
 void lcd_draw_vgrid_lines(uint8_t start_line);
 void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity);
 void lcd_sleep();
 void lcd_wakeup();
 void lcd_set_contrast(uint16_t contrast_value);
+void lcd_draw_hline(uint8_t line, uint8_t x1_pos, uint8_t x2_pos, uint8_t data);
 // </editor-fold>
 
 #endif	/* LCD_H */

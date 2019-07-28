@@ -1432,8 +1432,12 @@ void SetClock() {
     strcpy(ts.MenuTitle, "Set Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
     set_screen_title(ts.MenuTitle);
+    DisplayTime(ts.value, m, ts.state);
     do {
-        DisplayTime(ts.value, m, ts.state);
+        if(ts.redraw){
+            ts.redraw = False;
+            DisplayTime(ts.value, m, ts.state);
+        }
         SelectIntegerCircular(&ts);
     } while (SettingsNotDone((&ts)));
     if (ts.selected && ts.state == 0) {
@@ -1444,7 +1448,10 @@ void SetClock() {
         h = ts.value;
         ts.value = m;
         do {
-            DisplayTime(h, ts.value, ts.state);
+            if(ts.redraw){
+                ts.redraw = False;
+                DisplayTime(h, ts.value, ts.state);
+            }
             SelectIntegerCircular(&ts);
         } while (SettingsNotDone((&ts)));
     }

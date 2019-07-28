@@ -41,7 +41,7 @@ extern "C" {
         };
     } SettingsMenu_t;
 #define InitSettingsMenuDefaults(m)     {m->done = False;m->menu = 0;m->page = 0;m->selected = False; m->changed = True;}
-#define InitSettingsNumberDefaults(m)   {m->done = False;m->selected = False;}
+#define InitSettingsNumberDefaults(m)   {m->done = False;m->selected = False; m->redraw = True;}
 #define ItemToPage(x)                   (x/MENU_PAGE_SIZE)
 #define SettingsNotDone(x)              ((!x->done) && ui_state == SettingsScreen)    
 
@@ -85,6 +85,11 @@ extern "C" {
         };
     } NumberSelection_t;
 
+    // Service variables
+    uint8_t old_label_start = 0;
+    uint8_t old_label_end = 0;
+    
+    // Function definitions
     uint8_t PopMsg(const char* msg, uint16_t wait);
     void SelectMenuItem(SettingsMenu_t* s);
     void SelectBinaryMenuItem(SettingsMenu_t* s);

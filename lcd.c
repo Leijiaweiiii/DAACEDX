@@ -330,13 +330,13 @@ void lcd_set_orientation() {
     }
 }
 
-void lcd_draw_fullsize_hline(uint8_t line, uint8_t data) {
-    uint8_t x1_pos = 0;
-    uint8_t x2_pos = LCD_WIDTH;
+void lcd_draw_hline(uint8_t line, uint8_t x1_pos, uint8_t x2_pos, uint8_t data) {
+//    if(x2_pos > LCD_WIDTH || x1_pos > LCD_WIDTH) return;
     uint8_t page = PAGE(line);
-    for (uint8_t column = x1_pos; column < x2_pos; column++) {
-        lcd_prepare_send_data(column, page, column, page);
+    while (x1_pos < x2_pos) {
+        lcd_prepare_send_data(x1_pos, page, x1_pos, page);
         lcd_send_data(data);
+        x1_pos++;
     }
 }
 
