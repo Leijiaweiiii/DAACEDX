@@ -91,7 +91,7 @@ void BT_define_action() {
     } else {
         uint8_t const_head = rx_head;
         UNUSED(const_head); // Don't optimize and memory barrier
-        Delay(2); // 1ms is length of 1 character in 9600. in 115200 this is infinity
+        Delay(1); // 1ms is length of 1 character in 9600. in 115200 this is infinity
         if (rx_head == const_head)
             uart_rx_handled();
     }
