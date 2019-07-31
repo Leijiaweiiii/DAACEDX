@@ -594,7 +594,7 @@ TBool EditPar(uint8_t par_index, float * pars) {
     b.fvalue = pars[par_index];
     b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index + 1);
-    b.fstep = 0.01;
+    b.fstep = 0.05;
     b.format = "%3.2fs";
     b.done = False;
     lcd_clear();
