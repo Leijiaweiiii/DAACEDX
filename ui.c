@@ -95,8 +95,8 @@ void update_countdown_time_on_screen() {
 
 void StopTimer() {
     lcd_clear();
-    set_par_mode(Settings.ParMode);
     InputFlags.FOOTER_CHANGED = True;
+    ParNowCounting = False;
 }
 
 void handle_charger_connected() {
@@ -161,7 +161,9 @@ void handle_timer_idle() {
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_COUNTDOWN();
+        case StartShort:
+            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+            STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
             break;
@@ -169,19 +171,32 @@ void handle_timer_idle() {
             break;
         case UpLong:
         case UpShort:
-            if (Settings.ParMode != ParMode_Regular) {
-                increment_par();
+            switch (Settings.ParMode){
+                case ParMode_Regular:
+                case ParMode_AutoPar:
+                case ParMode_Repetitive:
+                case ParMode_Silent:
+                case ParMode_Spy:
+                    // Don't increment par for these modes
+                    break;
+                default:
+                    increment_par();
+                    break;
             }
             break;
         case DownLong:
         case DownShort:
-            if (Settings.ParMode != ParMode_Regular) {
-                if (CurPar_idx != 0) {
-                    CurPar_idx--;
-                } else {
-                    CurPar_idx = Settings.TotPar - 1;
-                }
-                InputFlags.FOOTER_CHANGED = True;
+            switch (Settings.ParMode){
+                case ParMode_Regular:
+                case ParMode_AutoPar:
+                case ParMode_Repetitive:
+                case ParMode_Silent:
+                case ParMode_Spy:
+                    // Don't decrement par for these modes
+                    break;
+                default:
+                    decrement_par();
+                    break;
             }
             break;
         case ChargerConnected:
@@ -206,29 +221,47 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
+            update_rtc_time();
             timer_idle_last_action_time = unix_time_ms_sec;
             StartPlayParSound();
-            switch(Settings.ParMode){
-                case ParMode_Regular:
-                    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
-                    if(Settings.TotPar > 0){
-                        CurPar_idx++;
-                        StartParTimer();
-                    }
-                    break;
-                case ParMode_Repetitive:
-                    ParNowCounting = true;
-                    InputFlags.FOOTER_CHANGED = True;
-                    parStartTime_ms = unix_time_ms;
-                    sendSignal("PAR", Settings.BuzzerParDuration, repetitive_state==Face?Settings.RepetitiveEdgeTime:Settings.RepetitiveFaceTime);
-                    break;
-                default:
-                    increment_par();
-                    sendSignal("PAR", Settings.BuzzerParDuration, (long)(Settings.ParTime[CurPar_idx] * 1000));
-                    break;
+            sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
+            next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
+            CurPar_idx++;
+            if (Settings.TotPar > CurPar_idx)
+                StartParTimer();
+            break;
+        case AutoParEvent:
+            StartPlayParSound();
+            sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.AutoPar[CurPar_idx].par * 1000));
+            CurPar_idx++;
+            saveShootString();
+            if (Settings.TotAutoPar > CurPar_idx) {
+                STATE_HANDLE_COUNTDOWN();
+            } else {
+                STATE_HANDLE_TIMER_IDLE();
+                NOP();
             }
             break;
-            // By default do nothing
+        case RepetitiveParEvent:
+            StartPlayParSound();
+            sendSignal("PAR", Settings.BuzzerParDuration, repetitive_state == Face ? Settings.RepetitiveEdgeTime : Settings.RepetitiveFaceTime);
+            if(repetitive_state == Face){
+                repetitive_state = Edge;
+                next_par_ms = Settings.RepetitiveEdgeTime;
+            } else {
+                repetitive_state = Face;
+                next_par_ms = Settings.RepetitiveFaceTime;
+                repetitive_counter++;
+            }
+            if(repetitive_counter < Settings.RepetitiveRepeat)
+                StartParTimer();
+            break;
+        case BianchiParEvent:
+            StartPlayParSound();
+            sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
+            next_par_ms = (long)Settings.ParTime[CurPar_idx] * 1000;
+            increment_par();
+            break;
     }
     timerEventToHandle = NoEvent;
 }
@@ -237,7 +270,6 @@ void handle_timer_listening() {
     update_shot_time_on_screen();
     print_header(false);
     print_footer();
-    check_par_expired();
 
     switch (comandToHandle) {
         case StartLong:
@@ -247,6 +279,7 @@ void handle_timer_listening() {
         case StartShort:
             if (AutoStart) {
                 saveShootString();
+                if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
                 STATE_HANDLE_COUNTDOWN();
             }
             break;
@@ -314,6 +347,7 @@ void handle_countdown() {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
+            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
             STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:
@@ -326,9 +360,11 @@ void handle_countdown() {
             update_shot_time_on_screen();
             switch(Settings.ParMode){
                 case ParMode_Repetitive:
-                    ParNowCounting = true;
-                    InputFlags.FOOTER_CHANGED = True;
-                    parStartTime_ms = unix_time_ms;
+                    StartParTimer();
+                    break;
+                case ParMode_AutoPar:
+                    next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
+                    StartParTimer();
                     break;
                 default:
                     if (Settings.TotPar > 0)

@@ -55,6 +55,9 @@ extern "C" {
         NoEvent = 0,
         TimerTimeout,
         ParEvent,
+        AutoParEvent,
+        RepetitiveParEvent,
+        BianchiParEvent,
         ShotDetected
     } TimerEvent;
     TimerEvent timerEventToHandle = NoEvent;

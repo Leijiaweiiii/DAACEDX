@@ -282,16 +282,20 @@ void getDefaultSettings() {
     Settings.BackLightLevel = 1; // Most dimmed visible
     Settings.ContrastValue = DEFAULT_CONTRAST_VALUE;
     Settings.TotPar = Off; // Par Off
+    Settings.TotAutoPar = Off;
+    Settings.TotCustomPar = Off;
     Settings.ParMode = ParMode_Regular;
     CurPar_idx = MAXPAR;
-    while (CurPar_idx > 0) {
-        Settings.ParTime[--CurPar_idx] = 0.0;
+    while (CurPar_idx-- > 0) {
+        Settings.ParTime[CurPar_idx] = 0.0;
+        Settings.CustomPar[CurPar_idx] = 0.0;
+        Settings.AutoPar[CurPar_idx].delay = 0.0;
+        Settings.AutoPar[CurPar_idx].par = 0.0;
     }
     // TODO: Define proper defaults
     Settings.RepetitiveEdgeTime = 0;
     Settings.RepetitiveFaceTime = 0;
     Settings.RepetitiveRepeat = 0;
-    repetitive_time = Settings.RepetitiveFaceTime;
     repetitive_state = Face;
     repetitive_counter = 0;
     saveSettings();
@@ -497,6 +501,8 @@ void print_delay(char * str, const char * prefix, const char * postfix){
             break;
         case DELAY_MODE_Custom: sprintf(str, "%s%1.1f%s", prefix, (float) (Settings.CUstomDelayTime) / 1000, postfix);
             break;
+        case DELAY_MODE_Other: sprintf(str, "%s%1.1f%s", prefix, (float) (runtimeDelayTime) / 1000, postfix);
+            break;
     }
 }
 
@@ -608,18 +614,29 @@ TBool EditPar(uint8_t par_index, float * pars) {
     return b.selected;
 }
 
-void FillParSettings(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
-    uint8_t i = 0;
-    for (i = 0; i < tot_par; i++) {
-        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, pars[i]);
-    }
+/**
+ * 
+ * @param m - Settings menu where lines should be set
+ * @param i - First index of service items
+ * @return 
+ */
+uint8_t setParMenuServiceItems(SettingsMenu_t * m, uint8_t i){
     if (i < MAXPAR)
         strncpy(m->MenuItem[i], "Add ", MAXItemLenght);
     else
         strncpy(m->MenuItem[i], "Max Par reached ", MAXItemLenght);
     strncpy(m->MenuItem[++i], "Delete Last ", MAXItemLenght);
     strncpy(m->MenuItem[++i], "Delete All ", MAXItemLenght);
-    m->TotalMenuItems = i + 1;
+    return ++i;
+}
+
+void FillParSettings(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
+    uint8_t i = 0;
+    for (i = 0; i < tot_par; i++) {
+        sprintf(m->MenuItem[i], "Par %d: %3.2fs  ", i + 1, pars[i]);
+    }
+    
+    m->TotalMenuItems = setParMenuServiceItems(m, i);
 }
 
 uint8_t clear_par(float * pars, uint8_t tot_par) {
@@ -630,17 +647,14 @@ uint8_t clear_par(float * pars, uint8_t tot_par) {
 }
 
 uint8_t HandleParMenuSelection(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
-    if(m->done) return tot_par;
+    if(m->done) return;
     if (m->selected) {
-        m->selected = False;
-        m->changed = True;
         if (m->menu < (m->TotalMenuItems - 3)) {
             EditPar(m->menu, pars);
         } else if (m->menu == (m->TotalMenuItems - 3)) {
             // Add new par
             if (tot_par < MAXPAR) {
                 TBool res = False;
-
                 pars[tot_par] = 1.0; // Default setting 1 second
                 res = EditPar(tot_par++, pars);
                 if (res) { // Roll back if not selected
@@ -650,7 +664,7 @@ uint8_t HandleParMenuSelection(SettingsMenu_t * m, float * pars, uint8_t tot_par
                     m->changed = True;
                     m->page_changed = (oldPage != m->page);
                 } else {
-                    pars[tot_par] = 0.0;
+                    pars[--tot_par] = 0.0;
                 }
             } else {
                 Beep();
@@ -685,7 +699,12 @@ uint8_t SetPar(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
         FillParSettings(m, pars, tot_par);
         DisplaySettings(m);
         SelectBinaryMenuItem(m);
-        tot_par = HandleParMenuSelection(m, pars, tot_par);
+        if(m->selected){
+            tot_par = HandleParMenuSelection(m, pars, tot_par);
+            m->done = False;
+            m->selected = False;
+            m->changed = True;
+        }
     } while (SettingsNotDone(m));
     return tot_par;
 }
@@ -1185,17 +1204,13 @@ void set_par_mode(int m) {
     restoreSettingsField(&Settings, &(Settings.Volume), 1);
     restoreSettingsField(&Settings, &(Settings.Sensitivity), 2);
     switch (m) {
+        case ParMode_Spy:
+            Settings.DelayMode = DELAY_MODE_Instant;
         case ParMode_Silent:
             Settings.Volume = 0; // Intentional fall-through
         case ParMode_Regular:
+            restoreSettings();
             CurPar_idx = 0;
-            break;
-        case ParMode_Spy:
-            Settings.DelayMode = DELAY_MODE_Instant;
-            Settings.Volume = 0;
-            Settings.Sensitivity = Settings.Sensitivity>0?Settings.Sensitivity-1:0;
-            break;
-        case ParMode_Repetitive:
             break;
         case ParMode_CUSTOM:
             replaceParWithCustom();
@@ -1224,8 +1239,10 @@ void set_par_mode(int m) {
         case ParMode_NRA_PPC_D:
             fill_par_nra_ppc_d();
             break;
+        case ParMode_Repetitive:
+        case ParMode_AutoPar:
         default:
-            // How can we get here?
+            // do nothing
             break;
     }
 }
@@ -1370,6 +1387,141 @@ void SetRepetitiveMode(){
     } while (SettingsNotDone((&mx)));
 }
 // </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="Auto Par">
+
+TBool EditDelay(uint8_t index, AutoPar_t * pars){
+    NumberSelection_t m;
+    InitSettingsNumberDefaults((&m));
+    sprintf(m.MenuTitle, "Delay %u ", index + 1);
+    m.fmin = 0.0;
+    m.fmax = 5.0;
+    m.fstep = 0.1;
+    m.fvalue = pars[index].delay;
+    m.fold_value = m.value;
+    m.format = "%1.1fs";
+    do {
+        DisplayDouble((&m));
+        SelectDouble((&m));
+    } while (SettingsNotDone((&m)));
+    if(m.selected) pars[index].delay = m.fvalue;
+    return m.selected;
+}
+
+TBool EditParTime(uint8_t index, AutoPar_t * pars){
+    NumberSelection_t m;
+    InitSettingsNumberDefaults((&m));
+    sprintf(m.MenuTitle, "Par %u ", index + 1);
+    m.fmin = 0.0;
+    m.fmax = 99.99;
+    m.fstep = 0.05;
+    m.fvalue = pars[index].par;
+    m.fold_value = m.value;
+    m.format = "%1.2fs";
+    do {
+        DisplayDouble((&m));
+        SelectDouble((&m));
+    } while (SettingsNotDone((&m)));
+    if(m.selected) pars[index].par = m.fvalue;
+    return m.selected;    
+}
+
+uint8_t EditAutoPar(uint8_t i, AutoPar_t * pars){
+    if(EditDelay(i,pars)){
+        lcd_clear();
+        return EditParTime(i, pars);
+    }
+    return False;
+}
+
+void setAutoParMenu(){
+    strcpy(mx.MenuTitle, "Auto Par ");
+    mx.TotalMenuItems = Settings.TotAutoPar;
+    for(uint8_t i = 0; i < mx.TotalMenuItems; i++){
+        sprintf(mx.MenuItem[i],"%u:Delay %1.1fs|Par %1.2fs",
+                i + 1,
+                Settings.AutoPar[i].delay,
+                Settings.AutoPar[i].par
+                );
+    }
+    mx.TotalMenuItems = setParMenuServiceItems(&mx,mx.TotalMenuItems);
+}
+
+uint8_t HandleAutoParMenuSelection(SettingsMenu_t * m) {
+    uint8_t tot_par = Settings.TotAutoPar;
+    AutoPar_t * pars = Settings.AutoPar;
+//    if(m->done) return;
+    if (m->selected) {
+        m->selected = False;
+        m->changed = True;
+        if (m->menu < (m->TotalMenuItems - 3)) {
+            EditAutoPar(m->menu, pars);
+        } else if (m->menu == (m->TotalMenuItems - 3)) {
+            // Add new par
+            if (tot_par < MAXPAR) {
+                pars[tot_par].delay = 3.0;
+                pars[tot_par].par = 1.0;
+                if (EditAutoPar(tot_par, pars)) { // Roll back if not selected
+                    uint8_t oldPage = m->page;
+                    tot_par++;
+                    m->menu++;
+                    m->page = ItemToPage(m->menu);
+                    m->changed = True;
+                    m->page_changed = (oldPage != m->page);
+                } else {
+                    pars[tot_par].delay = 0.0;
+                    pars[tot_par].par = 0.0;
+                }
+            } else {
+                Beep();
+            }
+        } else if (m->menu == (m->TotalMenuItems - 2)) {
+            // Delete last PAR
+            if (tot_par-- > 0) {
+                pars[tot_par].delay = 0.0;
+                pars[tot_par].par = 0.0;
+                uint8_t oldPage = m->page;
+                m->menu--;
+                m->page = ItemToPage(m->menu);
+                m->changed = True;
+                m->page_changed = (oldPage != m->page);
+            }
+        } else if (m->menu == (m->TotalMenuItems - 1)) {
+            // Clear PAR
+            while (0 < --tot_par) {
+                pars[tot_par].delay = 0.0;
+                pars[tot_par].par = 0.0;
+            }
+            m->menu = 0;
+            m->page = 0;
+            m->page_changed = True; 
+            m->changed = True;
+        }
+        lcd_clear();
+    }
+    return tot_par;
+}
+
+void SetAutoPar(){
+    InitSettingsMenuDefaults((&mx));
+    do {
+        setAutoParMenu();
+        DisplaySettings((&mx));
+        SelectMenuItem((&mx));
+        if(mx.selected){
+            lcd_clear();
+            Settings.TotAutoPar = HandleAutoParMenuSelection(&mx);
+            mx.selected = False;
+            mx.done = False;
+            lcd_clear();
+        }
+    } while (SettingsNotDone((&mx)));
+    if (ma.selected) {
+        saveSettings();
+    }
+}
+// </editor-fold>
+
 void SetMode() {
     uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults((&ma));
@@ -1401,6 +1553,10 @@ void SetMode() {
                 case ParMode_Repetitive:
                     lcd_clear();
                     SetRepetitiveMode();
+                    break;
+                case ParMode_AutoPar:
+                    lcd_clear();
+                    SetAutoPar();
                     break;
             }
             ma.changed = True;
@@ -2118,6 +2274,7 @@ void DoSet(uint8_t menu) {
             } else {
                 Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
                 saveSettings();
+                restoreSettings();
             }
             break;
         case SETTINGS_INDEX_BUZZER:
@@ -2574,23 +2731,45 @@ void print_footer() {
     print_label_at_footer_grid(message, 0, 0);
     sprintf(message, "Shots: %2d", ShootString.TotShoots);
     print_label_at_footer_grid(message, 1, 0);
-    print_delay(message," Delay: ","");
-    print_label_at_footer_grid(message, 0, 1);
 
     switch(Settings.ParMode){
         case ParMode_Repetitive:
+            print_delay(message," Delay: ","");
+            print_label_at_footer_grid(message, 0, 1);
             if (ui_state == TimerIdle){
                 sprintf(message,"Face%d:%3.1f",
                     1,
                     (float) Settings.RepetitiveFaceTime / 1000);
-            } else {
+            } else if(repetitive_counter < Settings.RepetitiveRepeat){
                 sprintf(message,"%s%d:%3.1f",
                     (repetitive_state==Face)?"Face":"Edge",
                     repetitive_counter + 1,
-                    (float) repetitive_time / 1000);
+                    (float) next_par_ms / 1000);
+            } else {
+                sprintf(message,"%s%d:%3.1f",
+                    "Edge",
+                    Settings.RepetitiveRepeat,
+                    (float) Settings.RepetitiveEdgeTime / 1000);
+            }
+            break;
+        case ParMode_AutoPar:
+            if (Settings.TotAutoPar == 0) {
+                sprintf(message,"Delay 0: %1.1f", Settings.AutoPar[0].delay);
+                print_label_at_footer_grid(message, 0, 1);
+                sprintf(message, "Par: Off");
+            } else if(CurPar_idx == Settings.TotAutoPar){
+                sprintf(message,"Delay %d: %1.1f", CurPar_idx, Settings.AutoPar[CurPar_idx - 1].delay);
+                print_label_at_footer_grid(message, 0, 1);
+                sprintf(message, "Par%2d:%3.2f", CurPar_idx, Settings.AutoPar[CurPar_idx - 1].par);
+            } else {
+                sprintf(message,"Delay %d: %1.1f", CurPar_idx + 1, Settings.AutoPar[CurPar_idx].delay);
+                print_label_at_footer_grid(message, 0, 1);
+                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.AutoPar[CurPar_idx].par);
             }
             break;
         default:
+            print_delay(message," Delay: ","");
+            print_label_at_footer_grid(message, 0, 1);
             if (Settings.TotPar == 0) {
                 sprintf(message, "Par: Off");
             } else if(CurPar_idx == Settings.TotPar){
@@ -2762,19 +2941,12 @@ void StartPlayStartSound() {
     sendSignal("START", Settings.BuzzerStartDuration, 0L);
 }
 
-void StartParTimer() {
-    timerEventToHandle = None;
-    if (CurPar_idx < Settings.TotPar) {
-        ParNowCounting = true;
-        InputFlags.FOOTER_CHANGED = True;
-        parStartTime_ms = unix_time_ms;
-    }
-}
-
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
-//    ADC_ENABLE_INTERRUPT_BATTERY; // To get accurate battery readings if someone actively uses timer in Autostart mode
+
+    InputFlags.FOOTER_CHANGED = True;
+    restoreSettingsField(&Settings,&(Settings.DelayMode),1);
     switch(Settings.ParMode){
         case ParMode_Regular:
             CurPar_idx = 0;
@@ -2782,10 +2954,14 @@ void StartCountdownTimer() {
         case ParMode_Repetitive:
             repetitive_counter = 0;
             repetitive_state = Face;
-            repetitive_time = Settings.RepetitiveFaceTime;
+            next_par_ms = Settings.RepetitiveFaceTime;
+            break;
+        case ParMode_AutoPar:
+            runtimeDelayTime = (long)Settings.AutoPar[CurPar_idx].delay * 1000;
+            next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
+            Settings.DelayMode = DELAY_MODE_Other;
             break;
     }
-    InputFlags.FOOTER_CHANGED = True;
     switch (Settings.DelayMode) {
         case DELAY_MODE_Instant: runtimeDelayTime = 2; // To allow battery reading and not interfere with detection
             break;
@@ -2806,7 +2982,7 @@ void StartCountdownTimer() {
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ((uint8_t *)(&ShootString))[i] = 0;
     }
-    length = sprintf(msg, "STANDBY,%d,%d\n", Settings.DelayMode, runtimeDelayTime);
+    length = sprintf(msg, "STANDBY,%d,%u\n", Settings.DelayMode, runtimeDelayTime);
     sendString(msg, length);
 }
 
@@ -2862,34 +3038,33 @@ void increment_par() {
     InputFlags.FOOTER_CHANGED = True;
 }
 
+void decrement_par(){
+    if (CurPar_idx != 0) {
+        CurPar_idx--;
+    } else {
+        CurPar_idx = Settings.TotPar - 1;
+    }
+    InputFlags.FOOTER_CHANGED = True;
+}
+
 void check_par_expired() {
     if (ParNowCounting) {
         update_rtc_time();
+        if(unix_time_ms - parStartTime_ms < next_par_ms) return;
+        ParNowCounting = False; // Should be re-enabled in event handler
         switch (Settings.ParMode) {
             case ParMode_Repetitive:
-                if(unix_time_ms - parStartTime_ms < repetitive_time) break;
-                if(repetitive_counter < Settings.RepetitiveRepeat) {
-                    if(repetitive_state == Face){
-                        repetitive_state = Edge;
-                        repetitive_time = Settings.RepetitiveEdgeTime;
-                    } else {
-                        repetitive_state = Face;
-                        repetitive_time = Settings.RepetitiveFaceTime;
-                        repetitive_counter++;
-                    }
-                    timerEventToHandle = ParEvent;
-                }
-                InputFlags.FOOTER_CHANGED = True;
+                timerEventToHandle = RepetitiveParEvent;
+                break;
+            case ParMode_AutoPar:
+                timerEventToHandle = AutoParEvent;
+                break;
+            case ParMode_Regular:
+                timerEventToHandle = ParEvent;
                 break;
             default:
-            {
-                long par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
-                if (unix_time_ms - parStartTime_ms > par_ms) {
-                    ParNowCounting = false;
-                    timerEventToHandle = ParEvent;
-                }
+                timerEventToHandle = BianchiParEvent;
                 break;
-            }
         }
     }
 }
@@ -2900,7 +3075,7 @@ void check_timer_max_time() {
     }
 }
 
-void update_screen_model() {
+void detect_aux_shots() {
     if (ui_state != TimerListening) return;
     switch (Settings.InputType) {
         case INPUT_TYPE_A_or_B_multiple:
@@ -2974,7 +3149,9 @@ static void interrupt isr(void) {
         if (AUX_B) {
             InputFlags.B_RELEASED = True;
         }
-        update_screen_model();
+        detect_aux_shots();
+        check_par_expired();
+        // TODO: Work with ADC as threshold interrupt
         if (ADPCH == shot_detection_source)
             ADCON0bits.ADGO = 1;
     } 

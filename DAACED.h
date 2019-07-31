@@ -172,10 +172,11 @@ uint8_t ReviewTopShotDefault;
 #define SHOTS_ON_REVIEW_SCREEN      3
 
 
-#define DELAY_MODE_Instant 0
-#define DELAY_MODE_Fixed 1
-#define DELAY_MODE_Random 2
-#define DELAY_MODE_Custom 3
+#define DELAY_MODE_Instant  0
+#define DELAY_MODE_Fixed    1
+#define DELAY_MODE_Random   2
+#define DELAY_MODE_Custom   3
+#define DELAY_MODE_Other    4
 
 #define DETECT_THRESHOLD_LEVELS 13
 #define DEFAULT_SENSITIVITY     50
@@ -217,8 +218,8 @@ extern const char * par_mode_header_names[];
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
 typedef struct {
-    uint24_t delay;
-    uint24_t par;
+    float delay;
+    float par;
 } AutoPar_t;
 
 typedef struct {
@@ -231,6 +232,7 @@ typedef struct {
     uint8_t ParMode; // 5
     uint8_t TotPar; // 1 based      // 6
     uint8_t TotCustomPar;
+    uint8_t TotAutoPar;
     uint8_t InputType; // 7
     uint8_t Attenuator;
     uint16_t ContrastValue;
@@ -252,8 +254,8 @@ volatile Settings_t Settings;
 
 uint16_t runtimeDelayTime = 2500;
 uint8_t repetitive_counter = 0;
+time_t next_par_ms;
 enum {Face = 0, Edge = 1} repetitive_state;
-uint16_t repetitive_time = 0;
 
 #include "menu.h"
 SettingsMenu_t ma; // Submenu for second level menu
@@ -302,7 +304,7 @@ void DoPowerOn();
 void DoCharging();
 void update_shot_time_on_screen();
 void StartPlayParSound();
-void StartParTimer();
+#define StartParTimer() { ParNowCounting = true; InputFlags.FOOTER_CHANGED = True; parStartTime_ms = unix_time_ms;}
 void StartPlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header(TBool hide_time);
@@ -322,6 +324,7 @@ void DetectMicShot();
 void handle_bt_commands();
 void set_par_mode(int m);
 void increment_par();
+void decrement_par();
 uint8_t top_shot_index();
 void SetCountDown();
 void saveStatsField(void * f, size_t l);
