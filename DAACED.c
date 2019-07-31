@@ -2693,6 +2693,15 @@ void DoPowerOn() {
         Delay(10);
     }
     ADC_ENABLE_INTERRUPT_BATTERY;
+    if(Settings.InputType==INPUT_TYPE_Microphone){
+        TRISDbits.TRISD1 = 0;
+        TRISDbits.TRISD2 = 0;
+        LATDbits.LATD1 = 0;
+        LATDbits.LATD2 = 0;
+    } else {
+        TRISDbits.TRISD1 = 1;
+        TRISDbits.TRISD2 = 1;
+    }
     init_bt();
     Stats.PowerOn++;
     saveStatsField(&(Stats.PowerOn), 4);
@@ -2737,8 +2746,6 @@ void DoCharging() {
 
 void StartPlayParSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        TRISDbits.TRISD1 = 1;
-        TRISDbits.TRISD2 = 1;
         LATDbits.LATD1 = 1;
         LATDbits.LATD2 = 1;
     }
@@ -2747,8 +2754,6 @@ void StartPlayParSound() {
 
 void StartPlayStartSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
-        TRISDbits.TRISD1 = 1;
-        TRISDbits.TRISD2 = 1;
         LATDbits.LATD1 = 1;
         LATDbits.LATD2 = 1;
     }
@@ -2952,8 +2957,6 @@ static void interrupt isr(void) {
         // If we turned off the sound, turn off external sound too
         if(LATEbits.LATE2 == 0){
             if (Settings.InputType == INPUT_TYPE_Microphone) {
-                TRISDbits.TRISD1 = 0;
-                TRISDbits.TRISD2 = 0;
                 LATDbits.LATD1 = 0;
                 LATDbits.LATD2 = 0;
             }
