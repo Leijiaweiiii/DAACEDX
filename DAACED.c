@@ -2093,8 +2093,8 @@ TBool userIsSure(const char * title){
     ma.menu = SMTH_ENABLED; // No
     ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, title);
-    strcpy(ma.MenuItem[SMTH_DISABLED], " Yes  ");
-    strcpy(ma.MenuItem[SMTH_ENABLED],  "  No  ");
+    strcpy(ma.MenuItem[SMTH_DISABLED], " Yes");
+    strcpy(ma.MenuItem[SMTH_ENABLED],  " No");
 
     do {
         DisplaySettings((&ma));
