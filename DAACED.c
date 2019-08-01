@@ -2871,7 +2871,6 @@ void DoPowerOn() {
         BAT_BUFFER_PUT(battery_mV);
         Delay(10);
     }
-    ADC_ENABLE_INTERRUPT_BATTERY;
     if(Settings.InputType==INPUT_TYPE_Microphone){
         TRISDbits.TRISD1 = 0;
         TRISDbits.TRISD2 = 0;
