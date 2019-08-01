@@ -225,7 +225,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     beep_start = unix_time_ms;
     Stats.Signal++;
     saveStatsField(&(Stats.Signal), 4);
-    InputFlags.BEEP_GUARD = True;
+//    InputFlags.BEEP_GUARD = True;
 }
 
 // </editor-fold>
@@ -3122,10 +3122,10 @@ void detect_aux_shots() {
 void DetectMicShot() {
     if (ui_state != TimerListening) return;
     if (ADC_LATEST_VALUE > DetectThreshold) return; // Detecting negative spikes
-    if (InputFlags.BEEP_GUARD){
-        InputFlags.BEEP_GUARD = False;
-        return;
-    }
+//    if (InputFlags.BEEP_GUARD){
+//        InputFlags.BEEP_GUARD = False;
+//        return;
+//    }
     UpdateShotNow(Mic);
 }
 
@@ -3139,7 +3139,7 @@ static void interrupt isr(void) {
     if (PIR5bits.TMR8IF){
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
-        InputFlags.BEEP_GUARD = True;
+//        InputFlags.BEEP_GUARD = True;
         // If we turned off the sound, turn off external sound too
         if(LATEbits.LATE2 == 0){
             if (Settings.InputType == INPUT_TYPE_Microphone) {
