@@ -2267,14 +2267,20 @@ void DoSet(uint8_t menu) {
             SetDelay();
             break;
         case SETTINGS_INDEX_PAR:
-            if(Settings.ParMode == ParMode_CUSTOM){
-                Settings.TotCustomPar = SetPar((&ma), Settings.CustomPar, Settings.TotCustomPar);
-                saveSettings();
-                replaceParWithCustom();// I know it's kind'a hacky but don't have time for different par mechanizms
-            } else {
-                Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
-                saveSettings();
-                restoreSettings();
+            switch(Settings.ParMode){
+                case ParMode_CUSTOM:
+                    Settings.TotCustomPar = SetPar((&ma), Settings.CustomPar, Settings.TotCustomPar);
+                    saveSettings();
+                    replaceParWithCustom();// I know it's kind'a hacky but don't have time for different par mechanizms
+                    break;
+                case ParMode_AutoPar:
+                    SetAutoPar();
+                    break;
+                default:
+                    Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
+                    saveSettings();
+                    restoreSettings();
+                break;
             }
             break;
         case SETTINGS_INDEX_BUZZER:
