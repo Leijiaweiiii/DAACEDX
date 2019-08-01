@@ -56,6 +56,7 @@ extern "C" {
         TimerTimeout,
         ParEvent,
         AutoParEvent,
+        AutoParCompletedEvent,
         RepetitiveParEvent,
         BianchiParEvent,
         ShotDetected

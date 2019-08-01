@@ -189,7 +189,12 @@ time_t countdown_start_time;
 // Should not be more than we can display in menu items
 #define MAXPAR 14
 volatile int8_t CurPar_idx = 0; //The par index
-volatile TBool ParNowCounting = false;
+volatile struct{
+    unsigned ParNowCounting     : 1;
+    unsigned AutoParOverDetect  : 1;
+    unsigned UNUSED             : 6;
+} ParFlags;
+#define AUTO_PAR_OVER_DETECT_MS     500
 time_t parStartTime_ms;
 
 #define ParMode_Regular         0
@@ -304,7 +309,7 @@ void DoPowerOn();
 void DoCharging();
 void update_shot_time_on_screen();
 void StartPlayParSound();
-#define StartParTimer() { ParNowCounting = true; InputFlags.FOOTER_CHANGED = True; parStartTime_ms = unix_time_ms;}
+#define StartParTimer() { ParFlags.ParNowCounting = True; InputFlags.FOOTER_CHANGED = True; parStartTime_ms = unix_time_ms;}
 void StartPlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header(TBool hide_time);

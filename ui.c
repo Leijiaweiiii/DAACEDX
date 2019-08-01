@@ -96,7 +96,8 @@ void update_countdown_time_on_screen() {
 void StopTimer() {
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
-    ParNowCounting = False;
+    ParFlags.ParNowCounting = False;
+    ParFlags.AutoParOverDetect = False;
 }
 
 void handle_charger_connected() {
@@ -233,6 +234,10 @@ void HandleTimerEvents() {
         case AutoParEvent:
             StartPlayParSound();
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.AutoPar[CurPar_idx].par * 1000));
+            next_par_ms = AUTO_PAR_OVER_DETECT_MS;
+            ParFlags.AutoParOverDetect = True;
+            break;
+        case AutoParCompletedEvent:
             CurPar_idx++;
             saveShootString();
             if (Settings.TotAutoPar > CurPar_idx) {

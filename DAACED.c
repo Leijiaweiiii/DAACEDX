@@ -1395,7 +1395,7 @@ TBool EditDelay(uint8_t index, AutoPar_t * pars){
     InitSettingsNumberDefaults((&m));
     sprintf(m.MenuTitle, "Delay %u ", index + 1);
     m.fmin = 0.0;
-    m.fmax = 5.0;
+    m.fmax = 99.9;
     m.fstep = 0.1;
     m.fvalue = pars[index].delay;
     m.fold_value = m.value;
@@ -2958,6 +2958,7 @@ void StartCountdownTimer() {
             break;
         case ParMode_AutoPar:
             runtimeDelayTime = (long)Settings.AutoPar[CurPar_idx].delay * 1000;
+            runtimeDelayTime -= AUTO_PAR_OVER_DETECT_MS; // To allow shot detection slightly after the par signal
             next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
             Settings.DelayMode = DELAY_MODE_Other;
             break;
@@ -3048,10 +3049,10 @@ void decrement_par(){
 }
 
 void check_par_expired() {
-    if (ParNowCounting) {
+    if (ParFlags.ParNowCounting) {
         update_rtc_time();
         if(unix_time_ms - parStartTime_ms < next_par_ms) return;
-        ParNowCounting = False; // Should be re-enabled in event handler
+        ParFlags.ParNowCounting = False; // Should be re-enabled in event handler
         switch (Settings.ParMode) {
             case ParMode_Repetitive:
                 timerEventToHandle = RepetitiveParEvent;
@@ -3066,6 +3067,11 @@ void check_par_expired() {
                 timerEventToHandle = BianchiParEvent;
                 break;
         }
+    } else if (ParFlags.AutoParOverDetect){
+        update_rtc_time();
+        if(unix_time_ms - parStartTime_ms < next_par_ms) return;
+        ParFlags.AutoParOverDetect = False;
+        timerEventToHandle = AutoParCompletedEvent;
     }
 }
 
