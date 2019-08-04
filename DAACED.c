@@ -2728,7 +2728,7 @@ void print_batery_info() {
 }
 
 void print_bt_indication(){
-    if (BT_STATUS.connected) {
+    if (Settings.AR_IS.BT) {
         lcd_draw_bitmap(LCD_WIDTH - 50, 0, &bt_bitmap_data);
     } else {
         lcd_clear_block(
