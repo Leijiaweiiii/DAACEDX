@@ -236,6 +236,7 @@ void HandleTimerEvents() {
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.AutoPar[CurPar_idx].par * 1000));
             next_par_ms = AUTO_PAR_OVER_DETECT_MS;
             ParFlags.AutoParOverDetect = True;
+            ParFlags.ParNowCounting = False;
             break;
         case AutoParCompletedEvent:
             CurPar_idx++;

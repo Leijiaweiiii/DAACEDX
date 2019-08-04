@@ -2328,15 +2328,40 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
     print_delay(SettingsMenu.MenuItem[SETTINGS_INDEX_DELAY], "Delay|"," Sec.");
-    
-    if (Settings.TotPar > 0) {
-        sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
+
+    switch(Settings.ParMode){
+        case ParMode_AutoPar:
+            if (Settings.TotAutoPar > 0) {
+                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
+                "Par|%d 1st: %3.2f",
+                Settings.TotAutoPar,
+                Settings.AutoPar[0].par);
+            } else {
+                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
+            }
+            break;
+        case ParMode_CUSTOM:
+            if (Settings.TotCustomPar > 0) {
+                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
+                "Par|%d 1st: %3.2f",
+                Settings.TotCustomPar,
+                Settings.CustomPar[0]);
+            } else {
+                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
+            }
+            break;
+        default:
+            if (Settings.TotPar > 0) {
+                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
                 "Par|%d 1st: %3.2f",
                 Settings.TotPar,
                 Settings.ParTime[0]);
-    } else {
-        sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
+            } else {
+                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
+            }
+            break;
     }
+
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%d %0.2f",
