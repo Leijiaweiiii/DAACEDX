@@ -1542,11 +1542,26 @@ void SetMode() {
                 case ParMode_Regular:
                 case ParMode_Spy:
                 case ParMode_Silent:
-                    getSettings();// Restore pars
+                    getSettings();
+                    switch(Settings.ParMode){
+                        case ParMode_Regular:
+                        case ParMode_Spy:
+                        case ParMode_Silent:
+                            break;
+                        default:
+                            clear_par(Settings.ParTime,MAXPAR);
+                            Settings.TotPar = 0;
+                            saveSettings();
+                            break;
+                    }
                     break;
                 case ParMode_CUSTOM:
                     lcd_clear();
-                    Settings.TotCustomPar = SetPar(&mx,Settings.CustomPar,Settings.TotCustomPar);
+                    if(Settings.ParMode != ParMode_CUSTOM){
+                        clear_par(Settings.CustomPar,MAXPAR);
+                        Settings.TotCustomPar = 0;
+                    }
+                    Settings.TotCustomPar = SetPar(&mx, Settings.CustomPar, Settings.TotCustomPar);
                     saveSettings();
                     replaceParWithCustom();
                     break;
@@ -1556,6 +1571,14 @@ void SetMode() {
                     break;
                 case ParMode_AutoPar:
                     lcd_clear();
+                    if(Settings.ParMode != ParMode_AutoPar){
+                        uint8_t tot_par = MAXPAR;
+                        while (0 < --tot_par) {
+                          Settings.AutoPar[tot_par].delay = 0.0;
+                          Settings.AutoPar[tot_par].par = 0.0;
+                        }
+                        Settings.TotAutoPar = 0;
+                    }
                     SetAutoPar();
                     break;
             }
