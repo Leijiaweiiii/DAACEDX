@@ -2119,7 +2119,10 @@ void handle_bt_commands() {
             }
             break;
         case BT_GetStats:
+            length = sprintf(msg, "ID,%12s\n",mac_addr);
+            sendString(msg, length);
             length = sprintf(msg,"PowerOn,%u\n",Stats.PowerOn);
+            Delay(50);
             sendString(msg, length);
             length = sprintf(msg,"Signal,%u\n",Stats.Signal);
             Delay(50);

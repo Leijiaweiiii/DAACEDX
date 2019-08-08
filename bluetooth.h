@@ -93,7 +93,7 @@ extern "C" {
     // TODO: Continue
     // </editor-fold>
 
-    char mac_addr[13]; // 12 is the length + 1 for null
+    char mac_addr[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0}; // 12 is the length + 1 for null
     char device_name_cmd[32];
 #define device_id (mac_addr + 6)
     union {
