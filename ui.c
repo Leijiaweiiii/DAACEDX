@@ -486,7 +486,6 @@ void handle_ui() {
         handle_power_off();
         return;
     }
-    BT_define_action();
     handle_bt_commands();
     handle_low_battery();
     switch (ui_state) {

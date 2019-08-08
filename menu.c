@@ -151,7 +151,6 @@ void increment_menu_index_inf(SettingsMenu_t * s) {
 
 void SelectMenuItem(SettingsMenu_t* s) {
     define_input_action();
-    BT_define_action();
     handle_bt_commands();
     switch (comandToHandle) {
         case UpShort:
@@ -188,7 +187,6 @@ void SelectMenuItem(SettingsMenu_t* s) {
 
 void SelectBinaryMenuItem(SettingsMenu_t* s) {
     define_input_action();
-    BT_define_action();
     handle_bt_commands();
     switch (comandToHandle) {
         case UpShort:
@@ -231,7 +229,6 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
 
 void SelectMenuItemCircular(SettingsMenu_t* s) {
     define_input_action();
-    BT_define_action();
     handle_bt_commands();
     switch (comandToHandle) {
         case UpShort:
@@ -268,7 +265,6 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
 
 void SelectIntegerCircular(NumberSelection_t* sm) {
     define_input_action();
-    BT_define_action();
     handle_bt_commands();
     switch (comandToHandle) {
         case UpLong:
@@ -315,7 +311,6 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
 
 void SelectInteger(NumberSelection_t* sm) {
     define_input_action();
-    BT_define_action();
     handle_bt_commands();
     switch (comandToHandle) {
         case UpLong:
@@ -358,7 +353,6 @@ void SelectInteger(NumberSelection_t* sm) {
 
 void SelectDouble(NumberSelection_t* sm) {
     define_input_action();
-    BT_define_action();
     handle_bt_commands();
     switch (comandToHandle) {
         case UpLong:

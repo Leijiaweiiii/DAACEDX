@@ -123,7 +123,7 @@ extern "C" {
         BT_GetCustomSequence = 13,
         BT_None = 127
     } BT_COMMAND_T;
-    BT_COMMAND_T BT_COMMAND = BT_None;
+
     char bt_cmd_args_raw[UART_RX_BUF_SIZE];
     /*
      Examples of commands
@@ -137,7 +137,7 @@ extern "C" {
 
     void sendOneShot(shot_t * shot);
     void sendSignal(const char * name, uint16_t duration, time_t time_ms);
-    void BT_define_action();
+    BT_COMMAND_T BT_define_action();
     void sendString(const char * x, size_t y);
 #define DAA_MSG_OK       {sendString("OK\n",3);}
 #define DAA_MSG_ERROR    {sendString("ERROR\n",6);}

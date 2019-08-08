@@ -2073,7 +2073,8 @@ void handle_bt_commands() {
     uint8_t length = 0;
     char msg[20];
     sendShotsIfRequired();
-    switch (BT_COMMAND) {
+    BT_COMMAND_T btc = BT_define_action();
+    switch (btc) {
         case BT_SendVersion:
             length = sprintf(msg, "%u\n", Settings.version);
             sendString(msg, length);
@@ -2175,9 +2176,8 @@ void handle_bt_commands() {
             break;
     }
     // Don't let the timer sleep if it's actively used remotely
-    if(BT_COMMAND != BT_None)
+    if(btc != BT_None)
         timer_idle_last_action_time = unix_time_ms_sec;
-    BT_COMMAND = BT_None;
 }
 
 // </editor-fold>
@@ -2646,7 +2646,6 @@ void DoReview() {
     do {
         ReviewDisplay();
         define_input_action();
-        BT_define_action();
         handle_bt_commands();
         switch (comandToHandle) {
             case UpShort:

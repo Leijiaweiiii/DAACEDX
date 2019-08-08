@@ -62,8 +62,9 @@ void sendSignal(const char * name, uint16_t duration, time_t time_ms) {
 
 #define clear_args_buffer() { for (int i = 0; i < UART_RX_BUF_SIZE; i++) {bt_cmd_args_raw[i] = 0;}}
 
-void BT_define_action() {
+BT_COMMAND_T BT_define_action() {
     uint8_t cmd_len = 3;
+    BT_COMMAND_T BT_COMMAND = BT_None;
     char tmp_b[8]; //TODO: allocate temporary short strings only once
     if (uart_rx_buffer[0] == 'D' && uart_rx_buffer[1] == 'A' && uart_rx_buffer[2] == 'A') {
         int cmd = atoi(uart_rx_buffer + 3);
@@ -95,6 +96,7 @@ void BT_define_action() {
         if (rx_head == const_head)
             uart_rx_handled();
     }
+    return BT_COMMAND;
 }
 
 void sendString(const char * x, size_t y)    {
