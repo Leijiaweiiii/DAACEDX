@@ -3137,7 +3137,6 @@ void check_timer_max_time() {
 }
 
 void detect_aux_shots() {
-    if (ui_state != TimerListening) return;
     switch (Settings.InputType) {
         case INPUT_TYPE_A_or_B_multiple:
             if (InputFlags.A_RELEASED && !AUX_A) {
@@ -3204,13 +3203,15 @@ static void interrupt isr(void) {
             InputFlags.KEY_RELEASED = True;
             LongPressCount = 0;
         }
-        if (AUX_A) { // high is "open"
-            InputFlags.A_RELEASED = True;
+        if (ui_state == TimerListening){
+            if (AUX_A) { // high is "open"
+                InputFlags.A_RELEASED = True;
+            }
+            if (AUX_B) {
+                InputFlags.B_RELEASED = True;
+            }
+            detect_aux_shots();
         }
-        if (AUX_B) {
-            InputFlags.B_RELEASED = True;
-        }
-        detect_aux_shots();
         check_par_expired();
         // TODO: Work with ADC as threshold interrupt
         if (ADPCH == shot_detection_source)
