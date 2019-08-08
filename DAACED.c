@@ -2952,7 +2952,6 @@ void DoCharging() {
         charger_display_state = charger_state;
         switch (charger_state) {
             case Charging:
-                LATEbits.LATE0 = 1;
                 lcd_clear();
                 sprintf(msg, "Charging ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
@@ -2960,7 +2959,6 @@ void DoCharging() {
                 saveStatsField(&(Stats.Charging), 2);
                 break;
             case Complete:
-                LATEbits.LATE0 = 1;
                 lcd_clear();
                 sprintf(msg, "Charged ");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
@@ -2973,6 +2971,8 @@ void DoCharging() {
             default:
                 break;
         }
+    } else {
+        Delay(500);
     }
 }
 // </editor-fold>

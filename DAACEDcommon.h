@@ -14,7 +14,7 @@
 #include <time.h>
 
 // Increment to reset settings after programming new version
-#define FW_VERSION (56)
+#define FW_VERSION (57)
 // <editor-fold defaultstate="collapsed" desc="General">
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ            (64000000UL) //64MHz

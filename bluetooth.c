@@ -10,28 +10,42 @@ void BT_send_comand(const char * cmd, int length) {
     uart_tx_completed();
 }
 
-void get_mac_address(){
+uint16_t get_mac_address(){
+    uint16_t i = 0;
     do {
-        BT_send_comand("AT91", 4);
-        strncpy(mac_addr, uart_rx_buffer, 13);
-    } while (0 == mac_addr[0]);
+        BT_send_comand("AT91", AT_CMD_LEN);
+        i++;
+    } while (uart_rx_buffer[0] == 0);
+    strncpy(mac_addr, uart_rx_buffer, 13);
     uart_rx_handled();
+    return i;
+}
+
+uint16_t get_device_name(){
+    uint16_t i = 0;
+    do {
+        BT_send_comand("AT92", AT_CMD_LEN);
+        i++;
+    } while(uart_rx_buffer[0] == 0);
+    strncpy(device_name, uart_rx_buffer, 25);
+    uart_rx_handled();
+    return i;
 }
 
 void set_device_name(){
     int len;
-    char * res[24]; // 20 for the name + 3 for OK: + 2 for NULL
-    for(uint8_t i = 0;i<24;i++) res[i] = 0;
+    get_device_name();
     len = sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION);
-    do {
-        BT_send_comand(device_name_cmd, len);
-        strncpy(res, uart_rx_buffer, 24);
-    } while ((char)res[0] != 'O'); // Waiting for "OK:xxx..x"
+    BT_send_comand(device_name_cmd, len);
+    while (! at_ok())Delay(1); // Waiting for "OK:xxx..x"
     uart_rx_handled();
+    BT_soft_reset();
+    get_device_name();
 }
 
 void BT_init() {
-    BT_hard_reset();
+//    BT_hard_reset();
+    BT_soft_reset();
     // After the battery reset the first boot will be long.
     if(0 == mac_addr[0]){
         get_mac_address();

@@ -95,6 +95,8 @@ extern "C" {
 
     char mac_addr[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0}; // 12 is the length + 1 for null
     char device_name_cmd[32];
+#define AT_CMD_LEN      4
+#define device_name (device_name_cmd + AT_CMD_LEN)
 #define device_id (mac_addr + 6)
     union {
         unsigned status_byte : 8;
@@ -132,8 +134,8 @@ extern "C" {
     void BT_init();
     void BT_off();
 
-#define BT_soft_reset() { BT_send_comand(AT_RESET, 8); BT_STATUS.connected = 0;}
-#define BT_hard_reset() { BT_RESET_INV = 0; Delay(500); BT_RESET_INV = 1; BT_STATUS.connected = 0; }
+#define BT_soft_reset() {BT_RESET_INV = 0; Delay(50); BT_RESET_INV = 1; BT_STATUS.connected = 0;}
+#define BT_hard_reset() {LATEbits.LATE0 = 0; Delay(50); LATEbits.LATE0 = 0; BT_STATUS.connected = 0;}
 
     void sendOneShot(shot_t * shot);
     void sendSignal(const char * name, uint16_t duration, time_t time_ms);
