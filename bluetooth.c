@@ -10,31 +10,28 @@ void BT_send_comand(const char * cmd, int length) {
     uart_tx_completed();
 }
 
-uint16_t get_mac_address(){
-    uint16_t i = 0;
+void get_mac_address(){
+    uint8_t i = 0;
     do {
         BT_send_comand("AT91", AT_CMD_LEN);
         i++;
-    } while (uart_rx_buffer[0] == 0);
+    } while (uart_rx_buffer[0] == 0 || i==0);
     strncpy(mac_addr, uart_rx_buffer, 13);
     uart_rx_handled();
-    return i;
 }
 
-uint16_t get_device_name(){
-    uint16_t i = 0;
+void get_device_name(){
+    uint8_t i = 0;
     do {
         BT_send_comand("AT92", AT_CMD_LEN);
         i++;
-    } while(uart_rx_buffer[0] == 0);
+    } while(uart_rx_buffer[0] == 0 || i==0);
     strncpy(device_name, uart_rx_buffer, 25);
     uart_rx_handled();
-    return i;
 }
 
 void set_device_name(){
     int len;
-    get_device_name();
     len = sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION);
     BT_send_comand(device_name_cmd, len);
     while (! at_ok())Delay(1); // Waiting for "OK:xxx..x"
