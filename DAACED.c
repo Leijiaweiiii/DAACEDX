@@ -1252,7 +1252,7 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
     "Silent Mode",
     "Spy Mode",
     "Repetitive Mode",
-    "Custom",
+    "Auto Par",
     "Bianchi: Practical",
     "Bianchi: Barricade",
     "Bianchi: Falling Plate",
@@ -1261,7 +1261,7 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
     "NRA-PPC: B",
     "NRA-PPC: C",
     "NRA-PPC: D",
-    "Auto Par"
+    "Custom"
 };
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
@@ -1269,7 +1269,7 @@ const char * par_mode_header_names[TOT_PAR_MODES] = {
     "Silent",
     "Spy Mode",
     "Repetitive",
-    "Custom",
+    "Auto Par",
     "Practical",
     "Barricade",
     "Falling Plate",
@@ -1278,7 +1278,7 @@ const char * par_mode_header_names[TOT_PAR_MODES] = {
     "NRA-PPC B",
     "NRA-PPC C",
     "NRA-PPC D",
-    "Auto Par"
+    "Custom"
 };
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Repetitive Mode">
@@ -2349,7 +2349,7 @@ void DoSet(uint8_t menu) {
     }
     lcd_clear();
 }
-
+#define ParMenuPattern "Par|%d 1st: %3.2f" 
 void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuTitle, "Settings ");
 
@@ -2359,7 +2359,7 @@ void SetSettingsMenu() {
         case ParMode_AutoPar:
             if (Settings.TotAutoPar > 0) {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
-                "Par|%d 1st: %3.2f",
+                ParMenuPattern,
                 Settings.TotAutoPar,
                 Settings.AutoPar[0].par);
             } else {
@@ -2369,7 +2369,7 @@ void SetSettingsMenu() {
         case ParMode_CUSTOM:
             if (Settings.TotCustomPar > 0) {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
-                "Par|%d 1st: %3.2f",
+                ParMenuPattern,
                 Settings.TotCustomPar,
                 Settings.CustomPar[0]);
             } else {
@@ -2379,7 +2379,7 @@ void SetSettingsMenu() {
         default:
             if (Settings.TotPar > 0) {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
-                "Par|%d 1st: %3.2f",
+                ParMenuPattern,
                 Settings.TotPar,
                 Settings.ParTime[0]);
             } else {
