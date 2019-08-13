@@ -2,7 +2,7 @@
 #include "DAACED.h"
 
 // These may be macros but moved here for space optimization
-void STATE_HANDLE_POWER_OFF()          {if(ui_state != PowerOff || ui_state != TimerCharging) PowerOffSound(); ui_state = PowerOff;}
+void STATE_HANDLE_POWER_OFF()          {if(ui_state != PowerOff && ui_state != TimerCharging) PowerOffSound(); ui_state = PowerOff;}
 void STATE_HANDLE_POWER_ON()           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
 void STATE_HANDLE_TIMER_IDLE()         {ui_state = TimerIdle;StopTimer();}
 void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
@@ -98,11 +98,6 @@ void StopTimer() {
     InputFlags.FOOTER_CHANGED = True;
     ParFlags.ParNowCounting = False;
     ParFlags.AutoParOverDetect = False;
-}
-
-void handle_charger_connected() {
-    if (comandToHandle == StartLong) STATE_HANDLE_POWER_ON();
-    else DoCharging();
 }
 
 void handle_power_off() {
@@ -509,6 +504,7 @@ void handle_ui() {
             break;
         case TimerCharging:
             DoCharging();
+            comandToHandle = None;
             break;
         default:
             //We should never get here, nothing to do.

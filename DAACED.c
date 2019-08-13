@@ -2971,8 +2971,6 @@ void DoCharging() {
             default:
                 break;
         }
-    } else {
-        Delay(500);
     }
 }
 // </editor-fold>

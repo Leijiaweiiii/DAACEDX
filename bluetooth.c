@@ -76,6 +76,7 @@ void sendSignal(const char * name, uint16_t duration, time_t time_ms) {
 BT_COMMAND_T BT_define_action() {
     uint8_t cmd_len = 3;
     BT_COMMAND_T BT_COMMAND = BT_None;
+    if(! BT_STATUS.initialized) return BT_COMMAND;
     char tmp_b[8]; //TODO: allocate temporary short strings only once
     if (uart_rx_buffer[0] == 'D' && uart_rx_buffer[1] == 'A' && uart_rx_buffer[2] == 'A') {
         int cmd = atoi(uart_rx_buffer + 3);
