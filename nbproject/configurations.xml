@@ -7,12 +7,6 @@
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
                      projectFiles="true">
-        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
-        <itemPath>mcc_generated_files/pin_manager.h</itemPath>
-        <itemPath>mcc_generated_files/adcc.h</itemPath>
-        <itemPath>mcc_generated_files/device_config.h</itemPath>
-        <itemPath>mcc_generated_files/clkref.h</itemPath>
-        <itemPath>mcc_generated_files/mcc.h</itemPath>
       </logicalFolder>
       <itemPath>DAACED.h</itemPath>
       <itemPath>DAACEDbitmap.h</itemPath>
@@ -55,7 +49,6 @@
       <itemPath>eeprom.c</itemPath>
       <itemPath>random.c</itemPath>
       <itemPath>sinus.c</itemPath>
-      <itemPath>main.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -264,64 +257,6 @@
         <property key="stack-size-main" value="auto"/>
         <property key="stack-type" value="hybrid"/>
       </XC8-config-global>
-      <item path="main.c" ex="true" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
-      <item path="mcc_generated_files/adcc.h" ex="true" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
-      <item path="mcc_generated_files/clkref.h" ex="true" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
-      <item path="mcc_generated_files/device_config.h" ex="true" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
-      <item path="mcc_generated_files/interrupt_manager.h"
-            ex="true"
-            overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
-      <item path="mcc_generated_files/mcc.h" ex="true" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
-      <item path="mcc_generated_files/pin_manager.h" ex="true" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
     </conf>
     <conf name="v2_05_o" type="2">
       <toolsSet>
