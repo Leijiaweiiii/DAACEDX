@@ -459,22 +459,6 @@ void define_input_action() {
         handle_timer_idle_shutdown();
 }
 
-void handle_low_battery() {
-    if(!battery_low) return;
-    if (ui_state != PowerOff) {
-        char msg[16];
-        STATE_HANDLE_POWER_OFF();
-        lcd_clear();
-        sprintf(msg, "Low Battery");
-        lcd_write_string(msg, 40, UI_CHARGING_LBL_Y - MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
-        sprintf(msg, "Please Charge");
-        lcd_write_string(msg, 30, UI_CHARGING_LBL_Y + MediumFont->height/2, MediumFont, BLACK_OVER_WHITE);
-        Stats.LowPower++;
-        saveStats();
-        Delay(3000);
-    }
-}
-
 void handle_ui() {
     define_input_action();
     if(ui_state == PowerOff){
@@ -482,7 +466,6 @@ void handle_ui() {
         return;
     }
     handle_bt_commands();
-    handle_low_battery();
     switch (ui_state) {
         case PowerOff:
             // Handled separately
