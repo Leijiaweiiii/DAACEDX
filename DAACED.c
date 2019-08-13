@@ -2398,7 +2398,7 @@ void SetSettingsMenu() {
             Orientation ? "Down" : "Up",
             Settings.BackLightLevel);
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_COUNTDOWN], "Countdown");
-    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_AUTOSTART], "Autostart|%s",
+    sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_AUTOSTART], "Auto Start|%s",
             (Settings.AR_IS.Autostart)?"ON":"OFF");
     strcpy(SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK], "Clock|");
     rtc_print_time((SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK] + 6), Settings.AR_IS.Clock24h);
