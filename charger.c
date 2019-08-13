@@ -26,7 +26,6 @@ void define_charger_state() {
     switch (CHARGER_STATE) {
         case CHARGER_CHARGING:
             charger_state = Charging;
-            battery_min_mV = 4096;
             break;
         case CHARGER_NOT_CONNECTED:
         case CHARGER_DISCONNECTED:
@@ -42,10 +41,15 @@ void define_charger_state() {
 
 uint16_t battery_average(){
     uint16_t res = 0;
+    uint16_t max = 0, min = 4096;
+    for(uint8_t i = 0;i<BAT_BUFFER_SIZE;i++){
+        max = MAX(max,bat_samples[i]);
+        min = MIN(min,bat_samples[i]);
+    }
     for(uint8_t i = 0;i<BAT_BUFFER_SIZE;i++)
         res += bat_samples[i];
+    res -= max;
+    res -= min;
     res = (res >> BAT_BUFFER_SIZE_SHIFT);
-    if(res < battery_min_mV)
-        battery_min_mV = res;
-    return battery_min_mV;
+    return res;
 }

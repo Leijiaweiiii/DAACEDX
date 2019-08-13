@@ -3231,11 +3231,14 @@ static void interrupt isr(void) {
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         InputFlags.FOOTER_CHANGED = 1;
+        uint8_t const_minute = _minute;
         tic_2_sec();
-        if (ui_state == PowerOff) {
-            define_charger_state();
-        } else if (ui_state != TimerListening && ui_state != TimerCountdown) {
-            ADC_ENABLE_INTERRUPT_BATTERY;
+        if(_minute != const_minute){
+            if (ui_state == PowerOff) {
+                define_charger_state();
+            } else if (ui_state != TimerListening && ui_state != TimerCountdown) {
+                ADC_ENABLE_INTERRUPT_BATTERY;
+            }
         }
     } 
     if (INT0IF) {
@@ -3262,7 +3265,7 @@ void battery_test(){
                 ADC_ENABLE_INTERRUPT_BATTERY;
                 Delay(10);
             }
-            sprintf(msg, "%u %04d/%04d/%04dmV", i, battery_mV, battery_min_mV, battery_average());
+            sprintf(msg, "%u %04d/%04dmV", i, battery_mV, battery_average());
             lcd_clear();
             lcd_write_string(msg,2,40,SmallFont,BLACK_OVER_WHITE);
         } while (battery_average() > battery_voltage_thresholds[5] || Key == 0);
