@@ -255,9 +255,7 @@ void replaceParWithCustom(){
 }
 void getSettings(){
     restoreSettings();
-    if(Settings.ParMode == ParMode_CUSTOM){
-        replaceParWithCustom();
-    }
+    set_par_mode(Settings.ParMode);
 }
 
 void getDefaultSettings() {
@@ -3000,10 +2998,7 @@ void StartCountdownTimer() {
 
     InputFlags.FOOTER_CHANGED = True;
     restoreSettingsField(&Settings,&(Settings.DelayMode),1);
-    switch(Settings.ParMode){
-        case ParMode_Regular:
-            CurPar_idx = 0;
-            break;
+    switch(Settings.ParMode) {
         case ParMode_Repetitive:
             repetitive_counter = 0;
             repetitive_state = Face;
@@ -3015,9 +3010,17 @@ void StartCountdownTimer() {
             next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
             Settings.DelayMode = DELAY_MODE_Other;
             break;
+        case ParMode_Regular:
+        case ParMode_Silent:
+        case ParMode_Spy:
+            CurPar_idx = 0;
+            // intentional fail through
+        default:
+            next_par_ms = (long)Settings.ParTime[CurPar_idx] * 1000;
+            break;
     }
     switch (Settings.DelayMode) {
-        case DELAY_MODE_Instant: runtimeDelayTime = 2; // To allow battery reading and not interfere with detection
+        case DELAY_MODE_Instant: runtimeDelayTime = 50; // To allow battery reading and not interfere with detection
             break;
         case DELAY_MODE_Fixed: runtimeDelayTime = 3000;
             break;
@@ -3084,7 +3087,7 @@ void check_countdown_expired() {
 }
 
 void increment_par() {
-    if (CurPar_idx != Settings.TotPar - 1) {
+    if (CurPar_idx < Settings.TotPar - 1) {
         CurPar_idx++;
     } else {
         CurPar_idx = 0;
@@ -3093,7 +3096,7 @@ void increment_par() {
 }
 
 void decrement_par(){
-    if (CurPar_idx != 0) {
+    if (CurPar_idx > 0) {
         CurPar_idx--;
     } else {
         CurPar_idx = Settings.TotPar - 1;

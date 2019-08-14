@@ -98,6 +98,7 @@ void StopTimer() {
     InputFlags.FOOTER_CHANGED = True;
     ParFlags.ParNowCounting = False;
     ParFlags.AutoParOverDetect = False;
+    set_par_mode(Settings.ParMode);
 }
 
 void handle_power_off() {
@@ -221,10 +222,11 @@ void HandleTimerEvents() {
             timer_idle_last_action_time = unix_time_ms_sec;
             StartPlayParSound();
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
-            next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
-            CurPar_idx++;
-            if (Settings.TotPar > CurPar_idx)
+            if (Settings.TotPar - 1 > CurPar_idx){
+                increment_par();
+                next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
                 StartParTimer();
+            }
             break;
         case AutoParEvent:
             StartPlayParSound();
