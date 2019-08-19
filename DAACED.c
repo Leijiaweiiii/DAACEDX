@@ -644,48 +644,45 @@ uint8_t clear_par(float * pars, uint8_t tot_par) {
 }
 
 uint8_t HandleParMenuSelection(SettingsMenu_t * m, float * pars, uint8_t tot_par) {
-    if(m->done) return;
-    if (m->selected) {
-        if (m->menu < (m->TotalMenuItems - 3)) {
-            EditPar(m->menu, pars);
-        } else if (m->menu == (m->TotalMenuItems - 3)) {
-            // Add new par
-            if (tot_par < MAXPAR) {
-                TBool res = False;
-                pars[tot_par] = 1.0; // Default setting 1 second
-                res = EditPar(tot_par++, pars);
-                if (res) { // Roll back if not selected
-                    uint8_t oldPage = m->page;
-                    m->menu++;
-                    m->page = ItemToPage(m->menu);
-                    m->changed = True;
-                    m->page_changed = (oldPage != m->page);
-                } else {
-                    pars[--tot_par] = 0.0;
-                }
-            } else {
-                Beep();
-            }
-        } else if (m->menu == (m->TotalMenuItems - 2)) {
-            // Delete last PAR
-            if (tot_par > 0) {
-                pars[tot_par--] = 0.0;
+    if (m->menu < (m->TotalMenuItems - 3)) {
+        EditPar(m->menu, pars);
+    } else if (m->menu == (m->TotalMenuItems - 3)) {
+        // Add new par
+        if (tot_par < MAXPAR) {
+            TBool res = False;
+            pars[tot_par] = 1.0; // Default setting 1 second
+            res = EditPar(tot_par++, pars);
+            if (res) { // Roll back if not selected
                 uint8_t oldPage = m->page;
-                m->menu--;
+                m->menu++;
                 m->page = ItemToPage(m->menu);
                 m->changed = True;
                 m->page_changed = (oldPage != m->page);
+            } else {
+                pars[--tot_par] = 0.0;
             }
-        } else if (m->menu == (m->TotalMenuItems - 1)) {
-            // Clear PAR
-            tot_par = clear_par(pars,tot_par);
-            m->menu = 0;
-            m->page = 0;
-            m->page_changed = True; 
-            m->changed = True;
+        } else {
+            Beep();
         }
-        lcd_clear();
+    } else if (m->menu == (m->TotalMenuItems - 2)) {
+        // Delete last PAR
+        if (tot_par > 0) {
+            pars[tot_par--] = 0.0;
+            uint8_t oldPage = m->page;
+            m->menu--;
+            m->page = ItemToPage(m->menu);
+            m->changed = True;
+            m->page_changed = (oldPage != m->page);
+        }
+    } else if (m->menu == (m->TotalMenuItems - 1)) {
+        // Clear PAR
+        tot_par = clear_par(pars,tot_par);
+        m->menu = 0;
+        m->page = 0;
+        m->page_changed = True;
+        m->changed = True;
     }
+    lcd_clear();
     return tot_par;
 }
 
@@ -2297,7 +2294,6 @@ void DoSet(uint8_t menu) {
                 default:
                     Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
                     saveSettings();
-                    restoreSettings();
                 break;
             }
             break;

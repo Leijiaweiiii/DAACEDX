@@ -209,14 +209,14 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
             s->done = True;
             break;
         case StartLong:
-            s->selected = True;
+            s->selected = False;
             s->done = True;
             STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-            s->selected = True;
+            s->selected = False;
             s->done = True;
-            STATE_HANDLE_TIMER_IDLE();
+            ui_state = TimerIdle;
             break;
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
