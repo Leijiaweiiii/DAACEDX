@@ -172,7 +172,6 @@ void handle_timer_idle() {
                 case ParMode_Regular:
                 case ParMode_AutoPar:
                 case ParMode_Repetitive:
-                case ParMode_Silent:
                 case ParMode_Spy:
                     // Don't increment par for these modes
                     break;
@@ -187,7 +186,6 @@ void handle_timer_idle() {
                 case ParMode_Regular:
                 case ParMode_AutoPar:
                 case ParMode_Repetitive:
-                case ParMode_Silent:
                 case ParMode_Spy:
                     // Don't decrement par for these modes
                     break;

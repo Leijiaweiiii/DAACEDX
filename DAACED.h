@@ -198,21 +198,20 @@ volatile struct{
 time_t parStartTime_ms;
 
 #define ParMode_Regular         0
-#define ParMode_Silent          1
-#define ParMode_Spy             2
-#define ParMode_Repetitive      3
-#define ParMode_AutoPar         4
-#define ParMode_Practical       5
-#define ParMode_Barricade       6
-#define ParMode_FallingPlate    7
-#define ParMode_MovingTarget    8
-#define ParMode_NRA_PPC_A       9
-#define ParMode_NRA_PPC_B       10
-#define ParMode_NRA_PPC_C       11
-#define ParMode_NRA_PPC_D       12
-#define ParMode_CUSTOM          13
+#define ParMode_Spy             1
+#define ParMode_Repetitive      2
+#define ParMode_AutoPar         3
+#define ParMode_Practical       4
+#define ParMode_Barricade       5
+#define ParMode_FallingPlate    6
+#define ParMode_MovingTarget    7
+#define ParMode_NRA_PPC_A       8
+#define ParMode_NRA_PPC_B       9
+#define ParMode_NRA_PPC_C       10
+#define ParMode_NRA_PPC_D       11
+#define ParMode_CUSTOM          12
 
-#define TOT_PAR_MODES           14
+#define TOT_PAR_MODES           13
 extern const char * par_mode_menu_names[];
 extern const char * par_mode_header_names[];
 

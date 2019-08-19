@@ -215,7 +215,6 @@ uint8_t find_set_bit_position(uint8_t n) {
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     uint8_t findex = frequency/100;
     // Don't beep ever in silent modes
-    if (Settings.ParMode == ParMode_Silent) return;
     if (Settings.ParMode == ParMode_Spy) return;
     if (amplitude == 0) return;
     amplitude_index = amplitude - 1;
@@ -1204,7 +1203,6 @@ void set_par_mode(int m) {
     switch (m) {
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
-        case ParMode_Silent:
             Settings.Volume = 0; // Intentional fall-through
         case ParMode_Regular:
             restoreSettings();
@@ -1247,7 +1245,6 @@ void set_par_mode(int m) {
 
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
     "Normal Timer",
-    "Silent Mode",
     "Spy Mode",
     "Repetitive Mode",
     "Auto Par",
@@ -1264,7 +1261,6 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
 
 const char * par_mode_header_names[TOT_PAR_MODES] = {
     "Timer",
-    "Silent",
     "Spy Mode",
     "Repetitive",
     "Auto Par",
@@ -1539,12 +1535,10 @@ void SetMode() {
             switch (ma.menu){
                 case ParMode_Regular:
                 case ParMode_Spy:
-                case ParMode_Silent:
                     getSettings();
                     switch(Settings.ParMode){
                         case ParMode_Regular:
                         case ParMode_Spy:
-                        case ParMode_Silent:
                             break;
                         default:
                             clear_par(Settings.ParTime,MAXPAR);
@@ -3011,7 +3005,6 @@ void StartCountdownTimer() {
             Settings.DelayMode = DELAY_MODE_Other;
             break;
         case ParMode_Regular:
-        case ParMode_Silent:
         case ParMode_Spy:
             CurPar_idx = 0;
             // intentional fail through
