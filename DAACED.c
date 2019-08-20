@@ -1507,8 +1507,11 @@ void SetAutoPar(){
             lcd_clear();
         }
     } while (SettingsNotDone((&mx)));
-    if (ma.selected) {
-        saveSettings();
+    if(Settings.TotAutoPar == 0){
+        // User didn't define any PARs or cleared them
+        Settings.ParMode = ParMode_Regular;
+        Settings.TotPar = 0;
+        clear_par(Settings.ParTime,MAXPAR);
     }
 }
 // </editor-fold>
