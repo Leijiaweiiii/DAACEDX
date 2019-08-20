@@ -1531,7 +1531,7 @@ void SetMode() {
     do {
         DisplaySettings((&ma));
         SelectMenuItemCircular((&ma));
-        if(ma.selected && ma.done){
+        if(ma.selected){
             switch (ma.menu){
                 case ParMode_Regular:
                 case ParMode_Spy:
@@ -1574,15 +1574,17 @@ void SetMode() {
                     SetAutoPar();
                     saveSettings();
                     break;
+                default:
+                    Settings.ParMode = ma.menu;
+                    if (oldPar != Settings.ParMode) {
+                        saveSettingsField(&Settings, &(Settings.ParMode), 1);
+                    }
+                    break;
             }
             ma.changed = True;
         }
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {
-        Settings.ParMode = ma.menu;
-        if (oldPar != Settings.ParMode) {
-            saveSettingsField(&Settings, &(Settings.ParMode), 1);
-        }
         STATE_HANDLE_TIMER_IDLE();
     }
     set_par_mode(Settings.ParMode);
