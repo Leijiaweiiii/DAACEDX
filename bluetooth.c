@@ -25,16 +25,21 @@ void get_device_name(){
     do {
         BT_send_comand("AT92", AT_CMD_LEN);
         i++;
-    } while(uart_rx_buffer[0] == 0 || i==0);
+    } while(uart_rx_buffer[0] == 0 || i == 0);
     strncpy(device_name, uart_rx_buffer, 25);
     uart_rx_handled();
 }
 
 void set_device_name(){
     int len;
+    uint8_t i = 0;
     len = sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION);
     BT_send_comand(device_name_cmd, len);
-    while (! at_ok())Delay(1); // Waiting for "OK:xxx..x"
+    do {
+        Delay(1); // Waiting for "OK:xxx..x"
+        i++;
+        if(i%64 == 0) BT_send_comand(device_name_cmd, len);
+    } while (! at_ok() || i == 0);
     uart_rx_handled();
     BT_soft_reset();
     get_device_name();
