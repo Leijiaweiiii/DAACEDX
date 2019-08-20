@@ -269,7 +269,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
     switch (comandToHandle) {
         case UpLong:
         case UpShort:
-            if (sm->value < sm->max) {
+            if (sm->max - sm->value > sm->step) {
                 sm->value += sm->step;
             } else {
                 sm->value = sm->min;
@@ -278,7 +278,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             break;
         case DownLong:
         case DownShort:
-            if (sm->value > sm->min) {
+            if (sm->value - sm->min > sm->step) {
                 sm->value -= sm->step;
             } else {
                 sm->value = sm->max;
@@ -315,14 +315,14 @@ void SelectInteger(NumberSelection_t* sm) {
     switch (comandToHandle) {
         case UpLong:
         case UpShort:
-            if (sm->value < sm->max) {
+            if (sm->max - sm->value > sm->step) {
                 sm->value += sm->step;
                 sm->redraw = True;
             } else Beep();
             break;
         case DownLong:
         case DownShort:
-            if (sm->value > sm->min) {
+            if (sm->value - sm->min > sm->step) {
                 sm->value -= sm->step;
                 sm->redraw = True;
             } else Beep();
@@ -357,14 +357,14 @@ void SelectDouble(NumberSelection_t* sm) {
     switch (comandToHandle) {
         case UpLong:
         case UpShort:
-            if (sm->fvalue < sm->fmax) {
+            if (sm->fmax - sm->fvalue > sm->fstep) {
                 sm->fvalue += sm->fstep;
                 sm->redraw = True;
             } else Beep();
             break;
         case DownLong:
         case DownShort:
-            if (sm->fvalue > sm->fmin) {
+            if (sm->fvalue - sm->fmin > sm->fstep) {
                 sm->fvalue -= sm->fstep;
                 sm->redraw = True;
             } else Beep();
