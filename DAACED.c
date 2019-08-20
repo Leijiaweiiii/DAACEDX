@@ -1385,7 +1385,7 @@ TBool EditDelay(uint8_t index, AutoPar_t * pars){
     NumberSelection_t m;
     InitSettingsNumberDefaults((&m));
     sprintf(m.MenuTitle, "Delay %u ", index + 1);
-    m.fmin = 0.0;
+    m.fmin = 0.5;
     m.fmax = 99.9;
     m.fstep = 0.1;
     m.fvalue = pars[index].delay;
