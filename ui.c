@@ -98,7 +98,6 @@ void StopTimer() {
     InputFlags.FOOTER_CHANGED = True;
     ParFlags.ParNowCounting = False;
     ParFlags.AutoParOverDetect = False;
-    set_par_mode(Settings.ParMode);
 }
 
 void handle_power_off() {
@@ -333,7 +332,8 @@ void handle_settings_screen() {
             STATE_HANDLE_CHARGER();
             break;
         default:
-            DoSettings();
+            DoSettings(); // Settings screen is synchronous
+            set_par_mode(Settings.ParMode);
             break;
     }
     comandToHandle = None;

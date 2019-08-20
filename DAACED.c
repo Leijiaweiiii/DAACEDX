@@ -1572,6 +1572,7 @@ void SetMode() {
                         Settings.TotAutoPar = 0;
                     }
                     SetAutoPar();
+                    saveSettings();
                     break;
             }
             ma.changed = True;
@@ -2293,6 +2294,7 @@ void DoSet(uint8_t menu) {
                     break;
                 case ParMode_AutoPar:
                     SetAutoPar();
+                    saveSettings();
                     break;
                 default:
                     Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
