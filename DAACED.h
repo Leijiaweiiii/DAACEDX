@@ -257,7 +257,7 @@ typedef struct {
 volatile Settings_t Settings;
 
 
-uint16_t runtimeDelayTime = 2500;
+uint24_t runtimeDelayTime = 2500;
 uint8_t repetitive_counter = 0;
 time_t next_par_ms;
 enum {Face = 0, Edge = 1} repetitive_state;

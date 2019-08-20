@@ -3000,10 +3000,14 @@ void StartCountdownTimer() {
             next_par_ms = Settings.RepetitiveFaceTime;
             break;
         case ParMode_AutoPar:
-            runtimeDelayTime = (long)Settings.AutoPar[CurPar_idx].delay * 1000;
-            runtimeDelayTime -= AUTO_PAR_OVER_DETECT_MS; // To allow shot detection slightly after the par signal
-            next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
-            Settings.DelayMode = DELAY_MODE_Other;
+            {
+                float d = Settings.AutoPar[CurPar_idx].delay;
+                runtimeDelayTime = (long) (d * 1000);
+                runtimeDelayTime -= AUTO_PAR_OVER_DETECT_MS; // To allow shot detection slightly after the par signal
+                d = Settings.AutoPar[CurPar_idx].par;
+                next_par_ms = (long)(d * 1000);
+                Settings.DelayMode = DELAY_MODE_Other;
+            }
             break;
         case ParMode_Regular:
         case ParMode_Spy:
