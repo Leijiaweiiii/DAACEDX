@@ -41,8 +41,8 @@ void set_device_name(){
         if(i%64 == 0) BT_send_comand(device_name_cmd, len);
     } while (! at_ok() || i == 0);
     uart_rx_handled();
-    BT_soft_reset();
-    get_device_name();
+//    BT_soft_reset();
+//    get_device_name();
 }
 
 void BT_init() {
