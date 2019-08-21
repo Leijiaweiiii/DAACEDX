@@ -591,7 +591,10 @@ void SetDelay() {
 
 TBool EditPar(uint8_t par_index, float * pars) {
     NumberSelection_t b;
-    b.fmin = 0.1;
+    b.fmin = (par_index)?
+        (float)Settings.BuzzerParDuration / 1000:
+        (float)Settings.BuzzerStartDuration / 1000;
+    b.fmin += 0.15;
     b.fmax = 99.9;
     b.fvalue = pars[par_index];
     b.fold_value = b.fvalue;
