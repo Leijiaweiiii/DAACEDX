@@ -413,9 +413,8 @@ time_t last_sent_time = 0L;
 void sendShotsIfRequired(){
     // Send shots only when in detection state
     if( ui_state != TimerListening ) return;
-    if( ! BT_STATUS.connected) return;
     update_rtc_time();
-    if(unix_time_ms - last_sent_time < 50 )return; // Don't send faster than once in 50ms
+    if(unix_time_ms - last_sent_time < 50 ) return; // Don't send faster than once in 50ms
     uint8_t index_to_send = get_shot_index_in_arr(last_sent_index);
     uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
     if(ShootString.TotShoots < MAX_REGISTERED_SHOTS && index_to_send != last_shot_index){
