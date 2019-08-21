@@ -53,6 +53,6 @@
 
 extern void	qsort(void *, size_t, size_t, int (*)(const void *, const void *));
 extern void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
-#define Beep() {generate_sinus(1, 1000, 50);}
+#define Beep() {/* generate_sinus(1, 1000, 50); */ NOP();}
 #endif	/* DAACED_COMMON_H */
 
