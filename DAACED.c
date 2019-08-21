@@ -424,7 +424,7 @@ void sendShotsIfRequired(){
         InputFlags.NEW_SHOT = False;
     } else if  (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT) {
         InputFlags.NEW_SHOT = False;
-        sendOneShot(&(ShootString.shots[last_shot_index]));
+        sendOneShot(&(ShootString.shots[last_shot_index-1]));
     }
 }
 
