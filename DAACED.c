@@ -2227,11 +2227,11 @@ void SetMicrophone(){
 
 // <editor-fold defaultstate="collapsed" desc="Display">
 void SetDisplayMenu(){
-    ma.TotalMenuItems = 3;
+    ma.TotalMenuItems = 2;
     sprintf(ma.MenuTitle, "Set Display ");
     sprintf(ma.MenuItem[0], "Backlight|%u", Settings.BackLightLevel);
     sprintf(ma.MenuItem[1],  "Orientation|%s", Orientation?"Down":"Up");
-    sprintf(ma.MenuItem[2],  "Contrast|%u", Settings.ContrastValue);
+//    sprintf(ma.MenuItem[2],  "Contrast|%u", Settings.ContrastValue);
 }
 
 void SetDisplay(){
@@ -2255,11 +2255,11 @@ void SetDisplay(){
                     ma.done = False;
                     ma.selected = False;
                     break;
-                case 2:
-                    SetContrast();
-                    ma.done = False;
-                    ma.selected = False;
-                    break;
+//                case 2:
+//                    SetContrast();
+//                    ma.done = False;
+//                    ma.selected = False;
+//                    break;
             }
             lcd_clear();
             ma.changed = True;
