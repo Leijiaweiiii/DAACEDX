@@ -1199,9 +1199,11 @@ void set_par_mode(int m) {
     switch (m) {
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
-            Settings.Volume = 0; // Intentional fall-through
+            Settings.Volume = 0;
+            break;
         case ParMode_Regular:
-            restoreSettings();
+            restoreSettingsField(&Settings, &(Settings.DelayMode), 1);
+            restorePar();
             CurPar_idx = 0;
             break;
         case ParMode_CUSTOM:
@@ -1535,6 +1537,7 @@ void SetMode() {
         SelectMenuItemCircular((&ma));
         if(ma.selected){
             Settings.ParMode = ma.menu;
+            saveSettingsField(&Settings, &(Settings.ParMode), 1);
             switch (ma.menu){
                 case ParMode_Regular:
                 case ParMode_Spy:
@@ -1577,11 +1580,6 @@ void SetMode() {
                     }
                     SetAutoPar();
                     saveSettings();
-                    break;
-                default:
-                    if (oldPar != Settings.ParMode) {
-                        saveSettingsField(&Settings, &(Settings.ParMode), 1);
-                    }
                     break;
             }
             ma.changed = True;
