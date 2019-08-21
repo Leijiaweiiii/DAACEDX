@@ -292,7 +292,7 @@ void getDefaultSettings() {
     // TODO: Define proper defaults
     Settings.RepetitiveEdgeTime = 0;
     Settings.RepetitiveFaceTime = 0;
-    Settings.RepetitiveRepeat = 0;
+    Settings.RepetitiveRepeat = 1;
     repetitive_state = Face;
     repetitive_counter = 0;
     saveSettings();
@@ -1376,6 +1376,9 @@ void SetRepetitiveMode(){
             lcd_clear();
         }
     } while (SettingsNotDone((&mx)));
+    if(Settings.RepetitiveRepeat == 0){
+        Settings.ParMode = ParMode_Regular;
+    }
 }
 // </editor-fold>
 
@@ -1532,6 +1535,7 @@ void SetMode() {
         DisplaySettings((&ma));
         SelectMenuItemCircular((&ma));
         if(ma.selected){
+            Settings.ParMode = ma.menu;
             switch (ma.menu){
                 case ParMode_Regular:
                 case ParMode_Spy:
@@ -1560,6 +1564,7 @@ void SetMode() {
                 case ParMode_Repetitive:
                     lcd_clear();
                     SetRepetitiveMode();
+                    saveSettings();
                     break;
                 case ParMode_AutoPar:
                     lcd_clear();
@@ -1575,7 +1580,6 @@ void SetMode() {
                     saveSettings();
                     break;
                 default:
-                    Settings.ParMode = ma.menu;
                     if (oldPar != Settings.ParMode) {
                         saveSettingsField(&Settings, &(Settings.ParMode), 1);
                     }
