@@ -2302,6 +2302,10 @@ void DoSet(uint8_t menu) {
                     SetAutoPar();
                     saveSettings();
                     break;
+                case ParMode_Repetitive:
+                    SetRepetitiveMode();
+                    saveSettings();
+                    break;
                 default:
                     Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
                     saveSettings();
@@ -2374,6 +2378,13 @@ void SetSettingsMenu() {
             } else {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
             }
+            break;
+        case ParMode_Repetitive:
+            sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
+                "Par| %0.1fs %0.1fs %d",
+                (float)Settings.RepetitiveFaceTime / 1000,
+                (float)Settings.RepetitiveEdgeTime / 1000,
+                Settings.RepetitiveRepeat);
             break;
         default:
             if (Settings.TotPar > 0) {
