@@ -1410,7 +1410,10 @@ TBool EditParTime(uint8_t index, AutoPar_t * pars){
     NumberSelection_t m;
     InitSettingsNumberDefaults((&m));
     sprintf(m.MenuTitle, "Par %u ", index + 1);
-    m.fmin = 0.0;
+    m.fmin = (index)?
+        (float)Settings.BuzzerParDuration / 1000:
+        (float)Settings.BuzzerStartDuration / 1000;
+    m.fmin += 0.15;
     m.fmax = 99.99;
     m.fstep = 0.05;
     m.fvalue = pars[index].par;
