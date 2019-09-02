@@ -298,14 +298,14 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
 }
 void inline setOrientationNormal(){
     lcd_send_data(LCD_ORIENTATION_NORMAL);
-    lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
+    lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
     x_offset = 0;
     y_offset = 0;
 }
 
 void inline setOrientationInverted(){
     lcd_send_data(LCD_ORIENTATION_INVERTED);
-    lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
+    lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
     x_offset = 15;
     y_offset = 1;    
 }
