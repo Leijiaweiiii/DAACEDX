@@ -232,11 +232,7 @@ void lcd_init() {
     lcd_send_data(LCD_DUTY_CICLE_160); // 1/160 duty.
     lcd_send_data(0x00); // ??
 
-    lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
-    lcd_send_data(LCD_ORIENTATION_NORMAL);
-
-    lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
-
+    lcd_set_orientation();
     lcd_send_command(CMD_INVERSION_OFF);
     lcd_send_command(CMD_EXTENSION_2); // Extension2 command.
     lcd_send_command(CMD_PWR_SRC_INT); // Use internal oscillator.
