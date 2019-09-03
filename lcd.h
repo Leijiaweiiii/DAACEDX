@@ -40,7 +40,7 @@ uint16_t contrast_value = 0x0135;
 #define UI_FOOTER_START_LINE    (112)
 #define UI_FOOTER_GRID_WIDTH    (130)
 #define UI_FOOTER_GRID_HEIGH    (24)
-uint8_t x_offset = 0, y_offset = 0;
+int8_t x_offset = 0, y_offset = 0;
 #define UI_CHARGING_LBL_X       (64)
 #define UI_CHARGING_LBL_Y       (64)
 #define UI_NUMBER_SELECTION_COLUMN ()

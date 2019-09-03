@@ -1879,6 +1879,8 @@ void SetOrientation() {
         Orientation = mx.menu;
         saveSettingsField(&Settings, &(Settings.AR_IS), 1);
     }
+    lcd_set_orientation();
+    lcd_clear();
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">

@@ -243,13 +243,10 @@ void lcd_init() {
     lcd_clear_data_ram(); // Clearing data RAM.
 
     lcd_send_command(CMD_DISPLAY_ON); // Turn ON display.
-    x_offset = 0;
-    y_offset = 0;
 }
 
 void lcd_clear() {
     lcd_clear_block(0, 0, LCD_WIDTH, LCD_HEIGHT);
-    lcd_set_orientation();
 }
 
 void lcd_increase_contrast() {
@@ -300,14 +297,14 @@ void inline setOrientationNormal(){
     lcd_send_data(LCD_ORIENTATION_NORMAL);
     lcd_send_command(CMD_DATA_FORMAT_MSB); // MSB First.
     x_offset = 0;
-    y_offset = 0;
+    y_offset = 1;
 }
 
 void inline setOrientationInverted(){
     lcd_send_data(LCD_ORIENTATION_INVERTED);
     lcd_send_command(CMD_DATA_FORMAT_LSB); // LSB First.
-    x_offset = 15;
-    y_offset = 1;    
+    x_offset = 16;
+    y_offset = 0;
 }
 
 void lcd_set_orientation() {
