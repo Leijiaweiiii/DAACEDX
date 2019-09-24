@@ -215,7 +215,6 @@ time_t parStartTime_ms;
 extern const char * par_mode_menu_names[];
 extern const char * par_mode_header_names[];
 
-#define ShootStringStartAddress     (0x0B80)
 #define SettingsStartAddress        (0x0000)
 // 270 bytes
 #define SettingsDataSize            (sizeof(Settings_t))
@@ -283,7 +282,7 @@ SettingsMenu_t SettingsMenu;
 #define SETTINDS_INDEX_VERSION      14
 
 
-#define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + 4)
+#define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + 64)
 typedef struct{
     uint32_t PowerOn;
     uint32_t Signal;
@@ -298,6 +297,8 @@ typedef struct{
 } Stats_t;
 #define StatsDataSize   (sizeof(Stats_t))
 Stats_t Stats;
+
+#define ShootStringStartAddress     (StatsStartAddress + StatsDataSize + 64)
 
 // </editor-fold>
 
