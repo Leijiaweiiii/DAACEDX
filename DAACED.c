@@ -3045,7 +3045,7 @@ void StartCountdownTimer() {
         case DELAY_MODE_Fixed: runtimeDelayTime = 3000;
             break;
         case DELAY_MODE_Random:
-            runtimeDelayTime = 1000 + random16(3000);// from 2s to 5s random delay
+            runtimeDelayTime = 2000 + random16(3000);// from 2s to 5s random delay
             break;
         case DELAY_MODE_Custom:
             eeprom_read_array(SettingAddress(Settings, Settings.CUstomDelayTime), (uint8_t *)&(Settings.CUstomDelayTime), 4);
