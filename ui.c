@@ -228,7 +228,11 @@ void HandleTimerEvents() {
         case AutoParEvent:
             StartPlayParSound();
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.AutoPar[CurPar_idx].par * 1000));
-            next_par_ms = AUTO_PAR_OVER_DETECT_MS;
+            if(Settings.TotAutoPar == CurPar_idx + 1){
+                next_par_ms = AUTO_PAR_LAST_DETECTION_TIME;
+            } else {
+                next_par_ms = AUTO_PAR_OVER_DETECT_MS;
+            }
             ParFlags.AutoParOverDetect = True;
             ParFlags.ParNowCounting = False;
             break;

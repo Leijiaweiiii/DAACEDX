@@ -194,7 +194,8 @@ volatile struct{
     unsigned AutoParOverDetect  : 1;
     unsigned UNUSED             : 6;
 } ParFlags;
-#define AUTO_PAR_OVER_DETECT_MS     500
+#define AUTO_PAR_OVER_DETECT_MS         500
+#define AUTO_PAR_LAST_DETECTION_TIME    999000;
 time_t parStartTime_ms;
 
 #define ParMode_Regular         0
