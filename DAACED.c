@@ -960,7 +960,7 @@ void SetStartSound(){
     TBool orgset;
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 2;
-    strcpy(ma.MenuTitle, "Startup sound");
+    strcpy(ma.MenuTitle, "Startup Sound");
     strcpy(ma.MenuItem[Off], " OFF ");
     strcpy(ma.MenuItem[On], " ON ");
     orgset = Settings.AR_IS.StartSound;
@@ -981,7 +981,7 @@ void setBuzzerMenu(){
     sprintf(ma.MenuItem[0], " Frequency|%dHz ", Settings.BuzzerFrequency);
     sprintf(ma.MenuItem[1], " Volume|%d ", Settings.Volume);
     sprintf(ma.MenuItem[2], " Par Duration|%1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
-    sprintf(ma.MenuItem[3], " Startup sound|%s ", Settings.AR_IS.StartSound?"ON":"OFF");
+    sprintf(ma.MenuItem[3], " Startup Sound|%s ", Settings.AR_IS.StartSound?"ON":"OFF");
     strcpy(ma.MenuItem[4], " Test Beep ");
     ma.TotalMenuItems = 5;
 }
