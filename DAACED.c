@@ -360,6 +360,22 @@ uint8_t findCurStringIndex() {
     return 0;
 }
 
+uint8_t numNotEmptyStrings() {
+    uint16_t addr;
+    uint8_t counts[MAXSHOOTSTRINGS];
+    uint8_t res = 0;
+    for (uint8_t i = MAXSHOOTSTRINGS; i > 0; i--) {
+        addr = findStringAddress(i - 1);
+        counts[i - 1] = eeprom_read_data(addr + 1);
+    }
+    for (uint8_t i = 0; i < MAXSHOOTSTRINGS; i++) {
+        if (counts[i] > 0) {
+            res++;
+        }
+    }
+    return res;
+}
+
 // increments the string position, based on the current mark
 
 void saveShootString(void) {
@@ -2611,12 +2627,13 @@ void review_previous_string() {
         CurShootString--;
         getShootString(CurShootString);
         if (ReviewString.TotShoots == 0) {
+            // it's clean memory, remaining on string 1
             Beep();
             CurShootString++;
             getShootString(CurShootString);
         }
     } else {
-        CurShootString = MAXSHOOTSTRINGS - 1;
+        CurShootString = numNotEmptyStrings() - 1;
         getShootString(CurShootString);
         if (ReviewString.TotShoots == 0) {
             Beep();
@@ -2635,10 +2652,12 @@ void review_next_string() {
         getShootString(CurShootString);
         if (ReviewString.TotShoots == 0) {
             Beep();
-            CurShootString--;
+            // last recorded string
+            CurShootString = 0;
             getShootString(CurShootString);
         }
     } else {
+        // 30th string
         CurShootString = 0;
     }
     getShootString(CurShootString);
