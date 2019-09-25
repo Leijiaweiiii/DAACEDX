@@ -215,7 +215,6 @@ uint8_t find_set_bit_position(uint8_t n) {
 void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     uint8_t findex = frequency/100;
     // Don't beep ever in silent modes
-    if (Settings.ParMode == ParMode_Spy) return;
     if (amplitude == 0) return;
     amplitude_index = amplitude - 1;
     sinus_dac_init();
@@ -599,6 +598,11 @@ void SetDelay() {
         Settings.DelayMode = ma.menu;
         if (Settings.DelayMode != oldValue) {
             saveSettingsField(&Settings, &(Settings.DelayMode), 1);
+             if(Settings.ParMode == ParMode_Spy){
+                Settings.ParMode = ParMode_Regular;
+                saveSettingsField(&Settings, &(Settings.ParMode), 1);
+                getSettings();
+            }
         }
     }
 }
@@ -904,6 +908,11 @@ void SetVolume() {
         Settings.Volume = b.value;
         if (b.value != b.old_value) {
             saveSettingsField(&Settings, &(Settings.Volume), 1);
+            if(Settings.ParMode == ParMode_Spy){
+                Settings.ParMode = ParMode_Regular;
+                saveSettingsField(&Settings, &(Settings.ParMode), 1);
+                getSettings();
+            }
         }
     }
 }
@@ -1564,16 +1573,9 @@ void SetMode() {
                 case ParMode_Regular:
                 case ParMode_Spy:
                     getSettings();
-                    switch(Settings.ParMode){
-                        case ParMode_Regular:
-                        case ParMode_Spy:
-                            break;
-                        default:
-                            clear_par(Settings.ParTime,MAXPAR);
-                            Settings.TotPar = 0;
-                            saveSettings();
-                            break;
-                    }
+                    clear_par(Settings.ParTime, MAXPAR);
+                    Settings.TotPar = 0;
+                    saveSettings();
                     break;
                 case ParMode_CUSTOM:
                     lcd_clear();
@@ -2326,6 +2328,9 @@ void DoSet(uint8_t menu) {
                 case ParMode_Repetitive:
                     SetRepetitiveMode();
                     saveSettings();
+                    break;
+                case ParMode_Spy:
+                    Beep();
                     break;
                 default:
                     Settings.TotPar = SetPar((&ma), Settings.ParTime, Settings.TotPar); // By reference because it's used both in 2nd and 3rd level menu
