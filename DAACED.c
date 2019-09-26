@@ -217,7 +217,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
     // Don't beep ever in silent modes
     if (amplitude == 0) return;
     amplitude_index = amplitude - 1;
-    sinus_dac_init();
+    sinus_dac_init(Settings.AR_IS.BuzRef);
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
     beep_start = unix_time_ms;
@@ -262,7 +262,7 @@ void getDefaultSettings() {
     Settings.Attenuator = ATTENUATOR_00_DBm;
     Settings.Filter = 80; // ms
     Settings.AR_IS.Autostart = On; // on
-    Settings.AR_IS.AutoRotate = Off; // Off
+    Settings.AR_IS.BuzRef = Off; // Off
     Settings.AR_IS.BT = Off; // Off by default
     Settings.AR_IS.AutoPowerOff = On; // ON by default
     Settings.AR_IS.Clock24h = On;     // 24h by default
@@ -977,13 +977,37 @@ void SetStartSound(){
     }
 
 }
+
+void SetBuzRef(){
+    TBool orgset;
+    InitSettingsMenuDefaults((&ma));
+    ma.TotalMenuItems = 2;
+    strcpy(ma.MenuTitle, "Buzzer Reference");
+    strcpy(ma.MenuItem[Off], " VDD ");
+    strcpy(ma.MenuItem[On], " FRV ");
+    orgset = Settings.AR_IS.StartSound;
+    ma.menu = Settings.AR_IS.StartSound;
+    do {
+        DisplaySettings((&ma));
+        SelectMenuItem((&ma));
+    } while (SettingsNotDone((&ma)));
+    if (ma.selected) {
+        Settings.AR_IS.BuzRef = ma.menu;
+        if (Settings.AR_IS.StartSound != orgset) {
+            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        }
+    }
+
+}
+
 void setBuzzerMenu(){
     sprintf(ma.MenuItem[0], " Frequency|%dHz ", Settings.BuzzerFrequency);
     sprintf(ma.MenuItem[1], " Volume|%d ", Settings.Volume);
     sprintf(ma.MenuItem[2], " Par Duration|%1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
     sprintf(ma.MenuItem[3], " Startup Sound|%s ", Settings.AR_IS.StartSound?"ON":"OFF");
     strcpy(ma.MenuItem[4], " Test Beep ");
-    ma.TotalMenuItems = 5;
+    strcpy(ma.MenuItem[5], " Buzzer Reference ");
+    ma.TotalMenuItems = 6;
 }
 
 void SetBeep() {
@@ -1011,6 +1035,9 @@ void SetBeep() {
                     break;
                 case 4:
                     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+                    break;
+                case 5:
+                    SetBuzRef();
                     break;
             }
             // Here we want it done only when back pressed

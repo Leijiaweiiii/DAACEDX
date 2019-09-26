@@ -1,6 +1,19 @@
 #include "sinus.h"
 #include "rtc.h"
 
+void sinus_dac_init(TBool ref) {
+    LATEbits.LATE1 = 1;
+    TRISFbits.TRISF5 = 0;
+    FVRCONbits.EN = True;
+    FVRCONbits.CDAFVR = 0b10;
+    ANSELFbits.ANSELF5 = 0;
+    if(ref){
+        DAC1CON0 = DACON_VALUE_NEW;
+    } else {
+        DAC1CON0 = DACON_VALUE_DEFAULT;
+    }
+    LATEbits.LATE2 = 1;
+}
 
 void sinus_duration_expired(){
     if(0 < (--beep_duration_residue)) return;

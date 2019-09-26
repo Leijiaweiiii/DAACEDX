@@ -104,7 +104,8 @@ typedef union {
     uint8_t AR_IS;
 
     struct {
-        unsigned AutoRotate     : 2;
+        unsigned AutoRotate     : 1;
+        unsigned BuzRef         : 1;
         unsigned Autostart      : 1;
         unsigned BT             : 1;
         unsigned MIC_SRC        : 1;
