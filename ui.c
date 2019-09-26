@@ -58,7 +58,10 @@ void print_shot_origin(const shot_t * s) {
 void update_shot_time_on_screen() {
     uint24_t t = 0;
     uint8_t index = get_shot_index_in_arr(top_shot_index());
+    if( ! InputFlags.NEW_SHOT_D) return;
+    InputFlags.NEW_SHOT_D = False;
     t = ShootString.shots[index].dt;
+    lcd_clear_block(0,UI_HEADER_END_LINE + LCD_PAGE_HEIGTH,LCD_WIDTH,UI_DIAG_GRID_START_LINE);
     print_shot_origin(&(ShootString.shots[index]));
     print_big_time_label(t);
 }
@@ -96,6 +99,7 @@ void update_countdown_time_on_screen() {
 void StopTimer() {
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
+    InputFlags.NEW_SHOT_D = True;
     ParFlags.ParNowCounting = False;
     ParFlags.AutoParOverDetect = False;
 }

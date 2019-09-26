@@ -123,10 +123,15 @@ union {
         unsigned A_RELEASED     : 1;
         unsigned B_RELEASED     : 1;
         unsigned KEY_RELEASED   : 1;
-        unsigned FOOTER_CHANGED : 1;
-        unsigned UNUSED         : 1;
+        union{
+            struct{
+                unsigned FOOTER_CHANGED : 1;
+                unsigned NEW_SHOT_D     : 1;
+                unsigned NEW_SHOT_S     : 1;
+            };
+            unsigned NEW_SHOT : 3;
+        };
         unsigned INITIALIZED    : 1;
-        unsigned NEW_SHOT       : 1;
         unsigned BEEP_GUARD     : 1;
     };
 } InputFlags;

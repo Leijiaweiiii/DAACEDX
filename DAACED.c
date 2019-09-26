@@ -436,9 +436,9 @@ void sendShotsIfRequired(){
         sendOneShot(&(ShootString.shots[index_to_send]));
         last_sent_index++;
         last_sent_time = unix_time_ms;
-        InputFlags.NEW_SHOT = False;
-    } else if  (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT) {
-        InputFlags.NEW_SHOT = False;
+        InputFlags.NEW_SHOT_S = False;
+    } else if  (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT_S) {
+        InputFlags.NEW_SHOT_S = False;
         sendOneShot(&(ShootString.shots[last_shot_index-1]));
     }
 }
@@ -2909,6 +2909,7 @@ void print_footer() {
 void StartListenShots(void) {
     ShootString_start_time = unix_time_ms;
     last_sent_index = 0;
+    InputFlags.NEW_SHOT_D = True;
     DetectInit();
 }
 // </editor-fold>
@@ -3139,8 +3140,7 @@ void UpdateShot(time_t now, ShotInput_t input) {
             ShootString.TotShoots++;
         }
         ShootString.shots[index].sn = ShootString.TotShoots;
-        InputFlags.FOOTER_CHANGED = True;
-        InputFlags.NEW_SHOT = True;
+        InputFlags.NEW_SHOT = 0x7;
     }
 }
 
@@ -3358,6 +3358,7 @@ void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Main">
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
+    InputFlags.NEW_SHOT_D = True;
     while (True) {
         //TODO: Integrate watchdog timer
         handle_ui();
