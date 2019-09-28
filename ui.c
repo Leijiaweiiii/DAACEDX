@@ -365,8 +365,8 @@ void handle_countdown() {
             break;
         case CountdownExpired:
             ui_state = TimerListening;
-            StartListenShots();
-            update_shot_time_on_screen();
+            StartPlayStartSound();
+            update_rtc_time();
             switch(Settings.ParMode){
                 case ParMode_Repetitive:
                     StartParTimer();
@@ -382,7 +382,8 @@ void handle_countdown() {
                     }
                     break;
             }
-            StartPlayStartSound();
+            StartListenShots();
+            update_shot_time_on_screen();
             break;
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
