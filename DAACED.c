@@ -3318,7 +3318,7 @@ static low_priority interrupt isr_l(void) {
     } 
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        InputFlags.FOOTER_CHANGED = 1;
+        InputFlags.FOOTER_CHANGED = True;
         uint8_t const_minute = _minute;
         tic_2_sec();
         if(_minute != const_minute){
