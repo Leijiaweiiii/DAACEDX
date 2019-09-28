@@ -122,6 +122,17 @@ void PIC_init(void) {
 
     TRISG = 0x00; // CON8, Debug Header.
     ANSELG = 0x00;
+    IPR0 = 0;
+    IPR1 = 0;
+    IPR2 = 0;
+    IPR3 = 0;
+    IPR4 = 0;
+    IPR5 = 0;
+    IPR6 = 0;
+    IPR7 = 0;
+    IPR8 = 0;
+    IPR9 = 0;
+    INTCONbits.IPEN = 1;    // Enable priority level interrupts
 }
 // </editor-fold>
 
@@ -3250,7 +3261,7 @@ void DetectMicShot() {
     UpdateShotNow(Mic);
 }
 
-static void interrupt isr(void) {
+static interrupt isr_h(void) {
     // sinus value interrupt
     if (PIR5bits.TMR4IF){
         PIR5bits.TMR4IF = 0;
@@ -3269,6 +3280,9 @@ static void interrupt isr(void) {
             }
         }
     }
+}
+
+static low_priority interrupt isr_l(void) {
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean

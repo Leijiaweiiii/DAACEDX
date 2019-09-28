@@ -49,6 +49,7 @@ void sinus_duration_timer_init(int16_t duration){
     T8CONbits.CKPS = 0b110;     // 1/64 pre-scale
     T8CONbits.OUTPS = 0b1001;   // 1/10 post-scale
     T8PR = 100;                 // Count to 100
+    IPR5bits.TMR8IP = 1;        // Timer8 high priority interrupt (sound is significant)
     PIE5bits.TMR8IE = 1;
     T8CONbits.ON = 1;
 }
@@ -65,6 +66,7 @@ void sinus_value_timer_init(uint8_t f_n){
     T4CONbits.OUTPS = setting.POS - 1;
     T4CONbits.CKPS  = setting.PRE;
     T4PR            = setting.PR;
+    IPR5bits.TMR4IP = 1;            // High priority interrupt (sound is significant)
     PIE5bits.TMR4IE = 1;            // Enable the interrupt
     T4CONbits.ON = 1;
 }
