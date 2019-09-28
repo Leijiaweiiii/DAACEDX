@@ -3075,7 +3075,7 @@ void StartPlayStartSound() {
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
-
+    LATEbits.LATE1 = 1; // Enable 5V booster for the buzzer
     InputFlags.FOOTER_CHANGED = True;
     restoreSettingsField(&Settings,&(Settings.DelayMode),1);
     switch(Settings.ParMode) {

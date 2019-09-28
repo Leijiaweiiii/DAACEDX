@@ -317,7 +317,7 @@ void DoPowerOn();
 void DoCharging();
 void update_shot_time_on_screen();
 void StartPlayParSound();
-#define StartParTimer() { ParFlags.ParNowCounting = True; InputFlags.FOOTER_CHANGED = True; parStartTime_ms = unix_time_ms;}
+#define StartParTimer() { ParFlags.ParNowCounting = True; InputFlags.FOOTER_CHANGED = True; parStartTime_ms = unix_time_ms; LATEbits.LATE1 = 1; /* Enable 5V booster for the buzzer*/}
 void StartPlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header(TBool hide_time);
