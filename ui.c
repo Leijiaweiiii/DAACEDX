@@ -376,8 +376,10 @@ void handle_countdown() {
                     StartParTimer();
                     break;
                 default:
-                    if (Settings.TotPar > 0)
+                    if (Settings.TotPar > 0){
+                        next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
                         StartParTimer();
+                    }
                     break;
             }
             StartPlayStartSound();
