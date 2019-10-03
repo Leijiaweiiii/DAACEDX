@@ -1045,7 +1045,7 @@ void SetBeep() {
                     SetStartSound();
                     break;
                 case 4:
-                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, 2000);
                     break;
                 case 5:
                     SetBuzRef();
