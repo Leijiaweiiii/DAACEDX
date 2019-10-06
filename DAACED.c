@@ -898,10 +898,10 @@ void SetVolume() {
     uint8_t tmp;
     NumberSelection_t b;
     InitSettingsNumberDefaults((&b));
-    if (Settings.Volume > 3) Settings.Volume = 3;
+    if (Settings.Volume > MAX_VOLUME_LEVELS) Settings.Volume = MAX_VOLUME_LEVELS;
     strcpy(b.MenuTitle, "Set Volume");
     b.min = 0;
-    b.max = 3;
+    b.max = MAX_VOLUME_LEVELS;
     b.step = 1;
     b.format = " %2d ";
     b.value = Settings.Volume;
