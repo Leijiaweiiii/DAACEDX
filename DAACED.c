@@ -324,7 +324,7 @@ void savePar(uint8_t par_index) {
 }
 
 void storePar(){
-    int offset = &(Settings.ParTime) - (&Settings);
+    int offset = Settings.ParTime - (&Settings);
     saveSettingsField(&Settings, &(Settings.TotPar), 1);
     eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof(float) * MAXPAR); 
 }
@@ -337,14 +337,14 @@ void restorePar() {
 }
 
 void storeCustom(){
-    int offset = &(Settings.CustomPar) - (&Settings);
+    int offset = Settings.CustomPar - (&Settings);
     saveSettingsField(&Settings,&(Settings.TotCustomPar),1);
     eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof(float) * MAXPAR);   
 }
 
 void restoreCustom(){
-    int offset = &(Settings.CustomPar) - (&Settings);
-    eeprom_read_array(SettingsStartAddress + offset, &(Settings.CustomPar), sizeof(float) * MAXPAR);
+    int offset = Settings.CustomPar - (&Settings);
+    eeprom_read_array(SettingsStartAddress + offset, Settings.CustomPar, sizeof(float) * MAXPAR);
     offset = (&(Settings.TotCustomPar))-(&Settings);
     Settings.TotCustomPar = eeprom_read_data(SettingsStartAddress + offset);    
 }
