@@ -2,7 +2,7 @@
 
 #define at_ok() ((uart_rx_buffer[0] == 'O' && uart_rx_buffer[1] == 'K'))
 
-void BT_send_comand(const char * cmd, int length) {
+void BT_send_comand(const char * cmd, uint8_t length) {
     uart_start_tx_string(cmd, length);
     uart_rx_handled();
     while (!uart_flags.tx_complete);
