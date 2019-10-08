@@ -3014,7 +3014,7 @@ void DoPowerOn() {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
     }
-//    init_bt();
+    init_bt();
     Stats.PowerOn++;
     saveStatsField(&(Stats.PowerOn), 4);
     PowerOnSound();
