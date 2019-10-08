@@ -15,7 +15,7 @@ void get_mac_address(){
     do {
         BT_send_comand("AT91", AT_CMD_LEN);
         i++;
-    } while (uart_rx_buffer[0] == 0 || i==0);
+    } while (uart_rx_buffer[0] == 0 || i != 0);
     strncpy(mac_addr, uart_rx_buffer, 13);
     uart_rx_handled();
 }
@@ -25,7 +25,7 @@ void get_device_name(){
     do {
         BT_send_comand("AT92", AT_CMD_LEN);
         i++;
-    } while(uart_rx_buffer[0] == 0 || i == 0);
+    } while(uart_rx_buffer[0] == 0 || i != 0);
     strncpy(device_name, uart_rx_buffer, 25);
     uart_rx_handled();
 }
@@ -39,7 +39,7 @@ void set_device_name(){
         Delay(1); // Waiting for "OK:xxx..x"
         i++;
         if(i%64 == 0) BT_send_comand(device_name_cmd, len);
-    } while (! at_ok() || i == 0);
+    } while (! at_ok() || i != 0);
     uart_rx_handled();
 //    BT_soft_reset();
 //    get_device_name();
