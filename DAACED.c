@@ -273,7 +273,7 @@ void getDefaultSettings() {
     Settings.Attenuator = ATTENUATOR_00_DBm;
     Settings.Filter = 80; // ms
     Settings.AR_IS.Autostart = On; // on
-    Settings.AR_IS.BuzRef = Off; // Off
+    Settings.AR_IS.BuzRef = On; // Fixed reference
     Settings.AR_IS.BT = Off; // Off by default
     Settings.AR_IS.AutoPowerOff = On; // ON by default
     Settings.AR_IS.Clock24h = On;     // 24h by default
@@ -1018,7 +1018,7 @@ void setBuzzerMenu(){
     sprintf(ma.MenuItem[3], " Startup Sound|%s ", Settings.AR_IS.StartSound?"ON":"OFF");
     strcpy(ma.MenuItem[4], " Test Beep ");
     strcpy(ma.MenuItem[5], " Buzzer Reference ");
-    ma.TotalMenuItems = 6;
+    ma.TotalMenuItems = 5;
 }
 
 void SetBeep() {
@@ -1045,7 +1045,7 @@ void SetBeep() {
                     SetStartSound();
                     break;
                 case 4:
-                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, 2000);
+                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
                     break;
                 case 5:
                     SetBuzRef();
