@@ -75,7 +75,8 @@ void initialize_rtc_timer() {
     OSCENbits.SOSCEN = 1;
     OSCENbits.EXTOEN = 0;
     OSCENbits.LFOEN = 0;
-    while (!OSCSTATbits.SOR);
+    uint8_t i = 0;
+    while ((!OSCSTATbits.SOR) && (++i < 0xFF));
 
     TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
     T1CONbits.CKPS = 0b00; // Prescale = 1:1.
