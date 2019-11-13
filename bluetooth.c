@@ -53,11 +53,9 @@ void BT_init() {
         get_mac_address();
         set_device_name();
     }
-    BT_STATUS.connected = 0;
 }
 
 void BT_off() {
-    BT_STATUS.connected = 0;
     uart_disable();
     BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
 }
@@ -94,7 +92,6 @@ BT_COMMAND_T BT_define_action() {
         }
         // DAA prefix - our commands
         uart_rx_handled();
-        BT_STATUS.connected = 1;
 //    } else if (at_ok()) {
 //        if (uart_rx_buffer[4] == 'O') { // CONN, LOST
 //            if (uart_rx_buffer[3] == 'L' && uart_rx_buffer[5] == 'S') {

@@ -45,7 +45,7 @@ void sinus_value_expired(){
  * Duration in ms.
  * Timer configured to count milliseconds assuming decrement of remining 
  */
-void sinus_duration_timer_init(int16_t duration){
+void sinus_duration_timer_init(uint16_t duration){
     beep_duration_residue = duration;
     // TMR8
     PIE5bits.TMR8IE = 0;

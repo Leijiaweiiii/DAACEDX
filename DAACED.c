@@ -223,7 +223,7 @@ uint8_t find_set_bit_position(uint8_t n) {
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
 
-void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration) {
+void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     uint8_t findex = frequency/100;
     // Don't beep ever in silent modes
     if (amplitude == 0) return;

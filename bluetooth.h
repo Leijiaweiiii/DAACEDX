@@ -98,15 +98,6 @@ extern "C" {
 #define AT_CMD_LEN      4
 #define device_name (device_name_cmd + AT_CMD_LEN)
 #define device_id (mac_addr + 6)
-    union {
-        unsigned status_byte : 8;
-
-        struct {
-            unsigned card_present   : 1;
-            unsigned initialized    : 1;
-            unsigned connected      : 1;
-        };
-    } BT_STATUS;
 
     typedef enum {
         BT_SendVersion = 0,
@@ -134,8 +125,8 @@ extern "C" {
     void BT_init();
     void BT_off();
 
-#define BT_soft_reset() {BT_RESET_INV = 0; Delay(50); BT_RESET_INV = 1; BT_STATUS.connected = 0;}
-#define BT_hard_reset() {LATEbits.LATE0 = 0; Delay(50); LATEbits.LATE0 = 0; BT_STATUS.connected = 0;}
+#define BT_soft_reset() {BT_RESET_INV = 0; Delay(50); BT_RESET_INV = 1;}
+#define BT_hard_reset() {LATEbits.LATE0 = 0; Delay(50); LATEbits.LATE0 = 0;}
 
     void sendOneShot(shot_t * shot);
     void sendSignal(const char * name, uint16_t duration, time_t time_ms);

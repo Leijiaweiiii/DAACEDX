@@ -14,7 +14,7 @@
 #include <time.h>
 
 // Increment to reset settings after programming new version
-#define FW_VERSION (63)
+#define FW_VERSION (64)
 // <editor-fold defaultstate="collapsed" desc="General">
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ            (64000000UL) //64MHz
@@ -51,7 +51,7 @@
 #define LCD_CS_DESELECT()       (LATFbits.LF3 = 1)
 // </editor-fold> 
 
-extern void generate_sinus(uint8_t amplitude, uint16_t frequency, int16_t duration);
+//extern void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration);
 #define Beep() {/* generate_sinus(1, 1000, 50); */ NOP();}
 #endif	/* DAACED_COMMON_H */
 
