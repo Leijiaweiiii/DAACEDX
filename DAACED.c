@@ -2772,8 +2772,7 @@ void DetectInit(void) {
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
             ADC_DISABLE_INTERRUPT;
-            if(Settings.AR_IS.MIC_SRC) shot_detection_source = MICROPHONE;
-            else shot_detection_source = ENVELOPE;
+
             for (uint8_t i = 0; i < 64; i++) {
                 ADCvalue = ADC_Read(shot_detection_source);
                 Mean += ADCvalue;

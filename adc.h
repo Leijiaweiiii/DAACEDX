@@ -52,7 +52,7 @@ uint16_t MeanValue();
 #define ADC_CMA_MEMORY_FACTOR       16
 #define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
 //#define ADC_SAMPLE                  {ADC_BUFFER_PUT(ADC_Read(ENVELOPE));ADC_SET_CMA_NEXT(median());}
-uint8_t shot_detection_source = MICROPHONE;
+#define shot_detection_source MICROPHONE
 #define ADC_ENABLE_INTERRUPT_SHOT_DETECTION              {ADPCH = shot_detection_source;ADCON3bits.ADSOI = 1;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_ENABLE_INTERRUPT_BATTERY               {ADPCH = BATTERY;ADCON3bits.ADSOI = 1;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
 #define ADC_ENABLE_INTERRUPT_ACCELEROMETR          {ADPCH = ACCELEROMETER;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
