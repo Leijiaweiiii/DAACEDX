@@ -26,8 +26,8 @@ void sinus_dac_init(TBool ref) {
 void sinus_duration_expired(){
     if(0 < (--beep_duration_residue)) return;
     stop_sinus();
-    // Stop value timer - TMR6
-    T6CONbits.ON = 0;
+    // Stop value timer - TMR4
+    T4CONbits.ON = 0;
     PIE5bits.TMR4IE = 0;
     // Stop duration timer - TMR8
     T8CONbits.ON = 0;
