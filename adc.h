@@ -59,6 +59,15 @@ uint8_t shot_detection_source = MICROPHONE;
 #define ADC_DISABLE_INTERRUPT       {PIE1bits.ADIE=0;while (GO_nDONE);}
 #define ADC_ENABLE_INTERRUPT       {PIE1bits.ADIE=1;}
 
+typedef enum {
+    IDLE,
+    FALL,
+    RAISE,
+    SHOT,
+    TIMEOUT
+} DetectionState_t;
+
+volatile DetectionState_t DetectionState = IDLE;
 #ifdef	__cplusplus
 }
 #endif

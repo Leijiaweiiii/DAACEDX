@@ -287,6 +287,7 @@ void getDefaultSettings() {
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.CUstomDelayTime = 2500; // ms before start signal
     Settings.BackLightLevel = 1; // Most dimmed visible
+    Settings.MaxShotDuration = 8; // mS
     Settings.ContrastValue = DEFAULT_CONTRAST_VALUE;
     Settings.TotPar = Off; // Par Off
     Settings.TotAutoPar = Off;
@@ -1109,21 +1110,24 @@ void SetAtt() {
         }
     }
 }
-void SetMicSource() {
-    InitSettingsMenuDefaults((&mx));
-    strncpy(mx.MenuTitle, "Set Mic Source", MAXItemLenght);
-    strncpy(mx.MenuItem[0],"Envelope", MAXItemLenght);
-    strncpy(mx.MenuItem[1],"Microphone", MAXItemLenght);
-    mx.TotalMenuItems = 2;
-    mx.menu = Settings.AR_IS.MIC_SRC;
+void SetShotDuration() {
+    NumberSelection_t s;
+    InitSettingsNumberDefaults((&s));
+    strcpy(s.MenuTitle, "Max Shot Duration");
+    s.max = 30;
+    s.min = 0;
+    s.value = Settings.MaxShotDuration;
+    s.old_value = Settings.MaxShotDuration;
+    s.step = 1;
+    s.format = "%d";
     do {
-        DisplaySettings((&mx));
-        SelectMenuItem((&mx));
-    } while (SettingsNotDone((&mx)));
-    if (mx.selected) {
-        if (mx.menu != Settings.AR_IS.MIC_SRC) {
-            Settings.AR_IS.MIC_SRC = mx.menu;
-            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        DisplayInteger(&s);
+        SelectInteger(&s);
+    } while (SettingsNotDone((&s)));
+    if (s.selected) {
+        Settings.MaxShotDuration = s.value;
+        if (s.value != s.old_value) {
+            saveSettingsField(&Settings, &(Settings.MaxShotDuration), 1);
         }
     }
 }
@@ -1590,7 +1594,6 @@ void SetAutoPar(){
 // </editor-fold>
 
 void SetMode() {
-    uint8_t oldPar = Settings.ParMode;
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = TOT_PAR_MODES;
     strcpy(ma.MenuTitle, "Select Mode");
@@ -2244,12 +2247,12 @@ void handle_bt_commands() {
 
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 void fillMicrophoneMenu(){
-    ma.TotalMenuItems = 3;
+    ma.TotalMenuItems = 4;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 1000);
     sprintf(ma.MenuItem[2],  "Attenuator|%d", Settings.Attenuator);
-//    sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
+    sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
 }
 
 void SetMicrophone(){
@@ -2272,9 +2275,9 @@ void SetMicrophone(){
                 case 2:
                     SetAtt();
                     break;
-//                case 3:
-//                    SetMicSource();
-//                    break;
+                case 3:
+                    SetShotDuration();
+                    break;
             }
             fillMicrophoneMenu();
             lcd_clear();
@@ -2781,6 +2784,7 @@ void DetectInit(void) {
             DetectThreshold = Mean - Settings.Sensitivity;
 //            DetectThreshold = Settings.Sensitivity;
             SetAttenuator(Settings.Attenuator);
+            DetectionState = IDLE;
             ADC_ENABLE_INTERRUPT_SHOT_DETECTION;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -3156,7 +3160,6 @@ void UpdateShot(time_t now, ShotInput_t input) {
 }
 
 void UpdateShotNow(ShotInput_t x) {
-    update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     UpdateShot(unix_time_ms, x);
 }
@@ -3222,6 +3225,7 @@ void check_timer_max_time() {
 void detect_aux_shots() {
     switch (Settings.InputType) {
         case INPUT_TYPE_A_or_B_multiple:
+            update_rtc_time();
             if (InputFlags.A_RELEASED && !AUX_A) {
                 InputFlags.A_RELEASED = 0;
                 UpdateShotNow(A);
@@ -3232,6 +3236,7 @@ void detect_aux_shots() {
             }
             break;
         case INPUT_TYPE_A_and_B_single:
+            update_rtc_time();
             if (InputFlags.A_RELEASED && !AUX_A) {
                 InputFlags.A_RELEASED = 0;
                 if (ShootString.TotShoots == 0 || ShootString.shots[0].is_b) {
@@ -3251,14 +3256,28 @@ void detect_aux_shots() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
+// TODO: Do it the interrupt way
+time_t fall_start;
+uint8_t fall_duration;
 void DetectMicShot() {
     if (ui_state != TimerListening) return;
-    if (ADC_LATEST_VALUE > DetectThreshold) return; // Detecting negative spikes
-//    if (InputFlags.BEEP_GUARD){
-//        InputFlags.BEEP_GUARD = False;
-//        return;
-//    }
-    UpdateShotNow(Mic);
+    update_rtc_time();
+    switch(DetectionState){
+        case IDLE:
+            if(ADC_LATEST_VALUE < DetectThreshold){
+                DetectionState = FALL;
+                fall_start = unix_time_ms;
+            }
+            break;
+        case FALL:
+            if(ADC_LATEST_VALUE > DetectThreshold){
+                DetectionState = RAISE;
+                fall_duration = unix_time_ms - fall_start;
+                if(fall_duration < Settings.MaxShotDuration)
+                    UpdateShotNow(Mic);
+                DetectionState = IDLE;
+            }
+    }
 }
 
 static interrupt isr_h(void) {
@@ -3290,8 +3309,8 @@ static low_priority interrupt isr_l(void) {
             LongPressCount = 0;
         }
         if (ui_state == TimerListening){
-            if (AUX_A) { // high is "open"
-                InputFlags.A_RELEASED = True;
+            if (AUX_A) { // high is "open". This form of code is more optimal than assignment of bit to flag.
+                InputFlags.A_RELEASED = AUX_A;
             }
             if (AUX_B) {
                 InputFlags.B_RELEASED = True;
