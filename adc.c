@@ -27,6 +27,39 @@ void ADC_init() {
 
 }
 
+void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
+    ADLTH               = lth;
+    ADUTH               = uth;
+    ADSTPT              = dc;          // Setpoint set to DC level
+    ADCON2bits.ADMD     = 0b000;       // Basic mode
+    ADCON3bits.ADTMD    = 0b001;       // Interrupt if ADERR < ADLTH
+    ADCON1bits.ADDSEN   = 0;           // Calculate ADERR every conversion
+    ADCON3bits.ADCALC   = 0b001;       // Comparison with setpoint
+    ADCON3bits.ADSOI    = 0;           // Don't stop on interrupt
+    ADCON0bits.ADCONT   = 1;           // Continue conversion continously
+    IPR1bits.ADTIP      = 1;           // High priority interrupt
+    PIE1bits.ADIE       = 0;           // Disable ADC conversion interrupt
+    PIR1bits.ADIF       = 0;
+}
+
+void ADC_HW_filter_timer_start(uint8_t filter){
+    if(filter > MAX_FILTER) filter = MAX_FILTER;
+    if(filter == 0) filter = 1;
+    // Configure TMR6 to count mS
+    T6CLKCONbits.CS = 0b0110;     // 32768Hz extosc
+    T6CONbits.CKPS  = 0b100;    // Prescale 1:16 i.e counting in ~0.5mS intervals
+    T6CONbits.OUTPS = 0b0000;   // Postscale 1:1
+    T6PR            = filter_pr_setting[filter - 1];
+    T6TMR           = 0;        // Init timer
+    T6HLTbits.MODE = 0b01000;   // One shot software start
+    T6HLTbits.CKSYNC = 1;       // Sync with clock
+
+    // Configure interrupt on timer overflow
+    TMR6IE = 1;
+    TMR6IF = 0;
+    T6CONbits.ON = 1;
+}
+
 uint16_t ADC_Read(char selectedADC) {
     ADPCH = selectedADC; // Select ADC input
     ADCON0bits.ADGO = 1; // Start conversion
@@ -50,20 +83,6 @@ int comp (const void * elem1, const void * elem2)
     if (*((uint16_t*)elem1) < *((uint16_t*)elem2)) return -1;
     return 0;
 }
-
-//uint16_t median(){
-//    uint16_t res[ADC_BUFFER_SIZE];
-//    for(uint8_t i = 0;i<ADC_BUFFER_SIZE;i++){
-//        res[i]=samples[i];
-//    }
-//    qsort(res,ADC_BUFFER_SIZE,sizeof(uint16_t),comp);
-//    median_v = res[ADC_MID_BUFFER];
-//    return median_v;
-//}
-
-//TBool AdcDetect(){
-//    return ADC_MIDDLE_VALUE - cma_n>ADC_DETECTION_THRESHOLD;
-//}
 
 uint16_t MeanValue(){
     uint16_t avg = 0;

@@ -271,7 +271,7 @@ void getDefaultSettings() {
     Settings.version = FW_VERSION;
     Settings.Sensitivity = DEFAULT_SENSITIVITY;
     Settings.Attenuator = ATTENUATOR_00_DBm;
-    Settings.Filter = 80; // ms
+    Settings.Filter = 8; // in 10 mS
     Settings.AR_IS.Autostart = On; // on
     Settings.AR_IS.BuzRef = On; // Fixed reference
     Settings.AR_IS.BT = Off; // Off by default
@@ -1136,13 +1136,13 @@ void SetShotDuration() {
 // <editor-fold defaultstate="collapsed" desc="Filter">
 
 void SetFilter() {
-    if (Settings.Filter > 100) Settings.Filter = 100;
+    if (Settings.Filter > 12) Settings.Filter = 12;
     NumberSelection_t f;
     strcpy(f.MenuTitle, "Set Filter");
     f.fmin = 0.02;
     f.fmax = 0.12;
     f.fstep = 0.01;
-    f.fvalue = (float) (Settings.Filter) / 1000;
+    f.fvalue = (float) (Settings.Filter) / 100;
     f.fold_value = f.value;
     f.done = False;
     f.format = " %1.2fs ";
@@ -1150,7 +1150,7 @@ void SetFilter() {
         DisplayDouble(&f);
         SelectDouble(&f);
     } while (SettingsNotDone((&f)));
-    Settings.Filter = (uint8_t) (f.fvalue * 1000);
+    Settings.Filter = (uint8_t) (f.fvalue * 100);
     if (f.fvalue != f.fold_value) {
         saveSettingsField(&Settings, &(Settings.Filter), 1);
     }
@@ -2250,7 +2250,7 @@ void fillMicrophoneMenu(){
     ma.TotalMenuItems = 4;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
-    sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 1000);
+    sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 100);
     sprintf(ma.MenuItem[2],  "Attenuator|%d", Settings.Attenuator);
     sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
 }
@@ -2468,7 +2468,7 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%d %0.2f",
-            Settings.Sensitivity, (float) Settings.Filter/1000);
+            Settings.Sensitivity, (float) Settings.Filter/100);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MODE], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_DISPLAY], "Display|%s %u",
@@ -2783,7 +2783,7 @@ void DetectInit(void) {
             DetectThreshold = Mean - Settings.Sensitivity;
 //            DetectThreshold = Settings.Sensitivity;
             SetAttenuator(Settings.Attenuator);
-            DetectionState = IDLE;
+            ADC_HW_detect_init(Mean, Settings.Sensitivity, Settings.Sensitivity);
             ADC_ENABLE_INTERRUPT_SHOT_DETECTION;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -3130,7 +3130,7 @@ void StartCountdownTimer() {
 }
 
 void UpdateShot(time_t now, ShotInput_t input) {
-    uint24_t dt, ddt;
+    uint24_t dt;
     // Index var is for code size optimisation.
     uint8_t index , prev_index;
     index = get_shot_index_in_arr(ShootString.TotShoots);
@@ -3139,23 +3139,14 @@ void UpdateShot(time_t now, ShotInput_t input) {
     prev_index = get_shot_index_in_arr(top_shot_index()); // function used for optimization
 
     dt = (uint24_t) (now - ShootString_start_time);
-    if (ShootString.TotShoots == 0) {
-        ddt = 0;
-    } else {
-        ddt = ShootString.shots[prev_index].dt;
-    }
 
-    ddt = dt - ddt;
-    //Don't count shoots less than Filter
-    if (ddt > Settings.Filter) {
-        ShootString.shots[index].dt = dt;
-        ShootString.shots[index].is_flags = input;
-        if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
-            ShootString.TotShoots++;
-        }
-        ShootString.shots[index].sn = ShootString.TotShoots;
-        InputFlags.NEW_SHOT = 0x7;
+    ShootString.shots[index].dt = dt;
+    ShootString.shots[index].is_flags = input;
+    if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
+        ShootString.TotShoots++;
     }
+    ShootString.shots[index].sn = ShootString.TotShoots;
+    InputFlags.NEW_SHOT = 0x7;
 }
 
 void UpdateShotNow(ShotInput_t x) {
@@ -3255,31 +3246,7 @@ void detect_aux_shots() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
-// TODO: Do it the interrupt way
-time_t fall_start;
-uint8_t fall_duration;
-void DetectMicShot() {
-    if (ui_state != TimerListening) return;
-    update_rtc_time();
-    switch(DetectionState){
-        case IDLE:
-            if(ADC_LATEST_VALUE < DetectThreshold){
-                DetectionState = FALL;
-                fall_start = unix_time_ms;
-            }
-            break;
-        case FALL:
-            if(ADC_LATEST_VALUE > DetectThreshold){
-                DetectionState = RAISE;
-                fall_duration = unix_time_ms - fall_start;
-                if(fall_duration < Settings.MaxShotDuration)
-                    UpdateShotNow(Mic);
-                DetectionState = IDLE;
-            }
-    }
-}
-
-static interrupt isr_h(void) {
+static interrupt isr_h() {
     // sinus value interrupt
     if (PIR5bits.TMR4IF){
         PIR5bits.TMR4IF = 0;
@@ -3298,9 +3265,35 @@ static interrupt isr_h(void) {
             }
         }
     }
+
+    if (PIR1bits.ADTIF){
+        PIR1bits.ADTIF = 0; // Clear interrupt flag
+        if(ADSTATbits.ADLTHR){
+            // Falling edge
+            // Start pulse and filter timer
+            ADC_HW_filter_timer_start(Settings.Filter);
+            // Wait for raising edge
+            ADC_HW_detect_raise_init();
+        } else if (ADSTATbits.ADUTHR) {
+            // Raising edge
+            // TODO: Read pulse time
+            if(ADC_HW_get_ms_from_edge() < Settings.MaxShotDuration){
+                // Disable ADC interrupt
+                PIE1bits.ADTIE = 0;
+                // Register shot
+                UpdateShotNow(Mic);
+            } else {
+                // if the pulse is too slow don't detect shot
+                ADC_HW_filter_timer_stop();
+                ADC_HW_detect_fall_init();
+            }
+        } else {
+            NOP(); // Debug condition. TODO: Remove when debugging completed.
+        }
+    }
 }
 
-static low_priority interrupt isr_l(void) {
+static low_priority interrupt isr_l() {
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean
@@ -3317,23 +3310,18 @@ static low_priority interrupt isr_l(void) {
             detect_aux_shots();
         }
         check_par_expired();
-        // TODO: Work with ADC as threshold interrupt
-        if (ADPCH == shot_detection_source)
-            ADCON0bits.ADGO = 1;
     } 
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
-        if (ADPCH == shot_detection_source) {
-            ADC_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-            DetectMicShot();
-        } else if (ADPCH == BATTERY) {
+    if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
             adc_battery = ADC_SAMPLE_REG_16_BIT;
             battery_mV = adc_battery*BAT_divider;
             BAT_BUFFER_PUT(battery_mV);
             ADC_DISABLE_INTERRUPT;
         }
-    } 
+    }
+    
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         InputFlags.FOOTER_CHANGED = True;
@@ -3349,6 +3337,10 @@ static low_priority interrupt isr_l(void) {
     } 
     if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
+    }
+    if (TMR6IF){
+        // Shot detection timer overflow
+        ADC_HW_filter_timer_stop();
     }
     if (PIR3bits.TX1IF) {
         PIR3bits.TX1IF = 0;
