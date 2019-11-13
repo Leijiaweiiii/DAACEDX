@@ -104,7 +104,8 @@
         <property key="asmlist" value="true"/>
         <property key="define-macros" value=""/>
         <property key="disable-optimizations" value="false"/>
-        <property key="extra-include-directories" value=""/>
+        <property key="extra-include-directories"
+                  value="../../../../../opt/microchip/xc8/v2.05/pic/include/c90;../../../../../opt/microchip/xc8/v2.05/pic/include"/>
         <property key="favor-optimization-for" value="-speed,+space"/>
         <property key="identifier-length" value="255"/>
         <property key="local-generation" value="false"/>
@@ -297,7 +298,8 @@
         <property key="asmlist" value="true"/>
         <property key="define-macros" value=""/>
         <property key="disable-optimizations" value="false"/>
-        <property key="extra-include-directories" value=""/>
+        <property key="extra-include-directories"
+                  value="../../../../../opt/microchip/xc8/v2.10/pic/include/c90;../../../../../opt/microchip/xc8/v2.10/pic/include"/>
         <property key="favor-optimization-for" value="-speed,+space"/>
         <property key="identifier-length" value="255"/>
         <property key="local-generation" value="false"/>
