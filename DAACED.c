@@ -2247,12 +2247,12 @@ void handle_bt_commands() {
 
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 void fillMicrophoneMenu(){
-    ma.TotalMenuItems = 4;
+    ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1],  "Filter|%1.2fs", (float) (Settings.Filter) / 100);
     sprintf(ma.MenuItem[2],  "Attenuator|%d", Settings.Attenuator);
-    sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
+//    sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
 }
 
 void SetMicrophone(){
@@ -2275,9 +2275,9 @@ void SetMicrophone(){
                 case 2:
                     SetAtt();
                     break;
-                case 3:
-                    SetShotDuration();
-                    break;
+//                case 3:
+//                    SetShotDuration();
+//                    break;
             }
             fillMicrophoneMenu();
             lcd_clear();
