@@ -98,6 +98,7 @@ void update_countdown_time_on_screen() {
 
 void StopTimer() {
     lcd_clear();
+    ADC_init();
     InputFlags.FOOTER_CHANGED = True;
     InputFlags.NEW_SHOT_D = True;
     ParFlags.ParNowCounting = False;

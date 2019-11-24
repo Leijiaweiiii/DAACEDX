@@ -1109,6 +1109,7 @@ void SetAtt() {
             saveSettingsField(&Settings, &(Settings.Attenuator), 1);
         }
     }
+    SetAttenuator(Settings.Attenuator);
 }
 void SetShotDuration() {
     NumberSelection_t s;
@@ -1971,11 +1972,11 @@ void SetInput() {
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void init_bt() {
-    init_uart();
-    BT_init();
-    if (!Settings.AR_IS.BT) {
-        BT_off();
-    }
+//    init_uart();
+//    BT_init();
+//    if (!Settings.AR_IS.BT) {
+//        BT_off();
+//    }
 }
 
 void SetAutoPowerOff() {
@@ -2773,6 +2774,7 @@ void DetectInit(void) {
         case INPUT_TYPE_Microphone:
             ADC_DISABLE_INTERRUPT;
 
+            ADC_init();
             for (uint8_t i = 0; i < 64; i++) {
                 ADCvalue = ADC_Read(shot_detection_source);
                 Mean += ADCvalue;
@@ -3150,6 +3152,7 @@ void UpdateShot(time_t now, ShotInput_t input) {
 }
 
 void UpdateShotNow(ShotInput_t x) {
+    update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     UpdateShot(unix_time_ms, x);
 }
@@ -3245,7 +3248,6 @@ void detect_aux_shots() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
-
 static interrupt isr_h() {
     // sinus value interrupt
     if (PIR5bits.TMR4IF){
@@ -3268,25 +3270,26 @@ static interrupt isr_h() {
 
     if (PIR1bits.ADTIF){
         PIR1bits.ADTIF = 0; // Clear interrupt flag
-        if(ADSTATbits.ADLTHR){
-            // Falling edge
+        PIR1bits.ADIF = 0;  // Clear ADC conversion interrupt flag (it's raises for unclear reason)
+        if(ADSTATbits.ADUTHR){
+            DetectionState.FALL_DETECTED = True;
+            DetectionState.RAISE_DETECTED = False;
+            // Pulse start
             // Start pulse and filter timer
-            ADC_HW_filter_timer_start(Settings.Filter);
             // Wait for raising edge
-            ADC_HW_detect_raise_init();
-        } else if (ADSTATbits.ADUTHR) {
-            // Raising edge
+            ADC_HW_detect_shot_end_init();
+            ADC_HW_filter_timer_start(Settings.Filter);
+        } else if (ADSTATbits.ADLTHR) {
+            DetectionState.FALL_DETECTED = False;
+            DetectionState.RAISE_DETECTED = True;
+            // Pulse End
             // TODO: Read pulse time
-            if(ADC_HW_get_ms_from_edge() < Settings.MaxShotDuration){
-                // Disable ADC interrupt
+            // Disable ADC interrupt
+            if(DetectionState.FALL_DETECTED){
                 PIE1bits.ADTIE = 0;
-                // Register shot
                 UpdateShotNow(Mic);
-            } else {
-                // if the pulse is too slow don't detect shot
-                ADC_HW_filter_timer_stop();
-                ADC_HW_detect_fall_init();
             }
+            ADC_HW_detect_shot_start_init();
         } else {
             NOP(); // Debug condition. TODO: Remove when debugging completed.
         }
@@ -3311,7 +3314,7 @@ static low_priority interrupt isr_l() {
         }
         check_par_expired();
     } 
-    if (PIR1bits.ADIF) {
+    if (PIE1bits.ADIE && PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
     if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
@@ -3339,8 +3342,12 @@ static low_priority interrupt isr_l() {
         INT0IF = 0; // Wakeup happened, disable interrupt back
     }
     if (TMR6IF){
-        // Shot detection timer overflow
-        ADC_HW_filter_timer_stop();
+        TMR6IF = 0;
+        // Shot filter timer expired
+        PIE1bits.ADTIE = 1;
+        DetectionState.FALL_DETECTED = False;
+        DetectionState.RAISE_DETECTED = False;
+        ADC_HW_detect_shot_start_init();
     }
     if (PIR3bits.TX1IF) {
         PIR3bits.TX1IF = 0;

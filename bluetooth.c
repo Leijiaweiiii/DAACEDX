@@ -38,7 +38,7 @@ void set_device_name(){
     do {
         Delay(1); // Waiting for "OK:xxx..x"
         i++;
-        if(i%64 == 0) BT_send_comand(device_name_cmd, len);
+        if(i%127 == 0) BT_send_comand(device_name_cmd, len);
     } while (! at_ok() || i != 0);
     uart_rx_handled();
 //    BT_soft_reset();

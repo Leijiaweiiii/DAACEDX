@@ -4,14 +4,10 @@
 void ADC_init() {
     TRISA = 0b11111111; // ADC inputs 0..3
     ANSELA = 0b00001110;
-    //  ADCON0 = 0b10000000;        // Enable ADC	 - single byte mode	   return ADRESH;
-//    ADCON0 = 0b10000100; // Enable ADC	 - single 10 bit mode	return (ADRESH<<8)|ADRESL;
-
     ADCON1 = 0b00000001; // Select ADC Double Sample
     ADCON2 = 0b00001000; // Normal ADC operation
     ADCON3 = 0b00001000; // Normal ADC operation
-    ADCLK = 0b00100000; // ADC CLK = OSC/64
-//    ADCLK = 0b111111;   // 2uS per sample
+    ADCLK = 0b00111111; // ADC CLK = OSC/64
     ADREFbits.ADNREF = 0;   // VSS
     ADREFbits.ADPREF = 0;   // VDD
     ADREF = 0b00000011; // ADC connected to FVR
@@ -32,11 +28,13 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
     ADUTH               = uth;
     ADSTPT              = dc;          // Setpoint set to DC level
     ADCON2bits.ADMD     = 0b000;       // Basic mode
-    ADCON3bits.ADTMD    = 0b001;       // Interrupt if ADERR < ADLTH
-    ADCON1bits.ADDSEN   = 0;           // Calculate ADERR every conversion
+    ADCON3bits.ADTMD    = 0b010;       // Interrupt if ADERR > ADLTH
+    ADCON1bits.ADDSEN   = 0;           // Calculate ADERR every second conversion
     ADCON3bits.ADCALC   = 0b001;       // Comparison with setpoint
     ADCON3bits.ADSOI    = 0;           // Don't stop on interrupt
     ADCON0bits.ADCONT   = 1;           // Continue conversion continously
+    ADCON0bits.ADCS     = 0;           // Conversion clock derived from oscillator
+    ADCLKbits.ADCS      = 0b111111;    // 2uS Conversion period
     IPR1bits.ADTIP      = 1;           // High priority interrupt
     PIE1bits.ADIE       = 0;           // Disable ADC conversion interrupt
     PIR1bits.ADIF       = 0;
@@ -50,14 +48,15 @@ void ADC_HW_filter_timer_start(uint8_t filter){
     T6CONbits.CKPS  = 0b100;    // Prescale 1:16 i.e counting in ~0.5mS intervals
     T6CONbits.OUTPS = 0b0000;   // Postscale 1:1
     T6PR            = filter_pr_setting[filter - 1];
-    T6TMR           = 0;        // Init timer
+    T6TMR           = 1;        // Init timer
     T6HLTbits.MODE = 0b01000;   // One shot software start
-    T6HLTbits.CKSYNC = 1;       // Sync with clock
+    T6HLTbits.CKSYNC = 0;       // Don't Sync with system clock
 
     // Configure interrupt on timer overflow
+    
+    T6CONbits.ON = 1;
     TMR6IE = 1;
     TMR6IF = 0;
-    T6CONbits.ON = 1;
 }
 
 uint16_t ADC_Read(char selectedADC) {
