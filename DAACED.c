@@ -1018,8 +1018,8 @@ void setBuzzerMenu(){
     sprintf(ma.MenuItem[2], " Par Duration|%1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
     sprintf(ma.MenuItem[3], " Startup Sound|%s ", Settings.AR_IS.StartSound?"ON":"OFF");
     strcpy(ma.MenuItem[4], " Test Beep ");
-    strcpy(ma.MenuItem[5], " Buzzer Reference ");
-    ma.TotalMenuItems = 5;
+//    strcpy(ma.MenuItem[5], " Buzzer Reference ");
+    ma.TotalMenuItems = 4;
 }
 
 void SetBeep() {
@@ -1048,9 +1048,9 @@ void SetBeep() {
                 case 4:
                     generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
                     break;
-                case 5:
-                    SetBuzRef();
-                    break;
+//                case 5:
+//                    SetBuzRef();
+//                    break;
             }
             // Here we want it done only when back pressed
             // i.e. not selected and done
