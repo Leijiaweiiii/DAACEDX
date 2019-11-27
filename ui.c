@@ -97,6 +97,10 @@ void update_countdown_time_on_screen() {
 }
 
 void StopTimer() {
+    if(ui_state == TimerListening) {
+        saveShootString();
+        getShootString(0);
+    }
     lcd_clear();
     ADC_init();
     InputFlags.FOOTER_CHANGED = True;
@@ -215,7 +219,6 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-            saveShootString();
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
@@ -248,7 +251,6 @@ void HandleTimerEvents() {
                 STATE_HANDLE_COUNTDOWN();
             } else {
                 STATE_HANDLE_TIMER_IDLE();
-                NOP();
             }
             break;
         case RepetitiveParEvent:

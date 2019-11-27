@@ -429,29 +429,29 @@ void saveOneShot(uint8_t shot_number) {
 }
 
 void send_all_shots() {
-    ShootString_t * ss = (ui_state == TimerListening)?&ShootString:&ReviewString;
-    for (uint8_t shot = 0; shot < ss -> TotShoots; shot++) {
-        sendOneShot(&(ss -> shots[shot]));
-        Delay(50);
+    for (uint8_t shot = 0; shot < ShootString.TotShoots; shot++) {
+        sendOneShot(&(ShootString.shots[shot]));
+        Delay(BT_MSG_SPLIT_TIME_MS);
     }
 }
 
 time_t last_sent_time = 0L;
-void sendShotsIfRequired(){
+
+void sendShotsIfRequired() {
     // Send shots only when in detection state
-    if( ui_state != TimerListening ) return;
+    if (ui_state != TimerListening) return;
     update_rtc_time();
-    if(unix_time_ms - last_sent_time < 50 ) return; // Don't send faster than once in 50ms
+    if (unix_time_ms - last_sent_time < BT_MSG_SPLIT_TIME_MS) return; // Don't send faster than once in 50ms
     uint8_t index_to_send = get_shot_index_in_arr(last_sent_index);
     uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
-    if(ShootString.TotShoots < MAX_REGISTERED_SHOTS && index_to_send != last_shot_index){
+    if (ShootString.TotShoots < MAX_REGISTERED_SHOTS && index_to_send != last_shot_index) {
         sendOneShot(&(ShootString.shots[index_to_send]));
         last_sent_index++;
         last_sent_time = unix_time_ms;
         InputFlags.NEW_SHOT_S = False;
-    } else if  (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT_S) {
+    } else if (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT_S) {
         InputFlags.NEW_SHOT_S = False;
-        sendOneShot(&(ShootString.shots[last_shot_index-1]));
+        sendOneShot(&(ShootString.shots[last_shot_index - 1]));
     }
 }
 
@@ -2156,119 +2156,124 @@ void handle_bt_commands() {
     char msg[20];
     sendShotsIfRequired();
     BT_COMMAND_T btc = BT_define_action();
-    if(ui_state == TimerListening || ui_state == TimerCountdown){
-        if(btc == BT_StopTimer){
-            STATE_HANDLE_TIMER_IDLE();
-        } else {
-            DAA_MSG_DENIED;
-        }
-        return;
-    }
     switch (btc) {
+        case BT_None:
+            break;
+        case BT_StopTimer:
+            STATE_HANDLE_TIMER_IDLE();
+            DAA_MSG_OK;
+            break;
         case BT_SendVersion:
             length = sprintf(msg, "%u\n", Settings.version);
             sendString(msg, length);
             break;
         case BT_StartTimer:
+            if(ui_state == TimerListening) saveShootString();
             STATE_HANDLE_COUNTDOWN();
-            break;
-        case BT_GetLastString:
-            if (ShootString.TotShoots > 0) {
-                send_all_shots();
-            } else {
-                DAA_MSG_EMPTY;
-            }
-            break;
-        case BT_SetPar:
-                bt_set_par();
-            break;
-        case BT_SetCustom:
-                bt_set_custom();
-            break;
-        case BT_GetCustomSequence:
-            bt_get_custom();
-        case BT_SetMode:
-            bt_set_mode();
-            set_par_mode(Settings.ParMode);
-            break;
-        case BT_ClearHistory:
-            DAA_MSG_WAIT;
-            clearHistory();
-            lcd_clear();
             DAA_MSG_OK;
-            break;
-        case BT_DefaultSettings:
-            getDefaultSettings();
-            DAA_MSG_OK;
-            break;
-        case BT_Find:
-            DAA_MSG_LISTEN;
-            if(countdown_expired_signal()){
-                DAA_MSG_OK;
-            } else {
-                DAA_MSG_ERROR;
-            }
-            break;
-        case BT_GetStats:
-            length = sprintf(msg, "ID,%12s\n",mac_addr);
-            sendString(msg, length);
-            length = sprintf(msg,"PowerOn,%u\n",Stats.PowerOn);
-            Delay(50);
-            sendString(msg, length);
-            length = sprintf(msg,"Signal,%u\n",Stats.Signal);
-            Delay(50);
-            sendString(msg, length);
-            length = sprintf(msg,"Review,%u\n",Stats.Review);
-            Delay(50);
-            sendString(msg, length);
-            length = sprintf(msg,"Settings,%u\n",Stats.Settings);
-            Delay(50);
-            sendString(msg, length);
-            length = sprintf(msg,"Charging,%u\n",Stats.Charging);
-            Delay(50);
-            sendString(msg, length);
-            length = sprintf(msg,"Charged,%u\n",Stats.Charged);
-            Delay(50);
-            sendString(msg, length);
-            length = sprintf(msg,"LowPower,%u\n",Stats.LowPower);
-            Delay(50);
-            sendString(msg, length);
-            for(uint8_t i=0;i<3;i++){
-                length = sprintf(msg,"Input-%u,%u\n",i,Stats.InputModes[i]);
-                Delay(50);
-                sendString(msg, length);
-            }
-            for(uint8_t i=0;i<TOT_PAR_MODES;i++){
-                length = sprintf(msg,"Mode-%u,%u\n",i,Stats.Modes[i]);
-                Delay(50);
-                sendString(msg, length);
-            }
-            for(uint8_t i=0;i<MAXMenuItems;i++){
-                length = sprintf(msg,"Menu-%u,%u\n",i,Stats.Menu[i]);
-                Delay(50);
-                sendString(msg, length);
-            }
-            break;
-        case BT_GetPars:
-            bt_get_pars();
-            break;
-        case BT_SetDelay:
-            bt_set_delay();
-            break;
-        case BT_GetBatteryMV:
-            length = sprintf(msg,"%u", battery_average());
-            sendString(msg, length);
-            break;
-        case BT_SetSensitivity:
-            bt_set_sens();
-            break;
-        case BT_StopTimer:
-            STATE_HANDLE_TIMER_IDLE();
-            break;
-        case BT_None:
             break;
         default:
-            DAA_MSG_NOT_SUPPORTED;
+            if (ui_state == TimerListening || ui_state == TimerCountdown) {
+                DAA_MSG_DENIED;
+                break;
+            }
+            switch (btc) {
+                case BT_GetLastString:
+                    if (ShootString.TotShoots > 0) {
+                        send_all_shots();
+                    } else {
+                        DAA_MSG_EMPTY;
+                    }
+                    break;
+                case BT_SetPar:
+                    bt_set_par();
+                    break;
+                case BT_SetCustom:
+                    bt_set_custom();
+                    break;
+                case BT_GetCustomSequence:
+                    bt_get_custom();
+                case BT_SetMode:
+                    bt_set_mode();
+                    set_par_mode(Settings.ParMode);
+                    break;
+                case BT_ClearHistory:
+                    DAA_MSG_WAIT;
+                    clearHistory();
+                    lcd_clear();
+                    DAA_MSG_OK;
+                    break;
+                case BT_DefaultSettings:
+                    getDefaultSettings();
+                    DAA_MSG_OK;
+                    break;
+                case BT_Find:
+                    DAA_MSG_LISTEN;
+                    if (countdown_expired_signal()) {
+                        DAA_MSG_OK;
+                    } else {
+                        DAA_MSG_ERROR;
+                    }
+                    break;
+                case BT_GetStats:
+                    length = sprintf(msg, "ID,%12s\n", mac_addr);
+                    sendString(msg, length);
+                    length = sprintf(msg, "PowerOn,%u\n", Stats.PowerOn);
+                    Delay(50);
+                    sendString(msg, length);
+                    length = sprintf(msg, "Signal,%u\n", Stats.Signal);
+                    Delay(50);
+                    sendString(msg, length);
+                    length = sprintf(msg, "Review,%u\n", Stats.Review);
+                    Delay(50);
+                    sendString(msg, length);
+                    length = sprintf(msg, "Settings,%u\n", Stats.Settings);
+                    Delay(50);
+                    sendString(msg, length);
+                    length = sprintf(msg, "Charging,%u\n", Stats.Charging);
+                    Delay(50);
+                    sendString(msg, length);
+                    length = sprintf(msg, "Charged,%u\n", Stats.Charged);
+                    Delay(50);
+                    sendString(msg, length);
+                    length = sprintf(msg, "LowPower,%u\n", Stats.LowPower);
+                    Delay(50);
+                    sendString(msg, length);
+                    for (uint8_t i = 0; i < 3; i++) {
+                        length = sprintf(msg, "Input-%u,%u\n", i, Stats.InputModes[i]);
+                        Delay(50);
+                        sendString(msg, length);
+                    }
+                    for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
+                        length = sprintf(msg, "Mode-%u,%u\n", i, Stats.Modes[i]);
+                        Delay(50);
+                        sendString(msg, length);
+                    }
+                    for (uint8_t i = 0; i < MAXMenuItems; i++) {
+                        length = sprintf(msg, "Menu-%u,%u\n", i, Stats.Menu[i]);
+                        Delay(50);
+                        sendString(msg, length);
+                    }
+                    break;
+                case BT_GetPars:
+                    bt_get_pars();
+                    break;
+                case BT_SetDelay:
+                    bt_set_delay();
+                    break;
+                case BT_GetBatteryMV:
+                    length = sprintf(msg, "%u", battery_average());
+                    sendString(msg, length);
+                    break;
+                case BT_SetSensitivity:
+                    bt_set_sens();
+                    break;
+                case BT_None:
+                    break;
+                default:
+                    DAA_MSG_NOT_SUPPORTED;
+                    break;
+            }
             break;
     }
     // Don't let the timer sleep if it's actively used remotely
