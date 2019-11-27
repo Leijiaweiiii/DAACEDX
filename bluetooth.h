@@ -114,6 +114,8 @@ extern "C" {
         BT_GetStats = 11,
         BT_SetCustom = 12,
         BT_GetCustomSequence = 13,
+        BT_SetSensitivity = 14,
+        BT_StopTimer = 15,
         BT_None = 127
     } BT_COMMAND_T;
 
@@ -133,6 +135,7 @@ extern "C" {
     BT_COMMAND_T BT_define_action();
     void sendString(const char * x, size_t y);
 #define DAA_MSG_OK       {sendString("OK\n",3);}
+#define DAA_MSG_DENIED   {sendString("DENIED\n",7);}
 #define DAA_MSG_ERROR    {sendString("ERROR\n",6);}
 #define DAA_MSG_EMPTY    {sendString("EMPTY\n",6);}
 #define DAA_MSG_WAIT     {sendString("WAIT\n",5);}

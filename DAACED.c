@@ -2018,6 +2018,24 @@ void BlueTooth() {
     }
 }
 
+void bt_set_sens() {
+    int sens = 0;
+    int att = 0;
+    char * endp[1];
+    sens = strtol(bt_cmd_args_raw, endp, 10);
+    att = strtol(*endp + 1, endp, 10);
+    if( sens > 4 &&
+        sens < 801 &&
+        att > 0 &&
+        att < 4 ){
+        Settings.Sensitivity = sens;
+        Settings.Attenuator = att;
+        DAA_MSG_OK;
+    } else {
+        DAA_MSG_ERROR;
+    }
+}
+
 void bt_set_par() {
     long par_idx = 0;
     long par_time = 0;
@@ -2138,6 +2156,14 @@ void handle_bt_commands() {
     char msg[20];
     sendShotsIfRequired();
     BT_COMMAND_T btc = BT_define_action();
+    if(ui_state == TimerListening || ui_state == TimerCountdown){
+        if(btc == BT_StopTimer){
+            STATE_HANDLE_TIMER_IDLE();
+        } else {
+            DAA_MSG_DENIED;
+        }
+        return;
+    }
     switch (btc) {
         case BT_SendVersion:
             length = sprintf(msg, "%u\n", Settings.version);
@@ -2232,6 +2258,12 @@ void handle_bt_commands() {
         case BT_GetBatteryMV:
             length = sprintf(msg,"%u", battery_average());
             sendString(msg, length);
+            break;
+        case BT_SetSensitivity:
+            bt_set_sens();
+            break;
+        case BT_StopTimer:
+            STATE_HANDLE_TIMER_IDLE();
             break;
         case BT_None:
             break;
