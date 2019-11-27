@@ -430,7 +430,7 @@ void saveOneShot(uint8_t shot_number) {
 }
 
 void send_all_shots() {
-    for (uint8_t shot = 0; shot < ShootString.TotShoots; shot++) {
+    for (uint8_t shot = 0; shot < min(ShootString.TotShoots,MAX_SAVED_SHOTS); shot++) {
         sendOneShot(&(ShootString.shots[shot]));
         Delay(BT_MSG_SPLIT_TIME_MS);
     }
