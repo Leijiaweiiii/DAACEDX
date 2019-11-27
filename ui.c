@@ -62,8 +62,8 @@ void update_shot_time_on_screen() {
     InputFlags.NEW_SHOT_D = False;
     t = ShootString.shots[index].dt;
     lcd_clear_block(0,UI_HEADER_END_LINE + LCD_PAGE_HEIGTH,LCD_WIDTH,UI_DIAG_GRID_START_LINE);
-    print_shot_origin(&(ShootString.shots[index]));
     print_big_time_label(t);
+    print_shot_origin(&(ShootString.shots[index]));
 }
 
 void print_big_time_label(const uint24_t t) {
@@ -79,7 +79,7 @@ void print_big_time_label(const uint24_t t) {
     sprintf(message, "%3.02f", tf);
     len = lcd_string_lenght(message, BigFont);
     if (len < old_time_str_len)
-        lcd_clear_block(LCD_WIDTH - old_time_str_len, UI_HEADER_END_LINE, LCD_WIDTH, height + UI_HEADER_END_LINE);
+        lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, height + UI_HEADER_END_LINE);
     old_time_str_len = len;
     if (len < LCD_WIDTH - spaceholder) {
         lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
