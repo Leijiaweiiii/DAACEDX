@@ -3279,17 +3279,10 @@ static interrupt isr_h() {
             // Wait for raising edge
             ADC_HW_detect_shot_end_init();
             ADC_HW_filter_timer_start(Settings.Filter);
+            PIE1bits.ADTIE = 0;
+            UpdateShotNow(Mic);
         } else if (ADSTATbits.ADLTHR) {
-            DetectionState.FALL_DETECTED = False;
-            DetectionState.RAISE_DETECTED = True;
-            // Pulse End
-            // TODO: Read pulse time
-            // Disable ADC interrupt
-            if(DetectionState.FALL_DETECTED){
-                PIE1bits.ADTIE = 0;
-                UpdateShotNow(Mic);
-            }
-            ADC_HW_detect_shot_start_init();
+            NOP();
         } else {
             NOP(); // Debug condition. TODO: Remove when debugging completed.
         }
