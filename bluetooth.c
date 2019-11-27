@@ -2,56 +2,51 @@
 
 #define at_ok() ((uart_rx_buffer[0] == 'O' && uart_rx_buffer[1] == 'K'))
 
-void BT_send_comand(const char * cmd, uint8_t length) {
-    uart_start_tx_string(cmd, length);
+void BT_send_command(const char * cmd, uint8_t length) {
     uart_rx_handled();
+    uart_start_tx_string(cmd, length);
     while (!uart_flags.tx_complete);
-    Delay(55);
     uart_tx_completed();
 }
 
-void get_mac_address(){
-    uint8_t i = 0;
+void BT_send_command_with_retry(const char * cmd, int len, uint8_t retry, const char * criteria){
+    if ( len <= 0 ) return; // error condition, but we don't assert to hang device
     do {
-        BT_send_comand("AT91", AT_CMD_LEN);
-        i++;
-    } while (uart_rx_buffer[0] == 0 || i != 0);
+        BT_send_command(cmd, len);
+        Delay(64);
+        if( ! --retry ) break;
+    } while (uart_rx_buffer[0] == criteria[0] && uart_rx_buffer[1] == criteria[1]);
+}
+
+void get_mac_address(){
+    BT_send_command_with_retry("AT91", AT_CMD_LEN, 100, "\0\0");
     strncpy(mac_addr, uart_rx_buffer, 13);
     uart_rx_handled();
 }
 
 void get_device_name(){
-    uint8_t i = 0;
-    do {
-        BT_send_comand("AT92", AT_CMD_LEN);
-        i++;
-    } while(uart_rx_buffer[0] == 0 || i != 0);
+    BT_send_command_with_retry("AT92", AT_CMD_LEN, 200, "\0\0");
     strncpy(device_name, uart_rx_buffer, 25);
     uart_rx_handled();
 }
 
 void set_device_name(){
-    int len;
-    uint8_t i = 0;
-    len = sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION);
-    BT_send_comand(device_name_cmd, len);
-    do {
-        Delay(1); // Waiting for "OK:xxx..x"
-        i++;
-        if(i%127 == 0) BT_send_comand(device_name_cmd, len);
-    } while (! at_ok() || i != 0);
+    BT_send_command_with_retry(
+            device_name_cmd,
+            sprintf(device_name_cmd,"AT01RAZOR-%s-%u", device_id, FW_VERSION),
+            200,
+            "\0\0");
     uart_rx_handled();
-//    BT_soft_reset();
-//    get_device_name();
 }
 
 void BT_init() {
-//    BT_hard_reset();
-    BT_soft_reset();
+    BT_reset();
     // After the battery reset the first boot will be long.
     if(0 == mac_addr[0]){
         get_mac_address();
         set_device_name();
+        BT_reset();
+        get_device_name();
     }
 }
 
