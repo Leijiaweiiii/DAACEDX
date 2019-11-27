@@ -233,7 +233,7 @@ const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 #define LCD_DUTY_CICLE_128      (0x7F)
 #define LCD_DUTY_CICLE_160      (0x9F)
 #define LCD_DUTY_CICLE_162      (0xA1)
-#define DEFAULT_CONTRAST_VALUE  (1060)
+#define DEFAULT_CONTRAST_VALUE  (1065)
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="SPI functions definitions">
