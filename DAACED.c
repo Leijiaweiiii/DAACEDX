@@ -2037,7 +2037,7 @@ void bt_set_sens() {
     att = strtol(*endp + 1, endp, 10);
     if (sens > 4 &&
             sens < 801 &&
-            att > 0 &&
+            att >= 0 &&
             att < 4) {
         Settings.Sensitivity = sens;
         Settings.Attenuator = att;
