@@ -59,13 +59,6 @@ uint16_t MeanValue();
 #define ADC_ENABLE_INTERRUPT       {PIE1bits.ADIE=1;}
 void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth);
 
-union {
-    unsigned RAISE_DETECTED  : 1;
-    unsigned FALL_DETECTED   : 1;
-    unsigned UNUSED          : 6;
-    
-} DetectionState;
-
 // TODO: Test and define thresholds and edges properly with the device
 #define ADC_HW_detect_shot_start_init()   { ADCON3bits.ADTMD = 0b110; /* ADERR > ADUTH */ }
 #define ADC_HW_detect_shot_end_init()  { ADCON3bits.ADTMD = 0b001; /* ADERR < ADLTH */ }

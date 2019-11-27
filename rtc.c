@@ -79,26 +79,28 @@ void initialize_rtc_timer() {
     while ((!OSCSTATbits.SOR) && (++i < 0xFF));
 
     TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
-    T1CONbits.CKPS = 0b00; // Prescale = 1:1.
-    T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
-    T1CONbits.RD16 = 1;
-
-    T1CONbits.ON = 1; //TIMER1 start.
+//    T1CONbits.CKPS = 0b00; // Prescale = 1:1.
+//    T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
+//    T1CONbits.RD16 = 1;
+//    T1CONbits.ON = 1; //TIMER1 start.
+    T1CON = 0b00000111;
     RTC_TIMER_IE = 1; // Enable timer interrupt.
     INTCONbits.PEIE = 1;
 }
 
 void init_ms_timer0() {
     PIE0bits.TMR0IE = 0;
-    T0CON0bits.T016BIT = 0; // Enable 16-bit mode.
-    T0CON0bits.T0OUTPS = 0b0000; // Postscalar 1:1
+
     // Time calculations:
-    T0CON1bits.T0CS = 0b010; // HFINTOSC/4
-    T0CON1bits.T0PS = 0b0010; // 1:4 prescalar -> 65536 / 64MHz * 4 = 4.0959mS
-//    T0CON1bits.T0PS = 0b0000; // 1:1 prescalar -> 65536 / 64MHz = 1.024mS
-    T0CON0bits.T0OUTPS = 0b0000; // 1:1 postscaler 
-    T0CON1bits.T0ASYNC = 1;
-    T0CON0bits.T0EN = 1; // Start timer.
+//    T0CON1bits.T0CS = 0b010; // HFINTOSC/4
+//    T0CON1bits.T0PS = 0b0010; // 1:4 prescalar -> 65536 / 64MHz * 4 = 4.0959mS
+//    T0CON1bits.T0ASYNC = 1;
+    T0CON1 = 0b01010010;
+//    T0CON0bits.T016BIT = 0; // Enable 16-bit mode.
+//    T0CON0bits.T0OUTPS = 0b0000; // Postscalar 1:1
+//    T0CON0bits.T0OUTPS = 0b0000; // 1:1 postscaler 
+//    T0CON0bits.T0EN = 1; // Start timer.
+    T0CON0 = 0b11100000;
     PIE0bits.TMR0IE = 1; // Enable Interrupt
     INTCONbits.PEIE = 1;
 }

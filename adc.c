@@ -8,16 +8,17 @@ void ADC_init() {
     ADCON2 = 0b00001000; // Normal ADC operation
     ADCON3 = 0b00001000; // Normal ADC operation
     ADCLK = 0b00111111; // ADC CLK = OSC/64
-    ADREFbits.ADNREF = 0;   // VSS
-    ADREFbits.ADPREF = 0;   // VDD
+//    ADREFbits.ADNREF = 0;   // VSS
+//    ADREFbits.ADPREF = 0;   // VDD
     ADREF = 0b00000011; // ADC connected to FVR
     PMD0bits.FVRMD = 0; // Turn ON FRV perepherial
     FVRCONbits.EN = 1;
-    while (!FVRCONbits.RDY);
+//    while (!FVRCONbits.RDY);
     FVRCONbits.ADFVR=0b10;
-    ADCON0bits.ADCONT = 0;
-    ADCON0bits.ADFM = 1;
-    ADCON0bits.ADON = 1;
+//    ADCON0bits.ADCONT = 0;
+//    ADCON0bits.ADFM = 1;
+//    ADCON0bits.ADON = 1;
+    ADCON0 = 0b10101110;
     PIE1bits.ADIE=0;
     PIR1bits.ADIF=0;
 
@@ -27,13 +28,14 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
     ADLTH               = lth;
     ADUTH               = uth;
     ADSTPT              = dc;          // Setpoint set to DC level
-    ADCON2bits.ADMD     = 0b000;       // Basic mode
-    ADCON3bits.ADTMD    = 0b010;       // Interrupt if ADERR > ADLTH
-    ADCON1bits.ADDSEN   = 0;           // Calculate ADERR every second conversion
-    ADCON3bits.ADCALC   = 0b001;       // Comparison with setpoint
-    ADCON3bits.ADSOI    = 0;           // Don't stop on interrupt
     ADCON0bits.ADCONT   = 1;           // Continue conversion continously
     ADCON0bits.ADCS     = 0;           // Conversion clock derived from oscillator
+    ADCON1bits.ADDSEN   = 0;           // Calculate ADERR every second conversion
+    ADCON2bits.ADMD     = 0b000;       // Basic mode
+    ADCON3 = 0b00010010;
+//    ADCON3bits.ADTMD    = 0b010;       // Interrupt if ADERR > ADLTH
+//    ADCON3bits.ADCALC   = 0b001;       // Comparison with setpoint
+//    ADCON3bits.ADSOI    = 0;           // Don't stop on interrupt
     ADCLKbits.ADCS      = 0b111111;    // 2uS Conversion period
     IPR1bits.ADTIP      = 1;           // High priority interrupt
     PIE1bits.ADIE       = 0;           // Disable ADC conversion interrupt
@@ -45,8 +47,6 @@ void ADC_HW_filter_timer_start(uint8_t filter){
     if(filter == 0) filter = 1;
     // Configure TMR6 to count mS
     T6CLKCONbits.CS = 0b0110;     // 32768Hz extosc
-    T6CONbits.CKPS  = 0b100;    // Prescale 1:16 i.e counting in ~0.5mS intervals
-    T6CONbits.OUTPS = 0b0000;   // Postscale 1:1
     T6PR            = filter_pr_setting[filter - 1];
     T6TMR           = 1;        // Init timer
     T6HLTbits.MODE = 0b01000;   // One shot software start
@@ -54,7 +54,10 @@ void ADC_HW_filter_timer_start(uint8_t filter){
 
     // Configure interrupt on timer overflow
     
-    T6CONbits.ON = 1;
+//    T6CONbits.ON = 1;
+//    T6CONbits.CKPS  = 0b100;    // Prescale 1:16 i.e counting in ~0.5mS intervals
+//    T6CONbits.OUTPS = 0b0000;   // Postscale 1:1
+    T6CON = 0b11000000;
     TMR6IE = 1;
     TMR6IF = 0;
 }

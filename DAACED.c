@@ -97,13 +97,13 @@ void PIC_init(void) {
     // 0 = DIGITAL, 1 = ANALOG
     OSCFRQ = 0b00001000; // 64 MHz Fosc.
     // fix settings of RTC oscillator
-    OSCENbits.SOSCEN = 1;
-    OSCENbits.EXTOEN = 0;
-    OSCENbits.LFOEN = 0;
+//    OSCENbits.SOSCEN = 1;
+//    OSCENbits.EXTOEN = 0;
+//    OSCENbits.LFOEN = 0;
+//    OSCENbits.ADOEN = 1; // Enable ADC oscillator;
+    OSCEN = 0b01001100;
     TRISA = 0b11111111;
     ANSELA = 0b00001110; // ADC inputs 1..3
-    OSCENbits.ADOEN = 1; // Enable ADC oscillator;
-
     TRISB = 0b11111111; //
     ANSELB = 0b00000000;
 
@@ -3272,8 +3272,6 @@ static interrupt isr_h() {
         PIR1bits.ADTIF = 0; // Clear interrupt flag
         PIR1bits.ADIF = 0;  // Clear ADC conversion interrupt flag (it's raises for unclear reason)
         if(ADSTATbits.ADUTHR){
-            DetectionState.FALL_DETECTED = True;
-            DetectionState.RAISE_DETECTED = False;
             // Pulse start
             // Start pulse and filter timer
             // Wait for raising edge
@@ -3281,10 +3279,6 @@ static interrupt isr_h() {
             ADC_HW_filter_timer_start(Settings.Filter);
             PIE1bits.ADTIE = 0;
             UpdateShotNow(Mic);
-        } else if (ADSTATbits.ADLTHR) {
-            NOP();
-        } else {
-            NOP(); // Debug condition. TODO: Remove when debugging completed.
         }
     }
 }
@@ -3338,8 +3332,6 @@ static low_priority interrupt isr_l() {
         TMR6IF = 0;
         // Shot filter timer expired
         PIE1bits.ADTIE = 1;
-        DetectionState.FALL_DETECTED = False;
-        DetectionState.RAISE_DETECTED = False;
         ADC_HW_detect_shot_start_init();
     }
     if (PIR3bits.TX1IF) {
