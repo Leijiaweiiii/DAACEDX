@@ -1972,11 +1972,11 @@ void SetInput() {
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void init_bt() {
-//    init_uart();
-//    BT_init();
-//    if (!Settings.AR_IS.BT) {
-//        BT_off();
-//    }
+    init_uart();
+    BT_init();
+    if (!Settings.AR_IS.BT) {
+        BT_off();
+    }
 }
 
 void SetAutoPowerOff() {
