@@ -310,13 +310,13 @@ void getDefaultSettings() {
     saveSettings();
 }
 
-void restoreSettingsField(Settings_t * s, void * f, size_t l) {
-    int offset = f - s;
+void restoreSettingsField(void * f, size_t l) {
+    int offset = f - &Settings;
     eeprom_read_array(SettingsStartAddress + offset, f, l);
 }
 
-void saveSettingsField(Settings_t * s, void * f, size_t l) {
-    int offset = f - s;
+void saveSettingsField(void * f, size_t l) {
+    int offset = f - &Settings;
     eeprom_write_array_bulk(SettingsStartAddress + offset, f, l);
 }
 
@@ -327,7 +327,7 @@ void savePar(uint8_t par_index) {
 
 void storePar() {
     int offset = Settings.ParTime - (&Settings);
-    saveSettingsField(&Settings, &(Settings.TotPar), 1);
+    saveSettingsField(&(Settings.TotPar), 1);
     eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof (float) * MAXPAR);
 }
 
@@ -340,7 +340,7 @@ void restorePar() {
 
 void storeCustom() {
     int offset = Settings.CustomPar - (&Settings);
-    saveSettingsField(&Settings, &(Settings.TotCustomPar), 1);
+    saveSettingsField(&(Settings.TotCustomPar), 1);
     eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof (float) * MAXPAR);
 }
 
@@ -581,7 +581,7 @@ void SetCustomDelay() {
     } while (SettingsNotDone((&n)));
     Settings.CUstomDelayTime = (time_t) (n.fvalue * 1000);
     if (n.fold_value != n.fvalue) {
-        saveSettingsField(&Settings, &(Settings.CUstomDelayTime), 4);
+        saveSettingsField(&(Settings.CUstomDelayTime), 4);
     }
 }
 
@@ -611,10 +611,10 @@ void SetDelay() {
     if (ma.selected) {
         Settings.DelayMode = ma.menu;
         if (Settings.DelayMode != oldValue) {
-            saveSettingsField(&Settings, &(Settings.DelayMode), 1);
+            saveSettingsField(&(Settings.DelayMode), 1);
             if (Settings.ParMode == ParMode_Spy) {
                 Settings.ParMode = ParMode_Regular;
-                saveSettingsField(&Settings, &(Settings.ParMode), 1);
+                saveSettingsField(&(Settings.ParMode), 1);
                 getSettings();
             }
         }
@@ -763,7 +763,7 @@ void SetBacklight() {//PWM Backlight
 
     if (b.selected && b.value != b.old_value) {
         Settings.BackLightLevel = b.value;
-        saveSettingsField(&Settings, &(Settings.BackLightLevel), 1);
+        saveSettingsField(&(Settings.BackLightLevel), 1);
     } else {
         Settings.BackLightLevel = b.old_value;
     }
@@ -792,7 +792,7 @@ void SetContrast() {//PWM Backlight
 
     if (b.selected && b.value != b.old_value) {
         Settings.ContrastValue = b.value;
-        saveSettingsField(&Settings, &(Settings.ContrastValue), 2);
+        saveSettingsField(&(Settings.ContrastValue), 2);
     } else {
         Settings.ContrastValue = b.old_value;
     }
@@ -893,7 +893,7 @@ void SetBeepFreq() {
     if (b.selected) {
         Settings.BuzzerFrequency = b.value;
         if (b.fvalue != b.fold_value) {
-            saveSettingsField(&Settings, &(Settings.BuzzerFrequency), 2);
+            saveSettingsField(&(Settings.BuzzerFrequency), 2);
         }
     }
 }
@@ -922,10 +922,10 @@ void SetVolume() {
     if (b.selected) {
         Settings.Volume = b.value;
         if (b.value != b.old_value) {
-            saveSettingsField(&Settings, &(Settings.Volume), 1);
+            saveSettingsField(&(Settings.Volume), 1);
             if (Settings.ParMode == ParMode_Spy) {
                 Settings.ParMode = ParMode_Regular;
-                saveSettingsField(&Settings, &(Settings.ParMode), 1);
+                saveSettingsField(&(Settings.ParMode), 1);
                 getSettings();
             }
         }
@@ -963,10 +963,10 @@ void SetBeepTime(TBool Par) {
             uint16_t duration = (int) (d.fvalue * 1000);
             if (Par) {
                 Settings.BuzzerParDuration = duration;
-                saveSettingsField(&Settings, &(Settings.BuzzerParDuration), 2);
+                saveSettingsField(&(Settings.BuzzerParDuration), 2);
             } else {
                 Settings.BuzzerStartDuration = duration;
-                saveSettingsField(&Settings, &(Settings.BuzzerStartDuration), 2);
+                saveSettingsField(&(Settings.BuzzerStartDuration), 2);
             }
         }
     }
@@ -988,7 +988,7 @@ void SetStartSound() {
     if (ma.selected) {
         Settings.AR_IS.StartSound = ma.menu;
         if (Settings.AR_IS.StartSound != orgset) {
-            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+            saveSettingsField(&(Settings.AR_IS), 1);
         }
     }
 
@@ -1010,7 +1010,7 @@ void SetBuzRef() {
     if (ma.selected) {
         Settings.AR_IS.BuzRef = ma.menu;
         if (Settings.AR_IS.StartSound != orgset) {
-            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+            saveSettingsField(&(Settings.AR_IS), 1);
         }
     }
 
@@ -1088,7 +1088,7 @@ void SetSens() {//Sensitivity
     if (s.selected) {
         Settings.Sensitivity = s.value;
         if (s.value != s.old_value) {
-            saveSettingsField(&Settings, &(Settings.Sensitivity), 2);
+            saveSettingsField(&(Settings.Sensitivity), 2);
         }
     }
 }
@@ -1110,7 +1110,7 @@ void SetAtt() {
     if (s.selected) {
         Settings.Attenuator = s.value;
         if (s.value != s.old_value) {
-            saveSettingsField(&Settings, &(Settings.Attenuator), 1);
+            saveSettingsField(&(Settings.Attenuator), 1);
         }
     }
     SetAttenuator(Settings.Attenuator);
@@ -1133,7 +1133,7 @@ void SetShotDuration() {
     if (s.selected) {
         Settings.MaxShotDuration = s.value;
         if (s.value != s.old_value) {
-            saveSettingsField(&Settings, &(Settings.MaxShotDuration), 1);
+            saveSettingsField(&(Settings.MaxShotDuration), 1);
         }
     }
 }
@@ -1158,7 +1158,7 @@ void SetFilter() {
     } while (SettingsNotDone((&f)));
     Settings.Filter = (uint8_t) (f.fvalue * 100);
     if (f.fvalue != f.fold_value) {
-        saveSettingsField(&Settings, &(Settings.Filter), 1);
+        saveSettingsField(&(Settings.Filter), 1);
     }
 }
 // </editor-fold>
@@ -1180,7 +1180,7 @@ void SetAutoStart() {
     if (ma.selected) {
         AutoStart = ma.menu;
         if (AutoStart != orgset) {
-            saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+            saveSettingsField(&(Settings.AR_IS), 1);
         }
     }
 }
@@ -1271,15 +1271,15 @@ void fill_par_nra_ppc_d() {
 
 void set_par_mode(int m) {
     // Draw back from destructive modes
-    restoreSettingsField(&Settings, &(Settings.Volume), 1);
-    restoreSettingsField(&Settings, &(Settings.Sensitivity), 2);
+    restoreSettingsField(&(Settings.Volume), 1);
+    restoreSettingsField(&(Settings.Sensitivity), 2);
     switch (m) {
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
             Settings.Volume = 0;
             break;
         case ParMode_Regular:
-            restoreSettingsField(&Settings, &(Settings.DelayMode), 1);
+            restoreSettingsField(&(Settings.DelayMode), 1);
             restorePar();
             CurPar_idx = 0;
             break;
@@ -1369,7 +1369,7 @@ void SetFaceTime() {
     if (b.selected) {
         Settings.RepetitiveFaceTime = (uint16_t) (b.fvalue * 1000);
         if (b.fvalue != b.fold_value) {
-            saveSettingsField(&Settings, &(Settings.RepetitiveFaceTime), 2);
+            saveSettingsField(&(Settings.RepetitiveFaceTime), 2);
         }
     }
 }
@@ -1391,7 +1391,7 @@ void SetEdgeTime() {
     if (b.selected) {
         Settings.RepetitiveEdgeTime = (uint16_t) (b.fvalue * 1000);
         if (b.fvalue != b.fold_value) {
-            saveSettingsField(&Settings, &(Settings.RepetitiveEdgeTime), 2);
+            saveSettingsField(&(Settings.RepetitiveEdgeTime), 2);
         }
     }
 }
@@ -1413,7 +1413,7 @@ void SetRepeat() {
     if (b.selected) {
         Settings.RepetitiveRepeat = b.value;
         if (b.value != b.old_value) {
-            saveSettingsField(&Settings, &(Settings.RepetitiveRepeat), 1);
+            saveSettingsField(&(Settings.RepetitiveRepeat), 1);
         }
     }
 }
@@ -1619,7 +1619,7 @@ void SetMode() {
         SelectMenuItemCircular((&ma));
         if (ma.selected) {
             Settings.ParMode = ma.menu;
-            saveSettingsField(&Settings, &(Settings.ParMode), 1);
+            saveSettingsField(&(Settings.ParMode), 1);
             switch (ma.menu) {
                 case ParMode_Regular:
                 case ParMode_Spy:
@@ -1726,7 +1726,7 @@ void SetClockMode() {
     } while (SettingsNotDone((&ts)));
     if (ts.value != ts.old_value) {
         Settings.AR_IS.Clock24h = (ts.value == 24);
-        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        saveSettingsField(&(Settings.AR_IS), 1);
     }
 }
 
@@ -1898,7 +1898,7 @@ TBool SetCustomCountDown() {
     if (ts.selected) {
         Settings.CustomCDtime = ts.value;
         if (ts.value != ts.old_value) {
-            saveSettingsField(&Settings, &(Settings.CustomCDtime), 4);
+            saveSettingsField(&(Settings.CustomCDtime), 4);
         }
         return True;
     }
@@ -1948,7 +1948,7 @@ void SetOrientation() {
     } while (SettingsNotDone((&mx)));
     if (mx.selected && Orientation != mx.menu) {
         Orientation = mx.menu;
-        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        saveSettingsField(&(Settings.AR_IS), 1);
     }
     lcd_set_orientation();
     lcd_clear();
@@ -1975,7 +1975,7 @@ void SetInput() {
         Settings.InputType = ma.menu;
     }
     if (Settings.InputType != orgset) {
-        saveSettingsField(&Settings, &(Settings.InputType), 1);
+        saveSettingsField(&(Settings.InputType), 1);
     }
     Stats.InputModes[Settings.InputType]++;
 }
@@ -2004,7 +2004,7 @@ void SetAutoPowerOff() {
     } while (SettingsNotDone((&ma)));
     if (ma.selected && Settings.AR_IS.AutoPowerOff != ma.menu) {
         Settings.AR_IS.AutoPowerOff = ma.menu;
-        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        saveSettingsField(&(Settings.AR_IS), 1);
     }
 }
 
@@ -2022,7 +2022,7 @@ void BlueTooth() {
     } while (SettingsNotDone((&ma)));
     if (ma.selected && Settings.AR_IS.BT != ma.menu) {
         Settings.AR_IS.BT = ma.menu;
-        saveSettingsField(&Settings, &(Settings.AR_IS), 1);
+        saveSettingsField(&(Settings.AR_IS), 1);
         lcd_clear();
         lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
         init_bt();
@@ -2041,6 +2041,8 @@ void bt_set_sens() {
             att < 4) {
         Settings.Sensitivity = sens;
         Settings.Attenuator = att;
+        saveSettingsField(&Settings.Attenuator,1);
+        saveSettingsField(&Settings.Sensitivity,2);
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
@@ -2061,7 +2063,7 @@ void bt_set_par() {
             Settings.ParTime[par_idx - 1] = par_time_f;
             Settings.TotPar = par_idx;
             savePar(par_idx);
-            saveSettingsField(&Settings, &(Settings.TotPar), 1);
+            saveSettingsField(&(Settings.TotPar), 1);
             Stats.Menu[SETTINGS_INDEX_PAR]++;
             saveStats();
             DAA_MSG_OK;
@@ -2110,7 +2112,7 @@ void bt_set_mode() {
     if (mode >= 0 && mode < TOT_PAR_MODES) {
         lcd_clear_block(0, 0, LCD_WIDTH, UI_HEADER_END_LINE);
         Settings.ParMode = mode;
-        saveSettingsField(&Settings, &(Settings.ParMode), 1);
+        saveSettingsField(&(Settings.ParMode), 1);
         Stats.Modes[mode]++;
         saveStats();
         DAA_MSG_OK;
@@ -2126,8 +2128,8 @@ void bt_set_delay() {
     if (time > -1 && time < 10001) {
         Settings.DelayMode = DELAY_MODE_Custom;
         Settings.CUstomDelayTime = time;
-        saveSettingsField(&Settings, &(Settings.CUstomDelayTime), 4);
-        saveSettingsField(&Settings, &(Settings.DelayMode), 1);
+        saveSettingsField(&(Settings.CUstomDelayTime), 4);
+        saveSettingsField(&(Settings.DelayMode), 1);
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
@@ -3136,7 +3138,7 @@ void StartCountdownTimer() {
     uint8_t length;
     LATEbits.LATE1 = 1; // Enable 5V booster for the buzzer
     InputFlags.FOOTER_CHANGED = True;
-    restoreSettingsField(&Settings, &(Settings.DelayMode), 1);
+    restoreSettingsField(&(Settings.DelayMode), 1);
     switch (Settings.ParMode) {
         case ParMode_Repetitive:
             repetitive_counter = 0;
