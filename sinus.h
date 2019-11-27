@@ -62,7 +62,7 @@ sinusSetting_t sinus_s[]={
 { 0, 0,6,101}
 };
 
-#define MAX_VOLUME_LEVELS   5
+#define MAX_VOLUME_LEVELS   3
 extern const uint8_t sinus_table[MAX_VOLUME_LEVELS][32];
 
 
