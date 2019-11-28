@@ -64,7 +64,7 @@ extern "C" {
     TimerEvent timerEventToHandle = NoEvent;
 
     char ScreenTitle[32];
-    uint8_t old_time_str_len = 0;
+
 #define set_screen_title(x) {sprintf(ScreenTitle," %s ", x);}
 #define clear_screen_title {for(uint8_t i=0;i<32;i++){ScreenTitle[i] = ' ';}}
 #define clear_timer_area { lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height); }
