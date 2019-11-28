@@ -1036,33 +1036,35 @@ void SetBeep() {
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
         if (ma.selected) {
-            lcd_clear();
-            switch (ma.menu) {
-                case 0:
-                    SetBeepFreq();
-                    break;
-                case 1:
-                    SetVolume();
-                    break;
-                case 2:
-                    SetBeepTime(True);
-                    break;
-                case 3:
-                    SetStartSound();
-                    break;
-                case 4:
-                    generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
-                    break;
-                    //                case 5:
-                    //                    SetBuzRef();
-                    //                    break;
+            if(ma.menu == 4){
+                // Special treatment just not to clear display
+                generate_sinus(Settings.Volume, Settings.BuzzerFrequency, Settings.BuzzerStartDuration);
+            } else {
+                lcd_clear();
+                switch (ma.menu) {
+                    case 0:
+                        SetBeepFreq();
+                        break;
+                    case 1:
+                        SetVolume();
+                        break;
+                    case 2:
+                        SetBeepTime(True);
+                        break;
+                    case 3:
+                        SetStartSound();
+                        break;
+                        //                case 5:
+                        //                    SetBuzRef();
+                        //                    break;
+                }
+                lcd_clear();
             }
             // Here we want it done only when back pressed
             // i.e. not selected and done
             ma.done = False;
             ma.selected = False;
             ma.changed = True;
-            lcd_clear();
         }
     } while (SettingsNotDone((&ma)));
 }
