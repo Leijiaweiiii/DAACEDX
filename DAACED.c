@@ -227,7 +227,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     uint8_t findex = frequency / 100;
     // Don't beep ever in silent modes
     if (amplitude == 0) return;
-    ADC_HW_filter_timer_start(Settings.Filter);
+    ADC_HW_filter_timer_start(MAX_FILTER);
     amplitude_index = amplitude - 1;
     sinus_dac_init(Settings.AR_IS.BuzRef);
     sinus_duration_timer_init(duration);
