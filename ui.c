@@ -73,7 +73,7 @@ void print_big_time_label(const uint24_t t) {
     height = BigFont->height;
     spaceholder = (Settings.InputType != INPUT_TYPE_Microphone) ? 40 : 0;
     if (t > MAX_MEASUREMENT_TIME)
-        tf = 999.0;
+        tf = 0.0;
     else
         tf = ((float) t) / 1000;
     sprintf(message, "%3.02f", tf);

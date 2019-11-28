@@ -2835,7 +2835,6 @@ void DetectInit(void) {
 
             ADC_init();
             for (uint8_t i = 0; i < 64; i++) {
-                Delay(1);
                 ADCvalue = ADC_Read(shot_detection_source);
                 Mean += ADCvalue;
                 Max = max(Max,ADCvalue);

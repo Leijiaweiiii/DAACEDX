@@ -171,7 +171,7 @@ ShootString_t ShootString;
 time_t ShootString_start_time;
 uint8_t last_sent_index; // last shot sent to BT 
 ShootString_t ReviewString;
-#define MAX_MEASUREMENT_TIME    999000
+#define MAX_MEASUREMENT_TIME    999991
 uint8_t TopShotIndex; //The current shoot of the displayed string
 uint8_t CurShootString; //Currently displayed string number 0..29
 uint8_t ReviewTopShotDefault;
