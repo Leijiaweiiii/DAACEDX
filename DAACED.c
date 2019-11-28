@@ -228,6 +228,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     // Don't beep ever in silent modes
     if (amplitude == 0) return;
     ADC_HW_filter_timer_start(MAX_FILTER);
+    PIE1bits.ADTIE = 0; // Disable detection interrupt
     amplitude_index = amplitude - 1;
     sinus_dac_init(Settings.AR_IS.BuzRef);
     sinus_duration_timer_init(duration);
@@ -289,7 +290,7 @@ void getDefaultSettings() {
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.CUstomDelayTime = 2500; // ms before start signal
     Settings.BackLightLevel = 1; // Most dimmed visible
-    Settings.MaxShotDuration = 8; // mS
+    Settings.MaxShotDuration = 4; // in ~0.5mS
     Settings.ContrastValue = DEFAULT_CONTRAST_VALUE;
     Settings.TotPar = Off; // Par Off
     Settings.TotAutoPar = Off;
@@ -1122,9 +1123,9 @@ void SetAtt() {
 void SetShotDuration() {
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
-    strcpy(s.MenuTitle, "Max Shot Duration");
+    strcpy(s.MenuTitle, "Max Shot T");
     s.max = 30;
-    s.min = 0;
+    s.min = 1;
     s.value = Settings.MaxShotDuration;
     s.old_value = Settings.MaxShotDuration;
     s.step = 1;
@@ -2035,15 +2036,20 @@ void BlueTooth() {
 void bt_set_sens() {
     int sens = 0;
     int att = 0;
+    int max_shot_t = 0;
     char * endp[1];
     sens = strtol(bt_cmd_args_raw, endp, 10);
     att = strtol(*endp + 1, endp, 10);
+    max_shot_t = strtol(*endp + 1, endp, 10);
     if (sens > 4 &&
             sens < 801 &&
             att >= 0 &&
-            att < 4) {
-        Settings.Sensitivity = sens;
-        Settings.Attenuator = att;
+            att < 4 &&
+            max_shot_t > 0 &&
+            max_shot_t < 31) {
+        Settings.Sensitivity = (uint16_t)sens;
+        Settings.Attenuator = (uint8_t)att;
+        Settings.MaxShotDuration = (uint8_t)max_shot_t;
         saveSettingsField(&Settings.Attenuator,1);
         saveSettingsField(&Settings.Sensitivity,2);
         DAA_MSG_OK;
@@ -2303,12 +2309,12 @@ void handle_bt_commands() {
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 
 void fillMicrophoneMenu() {
-    ma.TotalMenuItems = 3;
+    ma.TotalMenuItems = 4;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1], "Filter|%1.2fs", (float) (Settings.Filter) / 100);
     sprintf(ma.MenuItem[2], "Attenuator|%d", Settings.Attenuator);
-    //    sprintf(ma.MenuItem[3],  "Mic Source|%s", Settings.AR_IS.MIC_SRC?"MIC":"ENV");
+    sprintf(ma.MenuItem[3], "Max Shot T|%d", Settings.MaxShotDuration);
 }
 
 void SetMicrophone() {
@@ -2331,9 +2337,9 @@ void SetMicrophone() {
                 case 2:
                     SetAtt();
                     break;
-                    //                case 3:
-                    //                    SetShotDuration();
-                    //                    break;
+                case 3:
+                    SetShotDuration();
+                    break;
             }
             fillMicrophoneMenu();
             lcd_clear();
@@ -2526,8 +2532,8 @@ void SetSettingsMenu() {
 
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
-    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%d %0.2f",
-            Settings.Sensitivity, (float) Settings.Filter / 100);
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%d %d %0.2f",
+            Settings.Attenuator, Settings.Sensitivity, (float) Settings.Filter / 100);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MODE], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_DISPLAY], "Display|%s %u",
@@ -3210,7 +3216,22 @@ void UpdateShot(time_t now, ShotInput_t input) {
         ShootString.TotShoots++;
     }
     ShootString.shots[index].sn = ShootString.TotShoots;
+}
+
+void ApproveShoot(){
     InputFlags.NEW_SHOT = 0x7;
+}
+
+void DiscardShot(){
+    uint8_t index = get_shot_index_in_arr(ShootString.TotShoots);
+    if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
+        index--;
+    
+    ShootString.shots[index].sn = 0;
+    ShootString.shots[index].dt = 0x000000;
+    ShootString.shots[index].is_flags = 0;
+    if (ShootString.TotShoots < MAX_REGISTERED_SHOTS)
+        ShootString.TotShoots--;
 }
 
 void UpdateShotNow(ShotInput_t x) {
@@ -3322,6 +3343,7 @@ static interrupt isr_h() {
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
         ADC_HW_filter_timer_start(Settings.Filter);     // Guard end of the signal
+        PIE1bits.ADTIE = 0; // Disable detection interrupt
         // If we turned off the sound, turn off external sound too
         if (LATEbits.LATE2 == 0) {
             if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -3340,7 +3362,15 @@ static interrupt isr_h() {
             ADC_HW_detect_shot_end_init();
             ADC_HW_filter_timer_start(Settings.Filter);
             UpdateShotNow(Mic);
-            
+        } else if (ADSTATbits.ADLTHR){
+            ADC_HW_detect_shot_start_init();
+            if(T6TMR < Settings.MaxShotDuration){
+                ApproveShoot();
+                PIE1bits.ADTIE = 0; // Disable detection interrupt
+            } else {
+                DiscardShot();
+                ADC_HW_filter_timer_stop();
+            }
         }
     }
 }
