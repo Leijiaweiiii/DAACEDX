@@ -1024,7 +1024,7 @@ void setBuzzerMenu() {
     sprintf(ma.MenuItem[3], " Startup Sound|%s ", Settings.AR_IS.StartSound ? "ON" : "OFF");
     strcpy(ma.MenuItem[4], " Test Beep ");
     //    strcpy(ma.MenuItem[5], " Buzzer Reference ");
-    ma.TotalMenuItems = 4;
+    ma.TotalMenuItems = 5;
 }
 
 void SetBeep() {
@@ -1287,30 +1287,30 @@ void set_par_mode(int m) {
         case ParMode_CUSTOM:
             replaceParWithCustom();
             break;
-        case ParMode_Practical:
-            fill_par_bianci();
-            break;
-        case ParMode_Barricade:
-            fill_par_barricade();
-            break;
-        case ParMode_FallingPlate:
-            fill_par_falling_plate();
-            break;
-        case ParMode_MovingTarget:
-            fill_par_moving_target();
-            break;
-        case ParMode_NRA_PPC_A:
-            fill_par_nra_ppc_a();
-            break;
-        case ParMode_NRA_PPC_B:
-            fill_par_nra_ppc_b();
-            break;
-        case ParMode_NRA_PPC_C:
-            fill_par_nra_ppc_c();
-            break;
-        case ParMode_NRA_PPC_D:
-            fill_par_nra_ppc_d();
-            break;
+//        case ParMode_Practical:
+//            fill_par_bianci();
+//            break;
+//        case ParMode_Barricade:
+//            fill_par_barricade();
+//            break;
+//        case ParMode_FallingPlate:
+//            fill_par_falling_plate();
+//            break;
+//        case ParMode_MovingTarget:
+//            fill_par_moving_target();
+//            break;
+//        case ParMode_NRA_PPC_A:
+//            fill_par_nra_ppc_a();
+//            break;
+//        case ParMode_NRA_PPC_B:
+//            fill_par_nra_ppc_b();
+//            break;
+//        case ParMode_NRA_PPC_C:
+//            fill_par_nra_ppc_c();
+//            break;
+//        case ParMode_NRA_PPC_D:
+//            fill_par_nra_ppc_d();
+//            break;
         case ParMode_Repetitive:
         case ParMode_AutoPar:
         default:
@@ -1324,14 +1324,14 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
     "Spy Mode",
     "Repetitive Mode",
     "Auto Par",
-    "Bianchi: Practical",
-    "Bianchi: Barricade",
-    "Bianchi: Falling Plate",
-    "Bianchi: Moving Targ.",
-    "NRA-PPC: A",
-    "NRA-PPC: B",
-    "NRA-PPC: C",
-    "NRA-PPC: D",
+//    "Bianchi: Practical",
+//    "Bianchi: Barricade",
+//    "Bianchi: Falling Plate",
+//    "Bianchi: Moving Targ.",
+//    "NRA-PPC: A",
+//    "NRA-PPC: B",
+//    "NRA-PPC: C",
+//    "NRA-PPC: D",
     "Custom"
 };
 
@@ -1340,14 +1340,14 @@ const char * par_mode_header_names[TOT_PAR_MODES] = {
     "Spy Mode",
     "Repetitive",
     "Auto Par",
-    "Practical",
-    "Barricade",
-    "Falling Plate",
-    "Moving Targ",
-    "NRA-PPC A",
-    "NRA-PPC B",
-    "NRA-PPC C",
-    "NRA-PPC D",
+//    "Practical",
+//    "Barricade",
+//    "Falling Plate",
+//    "Moving Targ",
+//    "NRA-PPC A",
+//    "NRA-PPC B",
+//    "NRA-PPC C",
+//    "NRA-PPC D",
     "Custom"
 };
 // </editor-fold>
