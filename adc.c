@@ -45,6 +45,7 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
 void ADC_HW_filter_timer_start(uint8_t filter){
     if(filter > MAX_FILTER) filter = MAX_FILTER;
     if(filter == 0) filter = 1;
+    PIE1bits.ADTIE = 0; // Disable detection interrupt
     // Configure TMR6 to count mS
     T6CLKCONbits.CS = 0b0110;     // 32768Hz extosc
     T6PR            = filter_pr_setting[filter - 1];
@@ -60,6 +61,7 @@ void ADC_HW_filter_timer_start(uint8_t filter){
     T6CON = 0b11000000;
     TMR6IE = 1;
     TMR6IF = 0;
+    
 }
 
 uint16_t ADC_Read(char selectedADC) {

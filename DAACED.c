@@ -227,6 +227,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     uint8_t findex = frequency / 100;
     // Don't beep ever in silent modes
     if (amplitude == 0) return;
+    ADC_HW_filter_timer_start(Settings.Filter);
     amplitude_index = amplitude - 1;
     sinus_dac_init(Settings.AR_IS.BuzRef);
     sinus_duration_timer_init(duration);
@@ -2823,6 +2824,7 @@ void DoReview() {
 void DetectInit(void) {
     uint16_t Mean = 0;
     uint16_t Max = 0;
+    uint16_t Min = 0xFFFF;
     uint16_t ADCvalue;
 
     switch (Settings.InputType) {
@@ -2831,9 +2833,11 @@ void DetectInit(void) {
 
             ADC_init();
             for (uint8_t i = 0; i < 64; i++) {
+                Delay(1);
                 ADCvalue = ADC_Read(shot_detection_source);
                 Mean += ADCvalue;
-                if (Max < ADCvalue) Max = ADCvalue;
+                Max = max(Max,ADCvalue);
+                Min = min(Min,ADCvalue);
             }
             Mean = Mean >> 6;
             //            DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
@@ -2978,10 +2982,11 @@ void print_footer() {
 }
 
 void StartListenShots(void) {
-    ShootString_start_time = unix_time_ms;
     last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
+    ShootString_start_time = unix_time_ms;
+    parStartTime_ms = unix_time_ms;
 }
 // </editor-fold>
 
@@ -3315,7 +3320,7 @@ static interrupt isr_h() {
     if (PIR5bits.TMR8IF) {
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
-        //        InputFlags.BEEP_GUARD = True;
+        ADC_HW_filter_timer_start(Settings.Filter);     // Guard end of the signal
         // If we turned off the sound, turn off external sound too
         if (LATEbits.LATE2 == 0) {
             if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -3327,15 +3332,14 @@ static interrupt isr_h() {
 
     if (PIR1bits.ADTIF) {
         PIR1bits.ADTIF = 0; // Clear interrupt flag
-        PIR1bits.ADIF = 0; // Clear ADC conversion interrupt flag (it's raises for unclear reason)
         if (ADSTATbits.ADUTHR) {
             // Pulse start
             // Start pulse and filter timer
             // Wait for raising edge
             ADC_HW_detect_shot_end_init();
             ADC_HW_filter_timer_start(Settings.Filter);
-            PIE1bits.ADTIE = 0;
             UpdateShotNow(Mic);
+            
         }
     }
 }
@@ -3387,9 +3391,11 @@ static low_priority interrupt isr_l() {
     }
     if (TMR6IF) {
         TMR6IF = 0;
-        // Shot filter timer expired
-        PIE1bits.ADTIE = 1;
         ADC_HW_detect_shot_start_init();
+        // Shot filter timer expired
+        PIR1bits.ADTIF = 0; // Clear interrupt flag
+        PIE1bits.ADTIE = 1;
+        
     }
     if (PIR3bits.TX1IF) {
         PIR3bits.TX1IF = 0;
