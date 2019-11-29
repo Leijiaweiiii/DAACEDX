@@ -228,7 +228,6 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     // Don't beep ever in silent modes
     if (amplitude == 0) return;
     ADC_HW_filter_timer_start(MAX_FILTER);
-    PIE1bits.ADTIE = 0; // Disable detection interrupt
     amplitude_index = amplitude - 1;
     sinus_dac_init(Settings.AR_IS.BuzRef);
     sinus_duration_timer_init(duration);
@@ -3177,6 +3176,23 @@ void StartCountdownTimer() {
     sendString(msg, length);
 }
 
+
+void ApproveShoot(){
+    InputFlags.NEW_SHOT = 0x7;
+}
+
+void DiscardShot(){
+    uint8_t index = get_shot_index_in_arr(ShootString.TotShoots);
+    if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
+        index--;
+    
+    ShootString.shots[index].sn = 0;
+    ShootString.shots[index].dt = 0x000000;
+    ShootString.shots[index].is_flags = 0;
+    if (ShootString.TotShoots < MAX_REGISTERED_SHOTS)
+        ShootString.TotShoots--;
+}
+
 void UpdateShot(time_t now, ShotInput_t input) {
     uint24_t dt;
     // Index var is for code size optimisation.
@@ -3193,23 +3209,11 @@ void UpdateShot(time_t now, ShotInput_t input) {
     if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
         ShootString.TotShoots++;
     }
+    if(ShootString.TotShoots == 100){
+        NOP();
+    }
     ShootString.shots[index].sn = ShootString.TotShoots;
-}
-
-void ApproveShoot(){
-    InputFlags.NEW_SHOT = 0x7;
-}
-
-void DiscardShot(){
-    uint8_t index = get_shot_index_in_arr(ShootString.TotShoots);
-    if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
-        index--;
-    
-    ShootString.shots[index].sn = 0;
-    ShootString.shots[index].dt = 0x000000;
-    ShootString.shots[index].is_flags = 0;
-    if (ShootString.TotShoots < MAX_REGISTERED_SHOTS)
-        ShootString.TotShoots--;
+    ApproveShoot();
 }
 
 void UpdateShotNow(ShotInput_t x) {
@@ -3321,7 +3325,6 @@ static interrupt isr_h() {
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
         ADC_HW_filter_timer_start(MAX_FILTER);     // Guard end of the signal
-        PIE1bits.ADTIE = 0; // Disable detection interrupt
         // If we turned off the sound, turn off external sound too
         if (LATEbits.LATE2 == 0) {
             if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -3330,22 +3333,17 @@ static interrupt isr_h() {
             }
         }
     }
-
-    if (PIR1bits.ADTIF) {
-        PIR1bits.ADTIF = 0; // Clear interrupt flag
-        if (ADSTATbits.ADUTHR) {
-            // Pulse start
-            // Start pulse and filter timer
-            // Wait for raising edge
-            ADC_HW_filter_timer_start(Settings.Filter);
-            UpdateShotNow(Mic);
-            ApproveShoot();
-            PIE1bits.ADTIE = 0; // Disable detection interrupt
-        }
-    }
 }
 
 static low_priority interrupt isr_l() {
+    if (PIR1bits.ADTIF) {
+        PIR1bits.ADTIF = 0; // Clear interrupt flag
+        PIE1bits.ADTIE = 0; // Long interrupt, need to stop until end of handling
+        if (ADSTATbits.ADUTHR) {
+            ADC_HW_filter_timer_start(Settings.Filter);
+            UpdateShotNow(Mic);
+        }
+    }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean
@@ -3396,7 +3394,7 @@ static low_priority interrupt isr_l() {
         // Shot filter timer expired
         PIR1bits.ADTIF = 0; // Clear interrupt flag
         PIE1bits.ADTIE = 1;
-        
+        ADGO = 1;
     }
     if (PIR3bits.TX1IF) {
         PIR3bits.TX1IF = 0;

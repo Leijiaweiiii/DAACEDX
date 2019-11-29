@@ -28,16 +28,18 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
     ADLTH               = lth;
     ADUTH               = uth;
     ADSTPT              = dc;          // Setpoint set to DC level
+//    ADRPT               = 64;
     ADCON0bits.ADCONT   = 1;           // Continue conversion continously
     ADCON0bits.ADCS     = 0;           // Conversion clock derived from oscillator
     ADCON1bits.ADDSEN   = 0;           // Calculate ADERR every second conversion
     ADCON2bits.ADMD     = 0b000;       // Basic mode
-    ADCON3 = 0b00010010;
+//    ADCON2bits.ADMD     = 0b010;       // Averaging mode
+    ADCON3 = 0b00011010;
 //    ADCON3bits.ADTMD    = 0b010;       // Interrupt if ADERR > ADLTH
 //    ADCON3bits.ADCALC   = 0b001;       // Comparison with setpoint
 //    ADCON3bits.ADSOI    = 0;           // Don't stop on interrupt
     ADCLKbits.ADCS      = 0b111111;    // 2uS Conversion period
-    IPR1bits.ADTIP      = 1;           // High priority interrupt
+    IPR1bits.ADTIP      = 0;           // High priority interrupt
     PIE1bits.ADIE       = 0;           // Disable ADC conversion interrupt
     PIR1bits.ADIF       = 0;
 }
@@ -45,6 +47,8 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
 void ADC_HW_filter_timer_start(uint8_t filter){
     if(filter > MAX_FILTER) filter = MAX_FILTER;
     if(filter == 0) filter = 1;
+    PIE1bits.ADTIE = 0; // Disable detection interrupt
+    PIR5bits.TMR8IF = 0;
     // Configure TMR6 to count mS
     T6CLKCONbits.CS = 0b0110;     // 32768Hz extosc
     T6PR            = filter_pr_setting[filter - 1];
@@ -60,7 +64,6 @@ void ADC_HW_filter_timer_start(uint8_t filter){
     T6CON = 0b11000000;
     TMR6IE = 1;
     TMR6IF = 0;
-    
 }
 
 uint16_t ADC_Read(char selectedADC) {
