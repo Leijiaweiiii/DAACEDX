@@ -3026,8 +3026,7 @@ void DoPowerOff() {
     lcd_wakeup();
 }
 
-void DoPowerOn() {
-    if (InputFlags.INITIALIZED) return;
+void BasicInit(){
     PIC_init();
     LATEbits.LATE0 = 1;
     initialize_backlight();
@@ -3036,6 +3035,11 @@ void DoPowerOn() {
     lcd_set_orientation();
     eeprom_init();
     getSettings();
+}
+
+void DoPowerOn() {
+    if (InputFlags.INITIALIZED) return;
+    BasicInit();
     lcd_set_contrast(Settings.ContrastValue);
     getStats();
     set_backlight(Settings.BackLightLevel);
@@ -3424,11 +3428,12 @@ void battery_test() {
 
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
-    DoPowerOn();
+    BasicInit();
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
     }
+    DoPowerOn();
     set_backlight(Settings.BackLightLevel);
     getShootString(0); // Show last shot properly after fresh boot
     // Initialization End
