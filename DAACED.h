@@ -246,7 +246,6 @@ typedef struct {
     uint8_t TotAutoPar;
     uint8_t InputType; // 7
     uint8_t Attenuator;
-    uint8_t MaxShotDuration;
     uint16_t ContrastValue;
     uint16_t Sensitivity; // 8
     uint16_t BuzzerFrequency; // 9

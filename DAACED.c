@@ -290,7 +290,6 @@ void getDefaultSettings() {
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.CUstomDelayTime = 2500; // ms before start signal
     Settings.BackLightLevel = 1; // Most dimmed visible
-    Settings.MaxShotDuration = 4; // in ~0.5mS
     Settings.ContrastValue = DEFAULT_CONTRAST_VALUE;
     Settings.TotPar = Off; // Par Off
     Settings.TotAutoPar = Off;
@@ -1118,28 +1117,6 @@ void SetAtt() {
         }
     }
     SetAttenuator(Settings.Attenuator);
-}
-
-void SetShotDuration() {
-    NumberSelection_t s;
-    InitSettingsNumberDefaults((&s));
-    strcpy(s.MenuTitle, "Max Shot T");
-    s.max = 30;
-    s.min = 1;
-    s.value = Settings.MaxShotDuration;
-    s.old_value = Settings.MaxShotDuration;
-    s.step = 1;
-    s.format = "%d";
-    do {
-        DisplayInteger(&s);
-        SelectInteger(&s);
-    } while (SettingsNotDone((&s)));
-    if (s.selected) {
-        Settings.MaxShotDuration = s.value;
-        if (s.value != s.old_value) {
-            saveSettingsField(&(Settings.MaxShotDuration), 1);
-        }
-    }
 }
 
 // </editor-fold>
@@ -2040,16 +2017,12 @@ void bt_set_sens() {
     char * endp[1];
     sens = strtol(bt_cmd_args_raw, endp, 10);
     att = strtol(*endp + 1, endp, 10);
-    max_shot_t = strtol(*endp + 1, endp, 10);
     if (sens > 4 &&
             sens < 801 &&
             att >= 0 &&
-            att < 4 &&
-            max_shot_t > 0 &&
-            max_shot_t < 31) {
+            att < 4 ) {
         Settings.Sensitivity = (uint16_t)sens;
         Settings.Attenuator = (uint8_t)att;
-        Settings.MaxShotDuration = (uint8_t)max_shot_t;
         saveSettingsField(&Settings.Attenuator,1);
         saveSettingsField(&Settings.Sensitivity,2);
         DAA_MSG_OK;
@@ -2309,12 +2282,12 @@ void handle_bt_commands() {
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 
 void fillMicrophoneMenu() {
-    ma.TotalMenuItems = 4;
+    ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
     sprintf(ma.MenuItem[1], "Filter|%1.2fs", (float) (Settings.Filter) / 100);
     sprintf(ma.MenuItem[2], "Attenuator|%d", Settings.Attenuator);
-    sprintf(ma.MenuItem[3], "Max Shot T|%d", Settings.MaxShotDuration);
+//    sprintf(ma.MenuItem[3], "Max Shot T|%d", Settings.MaxShotDuration);
 }
 
 void SetMicrophone() {
@@ -2337,9 +2310,9 @@ void SetMicrophone() {
                 case 2:
                     SetAtt();
                     break;
-                case 3:
-                    SetShotDuration();
-                    break;
+//                case 3:
+//                    SetShotDuration();
+//                    break;
             }
             fillMicrophoneMenu();
             lcd_clear();
@@ -2841,6 +2814,7 @@ void DetectInit(void) {
 
             ADC_init();
             for (uint8_t i = 0; i < 64; i++) {
+                Delay(1);
                 ADCvalue = ADC_Read(shot_detection_source);
                 Mean += ADCvalue;
                 Max = max(Max,ADCvalue);
@@ -3342,7 +3316,7 @@ static interrupt isr_h() {
     if (PIR5bits.TMR8IF) {
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
-        ADC_HW_filter_timer_start(Settings.Filter);     // Guard end of the signal
+        ADC_HW_filter_timer_start(MAX_FILTER);     // Guard end of the signal
         PIE1bits.ADTIE = 0; // Disable detection interrupt
         // If we turned off the sound, turn off external sound too
         if (LATEbits.LATE2 == 0) {
@@ -3359,18 +3333,10 @@ static interrupt isr_h() {
             // Pulse start
             // Start pulse and filter timer
             // Wait for raising edge
-            ADC_HW_detect_shot_end_init();
             ADC_HW_filter_timer_start(Settings.Filter);
             UpdateShotNow(Mic);
-        } else if (ADSTATbits.ADLTHR){
-            ADC_HW_detect_shot_start_init();
-            if(T6TMR < Settings.MaxShotDuration){
-                ApproveShoot();
-                PIE1bits.ADTIE = 0; // Disable detection interrupt
-            } else {
-                DiscardShot();
-                ADC_HW_filter_timer_stop();
-            }
+            ApproveShoot();
+            PIE1bits.ADTIE = 0; // Disable detection interrupt
         }
     }
 }
