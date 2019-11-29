@@ -3342,6 +3342,8 @@ static low_priority interrupt isr_l() {
         if (ADSTATbits.ADUTHR) {
             ADC_HW_filter_timer_start(Settings.Filter);
             UpdateShotNow(Mic);
+        } else {
+            ADGO = 1;
         }
     }
     if (PIR0bits.TMR0IF) {
