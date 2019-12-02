@@ -46,20 +46,22 @@ void sinus_value_expired(){
  * Timer configured to count milliseconds assuming decrement of remining 
  */
 void sinus_duration_timer_init(uint16_t duration){
-    beep_duration_residue = duration;
+    beep_duration_residue = duration + 1;
     // TMR8
     PIE5bits.TMR8IE = 0;
     T8CLKCONbits.CS = 0b0011;   // HFOSC 64MHz
-    T8HLTbits.CKPOL = 1;
-    T8HLTbits.PSYNC = 1;
-    T8HLTbits.CKSYNC = 0;       // don't delay start on ON
-    T8HLTbits.MODE = 0b00000;   // Free Running
-    T8CONbits.CKPS = 0b110;     // 1/64 pre-scale
-    T8CONbits.OUTPS = 0b1001;   // 1/10 post-scale
+//    T8HLTbits.CKPOL = 1;
+//    T8HLTbits.PSYNC = 1;
+//    T8HLTbits.CKSYNC = 0;       // don't delay start on ON
+//    T8HLTbits.MODE = 0b00000;   // Free Running
+    T8HLT           = 0b11000000;
     T8PR = 100;                 // Count to 100
     IPR5bits.TMR8IP = 1;        // Timer8 high priority interrupt (sound is significant)
+//    T8CONbits.CKPS = 0b110;     // 1/64 pre-scale
+//    T8CONbits.OUTPS = 0b1001;   // 1/10 post-scale
+//    T8CONbits.ON = 1;
+    T8CON         = 0b11101001;
     PIE5bits.TMR8IE = 1;
-    T8CONbits.ON = 1;
 }
 
 void sinus_value_timer_init(uint8_t f_n){
@@ -67,10 +69,11 @@ void sinus_value_timer_init(uint8_t f_n){
     current_sample_index = 0;
     PIE5bits.TMR4IE = 0;            // Disable interrupt
     T4CLKCONbits.CS = 0b0011;       // HFOSC
-    T4HLTbits.CKPOL = 0;
-    T4HLTbits.PSYNC = 0;
-    T4HLTbits.CKSYNC = 0;           // don't delay start on ON
-    T4HLTbits.MODE = 0b00000;       // Free running
+//    T4HLTbits.CKPOL = 0;
+//    T4HLTbits.PSYNC = 0;
+//    T4HLTbits.CKSYNC = 0;           // don't delay start on ON
+//    T4HLTbits.MODE = 0b00000;       // Free running
+    T4HLT           = 0b00000000;
     T4CONbits.OUTPS = setting.POS - 1;
     T4CONbits.CKPS  = setting.PRE;
     T4PR            = setting.PR;
