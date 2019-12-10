@@ -3257,7 +3257,12 @@ void check_par_expired() {
                 timerEventToHandle = RepetitiveParEvent;
                 break;
             case ParMode_AutoPar:
-                timerEventToHandle = AutoParEvent;
+                if(ParFlags.AutoParOverDetect){
+                    ParFlags.AutoParOverDetect = False;
+                    timerEventToHandle = AutoParCompletedEvent;
+                } else {
+                    timerEventToHandle = AutoParEvent;
+                }
                 break;
             case ParMode_Regular:
                 timerEventToHandle = ParEvent;
@@ -3266,11 +3271,6 @@ void check_par_expired() {
                 timerEventToHandle = BianchiParEvent;
                 break;
         }
-    } else if (ParFlags.AutoParOverDetect) {
-        update_rtc_time();
-        if (unix_time_ms - parStartTime_ms < next_par_ms) return;
-        ParFlags.AutoParOverDetect = False;
-        timerEventToHandle = AutoParCompletedEvent;
     }
 }
 

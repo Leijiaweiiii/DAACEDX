@@ -241,6 +241,7 @@ void HandleTimerEvents() {
             }
             ParFlags.AutoParOverDetect = True;
             ParFlags.ParNowCounting = False;
+            StartParTimer();
             break;
         case AutoParCompletedEvent:
             CurPar_idx++;
