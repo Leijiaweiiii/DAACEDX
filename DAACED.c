@@ -2256,7 +2256,7 @@ void handle_bt_commands() {
                     bt_set_delay();
                     break;
                 case BT_GetBatteryMV:
-                    length = sprintf(msg, "%u", battery_average());
+                    length = sprintf(msg, "%u\n", battery_average());
                     sendString(msg, length);
                     break;
                 case BT_SetSensitivity:
