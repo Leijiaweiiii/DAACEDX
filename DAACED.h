@@ -288,12 +288,12 @@ SettingsMenu_t SettingsMenu;
 #define SETTINDS_INDEX_RESET        13
 #define SETTINDS_INDEX_VERSION      14
 
-
-#define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + 64)
+#define ROM_GUARD_INTERVAL  32
+#define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + ROM_GUARD_INTERVAL)
 typedef struct{
     uint32_t PowerOn;
     uint32_t Signal;
-    uint16_t Review;
+    uint32_t Review;
     uint16_t Settings;
     uint16_t Charging;
     uint16_t Charged;
@@ -305,7 +305,7 @@ typedef struct{
 #define StatsDataSize   (sizeof(Stats_t))
 Stats_t Stats;
 
-#define ShootStringStartAddress     (StatsStartAddress + StatsDataSize + 64)
+#define ShootStringStartAddress     (StatsStartAddress + StatsDataSize + ROM_GUARD_INTERVAL)
 
 // </editor-fold>
 
