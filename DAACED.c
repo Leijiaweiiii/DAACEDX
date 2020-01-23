@@ -2148,6 +2148,7 @@ void bt_get_pars() {
 void handle_bt_commands() {
     uint8_t length = 0;
     char msg[20];
+    if(! Settings.AR_IS.BT) return;
     sendShotsIfRequired();
     BT_COMMAND_T btc = BT_define_action();
     switch (btc) {
