@@ -67,15 +67,16 @@ extern const uint8_t sinus_table[MAX_VOLUME_LEVELS][32];
 
 
 // <editor-fold defaultstate="collapsed" desc="Sinus Generator">
-volatile uint8_t current_sample_index = 0;
+volatile uint8_t current_sample_index = 18; // Start signal from 0 to avoid click
 volatile uint8_t amplitude_index;
+volatile uint8_t amplitude_index_const;
 volatile uint16_t beep_duration_residue = 0;
 volatile time_t beep_start;
 volatile time_t beep_duration;
 #define DACON_VALUE_DEFAULT     0b10100000
 #define DACON_VALUE_NEW         0b10100000
 
-void sinus_dac_init(TBool ref);
+void sinus_dac_init();
 void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration);
 //void start_sinus(uint16_t frequency);
 #define stop_sinus() {DAC1CON0 = 0; /* DAC Off */   LATEbits.LATE2 = 0; /* Driver OFF */ LATEbits.LATE1 = 0; /*5v Power Pupply Off*/}

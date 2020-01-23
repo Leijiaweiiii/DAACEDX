@@ -9,23 +9,18 @@ const uint8_t sinus_table[MAX_VOLUME_LEVELS][32] = {
 //    {30, 28, 24, 19, 14, 9, 6, 2, 1, 0, 1, 2, 4, 6, 7, 7, 7, 6, 4, 2, 1, 0, 1, 2, 6, 9, 14, 19, 24, 28, 30, 31}
 };
 
-void sinus_dac_init(TBool ref) {
+void sinus_dac_init() {
     LATEbits.LATE1 = 1;
     TRISFbits.TRISF5 = 0;
     FVRCONbits.EN = True;
     FVRCONbits.CDAFVR = 0b10;
     ANSELFbits.ANSELF5 = 0;
-    if(ref){
-        DAC1CON0 = DACON_VALUE_NEW;
-    } else {
-        DAC1CON0 = DACON_VALUE_DEFAULT;
-    }
-    LATEbits.LATE2 = 1;
+    DAC1CON0 = DACON_VALUE_NEW;
 }
 
 void sinus_duration_expired(){
     if(0 < (--beep_duration_residue)) return;
-    stop_sinus();
+    LATEbits.LATE2 = 0; /* Driver OFF */
     // Stop value timer - TMR4
     T4CONbits.ON = 0;
     PIE5bits.TMR4IE = 0;
