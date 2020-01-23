@@ -26,19 +26,14 @@ void ADC_init();
 uint16_t ADC_Read(char selectedADC);
 uint16_t ADC_Read_average(char selectedADC);
 
-#define ADC_BUFFER_SIZE             2
-//#define ADC_MID_BUFFER              4
+#define ADC_BUFFER_SIZE             8
+
 
 uint16_t samples[ADC_BUFFER_SIZE];
 #define head_index                  0
-//#define ADC_MIFDDLE_INDEX           ((head_index+ADC_MID_BUFFER)%ADC_BUFFER_SIZE)
-//#define ADC_INC_HEAD_INDEX          {head_index = (head_index + 1)%ADC_BUFFER_SIZE;}
-#define ADC_BUFFER_PUT(x)           {samples[head_index] = samples[head_index + 1]; samples[head_index+1] = x;}
-//#define ADC_MIDDLE_VALUE            (samples[ADC_MIFDDLE_INDEX])
-#define ADC_LATEST_VALUE            (samples[head_index + 1])
-#define ADC_PREV_VALUE            (samples[head_index])
-//#define ADC_DETECTION_THRESHOLD     200
+#define ADC_BUFFER_PUT(x)           {samples[head_index++] = x; }
 #define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
+#define ADC_BUFFER_CLEAR            { do samples[head_index] = 0; while(head_index--) }
 #define BAT_BUFFER_SIZE             10
 #define BAT_BUFFER_SIZE_SHIFT       3
 uint16_t bat_samples [BAT_BUFFER_SIZE];
@@ -50,7 +45,7 @@ volatile uint16_t adc_battery = 0;
 uint16_t MeanValue();
 #define ADC_CMA_MEMORY_FACTOR       16
 #define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
-//#define ADC_SAMPLE                  {ADC_BUFFER_PUT(ADC_Read(ENVELOPE));ADC_SET_CMA_NEXT(median());}
+
 #define shot_detection_source MICROPHONE
 #define ADC_ENABLE_INTERRUPT_SHOT_DETECTION              {ADPCH = shot_detection_source; ADCON0bits.ADGO = 1; PIE1bits.ADTIE= 1;}
 #define ADC_ENABLE_INTERRUPT_BATTERY               {ADPCH = BATTERY;ADCON3bits.ADSOI = 1;ADCON0bits.ADCONT = 0;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}

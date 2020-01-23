@@ -90,13 +90,6 @@ uint8_t find_set_bit_position(uint8_t n);
 #define InitAttenuator()    { TRISG = 0b11111100; LATG = 0;}
 
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Ports">
-
-#define BuzzerPeriod          50            //[10uSec]  = 10/Freq
-#define BuzzerCycles          300           //Cycles
-#define DACdata               DAC1CON1
-
-// </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Data Model">
 
