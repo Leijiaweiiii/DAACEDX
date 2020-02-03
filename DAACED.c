@@ -228,7 +228,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     // Don't beep ever in silent modes
     if (amplitude == 0) return;
     LATEbits.LATE2 = 1;
-    ADC_HW_filter_timer_start(MAX_FILTER);
+//    ADC_HW_filter_timer_start(MAX_FILTER);
     amplitude_index = amplitude - 1;
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
@@ -3326,7 +3326,7 @@ static interrupt isr_h() {
     if (PIR5bits.TMR8IF) {
         PIR5bits.TMR8IF = 0;
         sinus_duration_expired();
-        ADC_HW_filter_timer_start(MAX_FILTER);     // Guard end of the signal
+//        ADC_HW_filter_timer_start(MAX_FILTER);     // Guard end of the signal
         // If we turned off the sound, turn off external sound too
         if (LATEbits.LATE2 == 0) {
             if (Settings.InputType == INPUT_TYPE_Microphone) {
