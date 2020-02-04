@@ -271,8 +271,9 @@ void getSettings() {
 
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
-    Settings.Sensitivity = DEFAULT_SENSITIVITY;
-    Settings.Attenuator = ATTENUATOR_00_DBm;
+    for (uint8_t i = 0; i<PRESETS_NUM;i++)
+        Settings.Sensitivity_idx[i] = DEFAULT_SENSITIVITY;
+    Settings.RangeType = PRESET_OUTDOOR;
     Settings.Filter = 8; // in 10 mS
     Settings.AR_IS.Autostart = On; // on
     Settings.AR_IS.BuzRef = On; // Fixed reference
@@ -501,15 +502,15 @@ TBool checkShotStringEmpty(uint8_t offset) {
 }
 
 void saveStats() {
-    eeprom_write_array_bulk(StatsStartAddress, &Stats, sizeof (Stats_t));
+    eeprom_write_array_bulk(StatsStartAddress, (uint8_t *)(&Stats), sizeof (Stats_t));
 }
 
 void getStats() {
-    eeprom_read_array(StatsStartAddress, &Stats, sizeof (Stats_t));
+    eeprom_read_array(StatsStartAddress, (uint8_t *)(&Stats), sizeof (Stats_t));
 }
 
 void saveStatsField(void * f, size_t l) {
-    int offset = f - &Stats;
+    int offset = f - (void*)(&Stats);
     eeprom_write_array_bulk(StatsStartAddress + offset, f, l);
 }
 // </editor-fold>
@@ -1069,40 +1070,21 @@ void SetBeep() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
-
+const char *range_types[]={
+    "Airsoft",
+    "Indoor",
+    "Outdoor"
+};
 void SetSens() {//Sensitivity
     NumberSelection_t s;
+    uint8_t rt = Settings.RangeType;
+    uint8_t idx = Settings.Sensitivity_idx[rt];
     InitSettingsNumberDefaults((&s));
-    //    if (Settings.Sensitivity > DETECT_THRESHOLD_LEVELS) Settings.Sensitivity = DETECT_THRESHOLD_LEVELS;
     strcpy(s.MenuTitle, "Set Sensitivity");
-    //    s.max = DETECT_THRESHOLD_LEVELS;
-    //    s.min = 1;
-    s.max = 800;
-    s.min = 5;
-    s.value = Settings.Sensitivity;
-    s.old_value = Settings.Sensitivity;
-    s.step = 5;
-    s.format = "%d";
-    do {
-        DisplayInteger(&s);
-        SelectInteger(&s);
-    } while (SettingsNotDone((&s)));
-    if (s.selected) {
-        Settings.Sensitivity = s.value;
-        if (s.value != s.old_value) {
-            saveSettingsField(&(Settings.Sensitivity), 2);
-        }
-    }
-}
-
-void SetAtt() {
-    NumberSelection_t s;
-    InitSettingsNumberDefaults((&s));
-    strcpy(s.MenuTitle, "Set Attenuator");
-    s.max = 3;
-    s.min = 0;
-    s.value = Settings.Attenuator;
-    s.old_value = Settings.Attenuator;
+    s.max = 10;
+    s.min = 1;
+    s.value = idx;
+    s.old_value = idx;
     s.step = 1;
     s.format = "%d";
     do {
@@ -1110,12 +1092,31 @@ void SetAtt() {
         SelectInteger(&s);
     } while (SettingsNotDone((&s)));
     if (s.selected) {
-        Settings.Attenuator = s.value;
+        Settings.Sensitivity_idx[rt] = (uint8_t)s.value;
         if (s.value != s.old_value) {
-            saveSettingsField(&(Settings.Attenuator), 1);
+            saveSettingsField(Settings.Sensitivity_idx, 3);
         }
     }
-    SetAttenuator(Settings.Attenuator);
+}
+
+void SetRangeType() {
+    InitSettingsMenuDefaults((&mx));
+    strcpy(mx.MenuTitle, "Set Range Type");
+    strcpy(mx.MenuItem[PRESET_AIRSOFT], range_types[PRESET_AIRSOFT]);
+    strcpy(mx.MenuItem[PRESET_OUTDOOR], range_types[PRESET_OUTDOOR]);
+    strcpy(mx.MenuItem[PRESET_INDOOR], range_types[PRESET_INDOOR]);
+    mx.TotalMenuItems = PRESETS_NUM;
+    mx.menu = Settings.RangeType;
+    do {
+        DisplaySettings((&mx));
+        SelectMenuItemCircular((&mx));
+    } while (SettingsNotDone((&mx)));
+    if (mx.selected) {
+        if ( Settings.RangeType != mx.menu) {
+            Settings.RangeType = mx.menu;
+            saveSettingsField(&(Settings.RangeType), 1);
+        }
+    }
 }
 
 // </editor-fold>
@@ -1252,7 +1253,7 @@ void fill_par_nra_ppc_d() {
 void set_par_mode(int m) {
     // Draw back from destructive modes
     restoreSettingsField(&(Settings.Volume), 1);
-    restoreSettingsField(&(Settings.Sensitivity), 2);
+    restoreSettingsField(Settings.Sensitivity_idx, 3);
     switch (m) {
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
@@ -2011,19 +2012,19 @@ void BlueTooth() {
 
 void bt_set_sens() {
     int sens = 0;
-    int att = 0;
+    int rt = 0;
     int max_shot_t = 0;
     char * endp[1];
     sens = strtol(bt_cmd_args_raw, endp, 10);
-    att = strtol(*endp + 1, endp, 10);
-    if (sens > 4 &&
-            sens < 801 &&
-            att >= 0 &&
-            att < 4 ) {
-        Settings.Sensitivity = (uint16_t)sens;
-        Settings.Attenuator = (uint8_t)att;
-        saveSettingsField(&Settings.Attenuator,1);
-        saveSettingsField(&Settings.Sensitivity,2);
+    rt = strtol(*endp + 1, endp, 10);
+    if (sens > 0 &&
+            sens < 11 &&
+            rt >= 0 &&
+            rt < 4 ) {
+        Settings.RangeType = (uint8_t)rt;
+        Settings.Sensitivity_idx[rt] = (uint8_t)sens;
+        saveSettingsField(&Settings.RangeType,1);
+        saveSettingsField(Settings.Sensitivity_idx,3);
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
@@ -2282,11 +2283,12 @@ void handle_bt_commands() {
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 
 void fillMicrophoneMenu() {
+    uint8_t rt = Settings.RangeType;
     ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, " Microphone ");
-    sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity);
+    sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity_idx[rt]);
     sprintf(ma.MenuItem[1], "Filter|%1.2fs", (float) (Settings.Filter) / 100);
-    sprintf(ma.MenuItem[2], "Attenuator|%d", Settings.Attenuator);
+    sprintf(ma.MenuItem[2], "Range Type|%s", range_types[rt]);
 //    sprintf(ma.MenuItem[3], "Max Shot T|%d", Settings.MaxShotDuration);
 }
 
@@ -2308,7 +2310,7 @@ void SetMicrophone() {
                     SetFilter();
                     break;
                 case 2:
-                    SetAtt();
+                    SetRangeType();
                     break;
 //                case 3:
 //                    SetShotDuration();
@@ -2505,8 +2507,9 @@ void SetSettingsMenu() {
 
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
-    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%d %d %0.2f",
-            Settings.Attenuator, Settings.Sensitivity, (float) Settings.Filter / 100);
+    uint8_t rt = Settings.RangeType;
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%c %d %0.2f",
+            range_types[rt][0], Settings.Sensitivity_idx[rt], (float) Settings.Filter / 100);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MODE], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_DISPLAY], "Display|%s %u",
@@ -2807,9 +2810,13 @@ void DetectInit(void) {
     uint16_t Max = 0;
     uint16_t Min = 0xFFFF;
     uint16_t ADCvalue;
-
+    uint8_t rt = Settings.RangeType;
+    uint8_t sens = Settings.Sensitivity_idx[rt];
+    detection_setting_t det_s = detection_presets[rt][sens - 1];
+    
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
+
             ADC_DISABLE_INTERRUPT;
 
             ADC_init();
@@ -2821,11 +2828,8 @@ void DetectInit(void) {
                 Min = min(Min,ADCvalue);
             }
             Mean = Mean >> 6;
-            //            DetectThreshold = Mean + threshold_offsets[Settings.Sensitivity - 1];
-            DetectThreshold = Mean - Settings.Sensitivity;
-            //            DetectThreshold = Settings.Sensitivity;
-            SetAttenuator(Settings.Attenuator);
-            ADC_HW_detect_init(Mean, Settings.Sensitivity, Settings.Sensitivity);
+            SetAttenuator(det_s.att);
+            ADC_HW_detect_init(Mean, det_s.thr, det_s.thr);
             ADC_ENABLE_INTERRUPT_SHOT_DETECTION;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -3198,11 +3202,10 @@ void DiscardShot(){
 void UpdateShot(time_t now, ShotInput_t input) {
     uint24_t dt;
     // Index var is for code size optimisation.
-    uint8_t index, prev_index;
+    uint8_t index;
     index = get_shot_index_in_arr(ShootString.TotShoots);
     if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
         index--;
-    prev_index = get_shot_index_in_arr(top_shot_index()); // function used for optimization
 
     dt = (uint24_t) (now - ShootString_start_time);
 

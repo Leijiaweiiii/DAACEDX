@@ -177,11 +177,26 @@ uint8_t ReviewTopShotDefault;
 #define DELAY_MODE_Custom   3
 #define DELAY_MODE_Other    4
 
-#define DETECT_THRESHOLD_LEVELS 13
-#define DEFAULT_SENSITIVITY     100
+#define DETECT_THRESHOLD_LEVELS 10
+#define DEFAULT_SENSITIVITY     5
 
-const uint8_t threshold_offsets[DETECT_THRESHOLD_LEVELS] = {220, 190, 160, 150, 140, 125, 104, 73, 61, 51, 42, 33, 15};
+typedef struct {
+    uint8_t att;
+    uint8_t thr;
+} detection_setting_t;
 
+enum {
+    PRESET_AIRSOFT = 0,
+    PRESET_OUTDOOR,
+    PRESET_INDOOR,
+    PRESETS_NUM
+};
+
+const detection_setting_t detection_presets[PRESETS_NUM][DETECT_THRESHOLD_LEVELS] = {
+    { {0, 50}, {0, 40}, {0, 30}, {0, 20}, {0, 15}, {0, 12}, {0, 10}, {0, 8}, {0, 6}, {0, 4} },
+    { {2, 50}, {2, 40}, {2, 35}, {1, 50}, {1, 40}, {1, 30}, {1, 20}, {1, 15}, {1, 10},{1, 5} },
+    { {3, 70}, {3, 40}, {3, 35}, {2, 50}, {2, 40}, {2, 30}, {1, 30}, {2, 15}, {2, 10},{2, 5} },
+};
 uint16_t DetectThreshold;
 time_t countdown_start_time;
 
@@ -238,9 +253,9 @@ typedef struct {
     uint8_t TotCustomPar;
     uint8_t TotAutoPar;
     uint8_t InputType; // 7
-    uint8_t Attenuator;
+    uint8_t RangeType;
+    uint8_t Sensitivity_idx[PRESETS_NUM]; // 8
     uint16_t ContrastValue;
-    uint16_t Sensitivity; // 8
     uint16_t BuzzerFrequency; // 9
     uint16_t BuzzerParDuration; // A
     uint16_t BuzzerStartDuration; // B
