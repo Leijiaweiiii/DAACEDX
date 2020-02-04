@@ -2258,8 +2258,13 @@ void handle_bt_commands() {
                     bt_set_delay();
                     break;
                 case BT_GetBatteryMV:
-                    length = sprintf(msg, "%u\n", battery_average());
+                    length = sprintf(msg, "%u", battery_average());
                     sendString(msg, length);
+                    for (uint8_t i = 0; i < BAT_BUFFER_SIZE; i++){
+                        length = sprintf(msg, ",%u", bat_samples[i]);
+                        sendString(msg, length);
+                    }
+                    sendString("\n", 1);
                     break;
                 case BT_SetSensitivity:
                     bt_set_sens();

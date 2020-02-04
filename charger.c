@@ -9,6 +9,7 @@ uint8_t number_of_battery_bars(){
         }
     }
     switch(res){
+        case 1:
         case 2:
         case 3:
             res = 3;
