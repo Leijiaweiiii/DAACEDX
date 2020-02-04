@@ -261,12 +261,6 @@ void lcd_decrease_contrast() {
     lcd_send_command(CMD_VOP_CON_DEC_VOP);
 }
 
-void lcd_write_integer(const int Int, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity) {
-    char msg[10];
-    sprintf(msg, "%d", Int);
-    lcd_write_string_d("       ", x_pos, y_pos, font, polarity);
-    lcd_write_string_d(msg, x_pos, y_pos, font, polarity);
-}
 // TODO: Try generate bitmaps suitable for this method
 
 void lcd_draw_bitmap_flat(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_data) {
