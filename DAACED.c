@@ -85,6 +85,7 @@
 #include "ui.h"
 #include "uart.h"
 #include "random.h"
+#include "math.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
@@ -2647,6 +2648,12 @@ void ReviewDisplay() {
         char * mode;
         uint8_t curr_index = get_rev_shot_index_in_arr(TopShotIndex + i, totShots);
         uint8_t next_index = get_rev_shot_index_in_arr(TopShotIndex + i + 1, totShots);
+        float curr_dt = (float) ReviewString.shots[curr_index].dt / 10;
+        float next_dt = (float) ReviewString.shots[next_index].dt / 10;
+        uint8_t curr_sn = ReviewString.shots[curr_index].sn,
+                next_sn = ReviewString.shots[next_index].sn;
+        curr_dt = round(curr_dt)/100;
+        next_dt = round(next_dt)/100;
 
         if (Settings.InputType == INPUT_TYPE_Microphone) {
             mode = ' ';
@@ -2657,13 +2664,13 @@ void ReviewDisplay() {
         if (i != 0 || totShots >= SHOTS_ON_REVIEW_SCREEN) {
             sprintf(message,
                     REVIEW_SHOT_FORMAT,
-                    ReviewString.shots[curr_index].sn,
-                    (float) ReviewString.shots[curr_index].dt / 1000,
+                    curr_sn,
+                    curr_dt,
                     mode
                     );
             if (lcd_string_lenght(message, MediumFont) > 134
-                    || (ReviewString.shots[curr_index].dt > 99700)
-                    || ReviewString.shots[curr_index].sn > 99)
+                    || (curr_dt > 99.7)
+                    || curr_sn > 99)
                 font = SmallFont;
             else
                 font = MediumFont;
@@ -2674,11 +2681,8 @@ void ReviewDisplay() {
         if (i == totShots) break;
         // Don't print last diff at half line and not the latest
         if (i < SHOTS_ON_REVIEW_SCREEN - 1
-                && ReviewString.shots[next_index].sn > ReviewString.shots[curr_index].sn) {
-
-            sprintf(message,
-                    REVIEW_SPLIT_FORMAT,
-                    (float) (ReviewString.shots[next_index].dt - ReviewString.shots[curr_index].dt) / 1000);
+                && next_sn > curr_sn) {
+            sprintf(message, REVIEW_SPLIT_FORMAT, next_dt - curr_dt);
             lcd_write_string(message, 135, line, MediumFont, BLACK_OVER_WHITE);
         }
         line += halfline;
