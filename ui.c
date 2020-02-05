@@ -217,6 +217,7 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
+            saveShootString();
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
