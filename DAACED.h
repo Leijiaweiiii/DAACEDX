@@ -186,18 +186,23 @@ typedef struct {
 } detection_setting_t;
 
 enum {
-    PRESET_AIRSOFT = 0,
+    PRESET_INDOOR = 0,
     PRESET_OUTDOOR,
-    PRESET_INDOOR,
+    PRESET_AIRSOFT,
     PRESETS_NUM
 };
 
-const detection_setting_t detection_presets[PRESETS_NUM][DETECT_THRESHOLD_LEVELS] = {
-    { {0, 50}, {0, 40}, {0, 30}, {0, 20}, {0, 15}, {0, 12}, {0, 10}, {0, 8}, {0, 6}, {0, 4} },
-    { {2, 50}, {2, 40}, {2, 35}, {1, 50}, {1, 40}, {1, 30}, {1, 20}, {1, 15}, {1, 10},{1, 5} },
-    { {3, 70}, {3, 40}, {3, 35}, {2, 50}, {2, 40}, {2, 30}, {1, 30}, {2, 15}, {2, 10},{2, 5} },
+const char *range_types[]={
+    "Indoor",
+    "Outdoor",
+    "Airsoft",
 };
-uint16_t DetectThreshold;
+
+const detection_setting_t detection_presets[PRESETS_NUM][DETECT_THRESHOLD_LEVELS] = {
+    { {3, 70}, {3, 40}, {3, 35}, {2, 50}, {2, 40}, {2, 30}, {1, 30}, {2, 15}, {2, 10},{2, 5} }, // INDOOR
+    { {2, 50}, {2, 40}, {2, 35}, {1, 50}, {1, 40}, {1, 30}, {1, 20}, {1, 15}, {1, 10},{1, 5} }, // OUTDOOR
+    { {0, 50}, {0, 40}, {0, 30}, {0, 20}, {0, 15}, {0, 12}, {0, 10}, {0, 8}, {0, 6}, {0, 4} },  // AIRSOFT
+};
 time_t countdown_start_time;
 
 // Should not be more than we can display in menu items

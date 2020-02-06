@@ -1071,11 +1071,7 @@ void SetBeep() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
-const char *range_types[]={
-    "Airsoft",
-    "Indoor",
-    "Outdoor"
-};
+
 void SetSens() {//Sensitivity
     NumberSelection_t s;
     uint8_t rt = Settings.RangeType;
