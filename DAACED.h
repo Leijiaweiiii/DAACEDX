@@ -170,15 +170,27 @@ uint8_t CurShootString; //Currently displayed string number 0..29
 uint8_t ReviewTopShotDefault;
 #define SHOTS_ON_REVIEW_SCREEN      3
 
+enum {
+    DELAY_MODE_Instant = 0,
+    DELAY_MODE_Fixed,
+    DELAY_MODE_Random,
+    DELAY_MODE_Custom,
+    DELAY_MODE_Other,
+    NUM_DELAY_MODES
+};
 
-#define DELAY_MODE_Instant  0
-#define DELAY_MODE_Fixed    1
-#define DELAY_MODE_Random   2
-#define DELAY_MODE_Custom   3
-#define DELAY_MODE_Other    4
+enum {
+    SENS_MAX = 0,
+    SENS_HIGH,
+    SENS_MED_HIGH,
+    SENS_MED,
+    SENS_MED_LOW,
+    SENS_LOW,
+    SENS_MIN,
+    NUM_SENS
+};
 
-#define DETECT_THRESHOLD_LEVELS 10
-#define DEFAULT_SENSITIVITY     5
+#define DEFAULT_SENSITIVITY     4
 
 typedef struct {
     uint8_t att;
@@ -192,17 +204,62 @@ enum {
     PRESETS_NUM
 };
 
-const char *range_types[]={
+const char *range_types[PRESETS_NUM]={
     "Outdoor",
     "Indoor",
     "Airsoft",
 };
 
-const detection_setting_t detection_presets[PRESETS_NUM][DETECT_THRESHOLD_LEVELS] = {
-    { {2, 50}, {2, 40}, {2, 35}, {1, 50}, {1, 40}, {1, 30}, {1, 20}, {1, 15}, {1, 10},{1, 5} }, // OUTDOOR
-    { {3, 70}, {3, 40}, {3, 35}, {2, 50}, {2, 40}, {2, 30}, {1, 30}, {2, 15}, {2, 10},{2, 5} }, // INDOOR
-    { {0, 50}, {0, 40}, {0, 30}, {0, 20}, {0, 15}, {0, 12}, {0, 10}, {0, 8}, {0, 6}, {0, 4} },  // AIRSOFT
+const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
+    { 
+        {1, 15}, 
+        {1, 30}, 
+        {1, 40}, 
+        {1, 50}, 
+        {2, 35}, 
+        {2, 40}, 
+        {2, 50}
+     }, // OUTDOOR
+    {
+        {3, 70}, 
+        {3, 40}, 
+        {3, 30}, 
+        {2, 40}, 
+        {2, 30}, 
+        {2, 15}, 
+        {1, 20}
+     }, // INDOOR
+    {
+        {0, 5}, 
+        {0, 10}, 
+        {0, 15}, 
+        {0, 20}, 
+        {0, 30}, 
+        {0, 40}, 
+        {0, 50}
+     },  // AIRSOFT
 };
+
+const char *sens_labels[NUM_SENS] = {
+    "MAX",
+    "High",
+    "Med-High",
+    "Medium",
+    "Med-Low",
+    "Low",
+    "MIN"
+};
+
+const char *sens_labels_short[NUM_SENS] = {
+    "MAX",
+    "H",
+    "MH",
+    "M",
+    "ML",
+    "L",
+    "MIN"
+};
+
 time_t countdown_start_time;
 
 // Should not be more than we can display in menu items

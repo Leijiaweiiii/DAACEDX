@@ -1072,25 +1072,28 @@ void SetBeep() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
 
-void SetSens() {//Sensitivity
-    NumberSelection_t s;
-    uint8_t rt = Settings.RangeType;
-    uint8_t idx = Settings.Sensitivity_idx[rt];
-    InitSettingsNumberDefaults((&s));
-    strcpy(s.MenuTitle, "Set Sensitivity");
-    s.max = 10;
-    s.min = 1;
-    s.value = idx;
-    s.old_value = idx;
-    s.step = 1;
-    s.format = "%d";
+void fill_menu_by_labels(SettingsMenu_t * s, const char ** labels, uint8_t num_labels ){
+    s->TotalMenuItems = num_labels;
     do {
-        DisplayInteger(&s);
-        SelectInteger(&s);
-    } while (SettingsNotDone((&s)));
-    if (s.selected) {
-        Settings.Sensitivity_idx[rt] = (uint8_t)s.value;
-        if (s.value != s.old_value) {
+        strcpy(s->MenuItem[--num_labels], labels[num_labels]);
+    } while (num_labels >0 );
+}
+
+void SetSens() {//Sensitivity
+    uint8_t rt = Settings.RangeType;
+    InitSettingsMenuDefaults((&mx));
+    strcpy(mx.MenuTitle, "Set Sensitivity");
+    fill_menu_by_labels((&mx), sens_labels, NUM_SENS);
+    mx.menu = Settings.Sensitivity_idx[rt];
+    mx.page = ItemToPage(mx.menu);
+    do {
+        DisplaySettings((&mx));
+        SelectMenuItemCircular((&mx));
+    } while (SettingsNotDone((&mx)));
+    if (mx.selected) {
+        
+        if (  Settings.Sensitivity_idx[rt] != mx.menu) {
+            Settings.Sensitivity_idx[rt] = mx.menu;
             saveSettingsField(Settings.Sensitivity_idx, 3);
         }
     }
@@ -1099,10 +1102,7 @@ void SetSens() {//Sensitivity
 void SetRangeType() {
     InitSettingsMenuDefaults((&mx));
     strcpy(mx.MenuTitle, "Set Range Type");
-    strcpy(mx.MenuItem[PRESET_AIRSOFT], range_types[PRESET_AIRSOFT]);
-    strcpy(mx.MenuItem[PRESET_OUTDOOR], range_types[PRESET_OUTDOOR]);
-    strcpy(mx.MenuItem[PRESET_INDOOR], range_types[PRESET_INDOOR]);
-    mx.TotalMenuItems = PRESETS_NUM;
+    fill_menu_by_labels((&mx), range_types, PRESETS_NUM);
     mx.menu = Settings.RangeType;
     do {
         DisplaySettings((&mx));
@@ -2286,9 +2286,10 @@ void handle_bt_commands() {
 
 void fillMicrophoneMenu() {
     uint8_t rt = Settings.RangeType;
+    uint8_t sens = Settings.Sensitivity_idx[rt];
     ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, " Microphone ");
-    sprintf(ma.MenuItem[0], "Sensitivity|%d", Settings.Sensitivity_idx[rt]);
+    sprintf(ma.MenuItem[0], "Sensitivity|%s", sens_labels_short[sens]);
     sprintf(ma.MenuItem[1], "Filter|%1.2fs", (float) (Settings.Filter) / 100);
     sprintf(ma.MenuItem[2], "Range Type|%s", range_types[rt]);
 //    sprintf(ma.MenuItem[3], "Max Shot T|%d", Settings.MaxShotDuration);
@@ -2510,8 +2511,9 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
     uint8_t rt = Settings.RangeType;
-    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%c %d %0.2f",
-            range_types[rt][0], Settings.Sensitivity_idx[rt], (float) Settings.Filter / 100);
+    uint8_t sens_idx = Settings.Sensitivity_idx[rt];
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%c %s %0.2f",
+            range_types[rt][0], sens_labels_short[sens_idx], (float) Settings.Filter / 100);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MODE], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_DISPLAY], "Display|%s %u",
@@ -2817,7 +2819,7 @@ void DetectInit(void) {
     uint16_t ADCvalue;
     uint8_t rt = Settings.RangeType;
     uint8_t sens = Settings.Sensitivity_idx[rt];
-    detection_setting_t det_s = detection_presets[rt][sens - 1];
+    detection_setting_t det_s = detection_presets[rt][sens];
     
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
