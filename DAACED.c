@@ -2259,8 +2259,10 @@ void handle_bt_commands() {
                     sendString(msg, length);
                     for (uint8_t i = 0; i < BAT_BUFFER_SIZE; i++){
                         length = sprintf(msg, ",%u", bat_samples[i]);
+                        Delay(64);
                         sendString(msg, length);
                     }
+                    Delay(64);
                     sendString("\n", 1);
                     break;
                 case BT_SetSensitivity:
