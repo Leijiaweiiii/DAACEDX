@@ -4,7 +4,7 @@
 // These may be macros but moved here for space optimization
 void STATE_HANDLE_POWER_OFF()          {if(ui_state != PowerOff && ui_state != TimerCharging) PowerOffSound(); ui_state = PowerOff;}
 void STATE_HANDLE_POWER_ON()           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
-void STATE_HANDLE_TIMER_IDLE()         {ui_state = TimerIdle;StopTimer();}
+void STATE_HANDLE_TIMER_IDLE()         {StopTimer(); ui_state = TimerIdle;}
 void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
 void STATE_HANDLE_SETTINGS_SCREEN()    {ui_state = SettingsScreen;lcd_clear();}
 void STATE_HANDLE_COUNTDOWN()          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
@@ -217,7 +217,6 @@ void handle_timer_idle() {
 void HandleTimerEvents() {
     switch (timerEventToHandle) {
         case TimerTimeout:
-            saveShootString();
             STATE_HANDLE_TIMER_IDLE();
             break;
         case ParEvent:
