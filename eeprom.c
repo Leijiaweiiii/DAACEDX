@@ -213,7 +213,13 @@ uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes
 }
 
 uint16_t eeprom_read_wdata(uint16_t address) {
-    uint8_t read_least, read_most;
+    union {
+        uint16_t _d;
+        struct{
+            uint8_t read_least;
+            uint8_t read_most;
+        };
+    } _u;
     if (address + 1 > EEPROM_MAX_SIZE) return 0;
     eeprom_busy_wait();
 
@@ -221,14 +227,21 @@ uint16_t eeprom_read_wdata(uint16_t address) {
     eeprom_spi_write(CMD_READ);
     eeprom_spi_write(MSB(address));
     eeprom_spi_write(LSB(address));
-    read_least = eeprom_spi_write(0x00);
-    read_most = eeprom_spi_write(0x00);
+    _u.read_least = eeprom_spi_write(0x00);
+    _u.read_most = eeprom_spi_write(0x00);
     EEPROM_CS_DESELECT();
-    return (read_most << 8) | read_least;
+    return _u._d;
 }
 
 uint24_t eeprom_read_tdata(uint16_t address) {
-    uint8_t read_least, read_mid, read_most;
+    union{
+        uint24_t _d;
+        struct{
+            uint8_t read_least;
+            uint8_t read_mid;
+            uint8_t read_most;
+        };
+    }_u;
     if (address + 1 > EEPROM_MAX_SIZE) return 0;
     eeprom_busy_wait();
 
@@ -236,11 +249,11 @@ uint24_t eeprom_read_tdata(uint16_t address) {
     eeprom_spi_write(CMD_READ);
     eeprom_spi_write(MSB(address));
     eeprom_spi_write(LSB(address));
-    read_least = eeprom_spi_write(0x00);
-    read_mid = eeprom_spi_write(0x00);
-    read_most = eeprom_spi_write(0x00);
+    _u.read_least = eeprom_spi_write(0x00);
+    _u.read_mid = eeprom_spi_write(0x00);
+    _u.read_most = eeprom_spi_write(0x00);
     EEPROM_CS_DESELECT();
-    return (read_most << 16) | (read_mid << 8) | read_least;
+    return _u._d;
 }
 
 

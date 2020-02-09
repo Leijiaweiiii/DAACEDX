@@ -3328,7 +3328,7 @@ void detect_aux_shots() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
-static interrupt isr_h() {
+static void interrupt isr_h() {
     // sinus value interrupt
     if (PIR5bits.TMR4IF) {
         PIR5bits.TMR4IF = 0;
@@ -3349,7 +3349,7 @@ static interrupt isr_h() {
     }
 }
 
-static low_priority interrupt isr_l() {
+static void low_priority interrupt isr_l() {
     if (PIR1bits.ADTIF) {
         PIR1bits.ADTIF = 0; // Clear interrupt flag
         PIE1bits.ADTIE = 0; // Long interrupt, need to stop until end of handling
