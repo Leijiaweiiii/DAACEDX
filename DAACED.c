@@ -803,75 +803,6 @@ void SetContrast() {//PWM Backlight
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Buzzer">
 
-void SetPre() {
-    uint24_t tmp;
-    NumberSelection_t b;
-    InitSettingsNumberDefaults((&b))
-    b.min = 0;
-    b.max = 5;
-    b.value = 2;
-    b.old_value = b.value;
-    tmp = b.value;
-    strcpy(b.MenuTitle, "Set Prescaler");
-    b.step = 1;
-    b.format = "%d";
-    do {
-        DisplayInteger(&b);
-        SelectInteger(&b);
-        if (b.value != tmp) {
-            generate_sinus(1, 0, 1000);
-            tmp = b.value;
-            sinus_s[0].PRE = tmp;
-        }
-    } while (SettingsNotDone((&b)));
-}
-
-void SetPos() {
-    uint24_t tmp;
-    NumberSelection_t b;
-    InitSettingsNumberDefaults((&b))
-    b.min = 1;
-    b.max = 16;
-    b.value = 5;
-    b.old_value = b.value;
-    tmp = b.value;
-    strcpy(b.MenuTitle, "Set Postscale");
-    b.step = 1;
-    b.format = "%d";
-    do {
-        DisplayInteger(&b);
-        SelectInteger(&b);
-        if (b.value != tmp) {
-            generate_sinus(1, 0, 1000);
-            tmp = b.value;
-            sinus_s[0].POS = tmp;
-        }
-    } while (SettingsNotDone((&b)));
-}
-
-void SetPR() {
-    uint24_t tmp;
-    NumberSelection_t b;
-    InitSettingsNumberDefaults((&b))
-    b.min = 1;
-    b.max = 255;
-    b.value = 150;
-    b.old_value = b.value;
-    tmp = b.value;
-    strcpy(b.MenuTitle, "Set PR");
-    b.step = 1;
-    b.format = "%d";
-    do {
-        DisplayInteger(&b);
-        SelectInteger(&b);
-        if (b.value != tmp) {
-            generate_sinus(1, 0, 1000);
-            tmp = b.value;
-            sinus_s[0].PR = tmp;
-        }
-    } while (SettingsNotDone((&b)));
-}
-
 void SetBeepFreq() {
     uint24_t tmp;
     NumberSelection_t b;
@@ -1072,6 +1003,32 @@ void SetBeep() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
 
+const char *sens_labels[NUM_SENS] = {
+    "MAX",
+    "High",
+    "Med-High",
+    "Medium",
+    "Med-Low",
+    "Low",
+    "MIN"
+};
+
+const char *sens_labels_short[NUM_SENS] = {
+    "MAX",
+    "H",
+    "MH",
+    "M",
+    "ML",
+    "L",
+    "MIN"
+};
+
+const char *range_types[PRESETS_NUM]={
+    "Outdoor",
+    "Indoor",
+    "Airsoft"
+};
+
 void fill_menu_by_labels(SettingsMenu_t * s, const char ** labels, uint8_t num_labels ){
     s->TotalMenuItems = num_labels;
     do {
@@ -1091,7 +1048,7 @@ void SetSens() {//Sensitivity
         SelectMenuItemCircular((&mx));
     } while (SettingsNotDone((&mx)));
     if (mx.selected) {
-        
+
         if (  Settings.Sensitivity_idx[rt] != mx.menu) {
             Settings.Sensitivity_idx[rt] = mx.menu;
             saveSettingsField(Settings.Sensitivity_idx, 3);
@@ -1883,13 +1840,22 @@ TBool SetCustomCountDown() {
     return False;
 }
 
+enum {
+    COUNTDOWN_3 = 0,
+    COUNTDOWN_5,
+    COUNTDOWN_CUSTOM,
+    NUM_COUNTDOWN
+};
+const char *countdown_labels [NUM_COUNTDOWN] = {
+    "3 minutes",
+    "5 minutes",
+    "Custom"
+};
+
 void SetCountDown() {
     InitSettingsMenuDefaults((&ma));
-    ma.TotalMenuItems = 3;
     strcpy(ma.MenuTitle, "Set Countdown");
-    strcpy(ma.MenuItem[0], "3 minutes");
-    strcpy(ma.MenuItem[1], "5 minutes");
-    strcpy(ma.MenuItem[2], "Custom");
+    fill_menu_by_labels(&ma, countdown_labels, NUM_COUNTDOWN);
 
     //Main Screen
     do {
@@ -1898,11 +1864,11 @@ void SetCountDown() {
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {
         switch (ma.menu) {
-            case 0: CountDownMode(180);
+            case COUNTDOWN_3: CountDownMode(180);
                 break;
-            case 1: CountDownMode(300);
+            case COUNTDOWN_5: CountDownMode(300);
                 break;
-            case 2:
+            case COUNTDOWN_CUSTOM:
                 if (SetCustomCountDown())
                     CountDownMode(Settings.CustomCDtime);
                 break;
@@ -1933,15 +1899,17 @@ void SetOrientation() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Input">
+const char *input_type_labels[NUM_INPUT_TYPES] = {
+    "Microphone",
+    "A or B (multiple)",
+    "A and B (single)"
+};
 
 void SetInput() {
     uint8_t orgset;
     InitSettingsMenuDefaults((&ma));
     strcpy(ma.MenuTitle, "Select Source");
-    strcpy(ma.MenuItem[INPUT_TYPE_Microphone], "Microphone");
-    strcpy(ma.MenuItem[INPUT_TYPE_A_or_B_multiple], "A or B (multiple)");
-    strcpy(ma.MenuItem[INPUT_TYPE_A_and_B_single], "A and B (single)");
-    ma.TotalMenuItems = 3;
+    fill_menu_by_labels(&ma, input_type_labels, NUM_INPUT_TYPES);
     orgset = Settings.InputType;
     ma.menu = Settings.InputType;
 
@@ -2102,11 +2070,11 @@ void bt_set_mode() {
 }
 
 void bt_set_delay() {
-    int time = 0;
-    time = atoi(bt_cmd_args_raw);
-    if (time > -1 && time < 10001) {
+    int _t = 0;
+    _t = atoi(bt_cmd_args_raw);
+    if (_t > -1 && _t < 10001) {
         Settings.DelayMode = DELAY_MODE_Custom;
-        Settings.CUstomDelayTime = time;
+        Settings.CUstomDelayTime = _t;
         saveSettingsField(&(Settings.CUstomDelayTime), 4);
         saveSettingsField(&(Settings.DelayMode), 1);
         DAA_MSG_OK;
@@ -2822,7 +2790,7 @@ void DetectInit(void) {
     uint8_t rt = Settings.RangeType;
     uint8_t sens = Settings.Sensitivity_idx[rt];
     detection_setting_t det_s = detection_presets[rt][sens];
-    
+
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
 
@@ -3118,6 +3086,12 @@ void DoCharging() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Service functions">
+void StartParTimer() {
+    ParFlags.ParNowCounting = True;
+    InputFlags.FOOTER_CHANGED = True;
+    parStartTime_ms = unix_time_ms;
+    LATEbits.LATE1 = 1; /* Enable 5V booster for the buzzer*/
+}
 
 void StartPlayParSound() {
     if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -3200,7 +3174,7 @@ void DiscardShot(){
     uint8_t index = get_shot_index_in_arr(ShootString.TotShoots);
     if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
         index--;
-    
+
     ShootString.shots[index].sn = 0;
     ShootString.shots[index].dt = 0x000000;
     ShootString.shots[index].is_flags = 0;

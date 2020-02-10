@@ -9,7 +9,6 @@
     Global R&D ltd. 04_9592201    ;  www.global_rd.com
     Eli Jacob 054_8010330         ;  eli@global_rd.com
    ===========================================================================*/
-#define ASYNC_DETECT
 // <editor-fold defaultstate="collapsed" desc="Includes">
 #ifndef _DAACED_H_
 #define _DAACED_H_
@@ -136,9 +135,12 @@ typedef enum {
     B = 0b0100
 } ShotInput_t;
 
-#define INPUT_TYPE_Microphone       0
-#define INPUT_TYPE_A_or_B_multiple  1
-#define INPUT_TYPE_A_and_B_single   2
+enum{
+    INPUT_TYPE_Microphone       = 0,
+    INPUT_TYPE_A_or_B_multiple,
+    INPUT_TYPE_A_and_B_single,
+    NUM_INPUT_TYPES
+};
 
 typedef struct {
     uint8_t input;
@@ -204,12 +206,6 @@ enum {
     PRESETS_NUM
 };
 
-const char *range_types[PRESETS_NUM]={
-    "Outdoor",
-    "Indoor",
-    "Airsoft",
-};
-
 const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
     { 
         {1, 15}, 
@@ -238,26 +234,6 @@ const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
         {0, 40}, 
         {0, 50}
      },  // AIRSOFT
-};
-
-const char *sens_labels[NUM_SENS] = {
-    "MAX",
-    "High",
-    "Med-High",
-    "Medium",
-    "Med-Low",
-    "Low",
-    "MIN"
-};
-
-const char *sens_labels_short[NUM_SENS] = {
-    "MAX",
-    "H",
-    "MH",
-    "M",
-    "ML",
-    "L",
-    "MIN"
 };
 
 time_t countdown_start_time;
@@ -387,7 +363,7 @@ void DoPowerOn();
 void DoCharging();
 void update_shot_time_on_screen();
 void StartPlayParSound();
-#define StartParTimer() { ParFlags.ParNowCounting = True; InputFlags.FOOTER_CHANGED = True; parStartTime_ms = unix_time_ms; LATEbits.LATE1 = 1; /* Enable 5V booster for the buzzer*/}
+void StartParTimer();
 void StartPlayStartSound();
 void StartCountdownTimer();
 uint8_t print_header(TBool hide_time);

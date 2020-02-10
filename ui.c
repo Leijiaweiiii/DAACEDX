@@ -507,3 +507,7 @@ void handle_ui() {
             break;
     }
 }
+
+void set_screen_title(const char * x){
+    sprintf(ScreenTitle," %s ", x);
+}
