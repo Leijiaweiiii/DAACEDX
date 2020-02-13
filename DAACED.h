@@ -154,7 +154,7 @@ typedef struct {
 #define OrientationSensor PORTAbits.RA0
 // Automatic shutdown after timeout 20 minutes
 #define timer_idle_shutdown_timeout 1200000L
-// Dim light after 46 seconds 
+// Dim light after 46 seconds
 #define timer_idle_dim_timeout      45000L
 time_t timer_idle_last_action_time;
 
@@ -164,7 +164,7 @@ time_t timer_idle_last_action_time;
 #include "shot.h"
 ShootString_t ShootString;
 time_t ShootString_start_time;
-uint8_t last_sent_index; // last shot sent to BT 
+uint8_t last_sent_index; // last shot sent to BT
 ShootString_t ReviewString;
 #define MAX_MEASUREMENT_TIME    999991
 uint8_t TopShotIndex; //The current shoot of the displayed string
@@ -192,7 +192,7 @@ enum {
     NUM_SENS
 };
 
-#define DEFAULT_SENSITIVITY     4
+#define DEFAULT_SENSITIVITY     3
 
 typedef struct {
     uint8_t att;
@@ -207,31 +207,31 @@ enum {
 };
 
 const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
-    { 
-        {1, 15}, 
-        {1, 30}, 
-        {1, 40}, 
-        {1, 50}, 
-        {2, 35}, 
-        {2, 40}, 
-        {2, 50}
+    {
+        {0, 30},
+        {1, 30},
+        {1, 40},
+        {2, 40},
+        {2, 50},
+        {3, 50},
+        {3, 60}
      }, // OUTDOOR
     {
-        {2, 30},
-        {3, 30},
+        {2, 40},
         {2, 50},
-        {3, 40},
         {3, 50},
+        {3, 60},
+        {3, 65},
         {3, 70},
-        {3, 100}
+        {3, 80}
      }, // INDOOR
     {
-        {0, 5}, 
-        {0, 10}, 
-        {0, 15}, 
-        {0, 20}, 
-        {0, 30}, 
-        {0, 40}, 
+        {0, 7},
+        {0, 10},
+        {0, 15},
+        {0, 20},
+        {0, 30},
+        {0, 40},
         {0, 50}
      },  // AIRSOFT
 };
