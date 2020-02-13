@@ -1004,13 +1004,13 @@ void SetBeep() {
 // <editor-fold defaultstate="collapsed" desc="Sensitivity">
 
 const char *sens_labels[NUM_SENS] = {
-    "MAX",
+    "Max",
     "High",
     "Med-High",
     "Medium",
     "Med-Low",
     "Low",
-    "MIN"
+    "Min"
 };
 
 const char *sens_labels_short[NUM_SENS] = {
