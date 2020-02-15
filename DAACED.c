@@ -2516,7 +2516,7 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_CLEAR], "Clear History");
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_RESET], "Reset Settings");
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_VERSION], "Device ID|%6s-%02u", device_id, Settings.version);
-    SettingsMenu.TotalMenuItems = 15;
+    SettingsMenu.TotalMenuItems = SETTINGS_NUM_ELEMENTS;
 }
 
 void DoSettings(void) {

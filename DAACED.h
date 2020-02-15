@@ -239,7 +239,7 @@ const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
 time_t countdown_start_time;
 
 // Should not be more than we can display in menu items
-#define MAXPAR 14
+#define MAXPAR MAXMenuItems - 3
 volatile int8_t CurPar_idx = 0; //The par index
 volatile struct{
     unsigned ParNowCounting     : 1;
@@ -250,21 +250,22 @@ volatile struct{
 #define AUTO_PAR_LAST_DETECTION_TIME    999000;
 time_t parStartTime_ms;
 
-#define ParMode_Regular         0
-#define ParMode_Spy             1
-#define ParMode_Repetitive      2
-#define ParMode_AutoPar         3
-//#define ParMode_Practical       4
-//#define ParMode_Barricade       5
-//#define ParMode_FallingPlate    6
-//#define ParMode_MovingTarget    7
-//#define ParMode_NRA_PPC_A       8
-//#define ParMode_NRA_PPC_B       9
-//#define ParMode_NRA_PPC_C       10
-//#define ParMode_NRA_PPC_D       11
-#define ParMode_CUSTOM          4
-
-#define TOT_PAR_MODES           5
+enum {
+    ParMode_Regular = 0,
+    ParMode_Spy,
+    ParMode_Repetitive,
+    ParMode_AutoPar,
+//    ParMode_Practical,
+//    ParMode_Barricade,
+//    ParMode_FallingPlate,
+//    ParMode_MovingTarget,
+//    ParMode_NRA_PPC_A,
+//    ParMode_NRA_PPC_B,
+//    ParMode_NRA_PPC_C,
+//    ParMode_NRA_PPC_D,
+    ParMode_CUSTOM,
+    TOT_PAR_MODES,
+};
 extern const char * par_mode_menu_names[];
 extern const char * par_mode_header_names[];
 
@@ -273,6 +274,36 @@ extern const char * par_mode_header_names[];
 #define SettingsDataSize            (sizeof(Settings_t))
 #define SettingsOffsetOfField(s,f)  (&(f)-&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
+
+
+uint24_t runtimeDelayTime = 2500;
+uint8_t repetitive_counter = 0;
+time_t next_par_ms;
+enum {Face = 0, Edge = 1} repetitive_state;
+
+enum {
+    SETTINGS_INDEX_DELAY = 0,
+    SETTINGS_INDEX_PAR,
+    SETTINGS_INDEX_BUZZER,
+    SETTINGS_INDEX_MIC,
+    SETTINDS_INDEX_COUNTDOWN,
+    SETTINGS_INDEX_DISPLAY,
+    SETTINGS_INDEX_MODE,
+    SETTINDS_INDEX_AUTOSTART,
+    SETTINDS_INDEX_CLOCK,
+    SETTINDS_INDEX_INPUT,
+    SETTINDS_INDEX_BLUETOOTH,
+    SETTINDS_INDEX_AUTO_POWER,
+    SETTINDS_INDEX_CLEAR,
+    SETTINDS_INDEX_RESET,
+    SETTINDS_INDEX_VERSION,
+    SETTINGS_NUM_ELEMENTS,
+};
+
+#include "menu.h"
+SettingsMenu_t ma; // Submenu for second level menu
+SettingsMenu_t mx; // Submenu for third level menu
+SettingsMenu_t SettingsMenu;
 
 typedef struct {
     float delay;
@@ -307,32 +338,6 @@ typedef struct {
     AutoPar_t AutoPar[MAXPAR];
 } Settings_t;
 volatile Settings_t Settings;
-
-
-uint24_t runtimeDelayTime = 2500;
-uint8_t repetitive_counter = 0;
-time_t next_par_ms;
-enum {Face = 0, Edge = 1} repetitive_state;
-
-#include "menu.h"
-SettingsMenu_t ma; // Submenu for second level menu
-SettingsMenu_t mx; // Submenu for third level menu
-SettingsMenu_t SettingsMenu;
-#define SETTINGS_INDEX_DELAY        0
-#define SETTINGS_INDEX_PAR          1
-#define SETTINGS_INDEX_BUZZER       2
-#define SETTINGS_INDEX_MIC          3
-#define SETTINGS_INDEX_MODE         4
-#define SETTINGS_INDEX_DISPLAY      5
-#define SETTINDS_INDEX_COUNTDOWN    6
-#define SETTINDS_INDEX_AUTOSTART    7
-#define SETTINDS_INDEX_CLOCK        8
-#define SETTINDS_INDEX_INPUT        9
-#define SETTINDS_INDEX_BLUETOOTH    10
-#define SETTINDS_INDEX_AUTO_POWER   11
-#define SETTINDS_INDEX_CLEAR        12
-#define SETTINDS_INDEX_RESET        13
-#define SETTINDS_INDEX_VERSION      14
 
 #define ROM_GUARD_INTERVAL  32
 #define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + ROM_GUARD_INTERVAL)
