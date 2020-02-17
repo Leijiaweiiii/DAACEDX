@@ -2111,6 +2111,12 @@ void bt_get_pars() {
     }
 }
 
+void print_and_send_stat(char * msg, const char * fmt, uint32_t value){
+    int length = sprintf(msg, fmt, value);
+    Delay(50);
+    sendString(msg, length);
+}
+
 void handle_bt_commands() {
     uint8_t length = 0;
     char msg[20];
@@ -2179,27 +2185,13 @@ void handle_bt_commands() {
                 case BT_GetStats:
                     length = sprintf(msg, "ID,%12s\n", mac_addr);
                     sendString(msg, length);
-                    length = sprintf(msg, "PowerOn,%u\n", Stats.PowerOn);
-                    Delay(50);
-                    sendString(msg, length);
-                    length = sprintf(msg, "Signal,%u\n", Stats.Signal);
-                    Delay(50);
-                    sendString(msg, length);
-                    length = sprintf(msg, "Review,%u\n", Stats.Review);
-                    Delay(50);
-                    sendString(msg, length);
-                    length = sprintf(msg, "Settings,%u\n", Stats.Settings);
-                    Delay(50);
-                    sendString(msg, length);
-                    length = sprintf(msg, "Charging,%u\n", Stats.Charging);
-                    Delay(50);
-                    sendString(msg, length);
-                    length = sprintf(msg, "Charged,%u\n", Stats.Charged);
-                    Delay(50);
-                    sendString(msg, length);
-                    length = sprintf(msg, "LowPower,%u\n", Stats.LowPower);
-                    Delay(50);
-                    sendString(msg, length);
+                    print_and_send_stat(msg, "PowerOn,%u\n", Stats.PowerOn);
+                    print_and_send_stat(msg, "Signal,%u\n", Stats.Signal);
+                    print_and_send_stat(msg, "Review,%u\n", Stats.Review);
+                    print_and_send_stat(msg, "Settings,%u\n", Stats.Settings);
+                    print_and_send_stat(msg, "Charging,%u\n", Stats.Charging);
+                    print_and_send_stat(msg, "Charged,%u\n", Stats.Charged);
+                    print_and_send_stat(msg, "LowPower,%u\n", Stats.LowPower);
                     for (uint8_t i = 0; i < 3; i++) {
                         length = sprintf(msg, "Input-%u,%u\n", i, Stats.InputModes[i]);
                         Delay(50);
@@ -2223,14 +2215,11 @@ void handle_bt_commands() {
                     bt_set_delay();
                     break;
                 case BT_GetBatteryMV:
-                    length = sprintf(msg, "%u", battery_average());
-                    sendString(msg, length);
+                    print_and_send_stat(msg, "%u", battery_average());
                     for (uint8_t i = 0; i < BAT_BUFFER_SIZE; i++){
-                        length = sprintf(msg, ",%u", bat_samples[i]);
-                        Delay(64);
-                        sendString(msg, length);
+                        print_and_send_stat(msg, ",%u", bat_samples[i]);
                     }
-                    Delay(64);
+                    Delay(50);
                     sendString("\n", 1);
                     break;
                 case BT_SetSensitivity:
@@ -3081,6 +3070,10 @@ void DoCharging() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Service functions">
+void Delay(int t) 
+{
+    for (int w=0 ; w<t ; w++)  __delay_ms(1);
+}
 void StartParTimer() {
     ParFlags.ParNowCounting = True;
     InputFlags.FOOTER_CHANGED = True;
