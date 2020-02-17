@@ -46,7 +46,6 @@ extern "C" {
     uint16_t battery_voltage_thresholds[] = {3930, 3800, 3720, 3690, 3550, 3400};
     uint16_t battery_mV = 0;
     uint16_t battery_average();
-#define battery_low         (battery_average()<battery_voltage_thresholds[5])
     uint8_t number_of_battery_bars();
     
 #ifdef	__cplusplus

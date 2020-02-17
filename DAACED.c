@@ -3033,11 +3033,6 @@ void DoPowerOn() {
     INT0IE = 0; // Disable wakeup interrupt
     init_ms_timer0();
     initialize_rtc_timer();
-    for (uint8_t i = 0; i < BAT_BUFFER_SIZE; i++) {
-        battery_mV = ADC_Read(BATTERY) * BAT_divider;
-        BAT_BUFFER_PUT(battery_mV);
-        Delay(10);
-    }
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 0;
         TRISDbits.TRISD2 = 0;
@@ -3114,6 +3109,8 @@ void StartPlayStartSound() {
 void StartCountdownTimer() {
     char msg[16];
     uint8_t length;
+    ADC_ENABLE_INTERRUPT_BATTERY;
+    Delay(1);
     LATEbits.LATE1 = 1; // Enable 5V booster for the buzzer
     InputFlags.FOOTER_CHANGED = True;
     restoreSettingsField(&(Settings.DelayMode), 1);
@@ -3370,7 +3367,8 @@ static void low_priority interrupt isr_l() {
         if (_minute != const_minute) {
             if (ui_state == PowerOff) {
                 define_charger_state();
-            } else if (ui_state != TimerListening && ui_state != TimerCountdown) {
+            }
+            if (ui_state != TimerListening && ui_state != TimerCountdown) {
                 ADC_ENABLE_INTERRUPT_BATTERY;
             }
         }
@@ -3420,6 +3418,12 @@ void main(void) {
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
+    }
+    {
+        uint8_t i = BAT_BUFFER_SIZE;
+        do{
+            bat_samples[--i] = 4096;
+        } while(i != 0);
     }
     DoPowerOn();
     set_backlight(Settings.BackLightLevel);
