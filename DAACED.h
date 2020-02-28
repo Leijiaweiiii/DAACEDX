@@ -203,10 +203,11 @@ enum {
     PRESET_OUTDOOR = 0,
     PRESET_INDOOR,
     PRESET_AIRSOFT,
+    PRESET_MANUAL,
     PRESETS_NUM
 };
 
-const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
+detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
     {
         {0, 30},
         {1, 30},
@@ -234,6 +235,15 @@ const detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
         {0, 40},
         {0, 50}
      },  // AIRSOFT
+     {
+        {0, 7},
+        {0, 10},
+        {0, 15},
+        {0, 20},
+        {0, 30},
+        {0, 40},
+        {0, 50}
+     },  // MANUAL
 };
 
 time_t countdown_start_time;

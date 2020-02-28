@@ -1026,7 +1026,8 @@ const char *sens_labels_short[NUM_SENS] = {
 const char *range_types[PRESETS_NUM]={
     "Outdoor",
     "Indoor",
-    "Airsoft"
+    "Airsoft",
+    "Manual"
 };
 
 void fill_menu_by_labels(SettingsMenu_t * s, const char ** labels, uint8_t num_labels ){
@@ -1048,7 +1049,6 @@ void SetSens() {//Sensitivity
         SelectMenuItemCircular((&mx));
     } while (SettingsNotDone((&mx)));
     if (mx.selected) {
-
         if (  Settings.Sensitivity_idx[rt] != mx.menu) {
             Settings.Sensitivity_idx[rt] = mx.menu;
             saveSettingsField(Settings.Sensitivity_idx, 3);
@@ -1071,6 +1071,52 @@ void SetRangeType() {
             saveSettingsField(&(Settings.RangeType), 1);
         }
     }
+}
+
+
+void SetManualSens() {//Sensitivity
+    NumberSelection_t s;
+    InitSettingsNumberDefaults((&s));
+    strcpy(s.MenuTitle, "Set Sensitivity");
+    uint8_t rt = Settings.RangeType;
+    uint8_t sens = Settings.Sensitivity_idx[rt];
+    detection_setting_t * det_s = &detection_presets[rt][sens];
+    s.max = 800;
+    s.min = 5;
+    s.value = det_s ->thr;
+    s.old_value = s.value;
+    s.step = 5;
+    s.format = "%d";
+    do {
+        DisplayInteger(&s);
+        SelectInteger(&s);
+    } while (SettingsNotDone((&s)));
+    if (s.selected) {
+        det_s -> thr = s.value;
+    }
+}
+
+void SetAtt() {
+    NumberSelection_t s;
+    InitSettingsNumberDefaults((&s));
+    uint8_t rt = Settings.RangeType;
+    uint8_t sens = Settings.Sensitivity_idx[rt];
+    detection_setting_t * det_s = &detection_presets[rt][sens];
+    strcpy(s.MenuTitle, "Set Attenuator");
+    s.max = 3;
+    s.min = 0;
+    s.value = det_s -> att;
+    s.old_value = s.value;
+    s.step = 1;
+    s.format = "%d";
+    do {
+        DisplayInteger(&s);
+        SelectInteger(&s);
+    } while (SettingsNotDone((&s)));
+    if (s.selected) {
+        det_s -> att = s.value;
+    }
+    SetAttenuator(det_s -> att);
 }
 
 // </editor-fold>
@@ -2246,12 +2292,18 @@ void handle_bt_commands() {
 void fillMicrophoneMenu() {
     uint8_t rt = Settings.RangeType;
     uint8_t sens = Settings.Sensitivity_idx[rt];
-    ma.TotalMenuItems = 3;
+    
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%s", sens_labels_short[sens]);
     sprintf(ma.MenuItem[1], "Filter|%1.2fs", (float) (Settings.Filter) / 100);
     sprintf(ma.MenuItem[2], "Range Type|%s", range_types[rt]);
-//    sprintf(ma.MenuItem[3], "Max Shot T|%d", Settings.MaxShotDuration);
+    ma.TotalMenuItems = 3;
+    if (rt == PRESET_MANUAL){
+        detection_setting_t det_s = detection_presets[rt][sens];
+        sprintf(ma.MenuItem[3], "Threshold|%d", det_s.thr);
+        sprintf(ma.MenuItem[4], "ATT|%d", det_s.att);
+        ma.TotalMenuItems = 5;
+    }
 }
 
 void SetMicrophone() {
@@ -2274,9 +2326,12 @@ void SetMicrophone() {
                 case 2:
                     SetRangeType();
                     break;
-//                case 3:
-//                    SetShotDuration();
-//                    break;
+                case 3:
+                    SetManualSens();
+                    break;
+                case 4:
+                    SetAtt();
+                    break;
             }
             fillMicrophoneMenu();
             lcd_clear();
