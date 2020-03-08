@@ -104,7 +104,7 @@ void PIC_init(void) {
     //    OSCENbits.ADOEN = 1; // Enable ADC oscillator;
     OSCEN = 0b01001100;
     TRISA = 0b11111111;
-    ANSELA = 0b00001110; // ADC inputs 1..3
+    ANSELA = 0b00001111; // ADC inputs 0..3
     TRISB = 0b11111111; //
     ANSELB = 0b00000000;
 
@@ -272,9 +272,7 @@ void getSettings() {
 
 void getDefaultSettings() {
     Settings.version = FW_VERSION;
-    for (uint8_t i = 0; i<PRESETS_NUM;i++)
-        Settings.Sensitivity_idx[i] = DEFAULT_SENSITIVITY;
-    Settings.RangeType = PRESET_OUTDOOR;
+    Settings.Sensitivity_idx = DEFAULT_SENSITIVITY;
     Settings.Filter = 8; // in 10 mS
     Settings.AR_IS.Autostart = On; // on
     Settings.AR_IS.BuzRef = On; // Fixed reference
@@ -309,6 +307,9 @@ void getDefaultSettings() {
     Settings.RepetitiveRepeat = 1;
     repetitive_state = Face;
     repetitive_counter = 0;
+    for (uint8_t i = 0; i < NUM_SENS; ++i){
+        detection_presets[i] = detection_presets_defaults[i];
+    }
     saveSettings();
 }
 
@@ -1014,20 +1015,13 @@ const char *sens_labels[NUM_SENS] = {
 };
 
 const char *sens_labels_short[NUM_SENS] = {
-    "MAX",
+    "Max",
     "H",
     "MH",
-    "M",
+    "Med",
     "ML",
     "L",
-    "MIN"
-};
-
-const char *range_types[PRESETS_NUM]={
-    "Outdoor",
-    "Indoor",
-    "Airsoft",
-    "Manual"
+    "Min"
 };
 
 void fill_menu_by_labels(SettingsMenu_t * s, const char ** labels, uint8_t num_labels ){
@@ -1038,52 +1032,31 @@ void fill_menu_by_labels(SettingsMenu_t * s, const char ** labels, uint8_t num_l
 }
 
 void SetSens() {//Sensitivity
-    uint8_t rt = Settings.RangeType;
     InitSettingsMenuDefaults((&mx));
     strcpy(mx.MenuTitle, "Set Sensitivity");
     fill_menu_by_labels((&mx), sens_labels, NUM_SENS);
-    mx.menu = Settings.Sensitivity_idx[rt];
+    mx.menu = Settings.Sensitivity_idx;
     mx.page = ItemToPage(mx.menu);
     do {
         DisplaySettings((&mx));
         SelectMenuItemCircular((&mx));
     } while (SettingsNotDone((&mx)));
     if (mx.selected) {
-        if (  Settings.Sensitivity_idx[rt] != mx.menu) {
-            Settings.Sensitivity_idx[rt] = mx.menu;
-            saveSettingsField(Settings.Sensitivity_idx, 3);
+        if (Settings.Sensitivity_idx != mx.menu) {
+            Settings.Sensitivity_idx = mx.menu;
+            saveSettingsField(&Settings.Sensitivity_idx, 1);
         }
     }
 }
-
-void SetRangeType() {
-    InitSettingsMenuDefaults((&mx));
-    strcpy(mx.MenuTitle, "Set Range Type");
-    fill_menu_by_labels((&mx), range_types, PRESETS_NUM);
-    mx.menu = Settings.RangeType;
-    do {
-        DisplaySettings((&mx));
-        SelectMenuItemCircular((&mx));
-    } while (SettingsNotDone((&mx)));
-    if (mx.selected) {
-        if ( Settings.RangeType != mx.menu) {
-            Settings.RangeType = mx.menu;
-            saveSettingsField(&(Settings.RangeType), 1);
-        }
-    }
-}
-
 
 void SetManualSens() {//Sensitivity
     NumberSelection_t s;
     InitSettingsNumberDefaults((&s));
     strcpy(s.MenuTitle, "Set Sensitivity");
-    uint8_t rt = Settings.RangeType;
-    uint8_t sens = Settings.Sensitivity_idx[rt];
-    detection_setting_t * det_s = &detection_presets[rt][sens];
+    uint8_t sens = Settings.Sensitivity_idx;
     s.max = 800;
     s.min = 5;
-    s.value = det_s ->thr;
+    s.value = detection_presets[sens];
     s.old_value = s.value;
     s.step = 5;
     s.format = "%d";
@@ -1092,32 +1065,10 @@ void SetManualSens() {//Sensitivity
         SelectInteger(&s);
     } while (SettingsNotDone((&s)));
     if (s.selected) {
-        det_s -> thr = s.value;
+        detection_presets[sens] = s.value;
     }
 }
 
-void SetAtt() {
-    NumberSelection_t s;
-    InitSettingsNumberDefaults((&s));
-    uint8_t rt = Settings.RangeType;
-    uint8_t sens = Settings.Sensitivity_idx[rt];
-    detection_setting_t * det_s = &detection_presets[rt][sens];
-    strcpy(s.MenuTitle, "Set Attenuator");
-    s.max = 3;
-    s.min = 0;
-    s.value = det_s -> att;
-    s.old_value = s.value;
-    s.step = 1;
-    s.format = "%d";
-    do {
-        DisplayInteger(&s);
-        SelectInteger(&s);
-    } while (SettingsNotDone((&s)));
-    if (s.selected) {
-        det_s -> att = s.value;
-    }
-    SetAttenuator(det_s -> att);
-}
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Filter">
@@ -1253,7 +1204,7 @@ void fill_par_nra_ppc_d() {
 void set_par_mode(int m) {
     // Draw back from destructive modes
     restoreSettingsField(&(Settings.Volume), 1);
-    restoreSettingsField(Settings.Sensitivity_idx, 3);
+    restoreSettingsField(Settings.Sensitivity_idx, 1);
     switch (m) {
         case ParMode_Spy:
             Settings.DelayMode = DELAY_MODE_Instant;
@@ -2027,15 +1978,10 @@ void bt_set_sens() {
     int max_shot_t = 0;
     char * endp[1];
     sens = strtol(bt_cmd_args_raw, endp, 10);
-    rt = strtol(*endp + 1, endp, 10);
     if (sens > 0 &&
-            sens < 11 &&
-            rt >= 0 &&
-            rt < 4 ) {
-        Settings.RangeType = (uint8_t)rt;
-        Settings.Sensitivity_idx[rt] = (uint8_t)sens;
-        saveSettingsField(&Settings.RangeType,1);
-        saveSettingsField(Settings.Sensitivity_idx,3);
+            sens < NUM_SENS ) {
+        Settings.Sensitivity_idx = (uint8_t)sens;
+        saveSettingsField(&Settings.Sensitivity_idx,1);
         DAA_MSG_OK;
     } else {
         DAA_MSG_ERROR;
@@ -2290,20 +2236,12 @@ void handle_bt_commands() {
 // <editor-fold defaultstate="collapsed" desc="Microphone">
 
 void fillMicrophoneMenu() {
-    uint8_t rt = Settings.RangeType;
-    uint8_t sens = Settings.Sensitivity_idx[rt];
-    
+    uint8_t sens = Settings.Sensitivity_idx;
     strcpy(ma.MenuTitle, " Microphone ");
     sprintf(ma.MenuItem[0], "Sensitivity|%s", sens_labels_short[sens]);
     sprintf(ma.MenuItem[1], "Filter|%1.2fs", (float) (Settings.Filter) / 100);
-    sprintf(ma.MenuItem[2], "Range Type|%s", range_types[rt]);
+    sprintf(ma.MenuItem[2], "Threshold|%u", detection_presets[sens]);
     ma.TotalMenuItems = 3;
-    if (rt == PRESET_MANUAL){
-        detection_setting_t det_s = detection_presets[rt][sens];
-        sprintf(ma.MenuItem[3], "Threshold|%d", det_s.thr);
-        sprintf(ma.MenuItem[4], "ATT|%d", det_s.att);
-        ma.TotalMenuItems = 5;
-    }
 }
 
 void SetMicrophone() {
@@ -2324,13 +2262,7 @@ void SetMicrophone() {
                     SetFilter();
                     break;
                 case 2:
-                    SetRangeType();
-                    break;
-                case 3:
                     SetManualSens();
-                    break;
-                case 4:
-                    SetAtt();
                     break;
             }
             fillMicrophoneMenu();
@@ -2524,10 +2456,9 @@ void SetSettingsMenu() {
 
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_BUZZER], "Buzzer|%d %dHz",
             Settings.Volume, Settings.BuzzerFrequency);
-    uint8_t rt = Settings.RangeType;
-    uint8_t sens_idx = Settings.Sensitivity_idx[rt];
-    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%c %s %0.2f",
-            range_types[rt][0], sens_labels_short[sens_idx], (float) Settings.Filter / 100);
+    uint8_t sens_idx = Settings.Sensitivity_idx;
+    sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MIC], "Microphone|%s %0.2f",
+            sens_labels_short[sens_idx], (float) Settings.Filter / 100);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_MODE], "Mode|%s",
             par_mode_header_names[Settings.ParMode]);
     sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_DISPLAY], "Display|%s %u",
@@ -2831,9 +2762,8 @@ void DetectInit(void) {
     uint16_t Max = 0;
     uint16_t Min = 0xFFFF;
     uint16_t ADCvalue;
-    uint8_t rt = Settings.RangeType;
-    uint8_t sens = Settings.Sensitivity_idx[rt];
-    detection_setting_t det_s = detection_presets[rt][sens];
+    uint8_t sens = Settings.Sensitivity_idx;
+    detection_setting_t det_s = detection_presets[sens];
 
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
@@ -2849,8 +2779,7 @@ void DetectInit(void) {
                 Min = min(Min,ADCvalue);
             }
             Mean = Mean >> 6;
-            SetAttenuator(det_s.att);
-            ADC_HW_detect_init(Mean, det_s.thr, det_s.thr);
+            ADC_HW_detect_init(Mean, det_s, det_s);
             ADC_ENABLE_INTERRUPT_SHOT_DETECTION;
             // Enable output driver for A/B I/O
             TRISDbits.TRISD0 = 0;
@@ -2983,7 +2912,7 @@ void print_footer() {
             break;
     }
     //    sprintf(message, "%u", PORTD&0x7);
-    //    sprintf(message, "%u", ADC_LATEST_VALUE);
+    sprintf(message, "%u/%u", max_idx, max_err);
     print_label_at_footer_grid(message, 1, 1);
 }
 
@@ -3125,7 +3054,7 @@ void DoCharging() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Service functions">
-void Delay(int t) 
+void Delay(int t)
 {
     for (int w=0 ; w<t ; w++)  __delay_ms(1);
 }
@@ -3372,12 +3301,29 @@ static void low_priority interrupt isr_l() {
     if (PIR1bits.ADTIF) {
         PIR1bits.ADTIF = 0; // Clear interrupt flag
         PIE1bits.ADTIE = 0; // Long interrupt, need to stop until end of handling
-        if (ADSTATbits.ADUTHR) {
-            ADC_HW_filter_timer_start(Settings.Filter);
+        if (! block_shot){
             UpdateShotNow(Mic);
-        } else {
-            ADGO = 1; // Don't know how we got here, but just to not stuck
+            ADC_HW_detect_shot_start_init();
+            ADC_HW_filter_timer_start(Settings.Filter);
+            block_shot = True;
+            max_err = 0;
+            rrr = 0;
+            int_cnt = 0;
+            max_idx = 0;
         }
+        ADC_BUFFER_PUT(ADERR);
+        int_cnt++;
+        if(max_err < ADC_BUFFER_NOW){
+            max_err = ADC_BUFFER_NOW;
+            max_idx = int_cnt;
+            max_idx = MAX(0, max_idx);
+        }
+        if(ADC_BUFFER_END){
+            ADC_BUFFER_CLEAR;
+            rrr = MAX(++rrr,rrr); // To avoid optimization
+        }
+
+        ADGO = 1;
     }
     if (PIR0bits.TMR0IF) {
         PIR0bits.TMR0IF = 0;
@@ -3428,9 +3374,10 @@ static void low_priority interrupt isr_l() {
         TMR6IF = 0;
         ADC_HW_detect_shot_start_init();
         // Shot filter timer expired
-        PIR1bits.ADTIF = 0; // Clear interrupt flag
+        PIR1bits.ADTIF = 0;
         PIE1bits.ADTIE = 1;
-        ADGO = 1;
+        block_shot = False;
+        ADC_BUFFER_CLEAR;
     }
     if (PIR3bits.TX1IF) {
         PIR3bits.TX1IF = 0;

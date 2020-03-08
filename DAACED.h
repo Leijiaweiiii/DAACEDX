@@ -194,57 +194,14 @@ enum {
 
 #define DEFAULT_SENSITIVITY     3
 
-typedef struct {
-    uint8_t att;
-    uint8_t thr;
-} detection_setting_t;
+typedef  uint16_t detection_setting_t;
 
-enum {
-    PRESET_OUTDOOR = 0,
-    PRESET_INDOOR,
-    PRESET_AIRSOFT,
-    PRESET_MANUAL,
-    PRESETS_NUM
-};
-
-detection_setting_t detection_presets[PRESETS_NUM][NUM_SENS] = {
-    {
-        {0, 30},
-        {1, 30},
-        {1, 40},
-        {2, 40},
-        {2, 50},
-        {3, 50},
-        {3, 60}
-     }, // OUTDOOR
-    {
-        {2, 40},
-        {2, 50},
-        {3, 50},
-        {3, 60},
-        {3, 65},
-        {3, 70},
-        {3, 80}
-     }, // INDOOR
-    {
-        {0, 7},
-        {0, 10},
-        {0, 15},
-        {0, 20},
-        {0, 30},
-        {0, 40},
-        {0, 50}
-     },  // AIRSOFT
-     {
-        {0, 7},
-        {0, 10},
-        {0, 15},
-        {0, 20},
-        {0, 30},
-        {0, 40},
-        {0, 50}
-     },  // MANUAL
-};
+TBool block_shot = False;
+int16_t max_err = 0;
+uint16_t rrr = 0;
+uint16_t int_cnt,max_idx;
+const detection_setting_t detection_presets_defaults[NUM_SENS] = {100, 200, 250, 300, 350, 400, 450};
+detection_setting_t detection_presets[NUM_SENS] = {100, 200, 250, 300, 350, 400, 450};
 
 time_t countdown_start_time;
 
@@ -333,7 +290,7 @@ typedef struct {
     uint8_t TotAutoPar;
     uint8_t InputType; // 7
     uint8_t RangeType;
-    uint8_t Sensitivity_idx[PRESETS_NUM]; // 8
+    uint8_t Sensitivity_idx; // 8
     uint16_t ContrastValue;
     uint16_t BuzzerFrequency; // 9
     uint16_t BuzzerParDuration; // A

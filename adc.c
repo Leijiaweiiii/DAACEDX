@@ -35,6 +35,7 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
     ADCON2bits.ADMD     = 0b000;       // Basic mode
 //    ADCON2bits.ADMD     = 0b010;       // Averaging mode
     ADCON3 = 0b00011010;                // Stop on interrupt set to avoid false shots when long handlong the interrupt
+    ADC_HW_detect_shot_start_init();
 //    ADCON3bits.ADTMD    = 0b010;       // Interrupt if ADERR > ADLTH
 //    ADCON3bits.ADCALC   = 0b001;       // Comparison with setpoint
 //    ADCON3bits.ADSOI    = 0;           // Don't stop on interrupt
