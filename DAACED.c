@@ -1054,8 +1054,8 @@ void SetManualSens() {//Sensitivity
     InitSettingsNumberDefaults((&s));
     strcpy(s.MenuTitle, "Set Sensitivity");
     uint8_t sens = Settings.Sensitivity_idx;
-    s.max = 800;
-    s.min = 5;
+    s.max = 495;
+    s.min = 10;
     s.value = detection_presets[sens];
     s.old_value = s.value;
     s.step = 5;
