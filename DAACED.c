@@ -3346,9 +3346,7 @@ static void low_priority interrupt isr_l() {
         PIR1bits.ADIF = 0;
         if (ADPCH == BATTERY) {
             ADCON0bits.ADGO = 0;
-            adc_battery = ADC_SAMPLE_REG_16_BIT;
-            battery_mV = adc_battery*BAT_divider;
-            BAT_BUFFER_PUT(battery_mV);
+            BAT_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
             ADC_DISABLE_INTERRUPT;
         }
     }

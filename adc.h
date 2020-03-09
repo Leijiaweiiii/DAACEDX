@@ -43,13 +43,6 @@ uint8_t head_index        =         0;
 uint16_t bat_samples [BAT_BUFFER_SIZE];
 void BAT_BUFFER_PUT(uint16_t x);
 
-uint16_t median();
-volatile uint16_t cma_n = 0;
-volatile uint16_t adc_battery = 0;
-uint16_t MeanValue();
-#define ADC_CMA_MEMORY_FACTOR       16
-#define ADC_SET_CMA_NEXT(x)         {cma_n = cma_n+(x-cma_n)/ADC_CMA_MEMORY_FACTOR;}
-
 #define shot_detection_source ACCELEROMETER
 #define ADC_ENABLE_INTERRUPT_SHOT_DETECTION              {ADPCH = shot_detection_source; ADCON0bits.ADGO = 1; PIE1bits.ADTIE= 1;}
 #define ADC_ENABLE_INTERRUPT_BATTERY               {ADPCH = BATTERY;ADCON3bits.ADSOI = 1;ADCON0bits.ADCONT = 0;ADCON0bits.ADGO = 1;PIE1bits.ADIE=1;}
