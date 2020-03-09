@@ -865,7 +865,7 @@ void SetVolume() {
         }
     }
 }
-#define SEC_FIELD_DISPLAY_FORMAT    " %1.2fs "
+#define SEC_FIELD_DISPLAY_FORMAT    " %1.02fs "
 #define SEC_FIELD_DISPLAY_FORMAT_SHORT    " %1.1fs "
 
 void SetBeepTime(TBool Par) {
@@ -953,7 +953,7 @@ void SetBuzRef() {
 void setBuzzerMenu() {
     sprintf(ma.MenuItem[0], " Frequency|%dHz ", Settings.BuzzerFrequency);
     sprintf(ma.MenuItem[1], " Volume|%d ", Settings.Volume);
-    sprintf(ma.MenuItem[2], " Par Duration|%1.1fs ", (float) (Settings.BuzzerParDuration) / 1000);
+    sprintf(ma.MenuItem[2], " Par Duration|%1.02fs ", (float) (Settings.BuzzerParDuration) / 1000);
     sprintf(ma.MenuItem[3], " Startup Sound|%s ", Settings.AR_IS.StartSound ? "ON" : "OFF");
     strcpy(ma.MenuItem[4], " Test Beep ");
     //    strcpy(ma.MenuItem[5], " Buzzer Reference ");
