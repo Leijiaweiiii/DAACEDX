@@ -3032,14 +3032,14 @@ void DoCharging() {
         switch (charger_state) {
             case Charging:
                 lcd_clear();
-                sprintf(msg, "Charging ");
+                sprintf(msg, "Charging");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 Stats.Charging++;
                 saveStatsField(&(Stats.Charging), 2);
                 break;
             case Complete:
                 lcd_clear();
-                sprintf(msg, "Charged ");
+                sprintf(msg, "Charged");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 Stats.Charged++;
                 saveStatsField(&(Stats.Charged), 2);
