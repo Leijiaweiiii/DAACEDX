@@ -2999,11 +2999,11 @@ void DoPowerOn() {
     getStats();
     set_backlight(Settings.BackLightLevel);
     ADC_init();
-    InitAttenuator();
     // TODO: Review power on sequence
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
     GIE = 1; // enable global interrupts
     INT0IE = 0; // Disable wakeup interrupt
+    ADC_ENABLE_INTERRUPT_BATTERY;
     init_ms_timer0();
     initialize_rtc_timer();
     if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -3402,21 +3402,21 @@ void battery_test() {
         sprintf(msg, "%u %04d/%04dmV", i, battery_mV, battery_average());
         lcd_clear();
         lcd_write_string(msg, 2, 40, SmallFont, BLACK_OVER_WHITE);
-    } while (battery_average() > battery_voltage_thresholds[5] || Key == 0);
+    } while (number_of_battery_bars() > 0 || Key == 0);
 }
 
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
+    {
+        uint8_t i = BAT_BUFFER_SIZE;
+        do {
+            bat_samples[--i] = 4096;
+        } while(i != 0);
+    }
     BasicInit();
     if (Settings.version != FW_VERSION) {
         clearHistory();
         getDefaultSettings();
-    }
-    {
-        uint8_t i = BAT_BUFFER_SIZE;
-        do{
-            bat_samples[--i] = 4096;
-        } while(i != 0);
     }
     DoPowerOn();
     set_backlight(Settings.BackLightLevel);

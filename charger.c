@@ -2,25 +2,10 @@
 #include "DAACED.h"
 
 uint8_t number_of_battery_bars(){
-    uint8_t res = 0;
-    for(uint8_t i = 0;i<5;i++){
-        if(battery_voltage_thresholds[i]<battery_average()){
-            res++;
-        }
-    }
-    switch(res){
-        case 1:
-        case 2:
-        case 3:
-            res = 3;
-            break;
-        case 4:
-        case 5:
-            res = 5;
-            break;
-    }
-
-    return res;
+    uint16_t avg = battery_average();
+    if (avg > BATTERY_FULL_THR) return 5;
+    if (avg > BATTERY_HALF_THR) return 3;
+    return 0;
 }
 
 void define_charger_state() {
