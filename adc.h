@@ -36,7 +36,7 @@ uint8_t head_index        =         0;
 #define ADC_BUFFER_DV               (samples[head_index] - samples[head_index - 1])
 #define ADC_BUFFER_END              (head_index == ADC_BUFFER_SIZE)
 #define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
-#define ADC_BUFFER_CLEAR             { do samples[--head_index] = 0; while(head_index); }
+#define ADC_BUFFER_CLEAR             { while(head_index) samples[--head_index] = 0;  }
 #define BAT_BUFFER_SIZE             10
 #define BAT_BUFFER_SIZE_SHIFT       3
 
