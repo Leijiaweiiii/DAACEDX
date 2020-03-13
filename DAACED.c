@@ -133,6 +133,8 @@ void PIC_init(void) {
     IPR7 = 0;
     IPR8 = 0;
     IPR9 = 0;
+    VREGCON = 2; // Low power sleep
+    OSCCON3bits.CSWHOLD = 1; // Switch OSC when ready
     INTCONbits.IPEN = 1; // Enable priority level interrupts
 }
 // </editor-fold>
@@ -2947,17 +2949,15 @@ void PowerOnSound() {
 }
 
 void DoPowerOff() {
-    lcd_clear(); // Remove remaining picture on power on
     lcd_sleep();
     LATG = 0; // Attenuator
     TRISG = 0xFF; // Disable PortG output driver
     PWM6CON = 0; // Disale PWM
     T2CONbits.ON = 0;
-    CPUDOZEbits.IDLEN = 0;
     PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
+    T0CON0bits.T0EN = False; // Disable ms timer at all
     BT_off();
     while (Keypressed); // Wait to button to release
-    OSCCON3bits.CSWHOLD = 1; // Switch OSC when ready
     OSCENbits.HFOEN = 0; // Disable HFINTOSC
     OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
     ADC_DISABLE_INTERRUPT;
@@ -2965,18 +2965,17 @@ void DoPowerOff() {
     // Configure interrupt for wakeup
     INT0IE = 1;
     // Enable RTC interrupt
-    RTC_TIMER_IE = 1;
-    LATEbits.LATE1 = 0; // +5V
-    LATEbits.LATE2 = 0; // BUZZER driver
-    LATEbits.LATE6 = 0; // Backlight
-    LATEbits.LATE0 = 0; // +3
-    VREGCON = 2;
     OSCCON3bits.CSWHOLD = 0; // Switch OSC
+    RTC_TIMER_IE = True;
+    LATE = 0;
+//    LATEbits.LATE1 = 0; // +5V
+//    LATEbits.LATE2 = 0; // BUZZER driver
+//    LATEbits.LATE6 = 0; // Backlight
+//    LATEbits.LATE0 = 0; // +3
     Sleep();
-    InputFlags.KEY_RELEASED = True;
+
     PIE0bits.TMR0IE = 1;
-    OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
-    OSCCON3bits.CSWHOLD = 0; // Switch OSC when ready
+    InputFlags.KEY_RELEASED = True;
     lcd_wakeup();
 }
 
@@ -3044,10 +3043,8 @@ void DoCharging() {
                 Stats.Charged++;
                 saveStatsField(&(Stats.Charged), 2);
                 break;
-            case NotCharging:
-                STATE_HANDLE_POWER_OFF();
-                break;
             default:
+                STATE_HANDLE_POWER_OFF();
                 break;
         }
     }
@@ -3353,6 +3350,7 @@ static void low_priority interrupt isr_l() {
 
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
+        OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC - for faster handling of power-off tick
         InputFlags.FOOTER_CHANGED = True;
         uint8_t const_minute = _minute;
         tic_2_sec();
@@ -3367,6 +3365,7 @@ static void low_priority interrupt isr_l() {
     }
     if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
+        OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
     }
     if (TMR6IF) {
         TMR6IF = 0;
