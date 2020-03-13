@@ -200,8 +200,9 @@ TBool block_shot = False;
 int16_t max_err = 0;
 uint16_t rrr = 0;
 uint16_t int_cnt,max_idx;
-const detection_setting_t detection_presets_defaults[NUM_SENS] = {100, 200, 250, 300, 350, 400, 450};
-detection_setting_t detection_presets[NUM_SENS] = {100, 200, 250, 300, 350, 400, 450};
+#define DETECTION_THRESHOLD_DEFAULTS {250, 275, 300, 325, 350, 375, 400}
+const detection_setting_t detection_presets_defaults[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
+detection_setting_t detection_presets[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
 
 time_t countdown_start_time;
 
