@@ -2914,7 +2914,7 @@ void print_footer() {
             break;
     }
     //    sprintf(message, "%u", PORTD&0x7);
-    sprintf(message, "%u/%u", max_idx, max_err);
+//    sprintf(message, "%u/%u", max_idx, max_err);
     print_label_at_footer_grid(message, 1, 1);
 }
 
