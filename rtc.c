@@ -71,12 +71,13 @@ void initialize_rtc_timer() {
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
     PMD1bits.TMR1MD = 0; // Enable perepherial timer 1
 
-    OSCCON3bits.SOSCPWR = 1; // High power mode for secondary oscillator
-    OSCENbits.SOSCEN = 1;
+//    OSCCON3bits.SOSCPWR = 1; // High power mode for secondary oscillator
+//    OSCENbits.SOSCEN = 1;
 //    uint8_t i = 0;
 //    while ((!OSCSTATbits.SOR) && (++i < 0xFF));
 
-    TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
+//    TMR1CLKbits.CS = 0b0110; // TIMER1 clock source is secondary oscillator
+    TMR1CLKbits.CS = 0b0100; // TIMER1 clock source is internal 32KHz
 //    T1CONbits.CKPS = 0b00; // Prescale = 1:1.
 //    T1CONbits.NOT_SYNC = 1; // asynchronous counter mode to operate during sleep
 //    T1CONbits.RD16 = 1;

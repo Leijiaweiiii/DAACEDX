@@ -74,21 +74,6 @@ uint8_t find_set_bit_position(uint8_t n);
 #define Start                (Key==KeySt)
 #define Stop                 (Key==KeyRw)
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="Attenuator">
-/*
-  0dBm Q1A 0 Q1b 0
--10dBm Q1A 1 Q1b 0
--20dBm Q1A 0 Q1b 1
--30dBm Q1A 1 Q1b 1
- */
-#define ATTENUATOR_00_DBm   0b00
-#define ATTENUATOR_10_DBm   0b01
-#define ATTENUATOR_20_DBm   0b10
-#define ATTENUATOR_30_DBM   0b11
-#define SetAttenuator(x)    { LATGbits.LATG0 = x & 1; LATGbits.LATG1 = (x & 2) >> 1; }
-#define InitAttenuator()    { TRISG = 0b11111100; LATG = 0;}
-
-// </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Data Model">
 

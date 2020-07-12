@@ -2,10 +2,7 @@
 #include "DAACED.h"
 
 // These may be macros but moved here for space optimization
-void STATE_HANDLE_POWER_OFF()          {
-    if(ui_state != PowerOff && ui_state != TimerCharging){
-        PowerOffSound();
-    }
+void STATE_HANDLE_POWER_OFF(){
     lcd_clear();
     ui_state = PowerOff;
 }
@@ -115,14 +112,8 @@ void StopTimer() {
 
 void handle_power_off() {
     switch(comandToHandle){
-        case StartLong:
-            STATE_HANDLE_POWER_ON();
-            break;
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
-            break;
-        default:
-            DoPowerOff();
             break;
     }
     comandToHandle = None;
@@ -484,7 +475,7 @@ void handle_ui() {
         handle_power_off();
         return;
     }
-    handle_bt_commands();
+//    handle_bt_commands();
     switch (ui_state) {
         case PowerOff:
             // Handled separately

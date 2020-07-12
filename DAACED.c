@@ -2948,40 +2948,13 @@ void PowerOnSound() {
     generate_sinus(1, 1260, 300);
 }
 
-void DoPowerOff() {
-    lcd_sleep();
-    LATG = 0; // Attenuator
-    TRISG = 0xFF; // Disable PortG output driver
-    PWM6CON = 0; // Disale PWM
-    T2CONbits.ON = 0;
-    PIE0bits.TMR0IE = 0; // Disable 1ms timer interrupt
-    T0CON0bits.T0EN = False; // Disable ms timer at all
-    BT_off();
-    while (Keypressed); // Wait to button to release
-    OSCENbits.HFOEN = 0; // Disable HFINTOSC
-    OSCCON1bits.NOSC = 0b100; // New oscillator is SOSC
-    ADC_DISABLE_INTERRUPT;
-    InputFlags.INITIALIZED = False;
-    // Configure interrupt for wakeup
-    INT0IE = 1;
-    // Enable RTC interrupt
-    OSCCON3bits.CSWHOLD = 0; // Switch OSC
-    RTC_TIMER_IE = True;
-    LATE = 0;
-//    LATEbits.LATE1 = 0; // +5V
-//    LATEbits.LATE2 = 0; // BUZZER driver
-//    LATEbits.LATE6 = 0; // Backlight
-//    LATEbits.LATE0 = 0; // +3
-    Sleep();
-
-    PIE0bits.TMR0IE = 1;
-    InputFlags.KEY_RELEASED = True;
-    lcd_wakeup();
+void DoPowerOff(){
+    LATE = 0; // Power OFF all regulators
 }
 
 void BasicInit(){
     PIC_init();
-    LATEbits.LATE0 = 1;
+    
     initialize_backlight();
     spi_init();
     lcd_init();
@@ -2992,17 +2965,14 @@ void BasicInit(){
 
 void DoPowerOn() {
     if (InputFlags.INITIALIZED) return;
-    BasicInit();
     sinus_dac_init();
     lcd_set_contrast(Settings.ContrastValue);
+    set_backlight(0);
     getStats();
-    set_backlight(Settings.BackLightLevel);
     ADC_init();
     // TODO: Review power on sequence
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
     GIE = 1; // enable global interrupts
-    INT0IE = 0; // Disable wakeup interrupt
-    ADC_ENABLE_INTERRUPT_BATTERY;
     init_ms_timer0();
     initialize_rtc_timer();
     if (Settings.InputType == INPUT_TYPE_Microphone) {
@@ -3015,10 +2985,13 @@ void DoPowerOn() {
         TRISDbits.TRISD2 = 1;
     }
     init_bt();
+    // TODO: Discuss splash screen or make 2s measurement for power ON
+    LATEbits.LATE0 = 1;
+    set_backlight(Settings.BackLightLevel);
+    while (Keypressed) Delay(1); // To avoid false start signal
     Stats.PowerOn++;
     saveStatsField(&(Stats.PowerOn), 4);
     PowerOnSound();
-
     update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     InputFlags.INITIALIZED = True;
@@ -3426,9 +3399,15 @@ void main(void) {
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
     InputFlags.NEW_SHOT_D = True;
-    while (True) {
+    do {
         //TODO: Integrate watchdog timer
         handle_ui();
-    }
+    } while (ui_state != PowerOff);
+     char msg[16];
+    sprintf(msg, "Power off");
+    lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+    PowerOffSound();
+    DoPowerOff();
+    Delay(200)
     // </editor-fold>
 }
