@@ -48,8 +48,6 @@ void Delay(int t);
 #define MIN(x,y)                ((x<y)?x:y)
 #define MAX(x,y)                ((x<y)?y:x)
 
-#define LCD_CS_SELECT()         (LATFbits.LF3 = 0)
-#define LCD_CS_DESELECT()       (LATFbits.LF3 = 1)
 // </editor-fold> 
 
 //extern void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration);

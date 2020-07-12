@@ -67,6 +67,9 @@ int8_t x_offset = 0, y_offset = 0;
 #define BLACK_OVER_WHITE        (0x01)
 #define WHITE_OVER_BLACK        (0x00)
 
+#define LCD_CS_SELECT()         (LATFbits.LF3 = 0)
+#define LCD_CS_DESELECT()       (LATFbits.LF3 = 1)
+
 #define LCD_MODE_DATA()         (LATFbits.LF4 = 1)
 #define LCD_MODE_COMMAND()      (LATFbits.LF4 = 0)
 

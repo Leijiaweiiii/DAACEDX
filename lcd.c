@@ -5,9 +5,9 @@
 // <editor-fold defaultstate="collapsed" desc="SPI">
 
 void spi_init() {
-    RC4PPS = 0x1A; // data-output
-    SSP1DATPPS = 0x1D; // PPS to unused PIN.
-    RC3PPS = 0x19; // clock output
+    RC4PPS = 0x1A; // data-output               PPS: 011 010    PORTD 2
+    SSP1DATPPS = 0x1D; // PPS to unused PIN.    PPS: 011 101    PORTD 5
+    RC3PPS = 0x19; // clock output              PPS: 011 001    PORTD 1
 
     SSP1STAT &= 0x3F; // Power on state
     SSP1STATbits.CKE = 1; // Data transmission on rising edge
