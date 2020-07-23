@@ -239,10 +239,7 @@ const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 #define DEFAULT_CONTRAST_VALUE  (1065)
 
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="SPI functions definitions">
-uint8_t spi_write(uint8_t data);
-void spi_init();
-// </editor-fold>
+
 // <editor-fold defaultstate="collapsed" desc="LCD functions definitions">
 #ifndef LCD_DIRECT_ACCESS
 void lcd_refresh(UpdateBoundary * box);

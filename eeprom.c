@@ -1,9 +1,15 @@
 #include "eeprom.h"
+#include "DAACED.h"
 
-// <editor-fold defaultstate="collapsed" desc="EEPROM Functions">
-// Helper functions.
+void eeprom_write_read_test(){
+    char * tx_data = "DEADBEAF";
+    char rx_data[8];
+    eeprom_write_array(SettingsEndAddress, tx_data, 8);
+    eeprom_read_array(SettingsEndAddress, rx_data, 8);
+    NOP(); // For breakpoint
+}
 
-void eeprom_spi_init() {
+void eeprom_init() {
     EEPROM_CS_INIT();
     EEPROM_HOLD_INIT();
     EEPROM_WP_INIT();
@@ -11,59 +17,10 @@ void eeprom_spi_init() {
     EEPROM_CS_DESELECT();
     EEPROM_HOLD_DIS();
     EEPROM_WP_DIS();
-
-    RD7PPS = 0x1C; // SPI2 dataout (RD7)
-    SSP2DATPPS = 0x1D; // SPI2 datain.
-    RD6PPS = 0x1B; // SPI2 clock.
-
-    SSP2STAT &= 0x3F;
-    SSP2CON1 = 0x00; // power on state.
-//    SSP2CON1bits.SSPM = 0b0010;
-    SSP2CON1bits.SSPM = 0b0001;
-    SSP2STATbits.SMP = 0;
-
-    SSP2CON1bits.CKP = 1;
-    SSP2STATbits.CKE = 0;
-    SSP2CON1bits.SSPEN = 1;
-    SSP2CON1bits.WCOL = 0;
+    eeprom_write_read_test();
 }
 
-uint8_t eeprom_spi_write(uint8_t data) {
-    uint8_t temp_var = SSP2BUF; // Clear buffer.
-    UNUSED(temp_var);           // Suppress warning
-    PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
-    SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
-    SSP2BUF = data;
-    while (SSP2STATbits.BF == 0);
-    PIR3bits.SSP2IF = 0;        // clear interrupt flag bit
-    return SSP2BUF;
-}
-
-uint8_t eeprom_spi_write_bulk(uint8_t * data, uint8_t size) {
-    uint8_t temp_var = SSP2BUF; // Clear buffer.
-    UNUSED(temp_var);           // Suppress warning
-    while( 0 < size-- ){
-        PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
-        SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
-        SSP2BUF = *(data++);
-        while (SSP2STATbits.BF == 0);
-    }
-    PIR3bits.SSP2IF = 0; // clear interrupt flag bit
-    return SSP2BUF;
-}
-
-uint8_t eeprom_spi_write_bulk_const(uint8_t data, uint8_t size) {
-    uint8_t temp_var = SSP2BUF; // Clear buffer.
-    UNUSED(temp_var);           // Suppress warning
-    while( 0 < size-- ){
-        PIR3bits.SSP2IF = 0;        // Clear interrupt flag bit
-        SSP2CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
-        SSP2BUF = data;
-        while (SSP2STATbits.BF == 0);
-    }
-    PIR3bits.SSP2IF = 0; // clear interrupt flag bit
-    return SSP2BUF;
-}
+#define eeprom_wait_deselect() {EEPROM_CS_DESELECT();EEPROM_CS_SELECT();}
 
 /**
  * Write data in bulk mode. It's faster than byte by byte.
@@ -76,20 +33,17 @@ void eeprom_write_data_bulk(uint16_t address, uint8_t * data, uint8_t size) {
     eeprom_busy_wait();
 
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRSR);
-    eeprom_spi_write(0x02); // Enable Write Latch.
+    spi_write(CMD_WRSR);
+    spi_write(0x02); // Enable Write Latch.
+    eeprom_wait_deselect();
+    spi_write(CMD_WREN);
+    eeprom_wait_deselect();
+    spi_write(CMD_WRITE);
+    spi_write((uint8_t)MSB(address));
+    spi_write((uint8_t)LSB(address));
+    spi_write_bulk(data, size);
     EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WREN);
-    EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRITE);
-    eeprom_spi_write((uint8_t)MSB(address));
-    eeprom_spi_write((uint8_t)LSB(address));
-    eeprom_spi_write_bulk(data, size);
-    EEPROM_CS_DESELECT();
+    NOP();
 }
 
 /**
@@ -103,19 +57,15 @@ void eeprom_write_const_data_bulk(uint16_t address, uint8_t  data, uint8_t size)
     eeprom_busy_wait();
 
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRSR);
-    eeprom_spi_write(0x02); // Enable Write Latch.
-    EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WREN);
-    EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRITE);
-    eeprom_spi_write((uint8_t)MSB(address));
-    eeprom_spi_write((uint8_t)LSB(address));
-    eeprom_spi_write_bulk_const(data, size);
+    spi_write(CMD_WRSR);
+    spi_write(0x02); // Enable Write Latch.
+    eeprom_wait_deselect();
+    spi_write(CMD_WREN);
+    eeprom_wait_deselect();
+    spi_write(CMD_WRITE);
+    spi_write((uint8_t)MSB(address));
+    spi_write((uint8_t)LSB(address));
+    spi_write_bulk_const(data, size);
     EEPROM_CS_DESELECT();
 }
 
@@ -123,20 +73,17 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
     eeprom_busy_wait();
 
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRSR);
-    eeprom_spi_write(0x02); // Enable Write Latch.
+    spi_write(CMD_WRSR);
+    spi_write(0x02); // Enable Write Latch.
+    eeprom_wait_deselect();
+    spi_write(CMD_WREN);
+    eeprom_wait_deselect();
+    spi_write(CMD_WRITE);
+    spi_write((uint8_t)MSB(address));
+    spi_write((uint8_t)LSB(address));
+    spi_write(data);
     EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WREN);
-    EEPROM_CS_DESELECT();
-
-    EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_WRITE);
-    eeprom_spi_write((uint8_t)MSB(address));
-    eeprom_spi_write((uint8_t)LSB(address));
-    eeprom_spi_write(data);
-    EEPROM_CS_DESELECT();
+    NOP();
 }
 
 void eeprom_clear_block_bulk(uint16_t address, uint16_t size) {
@@ -186,10 +133,10 @@ void eeprom_write_tdata(uint16_t address, uint24_t data) {
 uint8_t eeprom_read_data(uint16_t address) {
     uint8_t read_data;
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(MSB(address));
-    eeprom_spi_write(LSB(address));
-    read_data = eeprom_spi_write(0x00);
+    spi_write(CMD_READ);
+    spi_write(MSB(address));
+    spi_write(LSB(address));
+    read_data = spi_write(0x00);
     EEPROM_CS_DESELECT();
     return (read_data);
 }
@@ -201,12 +148,12 @@ uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes
     eeprom_busy_wait();
 
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(MSB(address));
-    eeprom_spi_write(LSB(address));
+    spi_write(CMD_READ);
+    spi_write(MSB(address));
+    spi_write(LSB(address));
     for (index = 0; index < no_of_bytes; index++) {
         if (address + index > EEPROM_MAX_SIZE) return (index);
-        data[index] = eeprom_spi_write(0x00);
+        data[index] = spi_write(0x00);
     }
     EEPROM_CS_DESELECT();
     return (index);
@@ -224,11 +171,11 @@ uint16_t eeprom_read_wdata(uint16_t address) {
     eeprom_busy_wait();
 
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(MSB(address));
-    eeprom_spi_write(LSB(address));
-    _u.read_least = eeprom_spi_write(0x00);
-    _u.read_most = eeprom_spi_write(0x00);
+    spi_write(CMD_READ);
+    spi_write(MSB(address));
+    spi_write(LSB(address));
+    _u.read_least = spi_write(0x00);
+    _u.read_most = spi_write(0x00);
     EEPROM_CS_DESELECT();
     return _u._d;
 }
@@ -246,12 +193,12 @@ uint24_t eeprom_read_tdata(uint16_t address) {
     eeprom_busy_wait();
 
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_READ);
-    eeprom_spi_write(MSB(address));
-    eeprom_spi_write(LSB(address));
-    _u.read_least = eeprom_spi_write(0x00);
-    _u.read_mid = eeprom_spi_write(0x00);
-    _u.read_most = eeprom_spi_write(0x00);
+    spi_write(CMD_READ);
+    spi_write(MSB(address));
+    spi_write(LSB(address));
+    _u.read_least = spi_write(0x00);
+    _u.read_mid = spi_write(0x00);
+    _u.read_most = spi_write(0x00);
     EEPROM_CS_DESELECT();
     return _u._d;
 }
@@ -260,9 +207,8 @@ uint24_t eeprom_read_tdata(uint16_t address) {
 
 uint8_t eeprom_read_status_reg() {
     EEPROM_CS_SELECT();
-    eeprom_spi_write(CMD_RDSR);
-    uint8_t status_reg = eeprom_spi_write(0x00);
+    spi_write(CMD_RDSR);
+    uint8_t status_reg = spi_write(0x00);
     EEPROM_CS_DESELECT();
     return status_reg;
 }
-// </editor-fold>

@@ -25,7 +25,8 @@ extern "C" {
         TimerCountdown,
         ReviewScreen,
         SettingsScreen,
-        TimerCharging
+        TimerCharging,
+        PowerON
     } UiState;
 
     UiState ui_state = TimerIdle;

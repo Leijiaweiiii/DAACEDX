@@ -86,6 +86,8 @@
 #include "uart.h"
 #include "random.h"
 #include "math.h"
+#include "i2c.h"
+#include "rtc.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
@@ -244,10 +246,13 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Save and retrive DATA">
-
-void clearHistory() {
+void show_please_wait(){
     lcd_clear();
     lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+}
+
+void clearHistory() {
+    show_please_wait();
     eeprom_clear_block_bulk(ShootStringStartAddress, EEPROM_MAX_SIZE - ShootStringStartAddress);
     getShootString(0);
 }
@@ -1968,8 +1973,7 @@ void BlueTooth() {
     if (ma.selected && Settings.AR_IS.BT != ma.menu) {
         Settings.AR_IS.BT = ma.menu;
         saveSettingsField(&(Settings.AR_IS), 1);
-        lcd_clear();
-        lcd_write_string("Please wait", UI_CHARGING_LBL_X - 20, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+        show_please_wait();
         init_bt();
     }
 }
@@ -2742,8 +2746,7 @@ void DoReview() {
                 break;
             case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
                 break;
-            case ChargerConnected:
-                STATE_HANDLE_CHARGER();
+            case ChargerConnected:STATE_HANDLE_CHARGER();
                 break;
             default:
                 break;
@@ -2922,6 +2925,8 @@ void StartListenShots(void) {
     last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
+    unix_time_ms_sec = 0; // Zero the seconds part f time
+    update_rtc_time();
     ShootString_start_time = unix_time_ms;
     parStartTime_ms = unix_time_ms;
 }
@@ -2949,23 +2954,26 @@ void PowerOnSound() {
 }
 
 void DoPowerOff(){
+    set_backlight(0);
     LATE = 0; // Power OFF all regulators
 }
 
 void BasicInit(){
     PIC_init();
-    
+    sinus_dac_init();
     initialize_backlight();
     spi_init();
     lcd_init();
-    lcd_set_orientation();
     eeprom_init();
+    lcd_set_orientation();
+    i2c_init();
+    read_rtc_time();
     getSettings();
 }
 
 void DoPowerOn() {
     if (InputFlags.INITIALIZED) return;
-    sinus_dac_init();
+    
     lcd_set_contrast(Settings.ContrastValue);
     set_backlight(0);
     getStats();
@@ -2985,13 +2993,11 @@ void DoPowerOn() {
         TRISDbits.TRISD2 = 1;
     }
     init_bt();
-    // TODO: Discuss splash screen or make 2s measurement for power ON
-    LATEbits.LATE0 = 1;
+    LATEbits.LATE0 = 1; // Power ON 3v regulator
+    lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(Settings.BackLightLevel);
-    while (Keypressed) Delay(1); // To avoid false start signal
     Stats.PowerOn++;
     saveStatsField(&(Stats.PowerOn), 4);
-    PowerOnSound();
     update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     InputFlags.INITIALIZED = True;
@@ -3017,7 +3023,9 @@ void DoCharging() {
                 saveStatsField(&(Stats.Charged), 2);
                 break;
             default:
-                STATE_HANDLE_POWER_OFF();
+//                STATE_HANDLE_POWER_OFF();
+                DoPowerOff();
+                ui_state = PowerOff;
                 break;
         }
     }
@@ -3379,12 +3387,6 @@ void battery_test() {
 
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
-    {
-        uint8_t i = BAT_BUFFER_SIZE;
-        do {
-            bat_samples[--i] = 4096;
-        } while(i != 0);
-    }
     BasicInit();
     if (Settings.version != FW_VERSION) {
         clearHistory();
@@ -3399,15 +3401,13 @@ void main(void) {
     lcd_clear();
     InputFlags.FOOTER_CHANGED = True;
     InputFlags.NEW_SHOT_D = True;
+    ui_state = PowerON;
+    while(Keypressed); // wait key released to avoid start signal
     do {
         //TODO: Integrate watchdog timer
         handle_ui();
     } while (ui_state != PowerOff);
-     char msg[16];
-    sprintf(msg, "Power off");
-    lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-    PowerOffSound();
-    DoPowerOff();
-    Delay(200)
+    LATE = 0;
+    Delay(2000);
     // </editor-fold>
 }

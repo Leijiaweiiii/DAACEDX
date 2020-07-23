@@ -1,38 +1,7 @@
 #include "lcd.h"
 #include "rtc.h"
 #include "DAACED.h"
-
-// <editor-fold defaultstate="collapsed" desc="SPI">
-
-void spi_init() {
-    RC4PPS = 0x1A; // data-output               PPS: 011 010    PORTD 2
-    SSP1DATPPS = 0x1D; // PPS to unused PIN.    PPS: 011 101    PORTD 5
-    RC3PPS = 0x19; // clock output              PPS: 011 001    PORTD 1
-
-    SSP1STAT &= 0x3F; // Power on state
-    SSP1STATbits.CKE = 1; // Data transmission on rising edge
-    SSP1STATbits.SMP = 0; // Data sampled/latched at middle of clock.
-    SSP1CON1 = 0x21; // Enable synchronous serial port , CKL ,FOSC_DIV_16 page 394
-    //    SSP1CON1bits.SSPM = 0x01;               // SPI Clock FOSC_DIV_16
-    //    SSP1CON1bits.SSPEN = 1;                 // Enable synchronous serial port
-    PIE3bits.SSP1IE = 0; // Disable interrupt.
-}
-
-uint8_t spi_write(uint8_t data) {
-    LCD_CS_SELECT();
-    unsigned char temp_var = SSP1BUF; // Clear buffer.
-    UNUSED(temp_var);
-    PIR3bits.SSP1IF = 0; // clear interrupt flag bit
-    SSP1CON1bits.WCOL = 0; // clear write collision bit if any collision occurs
-
-    SSP1BUF = data; // transmit data
-    while (!PIR3bits.SSP1IF); // waiting for the process to complete
-    PIR3bits.SSP1IF = 0; // clear interrupt flag bit
-    LCD_CS_DESELECT();
-    return (SSP1BUF); // return receive data
-}
-//SPI End
-// </editor-fold>
+#include "spi.h"
 
 // <editor-fold defaultstate="collapsed" desc="LCD helper functions">
 
@@ -46,28 +15,36 @@ void lcd_reset(void) {
 
 void lcd_send_command(uint8_t command) {
     LCD_MODE_COMMAND();
+    LCD_CS_SELECT();
     spi_write(command);
+    LCD_CS_DESELECT();
 }
 
 void lcd_send_data(uint8_t data) {
     LCD_MODE_DATA();
+    LCD_CS_SELECT();
     spi_write(data);
+    LCD_CS_DESELECT();
 }
 
 void lcd_send_command_data(uint8_t command, uint8_t data) {
     LCD_MODE_COMMAND();
+    LCD_CS_SELECT();
     spi_write(command);
     LCD_MODE_DATA();
     spi_write(data);
+    LCD_CS_DESELECT();
 }
 
 void lcd_send_command_data_array(uint8_t command, uint8_t *data, size_t no_of_bytes) {
     LCD_MODE_COMMAND();
+    LCD_CS_SELECT();
     spi_write(command);
     LCD_MODE_DATA();
     for (uint8_t index = 0; index < no_of_bytes; index++) {
         spi_write(data[index]);
     }
+    LCD_CS_DESELECT();
 }
 
 // rows in pages

@@ -4,8 +4,13 @@
 // These may be macros but moved here for space optimization
 void STATE_HANDLE_POWER_OFF(){
     lcd_clear();
+    lcd_write_string("Power OFF", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
+    PowerOffSound();
+    DoPowerOff();
+    while(Keypressed);
     ui_state = PowerOff;
 }
+
 void STATE_HANDLE_POWER_ON()           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
 void STATE_HANDLE_TIMER_IDLE()         {StopTimer(); ui_state = TimerIdle;}
 void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
@@ -475,10 +480,10 @@ void handle_ui() {
         handle_power_off();
         return;
     }
-//    handle_bt_commands();
+    handle_bt_commands();
     switch (ui_state) {
         case PowerOff:
-            // Handled separately
+            // Handled in the event
             break;
         case TimerIdle:
             handle_timer_idle();
@@ -499,6 +504,14 @@ void handle_ui() {
             DoCharging();
             comandToHandle = None;
             break;
+        case PowerON:
+            if( comandToHandle == ChargerConnected){
+                STATE_HANDLE_CHARGER();
+            } else {
+                PowerOnSound();
+                ui_state = TimerIdle;
+            }
+            comandToHandle = None;
         default:
             //We should never get here, nothing to do.
             break;

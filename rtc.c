@@ -1,4 +1,5 @@
 #include "rtc.h"
+
 // <editor-fold defaultstate="collapsed" desc="ms correction table">
 const uint16_t correction_table[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
@@ -107,51 +108,15 @@ void init_ms_timer0() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Time setting functions">
 
-uint8_t get_hour(TBool format24h) {
-    if (format24h) return _hour;
-    return (_hour > 12) ? _hour - 12 : _hour;
-}
-
-uint8_t get_minute() {
-    return _minute;
-}
-
 void tic_2_sec() {
     unix_time_ms_sec += 2000;
-    _2sec++;
-    if (_2sec == 30) {
-        _2sec = 0;
-        _minute++;
-        if (_minute == 60) {
-            _minute = 0;
-            _hour++;
-            if (_hour == 24) {
-                _hour = 0;
-            }
-        }
-    }
-}
-
-//void set_time(uint8_t h, uint8_t m, uint8_t s) {
-//    _hour = h;
-//    _minute = m;
-//}
-
-//time_t get_corrected_time_msec() {
-//    return rtc_time.unix_time_ms;
-//}
-
-uint16_t get_ms_corrected() {
-    time_t msec = rtc_time_2k_msec;
-    return msec - msec % 41;
 }
 
 void update_rtc_time() {
-    msec = correction_table[rtc_time_2k_msec];
+    uint16_t msec = correction_table[rtc_time_2k_msec];
     unix_time_ms = unix_time_ms_sec + msec;
 }
 // </editor-fold>
-
 
 uint8_t rtc_print_time_full(char * buff, uint8_t _h, uint8_t  _m, TBool format24h){
     if(format24h)

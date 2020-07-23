@@ -27,6 +27,7 @@
 #include "random.h"
 #include "ui.h"
 #include "sinus.h"
+#include "spi.h"
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Backlight PWM functions">
@@ -109,7 +110,7 @@ union {
             unsigned NEW_SHOT : 3;
         };
         unsigned INITIALIZED    : 1;
-        unsigned BEEP_GUARD     : 1;
+        unsigned TIME_CHANGED   : 1;
     };
 } InputFlags;
 
@@ -292,7 +293,8 @@ typedef struct {
 volatile Settings_t Settings;
 
 #define ROM_GUARD_INTERVAL  32
-#define StatsStartAddress   (SettingsStartAddress + sizeof(Settings_t) + ROM_GUARD_INTERVAL)
+#define SettingsEndAddress (SettingsStartAddress + SettingsDataSize)
+#define StatsStartAddress   (SettingsEndAddress + ROM_GUARD_INTERVAL)
 typedef struct{
     uint32_t PowerOn;
     uint32_t Signal;
@@ -306,9 +308,10 @@ typedef struct{
     uint16_t Menu[MAXMenuItems];
 } Stats_t;
 #define StatsDataSize   (sizeof(Stats_t))
+#define StatsEndAddress (StatsStartAddress + StatsDataSize)
 Stats_t Stats;
 
-#define ShootStringStartAddress     (StatsStartAddress + StatsDataSize + ROM_GUARD_INTERVAL)
+#define ShootStringStartAddress     (StatsEndAddress + ROM_GUARD_INTERVAL)
 
 // </editor-fold>
 
@@ -346,5 +349,6 @@ void SetCountDown();
 void saveStatsField(void * f, size_t l);
 void saveStats();
 void PowerOffSound();
+void PowerOnSound();
 
 #endif /*  _DAACED_H_ */
