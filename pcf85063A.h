@@ -35,14 +35,66 @@
 // Special values
 #define SOFT_RESET      0x58
 
-typedef struct{
-    uint8_t seconds;
-    uint8_t minutes;
-    uint8_t hours;
-    uint8_t days;
-    uint8_t weekdays;
-    uint8_t months;
-    uint8_t years;
+typedef union{
+    uint8_t raw[7];
+    struct{
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        } seconds ;
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        }  minutes;
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        }  hours;
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        }  days;
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        } weekdays;
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        } months;
+        union{
+            uint8_t raw;
+            struct{
+                unsigned units  :4;
+                unsigned tens   :3;
+                unsigned os     :1;
+            };
+        } years;
+    };
 } rtc_time_t;
 
 rtc_time_t rtc_time;

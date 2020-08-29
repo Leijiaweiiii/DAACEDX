@@ -56,7 +56,7 @@
 #pragma config WRTB = OFF       // Boot Block Write Protection bit (Boot Block (000000-0007FFh) not write-protected)
 #pragma config WRTD = OFF       // Data EEPROM Write Protection bit (Data EEPROM not write-protected)
 #pragma config SCANE = OFF      // Scanner Enable bit (Scanner module is NOT available for use, SCANMD bit is ignored)
-#pragma config LVP = ON         // Low Voltage Programming Enable bit (Low voltage programming enabled. MCLR/VPP pin function is MCLR. MCLRE configuration bit is ignored)
+#pragma config LVP = OFF         // Low Voltage Programming Enable bit (Low voltage programming enabled. MCLR/VPP pin function is MCLR. MCLRE configuration bit is ignored)
 
 // CONFIG5L
 #pragma config CP = OFF         // UserNVM Program Memory Code Protection bit (UserNVM code protection disabled)
@@ -88,6 +88,8 @@
 #include "math.h"
 #include "i2c.h"
 #include "rtc.h"
+#include "pic18_i2c.h"
+
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="PIC_init">
@@ -113,7 +115,7 @@ void PIC_init(void) {
     TRISC = 0b11100101; // C6 = TX, C7 RX
     // C3 = DP_SCL(OP), C4 = DP_SDA(OP)
 
-    TRISD = 0b00110000; // EEPROM SPI SDI=5 SCK=6 SDO=7
+    TRISD = 0b11110000; // EEPROM SPI SDI=5 SCK=6 SDO=7
     ANSELD = 0b00000000;
 
     TRISE = 0b11111000; // E0 = POWER(+3), E1 = POWER(+5V), E2 = BUZZER EN
@@ -2963,11 +2965,11 @@ void BasicInit(){
     sinus_dac_init();
     initialize_backlight();
     spi_init();
-    lcd_init();
     eeprom_init();
+    lcd_init();
     lcd_set_orientation();
-    i2c_init();
-    read_rtc_time();
+//    i2c_init();
+//    read_rtc_time();
     getSettings();
 }
 
@@ -3385,6 +3387,64 @@ void battery_test() {
     } while (number_of_battery_bars() > 0 || Key == 0);
 }
 
+
+void setup(void)
+{
+    /**
+    LATx registers
+    */
+    LATE = 0x00;
+    LATD = 0x00;
+    LATA = 0x00;
+    LATF = 0x00;
+    LATB = 0x00;
+    LATG = 0x00;
+    LATC = 0x00;
+    LATH = 0x00;
+
+    /**
+    TRISx registers
+    */
+    TRISE = 0x00;
+    TRISF = 0x00;
+    TRISA = 0x00;
+    TRISG = 0x00;
+    TRISB = 0x00;
+    TRISH = 0x00;
+    TRISC = 0x00;
+    TRISD = 0x00;
+    TRISE = 0xFF;
+    TRISF = 0xFF;
+    TRISA = 0xFF;
+    TRISG = 0xFF;
+    TRISB = 0xFF;
+    TRISH = 0xFF;
+    TRISC = 0xFF;
+    TRISD = 0xFF;
+//    ANSELD = 0xFF;
+}
+
+void test_main(){
+    BasicInit();
+    TRISD = 0xFF;
+    uint8_t aa = 0xAA;
+    char msg[16];
+    int i = 0;
+    while(True){
+        sprintf(msg,"It Works i = 0x%X",i++);
+        lcd_write_string(msg, 2, 16, SmallFont, BLACK_OVER_WHITE);
+//        pic18_i2c_enable();
+//        pic18_i2c_write(RTC_DEVICE_ADDR, RTC_REG_RAM_BYTE, &aa, 1);
+//        pic18_i2c_disable();
+//        aa = 0;
+//        Delay(1000);
+//        pic18_i2c_enable();
+//        pic18_i2c_read(RTC_DEVICE_ADDR, RTC_REG_RAM_BYTE, &aa, 1);
+//        pic18_i2c_disable();
+        sprintf(msg,"AA = 0x%x", aa++);
+        lcd_write_string(msg, 2, 40, SmallFont, BLACK_OVER_WHITE);
+    }
+}
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     BasicInit();
@@ -3410,4 +3470,5 @@ void main(void) {
     LATE = 0;
     Delay(2000);
     // </editor-fold>
+    // test_main();
 }

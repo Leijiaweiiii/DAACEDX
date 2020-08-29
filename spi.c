@@ -16,18 +16,24 @@ void spi_init() {
      * EE_HOLD | 16  | PORTF |  2
      */
     
+    
     RC3PPS = 0x19;      // SPI clock output         PPS: 011 001    PORTD 1
     RC4PPS = 0x1A;      // data-output lcd and EEPROM  PPS: 011 010    PORTD 2
     SSP1DATPPS = 0x1D;  // data-input for EEPROM    PPS: 011 101    PORTD 5
-
-
-    SSP1STAT &= 0x3F; // Power on state
-    SSP1STATbits.CKE = 1; // Data transmission on rising edge
+    SSP1CLKPPS = 0x19;
+    TRISDbits.TRISD5 = 1; // Set EEPROM input to input
+    
+//    SSP1STAT &= 0x3F; // Power on state
+    
+    PIE3bits.SSP1IE = 0; // Disable interrupt.
+    SSP1STATbits.CKE = 0; // Data transmission on rising edge
     SSP1STATbits.SMP = 1; // Data sampled/latched at end of clock.
 //    SSP1CON1 = 0x21; // Enable synchronous serial port , CKL ,FOSC_DIV_16 page 394
     SSP1CON1bits.SSPM = 0x01;               // SPI Clock FOSC_DIV_16
+    SSP1CON1bits.CKP = 1;
+    SSP1CON1bits.WCOL = 0;
     SSP1CON1bits.SSPEN = 1;                 // Enable synchronous serial port
-    PIE3bits.SSP1IE = 0; // Disable interrupt.
+    
 }
 
 uint8_t spi_write(uint8_t data) {
@@ -38,10 +44,21 @@ uint8_t spi_write(uint8_t data) {
     SSP1BUF = data;                   // transmit data
     while (!PIR3bits.SSP1IF);         // waiting for the process to complete
     PIR3bits.SSP1IF = 0;              // clear interrupt flag bit
+    while(!SSP1STATbits.BF);
     uint8_t ret = SSP1BUF;
     return ret;                       // return receive data
 }
 
+uint8_t spi_read() {
+    unsigned char temp_var = SSP1BUF; // Clear buffer.
+    (void)(temp_var);
+    PIR3bits.SSP1IF = 0;              // clear interrupt flag bit
+    SSP1CON1bits.WCOL = 0;            // clear write collision bit if any collision occurs
+    SSP1BUF = 0xFF;                   // transmit data
+    while(!SSP1STATbits.BF);
+    uint8_t ret = SSP1BUF;
+    return ret;                       // return receive data
+}
 
 uint8_t spi_write_bulk(uint8_t * data, uint8_t size) {
     uint8_t temp_var = SSP1BUF; // Clear buffer.

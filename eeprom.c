@@ -1,12 +1,25 @@
 #include "eeprom.h"
 #include "DAACED.h"
-
+static volatile uint8_t test = 0b01010101;
 void eeprom_write_read_test(){
     char * tx_data = "DEADBEAF";
     char rx_data[8];
+    
     eeprom_write_array(SettingsEndAddress, tx_data, 8);
     eeprom_read_array(SettingsEndAddress, rx_data, 8);
+    
     NOP(); // For breakpoint
+}
+
+
+void eeprom_reset_op(){
+    EEPROM_CS_SELECT();
+    Delay(1);
+    EEPROM_HOLD_EN();
+    Delay(1);
+    EEPROM_CS_DESELECT();
+    Delay(1);
+    EEPROM_HOLD_DIS();
 }
 
 void eeprom_init() {
@@ -17,7 +30,9 @@ void eeprom_init() {
     EEPROM_CS_DESELECT();
     EEPROM_HOLD_DIS();
     EEPROM_WP_DIS();
-    eeprom_write_read_test();
+    while(true){
+        eeprom_write_read_test();
+    }
 }
 
 #define eeprom_wait_deselect() {EEPROM_CS_DESELECT();EEPROM_CS_SELECT();}
@@ -136,7 +151,7 @@ uint8_t eeprom_read_data(uint16_t address) {
     spi_write(CMD_READ);
     spi_write(MSB(address));
     spi_write(LSB(address));
-    read_data = spi_write(0x00);
+    read_data = spi_read();
     EEPROM_CS_DESELECT();
     return (read_data);
 }
@@ -153,7 +168,7 @@ uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes
     spi_write(LSB(address));
     for (index = 0; index < no_of_bytes; index++) {
         if (address + index > EEPROM_MAX_SIZE) return (index);
-        data[index] = spi_write(0x00);
+        data[index] = spi_read();
     }
     EEPROM_CS_DESELECT();
     return (index);
@@ -174,8 +189,8 @@ uint16_t eeprom_read_wdata(uint16_t address) {
     spi_write(CMD_READ);
     spi_write(MSB(address));
     spi_write(LSB(address));
-    _u.read_least = spi_write(0x00);
-    _u.read_most = spi_write(0x00);
+    _u.read_least = spi_read();
+    _u.read_most = spi_read();
     EEPROM_CS_DESELECT();
     return _u._d;
 }
@@ -196,9 +211,9 @@ uint24_t eeprom_read_tdata(uint16_t address) {
     spi_write(CMD_READ);
     spi_write(MSB(address));
     spi_write(LSB(address));
-    _u.read_least = spi_write(0x00);
-    _u.read_mid = spi_write(0x00);
-    _u.read_most = spi_write(0x00);
+    _u.read_least = spi_read();
+    _u.read_mid = spi_read();
+    _u.read_most = spi_read();
     EEPROM_CS_DESELECT();
     return _u._d;
 }
@@ -208,7 +223,7 @@ uint24_t eeprom_read_tdata(uint16_t address) {
 uint8_t eeprom_read_status_reg() {
     EEPROM_CS_SELECT();
     spi_write(CMD_RDSR);
-    uint8_t status_reg = spi_write(0x00);
+    uint8_t status_reg = spi_read();
     EEPROM_CS_DESELECT();
     return status_reg;
 }

@@ -18,8 +18,8 @@
 // Timer3 counting output of timer1 which is 2 seconds
 extern const uint16_t correction_table[];
 volatile time_t unix_time_ms, unix_time_ms_sec = 0;
-#define _hour       rtc_time.hours
-#define _minute     rtc_time.minutes
+#define _hour       rtc_time.hours.raw
+#define _minute     rtc_time.minutes.raw
 
 // Taking only 10 bits - the MSB is 2 seconds
 #define rtc_time_2k_msec    (TMR1>>5)
