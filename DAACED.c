@@ -3429,16 +3429,20 @@ void setup(void)
 
 #include "pcf85063a.h"
 #include "max17260.h"
+#include "pic18_i2c.h"
 void test_ui(){
     BasicInit();
     TRISD = 0xFF;
     uint8_t aa = 0xAA;
     char msg[16];
     int i = 0;
-    uint8_t vpos = 16;
+    uint8_t vpos ;
     struct RtcData rtcd;
     while(True){
-        vpos = 16;
+        vpos = 8;
+        sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
+        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+        vpos += SmallFont->height;
         getRtcData(&rtcd);
         if (rtcd.prcdControl.control1.b1224){
             sprintf(msg,"Time(24h): %d%d:%d%d:%d%d",
