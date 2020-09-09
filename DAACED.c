@@ -89,6 +89,7 @@
 #include "i2c.h"
 #include "rtc.h"
 #include "pic18_i2c.h"
+#include "spi.h"
 
 // </editor-fold>
 
@@ -286,14 +287,16 @@ void getDefaultSettings() {
     Settings.AR_IS.Autostart = On; // on
     Settings.AR_IS.BuzRef = On; // Fixed reference
     Settings.AR_IS.BT = Off; // Off by default
-    Settings.AR_IS.AutoPowerOff = On; // ON by default
+    Settings.AR_IS.AutoPowerOff = Off; // ON by default
     Settings.AR_IS.Clock24h = On; // 24h by default
-    Settings.AR_IS.StartSound = On; // ON by default
+//    Settings.AR_IS.StartSound = On; // ON by default
+    Settings.AR_IS.StartSound = Off; // ON by default
     Settings.InputType = INPUT_TYPE_Microphone;
     Settings.BuzzerFrequency = 2000; // Hz
     Settings.BuzzerParDuration = 300; // ms
     Settings.BuzzerStartDuration = 500; // ms
-    Settings.Volume = 2; // Middle strength sound.
+//    Settings.Volume = 2; // Middle strength sound.
+    Settings.Volume = 0;
     Settings.CustomCDtime = 240; // 4 minutes in sec
     Settings.DelayMode = DELAY_MODE_Fixed;
     Settings.CUstomDelayTime = 2500; // ms before start signal
@@ -3424,25 +3427,46 @@ void setup(void)
 //    ANSELD = 0xFF;
 }
 
-void test_main(){
+#include "pcf85063a.h"
+#include "max17260.h"
+void test_ui(){
     BasicInit();
     TRISD = 0xFF;
     uint8_t aa = 0xAA;
     char msg[16];
     int i = 0;
+    uint8_t vpos = 16;
+    struct RtcData rtcd;
     while(True){
-        sprintf(msg,"It Works i = 0x%X",i++);
-        lcd_write_string(msg, 2, 16, SmallFont, BLACK_OVER_WHITE);
-//        pic18_i2c_enable();
-//        pic18_i2c_write(RTC_DEVICE_ADDR, RTC_REG_RAM_BYTE, &aa, 1);
-//        pic18_i2c_disable();
-//        aa = 0;
-//        Delay(1000);
-//        pic18_i2c_enable();
-//        pic18_i2c_read(RTC_DEVICE_ADDR, RTC_REG_RAM_BYTE, &aa, 1);
-//        pic18_i2c_disable();
-        sprintf(msg,"AA = 0x%x", aa++);
-        lcd_write_string(msg, 2, 40, SmallFont, BLACK_OVER_WHITE);
+        vpos = 16;
+        getRtcData(&rtcd);
+        if (rtcd.prcdControl.control1.b1224){
+            sprintf(msg,"Time(24h): %d%d:%d%d:%d%d",
+                rtcd.prdtdDateTime.hours._tens,
+                rtcd.prdtdDateTime.hours._units,
+                rtcd.prdtdDateTime.minutes._tens,
+                rtcd.prdtdDateTime.minutes._units,
+                rtcd.prdtdDateTime.seconds._tens,
+                rtcd.prdtdDateTime.seconds._units
+                );
+        } else {
+            sprintf(msg,"Time(12h): %d%d:%d%d:%d%d",
+                rtcd.prdtdDateTime.hours._tens12,
+                rtcd.prdtdDateTime.hours._units12,
+                rtcd.prdtdDateTime.minutes._tens,
+                rtcd.prdtdDateTime.minutes._units,
+                rtcd.prdtdDateTime.seconds._tens,
+                rtcd.prdtdDateTime.seconds._units
+                );
+        }
+        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+        vpos += SmallFont->height;
+        sprintf(msg,"SOC: %u%% SOH: %u%%", fg_get_rsoc(), fg_get_rsoh());
+        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+        vpos += SmallFont->height;
+        sprintf(msg,"Cap: %umAh Full: %umAh", fg_get_rcap(), fg_get_fcap());
+        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+        Delay(1000);
     }
 }
 void main(void) {
@@ -3465,10 +3489,10 @@ void main(void) {
     while(Keypressed); // wait key released to avoid start signal
     do {
         //TODO: Integrate watchdog timer
-        handle_ui();
+//        handle_ui();
+        test_ui();
     } while (ui_state != PowerOff);
     LATE = 0;
     Delay(2000);
     // </editor-fold>
-    // test_main();
 }

@@ -100,8 +100,6 @@ typedef union{
 rtc_time_t rtc_time;
 TBool is_24h = true;
 
-#define IS_24H_BIT(x)      ((x>>1) & 0x01)
-
 void read_rtc_time();
 void write_rtc_time();
 void set_timer(uint8_t sec);

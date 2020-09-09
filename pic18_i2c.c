@@ -3,14 +3,14 @@
 
 void pic18_i2c_enable(void) {
     TRISD |= 0b11000000;        //our MMSP2 uses RD7 as SCL, RD6 as SDA, both set as inputs
-    SSP2DATPPS = 0x1E;          // RD6
-    SSP2CLKPPS = 0x1F;          // RD7
-    RD7PPS = 0x1C;              // MSSP2 SDA
-    RD6PPS = 0x1B;              // MSSP2 SCL
-//    SSP2DATPPS = 0x1F;          // RD7
-//    SSP2CLKPPS = 0x1E;          // RD6
-//    RD7PPS = 0x1B;              // MSSP2 SCL
-//    RD6PPS = 0x1C;              // MSSP2 SDA
+//    SSP2DATPPS = 0x1E;          // RD6
+//    SSP2CLKPPS = 0x1F;          // RD7
+//    RD7PPS = 0x1C;              // MSSP2 SDA
+//    RD6PPS = 0x1B;              // MSSP2 SCL
+    SSP2DATPPS = 0x1F;          // RD7
+    SSP2CLKPPS = 0x1E;          // RD6
+    RD7PPS = 0x1B;              // MSSP2 SCL
+    RD6PPS = 0x1C;              // MSSP2 SDA
     SSP2ADD = 160;                //100kHz with 64MHz clock
     SSP2CON1bits.SSPM = 0b1000; //I2C Master mode
     SSP2CON1bits.SSPEN = 1;     //Enable MSSP

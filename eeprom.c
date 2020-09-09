@@ -1,5 +1,7 @@
 #include "eeprom.h"
 #include "DAACED.h"
+#include "spi.h"
+
 static volatile uint8_t test = 0b01010101;
 void eeprom_write_read_test(){
     char * tx_data = "DEADBEAF";
@@ -30,9 +32,6 @@ void eeprom_init() {
     EEPROM_CS_DESELECT();
     EEPROM_HOLD_DIS();
     EEPROM_WP_DIS();
-    while(true){
-        eeprom_write_read_test();
-    }
 }
 
 #define eeprom_wait_deselect() {EEPROM_CS_DESELECT();EEPROM_CS_SELECT();}

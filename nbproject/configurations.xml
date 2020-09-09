@@ -21,10 +21,11 @@
       <itemPath>random.h</itemPath>
       <itemPath>shot.h</itemPath>
       <itemPath>sinus.h</itemPath>
-      <itemPath>pcf85063A.h</itemPath>
       <itemPath>spi.h</itemPath>
       <itemPath>fg.h</itemPath>
       <itemPath>/home/navado/workspace/daa/DAACED.X/pic18_i2c.h</itemPath>
+      <itemPath>/home/navado/workspace/daa/DAACED.X/pcf85063a.h</itemPath>
+      <itemPath>/home/navado/workspace/daa/DAACED.X/max17260.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -49,9 +50,10 @@
       <itemPath>eeprom.c</itemPath>
       <itemPath>random.c</itemPath>
       <itemPath>sinus.c</itemPath>
-      <itemPath>pcf85063.c</itemPath>
       <itemPath>spi.c</itemPath>
       <itemPath>/home/navado/workspace/daa/DAACED.X/pic18_i2c.c</itemPath>
+      <itemPath>/home/navado/workspace/daa/DAACED.X/pcf85063a.c</itemPath>
+      <itemPath>/home/navado/workspace/daa/DAACED.X/max17260.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -414,6 +416,7 @@
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
@@ -456,14 +459,6 @@
         <property key="stack-size-main" value="auto"/>
         <property key="stack-type" value="hybrid"/>
       </XC8-config-global>
-      <item path="pcf85063.c" ex="false" overriding="false">
-        <HI-TECH-COMP>
-        </HI-TECH-COMP>
-        <HI-TECH-LINK>
-        </HI-TECH-LINK>
-        <XC8-config-global>
-        </XC8-config-global>
-      </item>
     </conf>
     <conf name="v2_05_o" type="2">
       <toolsSet>
