@@ -4,10 +4,10 @@
 void pic18_i2c_enable(void) {
     TRISD |= 0b01100000;        //our MMSP2 uses RD6 as SCL, RD5 as SDA, both set as inputs
     // Leaving default PPS
-    SSP2DATPPS = 0x1D;          // RD5
-    SSP2CLKPPS = 0x1E;          // RD6
-    RD5PPS = 0x1C;              // MSSP2 SDA
-    RD6PPS = 0x1B;              // MSSP2 SCL
+//    SSP2DATPPS = 0x1D;          // RD5
+//    SSP2CLKPPS = 0x1E;          // RD6
+//    RD5PPS = 0x1C;              // MSSP2 SDA
+//    RD6PPS = 0x1B;              // MSSP2 SCL
     
 //    TRISD |= 0b11000000;        //our MMSP2 uses RD7 as SCL, RD6 as SDA, both set as inputs
 //    SSP2DATPPS = 0x1E;          // RD6
