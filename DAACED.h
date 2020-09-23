@@ -226,7 +226,7 @@ extern const char * par_mode_header_names[];
 #define SettingsStartAddress        (0x0000)
 // 270 bytes
 #define SettingsDataSize            (sizeof(Settings_t))
-#define SettingsOffsetOfField(s,f)  (&(f)-&(s))
+#define SettingsOffsetOfField(s,f)  ((void *)&(f)-(void *)&(s))
 #define SettingAddress(s,f)         (SettingsStartAddress + SettingsOffsetOfField(s,f))
 
 

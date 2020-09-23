@@ -12,6 +12,26 @@
             <asminc-extensions/>
             <sourceEncoding>ISO-8859-1</sourceEncoding>
             <make-dep-projects/>
+            <sourceRootList>
+                <sourceRootElem>.</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>
+                    <name>v2_30</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>v2_10</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>v2_05</name>
+                    <type>2</type>
+                </confElem>
+            </confList>
+            <formatting>
+                <project-formatting-style>false</project-formatting-style>
+            </formatting>
         </data>
     </configuration>
 </project>

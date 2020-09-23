@@ -13,6 +13,8 @@
 
 uint8_t getRtcData(struct RtcData *data) {
     pic18_i2c_enable();
+    uint8_t ctrl1 = 0xFF;
+    pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &ctrl1, 1);
 	getRtcControlData(&data->prcdControl);
 	getRtcDateTimeData(&data->prdtdDateTime);
 	getRtcAlarmData(&data->pradAlarm);

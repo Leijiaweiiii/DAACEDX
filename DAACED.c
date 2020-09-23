@@ -326,43 +326,43 @@ void getDefaultSettings() {
 }
 
 void restoreSettingsField(void * f, size_t l) {
-    int offset = f - &Settings;
+    int offset = f - (void *)(&Settings);
     eeprom_read_array(SettingsStartAddress + offset, f, l);
 }
 
 void saveSettingsField(void * f, size_t l) {
-    int offset = f - &Settings;
+    int offset = f - (void *)&Settings;
     eeprom_write_array_bulk(SettingsStartAddress + offset, f, l);
 }
 
 void savePar(uint8_t par_index) {
-    int offset = Settings.ParTime - (&Settings) + par_index;
-    eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof (float));
+    int offset = (void *)Settings.ParTime - (void *)(&Settings) + par_index;
+    eeprom_write_array_bulk(SettingsStartAddress + offset, (void *)&Settings + offset, sizeof (float));
 }
 
 void storePar() {
-    int offset = Settings.ParTime - (&Settings);
-    saveSettingsField(&(Settings.TotPar), 1);
-    eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof (float) * MAXPAR);
+    int offset = (void *)Settings.ParTime - (void *)(&Settings);
+    saveSettingsField((void *)&(Settings.TotPar), 1);
+    eeprom_write_array_bulk(SettingsStartAddress + offset, (void *)&Settings + offset, sizeof (float) * MAXPAR);
 }
 
 void restorePar() {
-    int offset = Settings.ParTime - (&Settings);
-    eeprom_read_array(SettingsStartAddress + offset, Settings.ParTime, sizeof (float) * MAXPAR);
-    offset = (&(Settings.TotPar))-(&Settings);
+    int offset = (void *)Settings.ParTime - (void *)(&Settings);
+    eeprom_read_array(SettingsStartAddress + offset, (void *)Settings.ParTime, sizeof (float) * MAXPAR);
+    offset = ((void *)&(Settings.TotPar))-((void *)&Settings);
     Settings.TotPar = eeprom_read_data(SettingsStartAddress + offset);
 }
 
 void storeCustom() {
-    int offset = Settings.CustomPar - (&Settings);
-    saveSettingsField(&(Settings.TotCustomPar), 1);
-    eeprom_write_array_bulk(SettingsStartAddress + offset, &Settings + offset, sizeof (float) * MAXPAR);
+    int offset = (void *)Settings.CustomPar - (void *)(&Settings);
+    saveSettingsField((void *)&(Settings.TotCustomPar), 1);
+    eeprom_write_array_bulk(SettingsStartAddress + offset,(void *)&Settings + offset, sizeof (float) * MAXPAR);
 }
 
 void restoreCustom() {
-    int offset = Settings.CustomPar - (&Settings);
-    eeprom_read_array(SettingsStartAddress + offset, Settings.CustomPar, sizeof (float) * MAXPAR);
-    offset = (&(Settings.TotCustomPar))-(&Settings);
+    int offset = (void *)Settings.CustomPar - (void *)&Settings;
+    eeprom_read_array(SettingsStartAddress + offset, (void *)Settings.CustomPar, sizeof (float) * MAXPAR);
+    offset = ((void *)&(Settings.TotCustomPar))-((void *)&Settings);
     Settings.TotCustomPar = eeprom_read_data(SettingsStartAddress + offset);
 }
 
@@ -3259,7 +3259,7 @@ void detect_aux_shots() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="ISR function">
 
-static void interrupt isr_h() {
+ __interrupt(high_priority) void  isr_h() {
     // sinus value interrupt
     if (PIR5bits.TMR4IF) {
         PIR5bits.TMR4IF = 0;
@@ -3280,7 +3280,7 @@ static void interrupt isr_h() {
     }
 }
 
-static void low_priority interrupt isr_l() {
+__interrupt(__low_priority) void isr_l() {
     if (PIR1bits.ADTIF) {
         PIR1bits.ADTIF = 0; // Clear interrupt flag
         PIE1bits.ADTIE = 0; // Long interrupt, need to stop until end of handling
@@ -3477,7 +3477,7 @@ void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     BasicInit();
     if (Settings.version != FW_VERSION) {
-        clearHistory();
+//        clearHistory();
         getDefaultSettings();
     }
     DoPowerOn();
