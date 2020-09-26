@@ -3434,18 +3434,18 @@ void test_ui(){
     BasicInit();
     TRISD = 0xFF;
     uint8_t aa = 0xAA;
-    char msg[16];
+    char msg[32];
     int i = 0;
     uint8_t vpos ;
     struct RtcData rtcd;
     while(True){
-        vpos = 8;
+        vpos = 0;
         sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
         lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
         vpos += SmallFont->height;
         getRtcData(&rtcd);
         if (rtcd.prcdControl.control1.b1224){
-            sprintf(msg,"Time(24h): %d%d:%d%d:%d%d",
+            sprintf(msg,"T(24h): %d%d:%d%d:%d%d",
                 rtcd.prdtdDateTime.hours._tens,
                 rtcd.prdtdDateTime.hours._units,
                 rtcd.prdtdDateTime.minutes._tens,
@@ -3454,7 +3454,7 @@ void test_ui(){
                 rtcd.prdtdDateTime.seconds._units
                 );
         } else {
-            sprintf(msg,"Time(12h): %d%d:%d%d:%d%d",
+            sprintf(msg,"T(12h): %d%d:%d%d:%d%d",
                 rtcd.prdtdDateTime.hours._tens12,
                 rtcd.prdtdDateTime.hours._units12,
                 rtcd.prdtdDateTime.minutes._tens,
@@ -3468,7 +3468,7 @@ void test_ui(){
         sprintf(msg,"SOC: %u%% SOH: %u%%", fg_get_rsoc(), fg_get_rsoh());
         lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
         vpos += SmallFont->height;
-        sprintf(msg,"Cap: %umAh Full: %umAh", fg_get_rcap(), fg_get_fcap());
+        sprintf(msg,"C/F: %u/%u mAh", fg_get_rcap(), fg_get_fcap());
         lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
         Delay(1000);
     }

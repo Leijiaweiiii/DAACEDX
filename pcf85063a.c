@@ -17,8 +17,8 @@ void getRtcData(struct RtcData *data) {
     pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &ctrl1, 1);
 	getRtcControlData(&data->prcdControl);
 	getRtcDateTimeData(&data->prdtdDateTime);
-	getRtcAlarmData(&data->pradAlarm);
-	getRtcTimerData(&data->prtdTimer);
+//	getRtcAlarmData(&data->pradAlarm);
+//	getRtcTimerData(&data->prtdTimer);
     pic18_i2c_disable();
 }
 

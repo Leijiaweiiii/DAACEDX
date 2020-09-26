@@ -278,7 +278,7 @@ void inline setOrientationInverted(){
     y_offset = 0;
 }
 
-void lcd_set_orientation() {
+void lcd_set_orientation(void) {
     lcd_send_command(CMD_EXTENSION_1);
     lcd_send_command(CMD_DATASCAN_DIR); // data scan directon.
     switch(Orientation){

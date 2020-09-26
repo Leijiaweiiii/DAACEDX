@@ -245,8 +245,8 @@ const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 void lcd_refresh(UpdateBoundary * box);
 #endif
 uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font);
-void lcd_init();
-void lcd_clear();
+void lcd_init(void);
+void lcd_clear(void);
 //void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity);
 //void lcd_draw_hline(uint8_t x0_pos, uint8_t x1_pos, uint8_t y_pos, uint8_t polarity);
 uint8_t lcd_write_char(unsigned int c, uint8_t x_pos, uint8_t y_pos, const FONT_INFO *font, uint8_t polarity);
@@ -255,20 +255,20 @@ void lcd_draw_bitmap(uint8_t x_pos, uint8_t y_pos, const bitmap_data_t *bitmap_d
 void lcd_battery_info(uint8_t x_pos, uint8_t y_pos, uint8_t battery_percentage);
 void lcd_fill_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
 void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos);
-void lcd_clear_data_ram();
-void lcd_set_orientation();
-void lcd_demo();
-void lcd_old_init();
+void lcd_clear_data_ram(void);
+void lcd_set_orientation(void);
+void lcd_demo(void);
+void lcd_old_init(void);
 void lcd_send_data(uint8_t data);
 void lcd_prepare_send_data(uint8_t c1, uint8_t p1, uint8_t c2, uint8_t p2);
-void lcd_increase_contrast();
-void lcd_decrease_contrast();
+void lcd_increase_contrast(void);
+void lcd_decrease_contrast(void);
 #define lcd_draw_fullsize_hline(line,data) {lcd_draw_hline(line, 0, LCD_WIDTH, data);}
 void lcd_draw_vgrid_lines(uint8_t start_line);
 void lcd_draw_fullsize_hgridline(uint8_t line, uint8_t data);
 void lcd_send_block_d(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_pos, uint8_t polarity);
-void lcd_sleep();
-void lcd_wakeup();
+void lcd_sleep(void);
+void lcd_wakeup(void);
 void lcd_set_contrast(uint16_t contrast_value);
 void lcd_draw_hline(uint8_t line, uint8_t x1_pos, uint8_t x2_pos, uint8_t data);
 // </editor-fold>
