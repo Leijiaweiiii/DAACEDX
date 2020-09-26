@@ -1,31 +1,56 @@
 #include <xc.h>
 #include "pic18_i2c.h"
+//#ifndef _XTAL_FREQ
+//#define _XTAL_FREQ 64000000
+//#endif
 
 void pic18_i2c_enable(void) {
-//    TRISD |= 0b01100000;        //our MMSP2 uses RD6 as SCL, RD5 as SDA, both set as inputs
-    // Leaving default PPS
-//    SSP2DATPPS = 0x1D;          // RD5
-//    SSP2CLKPPS = 0x1E;          // RD6
-//    RD5PPS = 0x1C;              // MSSP2 SDA
-//    RD6PPS = 0x1B;              // MSSP2 SCL
-    
-    TRISD |= 0b11000000;        //our MMSP2 uses RD7 as SCL, RD6 as SDA, both set as inputs
-//    SSP2DATPPS = 0x1E;          // RD6
-//    SSP2CLKPPS = 0x1F;          // RD7
-//    RD7PPS = 0x1C;              // MSSP2 SDA
-//    RD6PPS = 0x1B;              // MSSP2 SCL
-    SSP2DATPPS = 0x1F;          // RD7
-    SSP2CLKPPS = 0x1E;          // RD6
-    RD7PPS = 0x1B;              // MSSP2 SCL
-    RD6PPS = 0x1C;              // MSSP2 SDA
-//    SSP2ADD = 160;                //100kHz with 64MHz clock
-    SSP2ADD = 39;
-    SSP2CON1bits.SSPM = 0b1000; //I2C Master mode
-    SSP2CON1bits.SSPEN = 1;     //Enable MSSP
+
+    TRISD |= 0b01100000;
+    RD5PPS = 0x1C;
+    RD6PPS = 0x1B;
+
+    SSP2CON1 = 0x28;
+    SSP2CON2 = 0x00;
+    SSP2CON3 = 0x00;
+    SSP2STAT = 0x00;
+    SSP2ADD = 0x159;
 }
 
+/* Scratchpad with various changes
+TRISD =0b01100000; //amit
+    LATD = 0b01100000;
+    PPSLOCK = 0x55;
+    PPSLOCK = 0xAA;
+    PPSLOCKbits.PPSLOCKED = 0x00;
+    RD5PPS = 0x1C;              // MSSP2 SDA
+    RD6PPS = 0x1B;
+    SSP2DATPPS = 0x1D;
+    SSP2CLKPPS = 0x1E;
+
+
+    PPSLOCK = 0x55;
+    PPSLOCK = 0xAA;
+    PPSLOCKbits.PPSLOCKED = 0x01;
+
+        SSP2CON1 = 0x28;
+    SSP2CON2 = 0x00;
+    SSP2CON3 = 0x00;
+    SSP2STAT = 0x00;
+    SSP2ADD = 0x159;
+
+    SSP2CON2bits.SEN = 1;
+    __delay_ms(100);
+
+    SSP2BUF = 0x52;
+    __delay_ms(100);
+    SSP2BUF = 0;
+    __delay_ms(100);
+    SSP2CON2bits.PEN = 1;
+    __delay_ms(100);
+ */
 void pic18_i2c_disable(void) {
-    SSP2CON1bits.SSPEN = 0;     //Disable MSSP
+//    SSP2CON1bits.SSPEN = 0;     //Disable MSSP
 }
 
 int8_t pic18_i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint16_t length) {
@@ -73,7 +98,7 @@ int8_t pic18_i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint1
     SSP2BUF = slave_addr << 1;
     while (SSP2STATbits.R_W);
     if (SSP2CON2bits.ACKSTAT) goto i2c_rx_err;
-    
+
     SSP2BUF = reg_addr;
     while (SSP2STATbits.R_W);
     if (SSP2CON2bits.ACKSTAT) goto i2c_rx_err;
@@ -83,11 +108,11 @@ int8_t pic18_i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint1
     while (SSP2STATbits.R_W);
     if (SSP2CON2bits.ACKSTAT) goto i2c_rx_err;
     PIR3bits.BCL2IF = 0;
-    PIR3bits.SSP2IF = 0; 
+    PIR3bits.SSP2IF = 0;
     while (length > 0) {
         SSP2CON2bits.RCEN = 1;
         while(!SSP2CON2bits.RCEN){ // ----> Never True...
-            NOP(); 
+            NOP();
         }
         while (!SSP2STATbits.BF);
         *data = SSP2BUF;
