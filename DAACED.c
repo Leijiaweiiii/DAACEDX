@@ -1937,7 +1937,7 @@ void SetInput() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
-void init_bt() {
+void init_bt(void) {
     init_uart();
     BT_init();
     if (!Settings.AR_IS.BT) {
@@ -1945,7 +1945,7 @@ void init_bt() {
     }
 }
 
-void SetAutoPowerOff() {
+void SetAutoPowerOff(void) {
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, "Auto Power-Off");
@@ -1959,7 +1959,7 @@ void SetAutoPowerOff() {
     } while (SettingsNotDone((&ma)));
     if (ma.selected && Settings.AR_IS.AutoPowerOff != ma.menu) {
         Settings.AR_IS.AutoPowerOff = ma.menu;
-        saveSettingsField(&(Settings.AR_IS), 1);
+        saveSettingsField((void *)&(Settings.AR_IS), 1);
     }
 }
 

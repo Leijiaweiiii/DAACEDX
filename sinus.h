@@ -76,12 +76,12 @@ volatile time_t beep_duration;
 #define DACON_VALUE_DEFAULT     0b10100000
 #define DACON_VALUE_NEW         0b10100000
 
-void sinus_dac_init();
+void sinus_dac_init(void);
 void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration);
 //void start_sinus(uint16_t frequency);
 #define stop_sinus() {DAC1CON0 = 0; /* DAC Off */   LATEbits.LATE2 = 0; /* Driver OFF */ LATEbits.LATE1 = 0; /*5v Power Pupply Off*/}
-void sinus_duration_expired();
-void sinus_value_expired();
+void sinus_duration_expired(void);
+void sinus_value_expired(void);
 void sinus_duration_timer_init(uint16_t duration);
 // f_n - index of the frequency in settings array
 void sinus_value_timer_init(uint8_t f_n);

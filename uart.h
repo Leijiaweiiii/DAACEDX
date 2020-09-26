@@ -23,12 +23,12 @@ extern "C" {
         unsigned                :6;
     } uart_flags;
     void putch(unsigned char data);
-    void init_uart();
-    void uart_tx_int_handler();
-    void uart_rx_int_handler();
+    void init_uart(void);
+    void uart_tx_int_handler(void);
+    void uart_rx_int_handler(void);
     void uart_start_tx_string(const char * str, const uint8_t size);
-    void uart_rx_handled();
-    void uart_tx_completed();
+    void uart_rx_handled(void);
+    void uart_tx_completed(void);
 #define uart_disable() { RC1IE = 0; PIE3bits.TX1IE = 0; TX1STAbits.TXEN = 0; RCSTA1bits.CREN = 0; RC1STAbits.SPEN = 0; }
 #define uart_set_high_speed {SP1BRG = 34; /* for 115200 rate, calculated for 64 MHz */}
 #define uart_set_low_speed  {SP1BRG = 416; /* for 9600 rate, calculated for 64 MHz */}

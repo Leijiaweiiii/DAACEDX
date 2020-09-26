@@ -114,7 +114,7 @@ union {
     };
 } InputFlags;
 
-uint16_t LongPressCount = 0;
+volatile uint16_t LongPressCount = 0;
 typedef enum {
     Mic = 0b0001,
     A = 0b0010,

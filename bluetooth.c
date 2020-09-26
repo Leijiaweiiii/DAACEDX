@@ -39,7 +39,7 @@ void set_device_name(){
     uart_rx_handled();
 }
 
-void BT_init() {
+void BT_init(void) {
     BT_reset();
     // After the battery reset the first boot will be long.
     if(0 == mac_addr[0]){
@@ -50,7 +50,7 @@ void BT_init() {
     }
 }
 
-void BT_off() {
+void BT_off(void) {
     uart_disable();
     BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
 }
@@ -71,7 +71,7 @@ void sendSignal(const char * name, uint16_t duration, time_t time_ms) {
 
 #define clear_args_buffer() { for (int i = 0; i < UART_RX_BUF_SIZE; i++) {bt_cmd_args_raw[i] = 0;}}
 
-BT_COMMAND_T BT_define_action() {
+BT_COMMAND_T BT_define_action(void) {
     uint8_t cmd_len = 3;
     BT_COMMAND_T BT_COMMAND = BT_None;
     char tmp_b[8]; //TODO: allocate temporary short strings only once

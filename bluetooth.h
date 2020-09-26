@@ -124,15 +124,15 @@ extern "C" {
      Examples of commands
      DAA+CMD1
      */
-    void BT_init();
-    void BT_off();
+    void BT_init(void);
+    void BT_off(void);
 #define BT_MSG_SPLIT_TIME_MS    50
 #define BT_reset() {BT_RESET_INV = 0; Delay(200); BT_RESET_INV = 1;}
 #define BT_hard_reset() {LATEbits.LATE0 = 0; Delay(50); LATEbits.LATE0 = 0;}
 
     void sendOneShot(shot_t * shot);
     void sendSignal(const char * name, uint16_t duration, time_t time_ms);
-    BT_COMMAND_T BT_define_action();
+    BT_COMMAND_T BT_define_action(void);
     void sendString(const char * x, size_t y);
 #define DAA_MSG_OK       {sendString("OK\n",3);}
 #define DAA_MSG_DENIED   {sendString("DENIED\n",7);}

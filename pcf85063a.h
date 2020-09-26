@@ -125,18 +125,18 @@ struct RtcData {
         struct RtcTimerData    prtdTimer;
 };
 
-uint8_t getRtcData(struct RtcData *data);
-uint8_t setRtcData(struct RtcData *data);
+void getRtcData(struct RtcData *data);
+void setRtcData(struct RtcData *data);
 
-uint8_t getRtcControlData(struct RtcControlData *control);
-uint8_t setRtcControlData(struct RtcControlData *control);
+void getRtcControlData(struct RtcControlData *control);
+void setRtcControlData(struct RtcControlData *control);
 
-uint8_t getRtcDateTimeData(struct RtcDateTimeData *time);
-uint8_t setRtcDateTimeData(struct RtcDateTimeData *time);
+void getRtcDateTimeData(struct RtcDateTimeData *time);
+void setRtcDateTimeData(struct RtcDateTimeData *time);
 
-uint8_t getRtcAlarmData(struct RtcAlarmData *alarm);
-uint8_t setRtcAlarmData(struct RtcAlarmData *alarm);
+void getRtcAlarmData(struct RtcAlarmData *alarm);
+void setRtcAlarmData(struct RtcAlarmData *alarm);
 
-uint8_t getRtcTimerData(struct RtcTimerData *timer);
-uint8_t setRtcTimerData(struct RtcTimerData *timer);
+void getRtcTimerData(struct RtcTimerData *timer);
+void setRtcTimerData(struct RtcTimerData *timer);
 #endif

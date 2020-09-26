@@ -9,7 +9,7 @@ const uint8_t sinus_table[MAX_VOLUME_LEVELS][32] = {
 //    {30, 28, 24, 19, 14, 9, 6, 2, 1, 0, 1, 2, 4, 6, 7, 7, 7, 6, 4, 2, 1, 0, 1, 2, 6, 9, 14, 19, 24, 28, 30, 31}
 };
 
-void sinus_dac_init() {
+void sinus_dac_init(void) {
     LATEbits.LATE1 = 1;
     TRISFbits.TRISF5 = 0;
     FVRCONbits.EN = True;
@@ -18,7 +18,7 @@ void sinus_dac_init() {
     DAC1CON0 = DACON_VALUE_NEW;
 }
 
-void sinus_duration_expired(){
+void sinus_duration_expired(void){
     if(0 < (--beep_duration_residue)) return;
     LATEbits.LATE2 = 0; /* Driver OFF */
     // Stop value timer - TMR4
@@ -29,7 +29,7 @@ void sinus_duration_expired(){
     PIE5bits.TMR8IE = 0;
 }
 
-void sinus_value_expired(){
+void sinus_value_expired(void){
     uint8_t dac_value = sinus_table[amplitude_index][current_sample_index];
     DAC1CON1 = dac_value;
     current_sample_index++;
