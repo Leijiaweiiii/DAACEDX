@@ -52,9 +52,9 @@ struct RtcDateTimeData {
 		};
 	} hours;
 	struct {
-	uint8_t _units:4;
-	uint8_t _tens:2;
-	uint8_t _unused:2;
+        uint8_t _units:4;
+        uint8_t _tens:2;
+        uint8_t _unused:2;
 	} days;
 	struct {
 		uint8_t _weekday:3;
@@ -124,19 +124,20 @@ struct RtcData {
         struct RtcAlarmData    pradAlarm;
         struct RtcTimerData    prtdTimer;
 };
+struct RtcData rtcd;
 
-void getRtcData(struct RtcData *data);
-void setRtcData(struct RtcData *data);
+void getRtcData(void);
+void setRtcData(void);
 
-void getRtcControlData(struct RtcControlData *control);
-void setRtcControlData(struct RtcControlData *control);
+void getRtcControlData(void);
+void setRtcControlData(void);
 
-void getRtcDateTimeData(struct RtcDateTimeData *time);
-void setRtcDateTimeData(struct RtcDateTimeData *time);
+void getRtcDateTimeData(void);
+void setRtcDateTimeData(void);
 
-void getRtcAlarmData(struct RtcAlarmData *alarm);
-void setRtcAlarmData(struct RtcAlarmData *alarm);
+void getRtcAlarmData(void);
+void setRtcAlarmData(void);
 
-void getRtcTimerData(struct RtcTimerData *timer);
-void setRtcTimerData(struct RtcTimerData *timer);
+void getRtcTimerData(void);
+void setRtcTimerData(void);
 #endif

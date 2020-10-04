@@ -37,11 +37,6 @@ uint8_t head_index        =         0;
 #define ADC_BUFFER_END              (head_index == ADC_BUFFER_SIZE)
 #define ADC_SAMPLE_REG_16_BIT       (ADRESL|(ADRESH << 8))
 #define ADC_BUFFER_CLEAR             { while(head_index) samples[--head_index] = 0;  }
-#define BAT_BUFFER_SIZE             10
-#define BAT_BUFFER_SIZE_SHIFT       3
-
-uint16_t bat_samples [BAT_BUFFER_SIZE];
-void BAT_BUFFER_PUT(uint16_t x);
 
 #define shot_detection_source ACCELEROMETER
 #define ADC_ENABLE_INTERRUPT_SHOT_DETECTION              {ADPCH = shot_detection_source; ADCON0bits.ADGO = 1; PIE1bits.ADTIE= 1;}

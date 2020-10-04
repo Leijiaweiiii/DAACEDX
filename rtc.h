@@ -2,7 +2,6 @@
 #define RTC_H
 #include "xc.h"
 #include "DAACEDcommon.h"
-#include "pcf85063a.h"
 
 #define RTC_TIMER_IE    (PIE5bits.TMR1IE)
 #define RTC_TIMER_IF    (PIR5bits.TMR1IF)
@@ -19,19 +18,20 @@
 extern const uint16_t correction_table[];
 volatile time_t unix_time_ms, unix_time_ms_sec = 0;
 
-uint8_t _hour = 0, _minute = 0;
 
 // Taking only 10 bits - the MSB is 2 seconds
 #define rtc_time_2k_msec    (TMR1>>5)
-void update_rtc_time();
+void update_rtc_time(void);
 
-void initialize_rtc_timer();
-void init_ms_timer0();
+void initialize_rtc_timer(void);
+void init_ms_timer0(void);
 
-void tic_2_sec();
-#define set_time(h, m)              {_hour=h;_minute=m;}
+void tic_2_sec(void);
+void set_time(uint8_t h, uint8_t m, TBool is24h);
+uint8_t hours(void);
+uint8_t minutes(void);
 
-uint8_t rtc_print_time(char * buff, TBool format24h);
+uint8_t rtc_print_time(char * buff);
 uint8_t rtc_print_time_full(char * buff, uint8_t h, uint8_t  m, TBool format24h);
 
 #define IsHourAM(x)    ((x < 12))

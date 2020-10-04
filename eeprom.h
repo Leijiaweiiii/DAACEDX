@@ -58,7 +58,7 @@ void eeprom_write_data(uint16_t address, uint8_t data);
 uint8_t eeprom_read_data(uint16_t address);
 uint16_t eeprom_read_array(uint16_t address, uint8_t *data, uint16_t no_of_bytes);
 #define eeprom_busy_wait() {while (eeprom_read_status_reg() & 0x01); }
-uint8_t eeprom_read_status_reg();
+uint8_t eeprom_read_status_reg(void);
 void eeprom_write_array(uint16_t address, uint8_t * data, uint16_t size);
 void eeprom_write_wdata(uint16_t address, uint16_t data);
 void eeprom_write_tdata(uint16_t address, uint24_t data);

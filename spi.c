@@ -51,7 +51,7 @@ uint8_t spi_write(uint8_t data) {
     return ret;                       // return receive data
 }
 
-uint8_t spi_read() {
+uint8_t spi_read(void) {
     unsigned char temp_var = SSP1BUF; // Clear buffer.
     (void)(temp_var);
     PIR3bits.SSP1IF = 0;              // clear interrupt flag bit

@@ -11,70 +11,64 @@
 #define ALARM_SEGMENT_ADDR (TIME_SEGMENT_ADDR + sizeof(struct RtcDateTimeData))
 #define TIMER_SEGMENT_ADDR (ALARM_SEGMENT_ADDR + sizeof(struct RtcAlarmData))
 
-void getRtcData(struct RtcData *data) {
+void getRtcData(void) {
+	getRtcControlData();
+	getRtcDateTimeData();
+	getRtcAlarmData();
+	getRtcTimerData();
+}
+
+void setRtcData(void) {
+    setRtcControlData();
+    setRtcDateTimeData();
+    setRtcAlarmData();
+    setRtcTimerData();
+}
+
+void getRtcControlData(void) {
     pic18_i2c_enable();
-    uint8_t ctrl1 = 0xFF;
-    pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &ctrl1, 1);
-	getRtcControlData(&data->prcdControl);
-	getRtcDateTimeData(&data->prdtdDateTime);
-//	getRtcAlarmData(&data->pradAlarm);
-//	getRtcTimerData(&data->prtdTimer);
+    pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &rtcd.prcdControl, sizeof(struct RtcControlData));
     pic18_i2c_disable();
 }
 
-void setRtcData(struct RtcData *data) {
+void setRtcControlData(void) {
     pic18_i2c_enable();
-    setRtcControlData(&data->prcdControl);
-    setRtcDateTimeData(&data->prdtdDateTime);
-    setRtcAlarmData(&data->pradAlarm);
-    setRtcTimerData(&data->prtdTimer);
+    pic18_i2c_write(DEVICE_ADDR, CONTROL_SEGMENT_ADDR,  &rtcd.prcdControl, sizeof(struct RtcControlData));
     pic18_i2c_disable();
 }
 
-void getRtcControlData(struct RtcControlData *control) {
+void getRtcDateTimeData(void) {
     pic18_i2c_enable();
-    pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, control, sizeof(*control));
+	pic18_i2c_read(DEVICE_ADDR, TIME_SEGMENT_ADDR, &rtcd.prdtdDateTime, sizeof(struct RtcDateTimeData));
     pic18_i2c_disable();
 }
 
-void setRtcControlData(struct RtcControlData *control) {
+void setRtcDateTimeData(void) {
     pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, control, sizeof(*control));
+    pic18_i2c_write(DEVICE_ADDR, TIME_SEGMENT_ADDR, &rtcd.prdtdDateTime, sizeof(struct RtcDateTimeData));
     pic18_i2c_disable();
 }
 
-void getRtcDateTimeData(struct RtcDateTimeData *time) {
+void getRtcAlarmData(void) {
     pic18_i2c_enable();
-	pic18_i2c_read(DEVICE_ADDR, TIME_SEGMENT_ADDR, time, sizeof(*time));
+    pic18_i2c_read(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
     pic18_i2c_disable();
 }
 
-void setRtcDateTimeData(struct RtcDateTimeData *time) {
+void setRtcAlarmData(void) {
     pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, TIME_SEGMENT_ADDR, time, sizeof(*time));
+    pic18_i2c_write(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
     pic18_i2c_disable();
 }
 
-void getRtcAlarmData(struct RtcAlarmData *alarm) {
+void getRtcTimerData(void) {
     pic18_i2c_enable();
-    pic18_i2c_read(DEVICE_ADDR, ALARM_SEGMENT_ADDR, alarm, sizeof(*alarm));
+    pic18_i2c_read(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
     pic18_i2c_disable();
 }
 
-void setRtcAlarmData(struct RtcAlarmData *alarm) {
+void setRtcTimerData(void) {
     pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, ALARM_SEGMENT_ADDR, alarm, sizeof(*alarm));
-    pic18_i2c_disable();
-}
-
-void getRtcTimerData(struct RtcTimerData *timer) {
-    pic18_i2c_enable();
-    pic18_i2c_read(DEVICE_ADDR, TIMER_SEGMENT_ADDR, timer, sizeof(*timer));
-    pic18_i2c_disable();
-}
-
-void setRtcTimerData(struct RtcTimerData *timer) {
-    pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, TIMER_SEGMENT_ADDR, timer, sizeof(*timer));
+    pic18_i2c_write(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
     pic18_i2c_disable();
 }

@@ -88,8 +88,11 @@
 #include "math.h"
 #include "i2c.h"
 #include "rtc.h"
-#include "pic18_i2c.h"
 #include "spi.h"
+
+#include "pcf85063a.h"
+#include "max17260.h"
+#include "pic18_i2c.h"
 
 // </editor-fold>
 
@@ -1616,7 +1619,8 @@ void SetMode() {
 
 void SetClock() {
     NumberSelection_t ts;
-    uint8_t h = _hour, m = _minute;
+    uint8_t h = hours();
+    uint8_t m = minutes();
     InitSettingsNumberDefaults((&ts));
     ts.min = 0;
     ts.max = 23;
@@ -1649,8 +1653,8 @@ void SetClock() {
             SelectIntegerCircular(&ts);
         } while (SettingsNotDone((&ts)));
     }
-    if (ts.selected && (h != _hour || ts.value != m)) {
-        set_time(h, ts.value);
+    if (ts.selected && (h != hours() || ts.value != m)) {
+        set_time(h, ts.value, Settings.AR_IS.Clock24h);
     }
 }
 
@@ -1670,7 +1674,7 @@ void SetClockMode() {
     } while (SettingsNotDone((&ts)));
     if (ts.value != ts.old_value) {
         Settings.AR_IS.Clock24h = (ts.value == 24);
-        saveSettingsField(&(Settings.AR_IS), 1);
+        saveSettingsField((void *)&(Settings.AR_IS), 1);
     }
 }
 
@@ -1682,13 +1686,14 @@ void SetHour() {
     ts.max = 23;
     ts.min = 0;
     ts.step = 1;
-    ts.value = _hour;
+    ts.value = hours();
     ts.old_value = ts.value;
     do {
         DisplayInteger((&ts));
         SelectIntegerCircular((&ts));
     } while (SettingsNotDone((&ts)));
-    if (ts.selected) _hour = ts.value;
+    if (ts.selected)
+        set_time(ts.value, minutes(), Settings.AR_IS.Clock24h);
 }
 
 void SetMinute() {
@@ -1699,13 +1704,14 @@ void SetMinute() {
     ts.max = 59;
     ts.min = 0;
     ts.step = 1;
-    ts.value = _minute;
+    ts.value = minutes();
     ts.old_value = ts.value;
     do {
         DisplayInteger((&ts));
         SelectIntegerCircular((&ts));
     } while (SettingsNotDone((&ts)));
-    if (ts.selected) _minute = ts.value;
+    if (ts.selected)
+        set_time(hours(),ts.value, Settings.AR_IS.Clock24h);
 }
 
 void SetClockMenuItems() {
@@ -1713,7 +1719,7 @@ void SetClockMenuItems() {
     //    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(Settings.AR_IS.Clock24h));
     //    sprintf(ma.MenuItem[2], "Minute|%02u",get_minute());
     sprintf(ma.MenuItem[1], "Clock|");
-    rtc_print_time((ma.MenuItem[1] + 6), Settings.AR_IS.Clock24h);
+    rtc_print_time((ma.MenuItem[1] + 6));
     ma.TotalMenuItems = 2;
 }
 
@@ -2218,10 +2224,13 @@ void handle_bt_commands() {
                     bt_set_delay();
                     break;
                 case BT_GetBatteryMV:
-                    print_and_send_stat(msg, "%u", battery_average());
-                    for (uint8_t i = 0; i < BAT_BUFFER_SIZE; i++){
-                        print_and_send_stat(msg, ",%u", bat_samples[i]);
-                    }
+                    length = sprintf(msg, "%u,%u,%u,%u",
+                            fg_get_rsoc(),
+                            fg_get_rcap(),
+                            fg_get_fcap(),
+                            fg_get_rsoh()
+                            );
+                    sendString(msg, length);
                     Delay(50);
                     sendString("\n", 1);
                     break;
@@ -2479,7 +2488,7 @@ void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_AUTOSTART], "Auto Start|%s",
             (Settings.AR_IS.Autostart) ? "ON" : "OFF");
     strcpy(SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK], "Clock|");
-    rtc_print_time((SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK] + 6), Settings.AR_IS.Clock24h);
+    rtc_print_time((SettingsMenu.MenuItem[SETTINDS_INDEX_CLOCK] + 6));
     switch (Settings.InputType) {
         case INPUT_TYPE_Microphone:
             sprintf(SettingsMenu.MenuItem[SETTINDS_INDEX_INPUT], "Input|Microphone");
@@ -2715,7 +2724,7 @@ void review_next_string() {
     TopShotIndex = ReviewTopShotDefault;
 }
 
-void DoReview() {
+void DoReview(void) {
     getShootString(0);
     CurShootString = 0;
     TopShotIndex = ReviewTopShotDefault;
@@ -2811,7 +2820,7 @@ uint8_t print_title(TBool settings) {
     char message[30];
     uint8_t title_pos = 5;
     if (!settings) {
-        rtc_print_time(message, Settings.AR_IS.Clock24h);
+        rtc_print_time(message);
         title_pos = lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
     }
     sprintf(message, "%s", ScreenTitle);
@@ -3325,29 +3334,14 @@ __interrupt(__low_priority) void isr_l() {
         }
         check_par_expired();
     }
-    if (PIE1bits.ADIE && PIR1bits.ADIF) {
+    if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
-        if (ADPCH == BATTERY) {
-            ADCON0bits.ADGO = 0;
-            BAT_BUFFER_PUT(ADC_SAMPLE_REG_16_BIT);
-            ADC_DISABLE_INTERRUPT;
-        }
     }
 
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC - for faster handling of power-off tick
         InputFlags.FOOTER_CHANGED = True;
-        uint8_t const_minute = _minute;
         tic_2_sec();
-        if (_minute != const_minute) {
-            if (ui_state == PowerOff) {
-                define_charger_state();
-            }
-            if (ui_state != TimerListening && ui_state != TimerCountdown) {
-                ADC_ENABLE_INTERRUPT_BATTERY;
-            }
-        }
     }
     if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
@@ -3373,63 +3367,6 @@ __interrupt(__low_priority) void isr_l() {
 }
 // </editor-fold>
 
-void battery_test() {
-    int i = 0;
-    char msg[64];
-    do {
-        i++;
-        ADC_DISABLE_INTERRUPT;
-        generate_sinus(3, 1800, 500);
-        for (int j = 0; j < 1000; j += 10) {
-            ADC_ENABLE_INTERRUPT_BATTERY;
-            Delay(10);
-        }
-        sprintf(msg, "%u %04d/%04dmV", i, battery_mV, battery_average());
-        lcd_clear();
-        lcd_write_string(msg, 2, 40, SmallFont, BLACK_OVER_WHITE);
-    } while (number_of_battery_bars() > 0 || Key == 0);
-}
-
-
-void setup(void)
-{
-    /**
-    LATx registers
-    */
-    LATE = 0x00;
-    LATD = 0x00;
-    LATA = 0x00;
-    LATF = 0x00;
-    LATB = 0x00;
-    LATG = 0x00;
-    LATC = 0x00;
-    LATH = 0x00;
-
-    /**
-    TRISx registers
-    */
-    TRISE = 0x00;
-    TRISF = 0x00;
-    TRISA = 0x00;
-    TRISG = 0x00;
-    TRISB = 0x00;
-    TRISH = 0x00;
-    TRISC = 0x00;
-    TRISD = 0x00;
-    TRISE = 0xFF;
-    TRISF = 0xFF;
-    TRISA = 0xFF;
-    TRISG = 0xFF;
-    TRISB = 0xFF;
-    TRISH = 0xFF;
-    TRISC = 0xFF;
-    TRISD = 0xFF;
-//    ANSELD = 0xFF;
-}
-
-#include "pcf85063a.h"
-#include "max17260.h"
-#include "pic18_i2c.h"
 void test_ui(){
     BasicInit();
     TRISD = 0xFF;
@@ -3443,7 +3380,7 @@ void test_ui(){
         sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
         lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
         vpos += SmallFont->height;
-        getRtcData(&rtcd);
+        getRtcData();
         if (rtcd.prcdControl.control1.b1224){
             sprintf(msg,"T(24h): %d%d:%d%d:%d%d",
                 rtcd.prdtdDateTime.hours._tens,
@@ -3477,7 +3414,7 @@ void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     BasicInit();
     if (Settings.version != FW_VERSION) {
-//        clearHistory();
+        clearHistory();
         getDefaultSettings();
     }
     DoPowerOn();
@@ -3493,8 +3430,8 @@ void main(void) {
     while(Keypressed); // wait key released to avoid start signal
     do {
         //TODO: Integrate watchdog timer
-//        handle_ui();
-        test_ui();
+        handle_ui();
+//        test_ui();
     } while (ui_state != PowerOff);
     LATE = 0;
     Delay(2000);

@@ -219,7 +219,7 @@ uint24_t eeprom_read_tdata(uint16_t address) {
 
 
 
-uint8_t eeprom_read_status_reg() {
+uint8_t eeprom_read_status_reg(void) {
     EEPROM_CS_SELECT();
     spi_write(CMD_RDSR);
     uint8_t status_reg = spi_read();

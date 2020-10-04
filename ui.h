@@ -72,20 +72,20 @@ extern "C" {
     
     void print_big_time_label(uint24_t t);
     void print_line_with_shots_and_split(uint8_t shot_no, time_t split);
-    void handle_settings_screen();
-    void handle_review_screen();
-    void define_input_action();
-    void handle_timer_idle_shutdown();
-    void handle_ui();
-    void StopTimer();
+    void handle_settings_screen(void);
+    void handle_review_screen(void);
+    void define_input_action(void);
+    void handle_timer_idle_shutdown(void);
+    void handle_ui(void);
+    void StopTimer(void);
 
-    void STATE_HANDLE_POWER_OFF();
-    void STATE_HANDLE_POWER_ON();
-    void STATE_HANDLE_TIMER_IDLE();
-    void STATE_HANDLE_REVIEW_SCREEN();
-    void STATE_HANDLE_SETTINGS_SCREEN();
-    void STATE_HANDLE_COUNTDOWN();
-    void STATE_HANDLE_CHARGER();
+    void STATE_HANDLE_POWER_OFF(void);
+    void STATE_HANDLE_POWER_ON(void);
+    void STATE_HANDLE_TIMER_IDLE(void);
+    void STATE_HANDLE_REVIEW_SCREEN(void);
+    void STATE_HANDLE_SETTINGS_SCREEN(void);
+    void STATE_HANDLE_COUNTDOWN(void);
+    void STATE_HANDLE_CHARGER(void);
     void set_screen_title(const char * x);
 #ifdef	__cplusplus
 }

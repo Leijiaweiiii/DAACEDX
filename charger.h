@@ -43,10 +43,7 @@ extern "C" {
 #define charger_state_changed   (charger_display_state != charger_state)
     void define_charger_state();
     char * charger_text_state();
-#define BATTERY_FULL_THR    3800
-#define BATTERY_HALF_THR    3650
     uint16_t battery_mV = 0;
-    uint16_t battery_average();
     uint8_t number_of_battery_bars();
     
 #ifdef	__cplusplus

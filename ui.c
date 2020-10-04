@@ -2,7 +2,7 @@
 #include "DAACED.h"
 
 // These may be macros but moved here for space optimization
-void STATE_HANDLE_POWER_OFF(){
+void STATE_HANDLE_POWER_OFF(void){
     lcd_clear();
     lcd_write_string("Power OFF", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     PowerOffSound();
@@ -11,12 +11,12 @@ void STATE_HANDLE_POWER_OFF(){
     ui_state = PowerOff;
 }
 
-void STATE_HANDLE_POWER_ON()           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
-void STATE_HANDLE_TIMER_IDLE()         {StopTimer(); ui_state = TimerIdle;}
-void STATE_HANDLE_REVIEW_SCREEN()      {ui_state = ReviewScreen;lcd_clear();}
-void STATE_HANDLE_SETTINGS_SCREEN()    {ui_state = SettingsScreen;lcd_clear();}
-void STATE_HANDLE_COUNTDOWN()          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
-void STATE_HANDLE_CHARGER()            {ui_state = TimerCharging;set_backlight(0);lcd_clear();}
+void STATE_HANDLE_POWER_ON(void)           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
+void STATE_HANDLE_TIMER_IDLE(void)         {StopTimer(); ui_state = TimerIdle;}
+void STATE_HANDLE_REVIEW_SCREEN(void)      {ui_state = ReviewScreen;lcd_clear();}
+void STATE_HANDLE_SETTINGS_SCREEN(void)    {ui_state = SettingsScreen;lcd_clear();}
+void STATE_HANDLE_COUNTDOWN(void)          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
+void STATE_HANDLE_CHARGER(void)            {ui_state = TimerCharging;set_backlight(0);lcd_clear();}
 
 
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
