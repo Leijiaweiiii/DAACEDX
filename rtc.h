@@ -28,6 +28,7 @@ void init_ms_timer0(void);
 
 void tic_2_sec(void);
 void set_time(uint8_t h, uint8_t m, TBool is24h);
+void read_time(void);
 uint8_t hours(void);
 uint8_t minutes(void);
 

@@ -73,6 +73,10 @@ void set_time(uint8_t h, uint8_t m, TBool is24h) {
     setRtcDateTimeData();
 }
 
+void read_time(void){
+    getRtcControlData();
+    getRtcDateTimeData();
+}
 uint8_t minutes(void){
     return rtcd.prdtdDateTime.minutes._tens * 10 + rtcd.prdtdDateTime.minutes._units;
 }
