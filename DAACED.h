@@ -294,24 +294,7 @@ volatile Settings_t Settings;
 
 #define ROM_GUARD_INTERVAL  32
 #define SettingsEndAddress (SettingsStartAddress + SettingsDataSize)
-#define StatsStartAddress   (SettingsEndAddress + ROM_GUARD_INTERVAL)
-typedef struct{
-    uint32_t PowerOn;
-    uint32_t Signal;
-    uint32_t Review;
-    uint16_t Settings;
-    uint16_t Charging;
-    uint16_t Charged;
-    uint16_t LowPower;
-    uint16_t InputModes[3];
-    uint16_t Modes[TOT_PAR_MODES];
-    uint16_t Menu[MAXMenuItems];
-} Stats_t;
-#define StatsDataSize   (sizeof(Stats_t))
-#define StatsEndAddress (StatsStartAddress + StatsDataSize)
-Stats_t Stats;
-
-#define ShootStringStartAddress     (StatsEndAddress + ROM_GUARD_INTERVAL)
+#define ShootStringStartAddress     (SettingsEndAddress + ROM_GUARD_INTERVAL)
 
 // </editor-fold>
 
@@ -346,8 +329,7 @@ void increment_par(void);
 void decrement_par(void);
 uint8_t top_shot_index(void);
 void SetCountDown(void);
-void saveStatsField(void * f, size_t l);
-void saveStats(void);
+
 void PowerOffSound(void);
 void PowerOnSound(void);
 

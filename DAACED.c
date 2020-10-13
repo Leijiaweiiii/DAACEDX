@@ -244,9 +244,6 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
     beep_start = unix_time_ms;
-    Stats.Signal++;
-    saveStatsField(&(Stats.Signal), 4);
-    //    InputFlags.BEEP_GUARD = True;
 }
 
 // </editor-fold>
@@ -517,18 +514,6 @@ TBool checkShotStringEmpty(uint8_t offset) {
     return (t == 0);
 }
 
-void saveStats() {
-    eeprom_write_array_bulk(StatsStartAddress, (uint8_t *)(&Stats), sizeof (Stats_t));
-}
-
-void getStats() {
-    eeprom_read_array(StatsStartAddress, (uint8_t *)(&Stats), sizeof (Stats_t));
-}
-
-void saveStatsField(void * f, size_t l) {
-    int offset = f - (void*)(&Stats);
-    eeprom_write_array_bulk(StatsStartAddress + offset, f, l);
-}
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Helper functions">
@@ -1610,7 +1595,6 @@ void SetMode() {
         STATE_HANDLE_TIMER_IDLE();
     }
     set_par_mode(Settings.ParMode);
-    Stats.Modes[Settings.ParMode]++;
     CurPar_idx = 0;
 }
 // </editor-fold>
@@ -1936,7 +1920,6 @@ void SetInput() {
     if (Settings.InputType != orgset) {
         saveSettingsField(&(Settings.InputType), 1);
     }
-    Stats.InputModes[Settings.InputType]++;
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
@@ -2016,8 +1999,6 @@ void bt_set_par() {
             Settings.TotPar = par_idx;
             savePar(par_idx);
             saveSettingsField(&(Settings.TotPar), 1);
-            Stats.Menu[SETTINGS_INDEX_PAR]++;
-            saveStats();
             DAA_MSG_OK;
         } else {
             DAA_MSG_ERROR;
@@ -2044,7 +2025,6 @@ void bt_set_custom() {
             Settings.CustomPar[par_idx - 1] = par_time_f;
             Settings.TotCustomPar = par_idx;
             storeCustom();
-            Stats.Menu[SETTINGS_INDEX_PAR]++;
             saveStats();
             DAA_MSG_OK;
         } else {
@@ -2065,7 +2045,6 @@ void bt_set_mode() {
         lcd_clear_block(0, 0, LCD_WIDTH, UI_HEADER_END_LINE);
         Settings.ParMode = mode;
         saveSettingsField(&(Settings.ParMode), 1);
-        Stats.Modes[mode]++;
         saveStats();
         DAA_MSG_OK;
 
@@ -2185,32 +2164,6 @@ void handle_bt_commands() {
                         DAA_MSG_OK;
                     } else {
                         DAA_MSG_ERROR;
-                    }
-                    break;
-                case BT_GetStats:
-                    length = sprintf(msg, "ID,%12s\n", mac_addr);
-                    sendString(msg, length);
-                    print_and_send_stat(msg, "PowerOn,%u\n", Stats.PowerOn);
-                    print_and_send_stat(msg, "Signal,%u\n", Stats.Signal);
-                    print_and_send_stat(msg, "Review,%u\n", Stats.Review);
-                    print_and_send_stat(msg, "Settings,%u\n", Stats.Settings);
-                    print_and_send_stat(msg, "Charging,%u\n", Stats.Charging);
-                    print_and_send_stat(msg, "Charged,%u\n", Stats.Charged);
-                    print_and_send_stat(msg, "LowPower,%u\n", Stats.LowPower);
-                    for (uint8_t i = 0; i < 3; i++) {
-                        length = sprintf(msg, "Input-%u,%u\n", i, Stats.InputModes[i]);
-                        Delay(50);
-                        sendString(msg, length);
-                    }
-                    for (uint8_t i = 0; i < TOT_PAR_MODES; i++) {
-                        length = sprintf(msg, "Mode-%u,%u\n", i, Stats.Modes[i]);
-                        Delay(50);
-                        sendString(msg, length);
-                    }
-                    for (uint8_t i = 0; i < MAXMenuItems; i++) {
-                        length = sprintf(msg, "Menu-%u,%u\n", i, Stats.Menu[i]);
-                        Delay(50);
-                        sendString(msg, length);
                     }
                     break;
                 case BT_GetPars:
@@ -2353,7 +2306,6 @@ TBool userIsSure(const char * title) {
 }
 
 void DoSet(uint8_t menu) {
-    Stats.Menu[menu]++;
     lcd_clear();
     switch (menu) {
         case SETTINGS_INDEX_DELAY:
@@ -2513,7 +2465,6 @@ void SetSettingsMenu() {
 void DoSettings(void) {
     InitSettingsMenuDefaults((&SettingsMenu));
     getSettings(); // Edit the copy from the EEPROM because of manipulations with PAR time in custom mode
-    Stats.Settings++;
     SetSettingsMenu();
     lcd_clear();
     do {
@@ -2729,8 +2680,6 @@ void DoReview(void) {
         STATE_HANDLE_TIMER_IDLE();
         return;
     }
-    Stats.Review++;
-    saveStatsField(&(Stats.Review), 2);
     reviewChanged = True;
     do {
         ReviewDisplay();
@@ -2985,7 +2934,6 @@ void DoPowerOn() {
     
     lcd_set_contrast(Settings.ContrastValue);
     set_backlight(0);
-    getStats();
     ADC_init();
     // TODO: Review power on sequence
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
@@ -3005,8 +2953,6 @@ void DoPowerOn() {
     LATEbits.LATE0 = 1; // Power ON 3v regulator
     lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(Settings.BackLightLevel);
-    Stats.PowerOn++;
-    saveStatsField(&(Stats.PowerOn), 4);
     timer_idle_last_action_time = unix_time_ms_sec;
     InputFlags.INITIALIZED = True;
 }
@@ -3020,15 +2966,11 @@ void DoCharging() {
                 lcd_clear();
                 sprintf(msg, "Charging");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                Stats.Charging++;
-                saveStatsField(&(Stats.Charging), 2);
                 break;
             case Complete:
                 lcd_clear();
                 sprintf(msg, "Charged");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                Stats.Charged++;
-                saveStatsField(&(Stats.Charged), 2);
                 break;
             default:
 //                STATE_HANDLE_POWER_OFF();
@@ -3329,7 +3271,6 @@ __interrupt(__low_priority) void isr_l() {
     if (RTC_TIMER_IF) {
         RTC_TIMER_IF = 0; // Clear Interrupt flag.
         InputFlags.FOOTER_CHANGED = True;
-        tic_2_sec();
     }
     if (INT0IF) {
         INT0IF = 0; // Wakeup happened, disable interrupt back
