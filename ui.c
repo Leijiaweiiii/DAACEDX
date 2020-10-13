@@ -97,7 +97,6 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    update_rtc_time();
     uint24_t reminder = runtimeDelayTime - unix_time_ms + countdown_start_time;
     print_big_time_label(reminder);
 }
@@ -126,7 +125,6 @@ void handle_power_off() {
 
 void handle_timer_idle_shutdown() {
     if (!Settings.AR_IS.AutoPowerOff) return;
-    update_rtc_time();
     time_t inactive_time;
     if (comandToHandle != None || ui_state == TimerListening) {
         timer_idle_last_action_time = unix_time_ms_sec;
@@ -223,7 +221,6 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
-            update_rtc_time();
             timer_idle_last_action_time = unix_time_ms_sec;
             StartPlayParSound();
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
@@ -385,7 +382,6 @@ void handle_countdown() {
                     }
                     break;
             }
-            update_rtc_time();
             StartPlayStartSound();
             update_shot_time_on_screen();
             break;

@@ -49,7 +49,7 @@ extern "C" {
 //</editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="EEPROM Helper Functions">
-void eeprom_init();
+void eeprom_init(void);
 //</editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="EEPROM Functions">

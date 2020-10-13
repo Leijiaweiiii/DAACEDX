@@ -448,7 +448,7 @@ void saveOneShot(uint8_t shot_number) {
 }
 
 void send_all_shots() {
-    for (uint8_t shot = 0; shot < min(ShootString.TotShoots,MAX_SAVED_SHOTS); shot++) {
+    for (uint8_t shot = 0; shot < MIN(ShootString.TotShoots,MAX_SAVED_SHOTS); shot++) {
         sendOneShot(&(ShootString.shots[shot]));
         Delay(BT_MSG_SPLIT_TIME_MS);
     }
@@ -459,7 +459,6 @@ time_t last_sent_time = 0L;
 void sendShotsIfRequired() {
     // Send shots only when in detection state
     if (ui_state != TimerListening) return;
-    update_rtc_time();
     if (unix_time_ms - last_sent_time < BT_MSG_SPLIT_TIME_MS) return; // Don't send faster than once in 50ms
     uint8_t index_to_send = get_shot_index_in_arr(last_sent_index);
     uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
@@ -1785,7 +1784,6 @@ void CountDownMode(time_t countdown) {
     lcd_clear();
     do {
         print_header(true);
-        update_rtc_time();
         reminder = (stop_time - unix_time_ms) / 1000;
         minute = reminder / 60;
         second = reminder % 60;
@@ -1991,8 +1989,6 @@ void BlueTooth() {
 
 void bt_set_sens() {
     int sens = 0;
-    int rt = 0;
-    int max_shot_t = 0;
     char * endp[1];
     sens = strtol(bt_cmd_args_raw, endp, 10);
     if (sens > 0 &&
@@ -2939,8 +2935,7 @@ void StartListenShots(void) {
     last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
-    unix_time_ms_sec = 0; // Zero the seconds part f time
-    update_rtc_time();
+    unix_time_ms = 0; // Zero the timer
     ShootString_start_time = unix_time_ms;
     parStartTime_ms = unix_time_ms;
 }
@@ -3012,7 +3007,6 @@ void DoPowerOn() {
     set_backlight(Settings.BackLightLevel);
     Stats.PowerOn++;
     saveStatsField(&(Stats.PowerOn), 4);
-    update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     InputFlags.INITIALIZED = True;
 }
@@ -3120,7 +3114,6 @@ void StartCountdownTimer() {
             runtimeDelayTime = Settings.CUstomDelayTime;
             break;
     }
-    update_rtc_time();
     countdown_start_time = unix_time_ms;
     ShootString_start_time = countdown_start_time;
 
@@ -3171,13 +3164,11 @@ void UpdateShot(time_t now, ShotInput_t input) {
 }
 
 void UpdateShotNow(ShotInput_t x) {
-    update_rtc_time();
     timer_idle_last_action_time = unix_time_ms_sec;
     UpdateShot(unix_time_ms, x);
 }
 
 void check_countdown_expired() {
-    update_rtc_time();
     if (unix_time_ms - countdown_start_time > runtimeDelayTime) {
         comandToHandle = CountdownExpired;
     }
@@ -3203,7 +3194,6 @@ void decrement_par() {
 
 void check_par_expired() {
     if (ParFlags.ParNowCounting) {
-        update_rtc_time();
         if (unix_time_ms - parStartTime_ms < next_par_ms) return;
         ParFlags.ParNowCounting = False; // Should be re-enabled in event handler
         switch (Settings.ParMode) {
@@ -3237,7 +3227,6 @@ void check_timer_max_time() {
 void detect_aux_shots() {
     switch (Settings.InputType) {
         case INPUT_TYPE_A_or_B_multiple:
-            update_rtc_time();
             if (InputFlags.A_RELEASED && !AUX_A) {
                 InputFlags.A_RELEASED = 0;
                 UpdateShotNow(A);
@@ -3248,7 +3237,6 @@ void detect_aux_shots() {
             }
             break;
         case INPUT_TYPE_A_and_B_single:
-            update_rtc_time();
             if (InputFlags.A_RELEASED && !AUX_A) {
                 InputFlags.A_RELEASED = 0;
                 if (ShootString.TotShoots == 0 || ShootString.shots[0].is_b) {

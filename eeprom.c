@@ -14,7 +14,7 @@ void eeprom_write_read_test(){
 }
 
 
-void eeprom_reset_op(){
+void eeprom_reset_op(void){
     EEPROM_CS_SELECT();
     Delay(1);
     EEPROM_HOLD_EN();
@@ -24,7 +24,7 @@ void eeprom_reset_op(){
     EEPROM_HOLD_DIS();
 }
 
-void eeprom_init() {
+void eeprom_init(void) {
     EEPROM_CS_INIT();
     EEPROM_HOLD_INIT();
     EEPROM_WP_INIT();

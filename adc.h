@@ -22,7 +22,7 @@ extern "C" {
 
 // </editor-fold>
 
-void ADC_init();
+void ADC_init(void);
 uint16_t ADC_Read(char selectedADC);
 uint16_t ADC_Read_average(char selectedADC);
 

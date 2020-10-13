@@ -1,7 +1,7 @@
 #include "adc.h"
 // <editor-fold defaultstate="collapsed" desc="MicroController ADC Interface">
 
-void ADC_init() {
+void ADC_init(void) {
     TRISA = 0b11111111; // ADC inputs 0..3
     ANSELA = 0b00001110;
     ADCON1 = 0b00000001; // Select ADC Double Sample

@@ -2,12 +2,12 @@
 #include "DAACED.h"
 #include "max17260.h"
 
-uint8_t number_of_battery_bars(){
+uint8_t number_of_battery_bars(void){
     uint8_t rsoc = fg_get_rsoc();
     return (uint8_t) (rsoc / 10);
 }
 
-void define_charger_state() {
+void define_charger_state(void) {
     switch (CHARGER_STATE) {
         case CHARGER_CHARGING:
             charger_state = Charging;

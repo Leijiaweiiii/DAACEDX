@@ -41,10 +41,8 @@ extern "C" {
     volatile ChargerState_t charger_state = NotCharging;
     ChargerState_t charger_display_state = NotCharging;
 #define charger_state_changed   (charger_display_state != charger_state)
-    void define_charger_state();
-    char * charger_text_state();
-    uint16_t battery_mV = 0;
-    uint8_t number_of_battery_bars();
+    void define_charger_state(void);
+    uint8_t number_of_battery_bars(void);
     
 #ifdef	__cplusplus
 }
