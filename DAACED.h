@@ -207,7 +207,7 @@ time_t parStartTime_ms;
 enum {
     ParMode_Regular = 0,
     ParMode_Spy,
-    ParMode_Repetitive,
+//    ParMode_Repetitive,
     ParMode_AutoPar,
 //    ParMode_Practical,
 //    ParMode_Barricade,

@@ -177,7 +177,7 @@ void handle_timer_idle() {
             switch (Settings.ParMode){
                 case ParMode_Regular:
                 case ParMode_AutoPar:
-                case ParMode_Repetitive:
+//                case ParMode_Repetitive:
                 case ParMode_Spy:
                     // Don't increment par for these modes
                     break;
@@ -191,7 +191,7 @@ void handle_timer_idle() {
             switch (Settings.ParMode){
                 case ParMode_Regular:
                 case ParMode_AutoPar:
-                case ParMode_Repetitive:
+//                case ParMode_Repetitive:
                 case ParMode_Spy:
                     // Don't decrement par for these modes
                     break;
@@ -368,9 +368,9 @@ void handle_countdown() {
             ui_state = TimerListening;
             StartListenShots();
             switch(Settings.ParMode){
-                case ParMode_Repetitive:
-                    StartParTimer();
-                    break;
+//                case ParMode_Repetitive:
+//                    StartParTimer();
+//                    break;
                 case ParMode_AutoPar:
                     next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
                     StartParTimer();

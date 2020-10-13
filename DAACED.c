@@ -1241,7 +1241,7 @@ void set_par_mode(int m) {
 //        case ParMode_NRA_PPC_D:
 //            fill_par_nra_ppc_d();
 //            break;
-        case ParMode_Repetitive:
+//        case ParMode_Repetitive:
         case ParMode_AutoPar:
         default:
             // do nothing
@@ -1569,11 +1569,11 @@ void SetMode() {
                     saveSettings();
                     replaceParWithCustom();
                     break;
-                case ParMode_Repetitive:
-                    lcd_clear();
-                    SetRepetitiveMode();
-                    saveSettings();
-                    break;
+//                case ParMode_Repetitive:
+//                    lcd_clear();
+//                    SetRepetitiveMode();
+//                    saveSettings();
+//                    break;
                 case ParMode_AutoPar:
                     lcd_clear();
                     if (Settings.ParMode != ParMode_AutoPar) {
@@ -2322,10 +2322,10 @@ void DoSet(uint8_t menu) {
                     SetAutoPar();
                     saveSettings();
                     break;
-                case ParMode_Repetitive:
-                    SetRepetitiveMode();
-                    saveSettings();
-                    break;
+//                case ParMode_Repetitive:
+//                    SetRepetitiveMode();
+//                    saveSettings();
+//                    break;
                 case ParMode_Spy:
                     Beep();
                     break;
@@ -2403,13 +2403,13 @@ void SetSettingsMenu() {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
             }
             break;
-        case ParMode_Repetitive:
-            sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
-                    "Par| %0.1fs %0.1fs %d",
-                    (float) Settings.RepetitiveFaceTime / 1000,
-                    (float) Settings.RepetitiveEdgeTime / 1000,
-                    Settings.RepetitiveRepeat);
-            break;
+//        case ParMode_Repetitive:
+//            sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
+//                    "Par| %0.1fs %0.1fs %d",
+//                    (float) Settings.RepetitiveFaceTime / 1000,
+//                    (float) Settings.RepetitiveEdgeTime / 1000,
+//                    Settings.RepetitiveRepeat);
+//            break;
         default:
             if (Settings.TotPar > 0) {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
@@ -2829,25 +2829,25 @@ void print_footer() {
     print_label_at_footer_grid(message, 1, 0);
 
     switch (Settings.ParMode) {
-        case ParMode_Repetitive:
-            print_delay(message, " Delay: ", "");
-            print_label_at_footer_grid(message, 0, 1);
-            if (ui_state == TimerIdle) {
-                sprintf(message, "Face%d:%3.1f",
-                        1,
-                        (float) Settings.RepetitiveFaceTime / 1000);
-            } else if (repetitive_counter < Settings.RepetitiveRepeat) {
-                sprintf(message, "%s%d:%3.1f",
-                        (repetitive_state == Face) ? "Face" : "Edge",
-                        repetitive_counter + 1,
-                        (float) next_par_ms / 1000);
-            } else {
-                sprintf(message, "%s%d:%3.1f",
-                        "Edge",
-                        Settings.RepetitiveRepeat,
-                        (float) Settings.RepetitiveEdgeTime / 1000);
-            }
-            break;
+//        case ParMode_Repetitive:
+//            print_delay(message, " Delay: ", "");
+//            print_label_at_footer_grid(message, 0, 1);
+//            if (ui_state == TimerIdle) {
+//                sprintf(message, "Face%d:%3.1f",
+//                        1,
+//                        (float) Settings.RepetitiveFaceTime / 1000);
+//            } else if (repetitive_counter < Settings.RepetitiveRepeat) {
+//                sprintf(message, "%s%d:%3.1f",
+//                        (repetitive_state == Face) ? "Face" : "Edge",
+//                        repetitive_counter + 1,
+//                        (float) next_par_ms / 1000);
+//            } else {
+//                sprintf(message, "%s%d:%3.1f",
+//                        "Edge",
+//                        Settings.RepetitiveRepeat,
+//                        (float) Settings.RepetitiveEdgeTime / 1000);
+//            }
+//            break;
         case ParMode_AutoPar:
             if (Settings.TotAutoPar == 0) {
                 sprintf(message, "Delay 0: %1.1f", Settings.AutoPar[0].delay);
@@ -3020,11 +3020,11 @@ void StartCountdownTimer() {
     InputFlags.FOOTER_CHANGED = True;
     restoreSettingsField(&(Settings.DelayMode), 1);
     switch (Settings.ParMode) {
-        case ParMode_Repetitive:
-            repetitive_counter = 0;
-            repetitive_state = Face;
-            next_par_ms = Settings.RepetitiveFaceTime;
-            break;
+//        case ParMode_Repetitive:
+//            repetitive_counter = 0;
+//            repetitive_state = Face;
+//            next_par_ms = Settings.RepetitiveFaceTime;
+//            break;
         case ParMode_AutoPar:
         {
             float d = Settings.AutoPar[CurPar_idx].delay;
@@ -3139,9 +3139,9 @@ void check_par_expired() {
         if (unix_time_ms - parStartTime_ms < next_par_ms) return;
         ParFlags.ParNowCounting = False; // Should be re-enabled in event handler
         switch (Settings.ParMode) {
-            case ParMode_Repetitive:
-                timerEventToHandle = RepetitiveParEvent;
-                break;
+//            case ParMode_Repetitive:
+//                timerEventToHandle = RepetitiveParEvent;
+//                break;
             case ParMode_AutoPar:
                 if(ParFlags.AutoParOverDetect){
                     ParFlags.AutoParOverDetect = False;
