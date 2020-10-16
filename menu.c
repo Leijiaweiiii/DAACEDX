@@ -80,7 +80,7 @@ void DisplaySettings(SettingsMenu_t* sm) {
     lineh = SmallFont->height;
 
     // TODO: Move page calculations here to handle menu changes during menu operation
-    for (i = MENU_PAGE_SIZE * sm->page; i < min(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
+    for (i = MENU_PAGE_SIZE * sm->page; i < MIN(sm->TotalMenuItems, (MENU_PAGE_SIZE * (sm->page + 1))); i++) {
         strcpy(str, sm->MenuItem[i]);
         polarity = (sm->menu != i);
         x1_pos = LCD_WIDTH;

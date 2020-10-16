@@ -97,7 +97,7 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    uint24_t reminder = runtimeDelayTime - unix_time_ms + countdown_start_time;
+    uint24_t reminder = runtimeDelayTime - unix_time_ms();
     print_big_time_label(reminder);
 }
 
@@ -127,11 +127,11 @@ void handle_timer_idle_shutdown() {
     if (!Settings.AR_IS.AutoPowerOff) return;
     time_t inactive_time;
     if (comandToHandle != None || ui_state == TimerListening) {
-        timer_idle_last_action_time = unix_time_ms_sec;
+        timer_idle_last_action_time = unix_time_ms();
         set_backlight(Settings.BackLightLevel);
         return;
     }
-    inactive_time = unix_time_ms_sec - timer_idle_last_action_time;
+    inactive_time = unix_time_ms() - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
         STATE_HANDLE_POWER_OFF();
         return;
@@ -165,7 +165,7 @@ void handle_timer_idle() {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+//            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
             STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
@@ -176,7 +176,7 @@ void handle_timer_idle() {
         case UpShort:
             switch (Settings.ParMode){
                 case ParMode_Regular:
-                case ParMode_AutoPar:
+//                case ParMode_AutoPar:
 //                case ParMode_Repetitive:
                 case ParMode_Spy:
                     // Don't increment par for these modes
@@ -190,7 +190,7 @@ void handle_timer_idle() {
         case DownShort:
             switch (Settings.ParMode){
                 case ParMode_Regular:
-                case ParMode_AutoPar:
+//                case ParMode_AutoPar:
 //                case ParMode_Repetitive:
                 case ParMode_Spy:
                     // Don't decrement par for these modes
@@ -221,7 +221,7 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
-            timer_idle_last_action_time = unix_time_ms_sec;
+            timer_idle_last_action_time = unix_time_ms();
             StartPlayParSound();
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
             if (Settings.TotPar - 1 > CurPar_idx){
@@ -288,7 +288,7 @@ void handle_timer_listening() {
         case StartShort:
             if (AutoStart) {
                 saveShootString();
-                if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+//                if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
                 STATE_HANDLE_COUNTDOWN();
             }
             break;
@@ -357,7 +357,7 @@ void handle_countdown() {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+//            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
             STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:
@@ -371,10 +371,10 @@ void handle_countdown() {
 //                case ParMode_Repetitive:
 //                    StartParTimer();
 //                    break;
-                case ParMode_AutoPar:
-                    next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
-                    StartParTimer();
-                    break;
+//                case ParMode_AutoPar:
+//                    next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
+//                    StartParTimer();
+//                    break;
                 default:
                     if (Settings.TotPar > 0){
                         next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);

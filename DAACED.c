@@ -243,7 +243,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     amplitude_index = amplitude - 1;
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
-    beep_start = unix_time_ms;
+    beep_start = unix_time_ms();
 }
 
 // </editor-fold>
@@ -456,13 +456,13 @@ time_t last_sent_time = 0L;
 void sendShotsIfRequired() {
     // Send shots only when in detection state
     if (ui_state != TimerListening) return;
-    if (unix_time_ms - last_sent_time < BT_MSG_SPLIT_TIME_MS) return; // Don't send faster than once in 50ms
+    if (unix_time_ms() - last_sent_time < BT_MSG_SPLIT_TIME_MS) return; // Don't send faster than once in 50ms
     uint8_t index_to_send = get_shot_index_in_arr(last_sent_index);
     uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
     if (ShootString.TotShoots < MAX_REGISTERED_SHOTS && index_to_send != last_shot_index) {
         sendOneShot(&(ShootString.shots[index_to_send]));
         last_sent_index++;
-        last_sent_time = unix_time_ms;
+        last_sent_time = unix_time_ms();
         InputFlags.NEW_SHOT_S = False;
     } else if (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT_S) {
         InputFlags.NEW_SHOT_S = False;
@@ -1242,7 +1242,7 @@ void set_par_mode(int m) {
 //            fill_par_nra_ppc_d();
 //            break;
 //        case ParMode_Repetitive:
-        case ParMode_AutoPar:
+//        case ParMode_AutoPar:
         default:
             // do nothing
             break;
@@ -1574,19 +1574,19 @@ void SetMode() {
 //                    SetRepetitiveMode();
 //                    saveSettings();
 //                    break;
-                case ParMode_AutoPar:
-                    lcd_clear();
-                    if (Settings.ParMode != ParMode_AutoPar) {
-                        uint8_t tot_par = MAXPAR;
-                        while (0 < --tot_par) {
-                            Settings.AutoPar[tot_par].delay = 0.0;
-                            Settings.AutoPar[tot_par].par = 0.0;
-                        }
-                        Settings.TotAutoPar = 0;
-                    }
-                    SetAutoPar();
-                    saveSettings();
-                    break;
+//                case ParMode_AutoPar:
+//                    lcd_clear();
+//                    if (Settings.ParMode != ParMode_AutoPar) {
+//                        uint8_t tot_par = MAXPAR;
+//                        while (0 < --tot_par) {
+//                            Settings.AutoPar[tot_par].delay = 0.0;
+//                            Settings.AutoPar[tot_par].par = 0.0;
+//                        }
+//                        Settings.TotAutoPar = 0;
+//                    }
+//                    SetAutoPar();
+//                    saveSettings();
+//                    break;
             }
             ma.changed = True;
         }
@@ -1762,13 +1762,13 @@ uint8_t countdown_expired_signal() {
 void CountDownMode(time_t countdown) {
     char msg[16];
     time_t reminder = countdown * 1000;
-    time_t stop_time = unix_time_ms + reminder + 1;
+    time_t stop_time = unix_time_ms() + reminder + 1;
     uint8_t minute, second;
     TBool done = False;
     lcd_clear();
     do {
         print_header(true);
-        reminder = (stop_time - unix_time_ms) / 1000;
+        reminder = (stop_time - unix_time_ms()) / 1000;
         minute = reminder / 60;
         second = reminder % 60;
         sprintf(msg,
@@ -1843,6 +1843,7 @@ enum {
     COUNTDOWN_CUSTOM,
     NUM_COUNTDOWN
 };
+
 const char *countdown_labels [NUM_COUNTDOWN] = {
     "3 minutes",
     "5 minutes",
@@ -2025,7 +2026,6 @@ void bt_set_custom() {
             Settings.CustomPar[par_idx - 1] = par_time_f;
             Settings.TotCustomPar = par_idx;
             storeCustom();
-            saveStats();
             DAA_MSG_OK;
         } else {
             DAA_MSG_ERROR;
@@ -2045,7 +2045,6 @@ void bt_set_mode() {
         lcd_clear_block(0, 0, LCD_WIDTH, UI_HEADER_END_LINE);
         Settings.ParMode = mode;
         saveSettingsField(&(Settings.ParMode), 1);
-        saveStats();
         DAA_MSG_OK;
 
     } else {
@@ -2197,7 +2196,7 @@ void handle_bt_commands() {
 
     // Don't let the timer sleep if it's actively used remotely
     if (btc != BT_None)
-        timer_idle_last_action_time = unix_time_ms_sec;
+        timer_idle_last_action_time = unix_time_ms();
 }
 
 // </editor-fold>
@@ -2318,10 +2317,10 @@ void DoSet(uint8_t menu) {
                     saveSettings();
                     replaceParWithCustom(); // I know it's kind'a hacky but don't have time for different par mechanizms
                     break;
-                case ParMode_AutoPar:
-                    SetAutoPar();
-                    saveSettings();
-                    break;
+//                case ParMode_AutoPar:
+//                    SetAutoPar();
+//                    saveSettings();
+//                    break;
 //                case ParMode_Repetitive:
 //                    SetRepetitiveMode();
 //                    saveSettings();
@@ -2383,16 +2382,16 @@ void SetSettingsMenu() {
     print_delay(SettingsMenu.MenuItem[SETTINGS_INDEX_DELAY], "Delay|", " Sec.");
 
     switch (Settings.ParMode) {
-        case ParMode_AutoPar:
-            if (Settings.TotAutoPar > 0) {
-                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
-                        ParMenuPattern,
-                        Settings.TotAutoPar,
-                        Settings.AutoPar[0].par);
-            } else {
-                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
-            }
-            break;
+//        case ParMode_AutoPar:
+//            if (Settings.TotAutoPar > 0) {
+//                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
+//                        ParMenuPattern,
+//                        Settings.TotAutoPar,
+//                        Settings.AutoPar[0].par);
+//            } else {
+//                sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR], "Par|Off");
+//            }
+//            break;
         case ParMode_CUSTOM:
             if (Settings.TotCustomPar > 0) {
                 sprintf(SettingsMenu.MenuItem[SETTINGS_INDEX_PAR],
@@ -2486,7 +2485,6 @@ void DoSettings(void) {
     } else {
         lcd_clear();
     }
-    saveStats();
 }
 // </editor-fold>
 // </editor-fold>
@@ -2739,8 +2737,8 @@ void DetectInit(void) {
                 Delay(1);
                 ADCvalue = ADC_Read(shot_detection_source);
                 Mean += ADCvalue;
-                Max = max(Max,ADCvalue);
-                Min = min(Min,ADCvalue);
+                Max = MAX(Max,ADCvalue);
+                Min = MIN(Min,ADCvalue);
             }
             Mean = Mean >> 6;
             ADC_HW_detect_init(Mean, det_s, det_s);
@@ -2780,7 +2778,7 @@ void print_batery_info() {
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
 
-    for (uint8_t i = 5; i > 0; i--) {
+    for (uint8_t i = 25; i > 0; i--) {
         if (i < num_bars + 1) {
             lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
             col += battery_middle_full_bitmap.width_in_bits;
@@ -2848,21 +2846,21 @@ void print_footer() {
 //                        (float) Settings.RepetitiveEdgeTime / 1000);
 //            }
 //            break;
-        case ParMode_AutoPar:
-            if (Settings.TotAutoPar == 0) {
-                sprintf(message, "Delay 0: %1.1f", Settings.AutoPar[0].delay);
-                print_label_at_footer_grid(message, 0, 1);
-                sprintf(message, "Par: Off");
-            } else if (CurPar_idx == Settings.TotAutoPar) {
-                sprintf(message, "Delay %d: %1.1f", CurPar_idx, Settings.AutoPar[CurPar_idx - 1].delay);
-                print_label_at_footer_grid(message, 0, 1);
-                sprintf(message, "Par%2d:%3.2f", CurPar_idx, Settings.AutoPar[CurPar_idx - 1].par);
-            } else {
-                sprintf(message, "Delay %d: %1.1f", CurPar_idx + 1, Settings.AutoPar[CurPar_idx].delay);
-                print_label_at_footer_grid(message, 0, 1);
-                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.AutoPar[CurPar_idx].par);
-            }
-            break;
+//        case ParMode_AutoPar:
+//            if (Settings.TotAutoPar == 0) {
+//                sprintf(message, "Delay 0: %1.1f", Settings.AutoPar[0].delay);
+//                print_label_at_footer_grid(message, 0, 1);
+//                sprintf(message, "Par: Off");
+//            } else if (CurPar_idx == Settings.TotAutoPar) {
+//                sprintf(message, "Delay %d: %1.1f", CurPar_idx, Settings.AutoPar[CurPar_idx - 1].delay);
+//                print_label_at_footer_grid(message, 0, 1);
+//                sprintf(message, "Par%2d:%3.2f", CurPar_idx, Settings.AutoPar[CurPar_idx - 1].par);
+//            } else {
+//                sprintf(message, "Delay %d: %1.1f", CurPar_idx + 1, Settings.AutoPar[CurPar_idx].delay);
+//                print_label_at_footer_grid(message, 0, 1);
+//                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.AutoPar[CurPar_idx].par);
+//            }
+//            break;
         default:
             print_delay(message, " Delay: ", "");
             print_label_at_footer_grid(message, 0, 1);
@@ -2884,9 +2882,8 @@ void StartListenShots(void) {
     last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
-    unix_time_ms = 0; // Zero the timer
-    ShootString_start_time = unix_time_ms;
-    parStartTime_ms = unix_time_ms;
+    clear_unix_time();
+    parStartTime_ms = unix_time_ms();
 }
 // </editor-fold>
 
@@ -2938,7 +2935,6 @@ void DoPowerOn() {
     // TODO: Review power on sequence
     RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
     GIE = 1; // enable global interrupts
-    init_ms_timer0();
     initialize_rtc_timer();
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 0;
@@ -2953,7 +2949,7 @@ void DoPowerOn() {
     LATEbits.LATE0 = 1; // Power ON 3v regulator
     lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(Settings.BackLightLevel);
-    timer_idle_last_action_time = unix_time_ms_sec;
+    timer_idle_last_action_time = unix_time_ms();
     InputFlags.INITIALIZED = True;
 }
 
@@ -2989,7 +2985,7 @@ void Delay(int t)
 void StartParTimer() {
     ParFlags.ParNowCounting = True;
     InputFlags.FOOTER_CHANGED = True;
-    parStartTime_ms = unix_time_ms;
+    parStartTime_ms = unix_time_ms();
     LATEbits.LATE1 = 1; /* Enable 5V booster for the buzzer*/
 }
 
@@ -3025,16 +3021,16 @@ void StartCountdownTimer() {
 //            repetitive_state = Face;
 //            next_par_ms = Settings.RepetitiveFaceTime;
 //            break;
-        case ParMode_AutoPar:
-        {
-            float d = Settings.AutoPar[CurPar_idx].delay;
-            runtimeDelayTime = (long) (d * 1000);
-            runtimeDelayTime -= AUTO_PAR_OVER_DETECT_MS; // To allow shot detection slightly after the par signal
-            d = Settings.AutoPar[CurPar_idx].par;
-            next_par_ms = (long) (d * 1000);
-            Settings.DelayMode = DELAY_MODE_Other;
-        }
-            break;
+//        case ParMode_AutoPar:
+//        {
+//            float d = Settings.AutoPar[CurPar_idx].delay;
+//            runtimeDelayTime = (long) (d * 1000);
+//            runtimeDelayTime -= AUTO_PAR_OVER_DETECT_MS; // To allow shot detection slightly after the par signal
+//            d = Settings.AutoPar[CurPar_idx].par;
+//            next_par_ms = (long) (d * 1000);
+//            Settings.DelayMode = DELAY_MODE_Other;
+//        }
+//            break;
         case ParMode_Regular:
         case ParMode_Spy:
             CurPar_idx = 0;
@@ -3056,9 +3052,7 @@ void StartCountdownTimer() {
             runtimeDelayTime = Settings.CUstomDelayTime;
             break;
     }
-    countdown_start_time = unix_time_ms;
-    ShootString_start_time = countdown_start_time;
-
+    clear_unix_time();
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ((uint8_t *) (&ShootString))[i] = 0;
     }
@@ -3083,35 +3077,32 @@ void DiscardShot(){
         ShootString.TotShoots--;
 }
 
-void UpdateShot(time_t now, ShotInput_t input) {
-    uint24_t dt;
+void UpdateShot(uint16_t dt, ShotInput_t input) {
     // Index var is for code size optimisation.
     uint8_t index;
     index = get_shot_index_in_arr(ShootString.TotShoots);
     if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
         index--;
 
-    dt = (uint24_t) (now - ShootString_start_time);
-
-    ShootString.shots[index].dt = dt;
+    ShootString.shots[index].dt = dt
     ShootString.shots[index].is_flags = input;
     if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
         ShootString.TotShoots++;
     }
     if(ShootString.TotShoots == 100){
-        NOP();
+        NOP(); // For breakpoint
     }
     ShootString.shots[index].sn = ShootString.TotShoots;
     ApproveShoot();
 }
 
 void UpdateShotNow(ShotInput_t x) {
-    timer_idle_last_action_time = unix_time_ms_sec;
-    UpdateShot(unix_time_ms, x);
+    timer_idle_last_action_time = unix_time_ms();
+    UpdateShot(unix_time_ms(), x);
 }
 
 void check_countdown_expired() {
-    if (unix_time_ms - countdown_start_time > runtimeDelayTime) {
+    if (unix_time_ms() > runtimeDelayTime) {
         comandToHandle = CountdownExpired;
     }
 }
@@ -3136,20 +3127,20 @@ void decrement_par() {
 
 void check_par_expired() {
     if (ParFlags.ParNowCounting) {
-        if (unix_time_ms - parStartTime_ms < next_par_ms) return;
+        if (unix_time_ms() - parStartTime_ms < next_par_ms) return;
         ParFlags.ParNowCounting = False; // Should be re-enabled in event handler
         switch (Settings.ParMode) {
 //            case ParMode_Repetitive:
 //                timerEventToHandle = RepetitiveParEvent;
 //                break;
-            case ParMode_AutoPar:
-                if(ParFlags.AutoParOverDetect){
-                    ParFlags.AutoParOverDetect = False;
-                    timerEventToHandle = AutoParCompletedEvent;
-                } else {
-                    timerEventToHandle = AutoParEvent;
-                }
-                break;
+//            case ParMode_AutoPar:
+//                if(ParFlags.AutoParOverDetect){
+//                    ParFlags.AutoParOverDetect = False;
+//                    timerEventToHandle = AutoParCompletedEvent;
+//                } else {
+//                    timerEventToHandle = AutoParEvent;
+//                }
+//                break;
             case ParMode_Regular:
                 timerEventToHandle = ParEvent;
                 break;
@@ -3161,7 +3152,7 @@ void check_par_expired() {
 }
 
 void check_timer_max_time() {
-    if (unix_time_ms - ShootString_start_time >= MAX_MEASUREMENT_TIME) {
+    if (unix_time_ms() >= MAX_MEASUREMENT_TIME) {
         timerEventToHandle = TimerTimeout;
     }
 }

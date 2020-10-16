@@ -27,21 +27,13 @@ const uint8_t battery_right[] ={
 const bitmap_data_t battery_right_bitmap = {battery_right, 4, 3};
 const uint8_t battery_middle_full[] ={
     0xDF, 0xFF, 0xB0, // ## ############## ##
-    0xDF, 0xFF, 0xB0, // ## ############## ##
-    0xDF, 0xFF, 0xB0, // ## ############## ##
-    0xDF, 0xFF, 0xB0, // ## ############## ##
-    0xDF, 0xFF, 0xB0, // ## ############## ##
 };
-const bitmap_data_t battery_middle_full_bitmap = {battery_middle_full, 5, 3};
+const bitmap_data_t battery_middle_full_bitmap = {battery_middle_full, 1, 3};
 
 const uint8_t battery_middle_empty[] ={
     0xC0, 0x00, 0x30, // ##                ##
-    0xC0, 0x00, 0x30, // ##                ##
-    0xC0, 0x00, 0x30, // ##                ##
-    0xC0, 0x00, 0x30, // ##                ##
-    0xC0, 0x00, 0x30, // ##                ##
 };
-const bitmap_data_t battery_middle_empty_bitmap = {battery_middle_empty, 5, 3};
+const bitmap_data_t battery_middle_empty_bitmap = {battery_middle_empty, 1, 3};
 const uint8_t battery_left[] ={
     0x03, 0xFC, 0x00, //       ########
     0x06, 0x06, 0x00, //      ##      ##

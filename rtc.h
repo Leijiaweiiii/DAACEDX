@@ -13,20 +13,11 @@
 #define SHOOT_IF            (PIR1bits.ADIF)
 #define SHOOT_IE            (PIE1bits.ADIE)
 
-
-// Timer3 counting output of timer1 which is 2 seconds
-extern const uint16_t correction_table[];
-volatile time_t unix_time_ms, unix_time_ms_sec = 0;
-
-
-// Taking only 10 bits - the MSB is 2 seconds
-#define rtc_time_2k_msec    (TMR1>>5)
-void update_rtc_time(void);
+time_t unix_time_ms(void);
+#define clear_unix_time()   {TMR3 = 0; TMR1 = 0;}
 
 void initialize_rtc_timer(void);
-void init_ms_timer0(void);
 
-void tic_2_sec(void);
 void set_time(uint8_t h, uint8_t m, TBool is24h);
 void read_time(void);
 uint8_t hours(void);

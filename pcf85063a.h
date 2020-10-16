@@ -121,8 +121,8 @@ struct RtcTimerData {
 struct RtcData {
         struct RtcControlData  prcdControl;
         struct RtcDateTimeData prdtdDateTime;
-        struct RtcAlarmData    pradAlarm;
-        struct RtcTimerData    prtdTimer;
+//        struct RtcAlarmData    pradAlarm;
+//        struct RtcTimerData    prtdTimer;
 };
 struct RtcData rtcd;
 

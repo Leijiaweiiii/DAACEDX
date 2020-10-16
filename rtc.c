@@ -6,7 +6,11 @@
 
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
 
-uint8_t get_time_source() {
+time_t unix_time_ms(void){
+    return ((TMR3 << 16) | TMR1);
+}
+
+uint8_t get_time_source(void) {
     if (OSCSTATbits.EXTOR)
         return 'E';
     if (OSCSTATbits.SOR)
@@ -14,7 +18,7 @@ uint8_t get_time_source() {
     return 'I';
 }
 
-void initialize_rtc_timer() {
+void initialize_rtc_timer(void) {
     // Real time counter will count 2 seconds forever.
     RTC_TIMER_IE = 0; // Disable interrupt.
     RTC_TIMER_IF = 0; // Clear Interrupt flag.
@@ -23,9 +27,7 @@ void initialize_rtc_timer() {
     T1CON = 0b00000111;
     RTC_TIMER_IE = 1; // Enable timer interrupt.
     INTCONbits.PEIE = 1;
-}
 
-void init_ms_timer0() {
     PIE0bits.TMR0IE = 0;
 
     // Time calculations:

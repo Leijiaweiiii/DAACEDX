@@ -208,7 +208,7 @@ enum {
     ParMode_Regular = 0,
     ParMode_Spy,
 //    ParMode_Repetitive,
-    ParMode_AutoPar,
+//    ParMode_AutoPar,
 //    ParMode_Practical,
 //    ParMode_Barricade,
 //    ParMode_FallingPlate,

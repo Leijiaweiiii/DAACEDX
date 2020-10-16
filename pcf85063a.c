@@ -14,15 +14,15 @@
 void getRtcData(void) {
 	getRtcControlData();
 	getRtcDateTimeData();
-	getRtcAlarmData();
-	getRtcTimerData();
+//	getRtcAlarmData();
+//	getRtcTimerData();
 }
 
 void setRtcData(void) {
     setRtcControlData();
     setRtcDateTimeData();
-    setRtcAlarmData();
-    setRtcTimerData();
+//    setRtcAlarmData();
+//    setRtcTimerData();
 }
 
 void getRtcControlData(void) {
@@ -48,27 +48,27 @@ void setRtcDateTimeData(void) {
     pic18_i2c_write(DEVICE_ADDR, TIME_SEGMENT_ADDR, &rtcd.prdtdDateTime, sizeof(struct RtcDateTimeData));
     pic18_i2c_disable();
 }
-
-void getRtcAlarmData(void) {
-    pic18_i2c_enable();
-    pic18_i2c_read(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
-    pic18_i2c_disable();
-}
-
-void setRtcAlarmData(void) {
-    pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
-    pic18_i2c_disable();
-}
-
-void getRtcTimerData(void) {
-    pic18_i2c_enable();
-    pic18_i2c_read(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
-    pic18_i2c_disable();
-}
-
-void setRtcTimerData(void) {
-    pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
-    pic18_i2c_disable();
-}
+//
+//void getRtcAlarmData(void) {
+//    pic18_i2c_enable();
+//    pic18_i2c_read(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
+//    pic18_i2c_disable();
+//}
+//
+//void setRtcAlarmData(void) {
+//    pic18_i2c_enable();
+//    pic18_i2c_write(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
+//    pic18_i2c_disable();
+//}
+//
+//void getRtcTimerData(void) {
+//    pic18_i2c_enable();
+//    pic18_i2c_read(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
+//    pic18_i2c_disable();
+//}
+//
+//void setRtcTimerData(void) {
+//    pic18_i2c_enable();
+//    pic18_i2c_write(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
+//    pic18_i2c_disable();
+//}
