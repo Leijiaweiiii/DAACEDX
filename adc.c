@@ -46,6 +46,7 @@ void ADC_HW_detect_init(uint16_t dc, uint16_t lth, uint16_t uth){
 }
 
 void ADC_HW_filter_timer_start(uint8_t filter){
+    // TODO: Eliminate ifs
     if(filter > MAX_FILTER) filter = MAX_FILTER;
     if(filter == 0) filter = 1;
     PIE1bits.ADTIE = 0; // Disable detection interrupt

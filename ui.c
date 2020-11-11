@@ -97,7 +97,7 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    uint24_t reminder = runtimeDelayTime - unix_time_ms();
+    uint24_t reminder = runtimeDelayTime - time_ms();
     print_big_time_label(reminder);
 }
 
@@ -127,11 +127,11 @@ void handle_timer_idle_shutdown() {
     if (!Settings.AR_IS.AutoPowerOff) return;
     time_t inactive_time;
     if (comandToHandle != None || ui_state == TimerListening) {
-        timer_idle_last_action_time = unix_time_ms();
+        timer_idle_last_action_time = time_ms();
         set_backlight(Settings.BackLightLevel);
         return;
     }
-    inactive_time = unix_time_ms() - timer_idle_last_action_time;
+    inactive_time = time_ms() - timer_idle_last_action_time;
     if (inactive_time > timer_idle_shutdown_timeout) {
         STATE_HANDLE_POWER_OFF();
         return;
@@ -221,7 +221,7 @@ void HandleTimerEvents() {
             break;
         case ParEvent:
             // turn light ON on PAR sound
-            timer_idle_last_action_time = unix_time_ms();
+            timer_idle_last_action_time = time_ms();
             StartPlayParSound();
             sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
             if (Settings.TotPar - 1 > CurPar_idx){
@@ -483,6 +483,7 @@ void handle_ui() {
             break;
         case TimerIdle:
             handle_timer_idle();
+//            test_ui();
             break;
         case TimerCountdown:
             handle_countdown();

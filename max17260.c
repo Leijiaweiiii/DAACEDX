@@ -164,7 +164,7 @@ uint16_t fg_get_rcap(void) {
 
         if(pic18_i2c_read(SLAVE_ADDR, REG_REPCAP, &data, 2) < 0)
                 return -1;
-        return data/2;
+        return data>>3;
 }
 // Get full capacity of the battery in mA-h/10
 uint16_t fg_get_fcap(void) {
@@ -172,5 +172,5 @@ uint16_t fg_get_fcap(void) {
 
         if(pic18_i2c_read(SLAVE_ADDR, REG_FULLCAPREP, &data, 2) < 0)
                 return -1;
-        return data/2;
+        return data>>3;
 }

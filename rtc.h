@@ -13,8 +13,8 @@
 #define SHOOT_IF            (PIR1bits.ADIF)
 #define SHOOT_IE            (PIE1bits.ADIE)
 
-time_t unix_time_ms(void);
-#define clear_unix_time()   {TMR3 = 0; TMR1 = 0;}
+time_t time_ms(void);
+#define clear_time_ms()   {TMR3 = 0; TMR1 = 0;}
 
 void initialize_rtc_timer(void);
 

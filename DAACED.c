@@ -86,7 +86,6 @@
 #include "uart.h"
 #include "random.h"
 #include "math.h"
-#include "i2c.h"
 #include "rtc.h"
 #include "spi.h"
 
@@ -144,6 +143,13 @@ void PIC_init(void) {
     VREGCON = 2; // Low power sleep
     OSCCON3bits.CSWHOLD = 1; // Switch OSC when ready
     INTCONbits.IPEN = 1; // Enable priority level interrupts
+
+    GIEL = 1;
+    GIEH = 1;
+    PIE0 = 0;
+    PIE1 = 0;
+    PIE2 = 0;
+    PIE3 = 0;
 }
 // </editor-fold>
 
@@ -243,7 +249,7 @@ void generate_sinus(uint8_t amplitude, uint16_t frequency, uint16_t duration) {
     amplitude_index = amplitude - 1;
     sinus_duration_timer_init(duration);
     sinus_value_timer_init(findex);
-    beep_start = unix_time_ms();
+    beep_start = time_ms();
 }
 
 // </editor-fold>
@@ -288,7 +294,6 @@ void getDefaultSettings() {
     Settings.AR_IS.BuzRef = On; // Fixed reference
     Settings.AR_IS.BT = Off; // Off by default
     Settings.AR_IS.AutoPowerOff = Off; // ON by default
-    Settings.AR_IS.Clock24h = On; // 24h by default
 //    Settings.AR_IS.StartSound = On; // ON by default
     Settings.AR_IS.StartSound = Off; // ON by default
     Settings.InputType = INPUT_TYPE_Microphone;
@@ -456,13 +461,13 @@ time_t last_sent_time = 0L;
 void sendShotsIfRequired() {
     // Send shots only when in detection state
     if (ui_state != TimerListening) return;
-    if (unix_time_ms() - last_sent_time < BT_MSG_SPLIT_TIME_MS) return; // Don't send faster than once in 50ms
+    if (time_ms() - last_sent_time < BT_MSG_SPLIT_TIME_MS) return; // Don't send faster than once in 50ms
     uint8_t index_to_send = get_shot_index_in_arr(last_sent_index);
     uint8_t last_shot_index = get_shot_index_in_arr(ShootString.TotShoots);
     if (ShootString.TotShoots < MAX_REGISTERED_SHOTS && index_to_send != last_shot_index) {
         sendOneShot(&(ShootString.shots[index_to_send]));
         last_sent_index++;
-        last_sent_time = unix_time_ms();
+        last_sent_time = time_ms();
         InputFlags.NEW_SHOT_S = False;
     } else if (ShootString.TotShoots == MAX_REGISTERED_SHOTS && InputFlags.NEW_SHOT_S) {
         InputFlags.NEW_SHOT_S = False;
@@ -1613,11 +1618,11 @@ void SetClock() {
     strcpy(ts.MenuTitle, "Set Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
     set_screen_title(ts.MenuTitle);
-    DisplayTime(ts.value, m, ts.state);
+    DisplayTime(ts.value, m, ts.state, prcdControl.control1.b1224);
     do {
         if (ts.redraw) {
             ts.redraw = False;
-            DisplayTime(ts.value, m, ts.state);
+            DisplayTime(ts.value, m, ts.state, prcdControl.control1.b1224);
         }
         SelectIntegerCircular(&ts);
     } while (SettingsNotDone((&ts)));
@@ -1631,13 +1636,13 @@ void SetClock() {
         do {
             if (ts.redraw) {
                 ts.redraw = False;
-                DisplayTime(h, ts.value, ts.state);
+                DisplayTime(h, ts.value, ts.state, prcdControl.control1.b1224);
             }
             SelectIntegerCircular(&ts);
         } while (SettingsNotDone((&ts)));
     }
     if (ts.selected && (h != hours() || ts.value != m)) {
-        set_time(h, ts.value, Settings.AR_IS.Clock24h);
+        set_time(h, ts.value, prcdControl.control1.b1224);
     }
 }
 
@@ -1649,15 +1654,15 @@ void SetClockMode() {
     ts.max = 24;
     ts.min = 12;
     ts.step = 12;
-    ts.value = Settings.AR_IS.Clock24h ? 24 : 12;
+    ts.value = prcdControl.control1.b1224 ? 24 : 12;
     ts.old_value = ts.value;
     do {
         DisplayInteger((&ts));
         SelectInteger((&ts));
     } while (SettingsNotDone((&ts)));
     if (ts.value != ts.old_value) {
-        Settings.AR_IS.Clock24h = (ts.value == 24);
-        saveSettingsField((void *)&(Settings.AR_IS), 1);
+        prcdControl.control1.b1224 = (ts.value == 24);
+        setRtcControlData();
     }
 }
 
@@ -1676,7 +1681,7 @@ void SetHour() {
         SelectIntegerCircular((&ts));
     } while (SettingsNotDone((&ts)));
     if (ts.selected)
-        set_time(ts.value, minutes(), Settings.AR_IS.Clock24h);
+        set_time(ts.value, minutes(), prcdControl.control1.b1224);
 }
 
 void SetMinute() {
@@ -1694,12 +1699,12 @@ void SetMinute() {
         SelectIntegerCircular((&ts));
     } while (SettingsNotDone((&ts)));
     if (ts.selected)
-        set_time(hours(),ts.value, Settings.AR_IS.Clock24h);
+        set_time(hours(),ts.value, prcdControl.control1.b1224);
 }
 
 void SetClockMenuItems() {
-    sprintf(ma.MenuItem[0], "Clock Format|%uh", Settings.AR_IS.Clock24h ? 24 : 12);
-    //    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(Settings.AR_IS.Clock24h));
+    sprintf(ma.MenuItem[0], "Clock Format|%uh", prcdControl.control1.b1224 ? 24 : 12);
+    //    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(prcdControl.control1.b1224));
     //    sprintf(ma.MenuItem[2], "Minute|%02u",get_minute());
     sprintf(ma.MenuItem[1], "Clock|");
     rtc_print_time((ma.MenuItem[1] + 6));
@@ -1762,13 +1767,13 @@ uint8_t countdown_expired_signal() {
 void CountDownMode(time_t countdown) {
     char msg[16];
     time_t reminder = countdown * 1000;
-    time_t stop_time = unix_time_ms() + reminder + 1;
+    time_t stop_time = time_ms() + reminder + 1;
     uint8_t minute, second;
     TBool done = False;
     lcd_clear();
     do {
         print_header(true);
-        reminder = (stop_time - unix_time_ms()) / 1000;
+        reminder = (stop_time - time_ms()) / 1000;
         minute = reminder / 60;
         second = reminder % 60;
         sprintf(msg,
@@ -2100,7 +2105,7 @@ void print_and_send_stat(char * msg, const char * fmt, uint32_t value){
     sendString(msg, length);
 }
 
-void handle_bt_commands() {
+void handle_bt_commands(void) {
     uint8_t length = 0;
     char msg[20];
     if(! Settings.AR_IS.BT) return;
@@ -2196,7 +2201,7 @@ void handle_bt_commands() {
 
     // Don't let the timer sleep if it's actively used remotely
     if (btc != BT_None)
-        timer_idle_last_action_time = unix_time_ms();
+        timer_idle_last_action_time = time_ms();
 }
 
 // </editor-fold>
@@ -2882,8 +2887,8 @@ void StartListenShots(void) {
     last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
-    clear_unix_time();
-    parStartTime_ms = unix_time_ms();
+    clear_time_ms();
+    parStartTime_ms = 0;
 }
 // </editor-fold>
 
@@ -2921,8 +2926,6 @@ void BasicInit(){
     eeprom_init();
     lcd_init();
     lcd_set_orientation();
-//    i2c_init();
-//    read_rtc_time();
     getSettings();
 }
 
@@ -2945,11 +2948,12 @@ void DoPowerOn() {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
     }
-    init_bt();
+//    init_bt();
     LATEbits.LATE0 = 1; // Power ON 3v regulator
+
     lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(Settings.BackLightLevel);
-    timer_idle_last_action_time = unix_time_ms();
+    timer_idle_last_action_time = time_ms();
     InputFlags.INITIALIZED = True;
 }
 
@@ -2985,7 +2989,7 @@ void Delay(int t)
 void StartParTimer() {
     ParFlags.ParNowCounting = True;
     InputFlags.FOOTER_CHANGED = True;
-    parStartTime_ms = unix_time_ms();
+    parStartTime_ms = time_ms();
     LATEbits.LATE1 = 1; /* Enable 5V booster for the buzzer*/
 }
 
@@ -3052,7 +3056,7 @@ void StartCountdownTimer() {
             runtimeDelayTime = Settings.CUstomDelayTime;
             break;
     }
-    clear_unix_time();
+    clear_time_ms();
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ((uint8_t *) (&ShootString))[i] = 0;
     }
@@ -3084,7 +3088,7 @@ void UpdateShot(uint16_t dt, ShotInput_t input) {
     if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
         index--;
 
-    ShootString.shots[index].dt = dt
+    ShootString.shots[index].dt = dt;
     ShootString.shots[index].is_flags = input;
     if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
         ShootString.TotShoots++;
@@ -3097,12 +3101,12 @@ void UpdateShot(uint16_t dt, ShotInput_t input) {
 }
 
 void UpdateShotNow(ShotInput_t x) {
-    timer_idle_last_action_time = unix_time_ms();
-    UpdateShot(unix_time_ms(), x);
+    timer_idle_last_action_time = time_ms();
+    UpdateShot(time_ms(), x);
 }
 
 void check_countdown_expired() {
-    if (unix_time_ms() > runtimeDelayTime) {
+    if (time_ms() > runtimeDelayTime) {
         comandToHandle = CountdownExpired;
     }
 }
@@ -3127,7 +3131,7 @@ void decrement_par() {
 
 void check_par_expired() {
     if (ParFlags.ParNowCounting) {
-        if (unix_time_ms() - parStartTime_ms < next_par_ms) return;
+        if (time_ms() - parStartTime_ms < next_par_ms) return;
         ParFlags.ParNowCounting = False; // Should be re-enabled in event handler
         switch (Settings.ParMode) {
 //            case ParMode_Repetitive:
@@ -3152,7 +3156,7 @@ void check_par_expired() {
 }
 
 void check_timer_max_time() {
-    if (unix_time_ms() >= MAX_MEASUREMENT_TIME) {
+    if (time_ms() >= MAX_MEASUREMENT_TIME) {
         timerEventToHandle = TimerTimeout;
     }
 }
@@ -3238,11 +3242,24 @@ __interrupt(__low_priority) void isr_l() {
 
         ADGO = 1;
     }
-    if (PIR0bits.TMR0IF) {
-        PIR0bits.TMR0IF = 0;
+    if (TMR6IF) {
+        // Filter Timer
+        TMR6IF = 0;
+        ADC_HW_detect_shot_start_init();
+        // Shot filter timer expired
+        ADTIF = 0;
+        ADTIE = 1;
+        block_shot = False;
+        ADC_BUFFER_CLEAR;
+    }
+    if (TMR0IF) {
+        // 1ms timer
+        TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;
             LongPressCount = 0;
+        } else {
+            LongPressCount++;
         }
         if (ui_state == TimerListening) {
             if (AUX_A) { // high is "open". This form of code is more optimal than assignment of bit to flag.
@@ -3254,27 +3271,9 @@ __interrupt(__low_priority) void isr_l() {
             detect_aux_shots();
         }
         check_par_expired();
-    }
-    if (PIR1bits.ADIF) {
-        PIR1bits.ADIF = 0;
-    }
-
-    if (RTC_TIMER_IF) {
-        RTC_TIMER_IF = 0; // Clear Interrupt flag.
-        InputFlags.FOOTER_CHANGED = True;
-    }
-    if (INT0IF) {
-        INT0IF = 0; // Wakeup happened, disable interrupt back
-        OSCCON1bits.NOSC = 0b110; // New oscillator is HFINTOSC
-    }
-    if (TMR6IF) {
-        TMR6IF = 0;
-        ADC_HW_detect_shot_start_init();
-        // Shot filter timer expired
-        PIR1bits.ADTIF = 0;
-        PIE1bits.ADTIE = 1;
-        block_shot = False;
-        ADC_BUFFER_CLEAR;
+        if(TMR1 % 1000 == 0){
+           InputFlags.FOOTER_CHANGED = True;    
+        }
     }
     if (PIR3bits.TX1IF) {
         PIR3bits.TX1IF = 0;
@@ -3284,51 +3283,54 @@ __interrupt(__low_priority) void isr_l() {
         uart_rx_int_handler();
         PIR3bits.RC1IF = 0;
     }
+    if (PIR1bits.ADIF) {
+        // TODO: Ensure it's not happening and remove
+        PIR1bits.ADIF = 0;
+    }
 }
 // </editor-fold>
 
-void test_ui(){
-    BasicInit();
-    TRISD = 0xFF;
-    uint8_t aa = 0xAA;
+void test_ui(void){
     char msg[32];
-    int i = 0;
-    uint8_t vpos ;
-    struct RtcData rtcd;
-    while(True){
-        vpos = 0;
-        sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
-        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-        vpos += SmallFont->height;
-        getRtcData();
-        if (rtcd.prcdControl.control1.b1224){
-            sprintf(msg,"T(24h): %d%d:%d%d:%d%d",
-                rtcd.prdtdDateTime.hours._tens,
-                rtcd.prdtdDateTime.hours._units,
-                rtcd.prdtdDateTime.minutes._tens,
-                rtcd.prdtdDateTime.minutes._units,
-                rtcd.prdtdDateTime.seconds._tens,
-                rtcd.prdtdDateTime.seconds._units
-                );
-        } else {
-            sprintf(msg,"T(12h): %d%d:%d%d:%d%d",
-                rtcd.prdtdDateTime.hours._tens12,
-                rtcd.prdtdDateTime.hours._units12,
-                rtcd.prdtdDateTime.minutes._tens,
-                rtcd.prdtdDateTime.minutes._units,
-                rtcd.prdtdDateTime.seconds._tens,
-                rtcd.prdtdDateTime.seconds._units
-                );
-        }
-        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-        vpos += SmallFont->height;
-        sprintf(msg,"SOC: %u%% SOH: %u%%", fg_get_rsoc(), fg_get_rsoh());
-        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-        vpos += SmallFont->height;
-        sprintf(msg,"C/F: %u/%u mAh", fg_get_rcap(), fg_get_fcap());
-        lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-        Delay(1000);
+    uint8_t vpos;
+    set_backlight(9);
+    getSettings();
+    vpos = 0;
+    sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    getRtcData();
+    if (prcdControl.control1.b1224){
+        sprintf(msg,"T(24h): %d%d:%d%d:%d%d ",
+            prdtdDateTime.hours._tens,
+            prdtdDateTime.hours._units,
+            prdtdDateTime.minutes._tens,
+            prdtdDateTime.minutes._units,
+            prdtdDateTime.seconds._tens,
+            prdtdDateTime.seconds._units
+            );
+    } else {
+        sprintf(msg,"T(12h): %d%d:%d%d:%d%d %c ",
+            prdtdDateTime.hours._tens12,
+            prdtdDateTime.hours._units12,
+            prdtdDateTime.minutes._tens,
+            prdtdDateTime.minutes._units,
+            prdtdDateTime.seconds._tens,
+            prdtdDateTime.seconds._units,
+                (prdtdDateTime.hours.bAMPM)?'a':'p'
+            );
     }
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    sprintf(msg,"SOC: %u%% SOH: %u%% ", fg_get_rsoc(), fg_get_rsoh());
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    sprintf(msg,"C/F: %u/%u mAh ", fg_get_rcap(), fg_get_fcap());
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    sprintf(msg,"RTC: %lu ", time_ms()/1000);
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    while(TMR1 % 1000);
 }
 void main(void) {
     // <editor-fold defaultstate="collapsed" desc="Initialization">
@@ -3347,11 +3349,14 @@ void main(void) {
     InputFlags.FOOTER_CHANGED = True;
     InputFlags.NEW_SHOT_D = True;
     ui_state = PowerON;
+    set_backlight(9);
     while(Keypressed); // wait key released to avoid start signal
     do {
         //TODO: Integrate watchdog timer
+        read_time();
+        
         handle_ui();
-//        test_ui();
+       
     } while (ui_state != PowerOff);
     LATE = 0;
     Delay(2000);

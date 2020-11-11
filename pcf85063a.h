@@ -118,13 +118,13 @@ struct RtcTimerData {
         } timerMode;
 };
 
-struct RtcData {
+//struct RtcData {
         struct RtcControlData  prcdControl;
         struct RtcDateTimeData prdtdDateTime;
 //        struct RtcAlarmData    pradAlarm;
 //        struct RtcTimerData    prtdTimer;
-};
-struct RtcData rtcd;
+//};
+//struct RtcData rtcd;
 
 void getRtcData(void);
 void setRtcData(void);

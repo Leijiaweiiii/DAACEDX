@@ -27,48 +27,48 @@ void setRtcData(void) {
 
 void getRtcControlData(void) {
     pic18_i2c_enable();
-    pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &rtcd.prcdControl, sizeof(struct RtcControlData));
+    pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &prcdControl, sizeof(struct RtcControlData));
     pic18_i2c_disable();
 }
 
 void setRtcControlData(void) {
     pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, CONTROL_SEGMENT_ADDR,  &rtcd.prcdControl, sizeof(struct RtcControlData));
+    pic18_i2c_write(DEVICE_ADDR, CONTROL_SEGMENT_ADDR,  &prcdControl, sizeof(struct RtcControlData));
     pic18_i2c_disable();
 }
 
 void getRtcDateTimeData(void) {
     pic18_i2c_enable();
-	pic18_i2c_read(DEVICE_ADDR, TIME_SEGMENT_ADDR, &rtcd.prdtdDateTime, sizeof(struct RtcDateTimeData));
+	pic18_i2c_read(DEVICE_ADDR, TIME_SEGMENT_ADDR, &prdtdDateTime, sizeof(struct RtcDateTimeData));
     pic18_i2c_disable();
 }
 
 void setRtcDateTimeData(void) {
     pic18_i2c_enable();
-    pic18_i2c_write(DEVICE_ADDR, TIME_SEGMENT_ADDR, &rtcd.prdtdDateTime, sizeof(struct RtcDateTimeData));
+    pic18_i2c_write(DEVICE_ADDR, TIME_SEGMENT_ADDR, &prdtdDateTime, sizeof(struct RtcDateTimeData));
     pic18_i2c_disable();
 }
 //
 //void getRtcAlarmData(void) {
 //    pic18_i2c_enable();
-//    pic18_i2c_read(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
+//    pic18_i2c_read(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &pradAlarm, sizeof(struct RtcAlarmData));
 //    pic18_i2c_disable();
 //}
 //
 //void setRtcAlarmData(void) {
 //    pic18_i2c_enable();
-//    pic18_i2c_write(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &rtcd.pradAlarm, sizeof(struct RtcAlarmData));
+//    pic18_i2c_write(DEVICE_ADDR, ALARM_SEGMENT_ADDR, &pradAlarm, sizeof(struct RtcAlarmData));
 //    pic18_i2c_disable();
 //}
 //
 //void getRtcTimerData(void) {
 //    pic18_i2c_enable();
-//    pic18_i2c_read(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
+//    pic18_i2c_read(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &prtdTimer, sizeof(struct RtcTimerData));
 //    pic18_i2c_disable();
 //}
 //
 //void setRtcTimerData(void) {
 //    pic18_i2c_enable();
-//    pic18_i2c_write(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &rtcd.prtdTimer, sizeof(struct RtcTimerData));
+//    pic18_i2c_write(DEVICE_ADDR, TIMER_SEGMENT_ADDR, &prtdTimer, sizeof(struct RtcTimerData));
 //    pic18_i2c_disable();
 //}

@@ -1,7 +1,6 @@
 #include "menu.h"
 #include "lcd.h"
 #include "ui.h"
-#include "DAACED.h"
 
 void display_big_font_label(const char * msg) {
     uint16_t len = 0;
@@ -25,11 +24,11 @@ void display_big_font_label(const char * msg) {
     old_label_end -= font->character_spacing;
 }
 
-void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
+void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, TBool b1224) {
     char msg[8];
     uint8_t block_start, block_end;
     print_header(true);
-    rtc_print_time_full(msg, hour, minute, Settings.AR_IS.Clock24h);
+    sprintf(msg, "%d:%d%c", hour, minute, b1224);
     display_big_font_label(msg);
     if (state == 0) {
         block_start = old_label_start;
@@ -37,7 +36,7 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state) {
         block_end -= 10; // 3*BigFont->character_spacing + 1 IDK why 1
     } else {
         block_end = old_label_end;
-        if( ! Settings.AR_IS.Clock24h){
+        if( ! b1224){
             block_end -= lcd_string_lenght("p", BigFont);
             block_end += 3;// BigFont->character_spacing
         }
@@ -148,6 +147,8 @@ void increment_menu_index_inf(SettingsMenu_t * s) {
     s->changed = True;
     s->page_changed = (oldPage != s->page);
 }
+
+extern void handle_bt_commands(void);
 
 void SelectMenuItem(SettingsMenu_t* s) {
     define_input_action();

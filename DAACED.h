@@ -88,7 +88,7 @@ typedef union {
         unsigned BT             : 1;
         unsigned MIC_SRC        : 1;
         unsigned AutoPowerOff   : 1;
-        unsigned Clock24h       : 1;
+        unsigned unused         : 1;
         unsigned StartSound     : 1;
     };
 
@@ -332,5 +332,5 @@ void SetCountDown(void);
 
 void PowerOffSound(void);
 void PowerOnSound(void);
-
+void test_ui(void);
 #endif /*  _DAACED_H_ */

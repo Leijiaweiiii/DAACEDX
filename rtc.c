@@ -6,8 +6,17 @@
 
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
 
-time_t unix_time_ms(void){
-    return ((TMR3 << 16) | TMR1);
+time_t time_ms(void){
+    union{
+        time_t _t;
+        struct {
+            uint16_t _l;
+            uint16_t _h;
+        };
+    } res;
+    res._l = TMR1;
+    res._h = TMR3;
+    return res._t;
 }
 
 uint8_t get_time_source(void) {
@@ -19,58 +28,44 @@ uint8_t get_time_source(void) {
 }
 
 void initialize_rtc_timer(void) {
-    // Real time counter will count 2 seconds forever.
-    RTC_TIMER_IE = 0; // Disable interrupt.
-    RTC_TIMER_IF = 0; // Clear Interrupt flag.
-    PMD1bits.TMR1MD = 0; // Enable perepherial timer 1
-    TMR1CLKbits.CS = 0b0100; // TIMER1 clock source is internal 32KHz
-    T1CON = 0b00000111;
-    RTC_TIMER_IE = 1; // Enable timer interrupt.
-    INTCONbits.PEIE = 1;
-
-    PIE0bits.TMR0IE = 0;
-
-    // Time calculations:
-    //    T0CON1bits.T0CS = 0b010; // HFINTOSC/4
-    //    T0CON1bits.T0PS = 0b0010; // 1:4 prescalar -> 65536 / 64MHz * 4 = 4.0959mS
-    //    T0CON1bits.T0ASYNC = 1;
-    T0CON1 = 0b01010010;
-    //    T0CON0bits.T016BIT = 0; // Enable 16-bit mode.
-    //    T0CON0bits.T0OUTPS = 0b0000; // Postscalar 1:1
-    //    T0CON0bits.T0OUTPS = 0b0000; // 1:1 postscaler 
-    //    T0CON0bits.T0EN = 1; // Start timer.
-    T0CON0 = 0b11100000;
-    PIE0bits.TMR0IE = 1; // Enable Interrupt
-    INTCONbits.PEIE = 1;
+    /*
+     * TMR0 - 1ms. Interrupt, input=SOSCI
+     * TMR1 | (TMR3<<16) - unix_time_ms, TMR1 input - TMR6OF, TMR3 input - TMR1
+     * TMR5 - Filter timer, input TMR6OF
+     */
+    TMR0H = 125;            // preset to get 1ms period
+    T0CON1 = 0b01111001;    // HFINTOSC, async, 512 prescaler
+    T0CON0 = 0b10000000;    // Enable timer 0 without postscaler and 8 bit mode
+    TMR0IE = 1;             // Enable Timer0 interrupt
+    
+    TMR1CLK = 0b11111000;   // TMR1 Clock is TMR0 overflow
+    T1GCON = 0b10000000;    // TMR1 always counting
+    T1CON = 0b11001011;     // Enable timer 1 with 16 bit read and no prescaler
+    
+    TMR3CLK = 0b11111001;   // Input is TMR1
+    T3GCON = 0b11000000;    // TMR3 always counting
+    T3CON = 0b11001111;     // Enable timer 3 with 16 bit read and no prescaler
 }
+
+
 
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Time setting functions">
 
 // </editor-fold>
 
-uint8_t rtc_print_time_full(char * buff, uint8_t _h, uint8_t _m, TBool format24h) {
-    if (format24h)
-        return sprintf(buff, "%02u:%02u", _h, _m);
-
-    uint8_t h = _h;
-    if (h > 12) h -= 12;
-    if (h == 0) h = 12;
-    return sprintf(buff, "%02u:%02u%c", h, _m, IsHourAM(_h) ? 'a' : 'p');
-}
-
 void set_time(uint8_t h, uint8_t m, TBool is24h) {
     if (is24h){
-        rtcd.prdtdDateTime.hours._tens = h/10;
-        rtcd.prdtdDateTime.hours._units = h%10;
+        prdtdDateTime.hours._tens = h/10;
+        prdtdDateTime.hours._units = h%10;
     } else {
-        rtcd.prdtdDateTime.hours._tens12 = h/10;
-        rtcd.prdtdDateTime.hours._units12 = h%10;
+        prdtdDateTime.hours._tens12 = h/10;
+        prdtdDateTime.hours._units12 = h%10;
     }
-    rtcd.prdtdDateTime.minutes._tens = m/10;
-    rtcd.prdtdDateTime.minutes._tens = m%10;
+    prdtdDateTime.minutes._tens = m/10;
+    prdtdDateTime.minutes._tens = m%10;
     getRtcControlData();
-    rtcd.prcdControl.control1.b1224 = is24h;
+    prcdControl.control1.b1224 = is24h;
     setRtcControlData();
     setRtcDateTimeData();
 }
@@ -79,16 +74,17 @@ void read_time(void){
     getRtcControlData();
     getRtcDateTimeData();
 }
+
 uint8_t minutes(void){
-    return rtcd.prdtdDateTime.minutes._tens * 10 + rtcd.prdtdDateTime.minutes._units;
+    return prdtdDateTime.minutes._tens * 10 + prdtdDateTime.minutes._units;
 }
 
 uint8_t hours(void){
-    return rtcd.prdtdDateTime.hours._tens * 10 + rtcd.prdtdDateTime.hours._units;
+    return prdtdDateTime.hours._tens * 10 + prdtdDateTime.hours._units;
 }
 
 TBool is1224(void){
-    return rtcd.prcdControl.control1.b1224;
+    return prcdControl.control1.b1224;
 }
 
 /**
@@ -97,6 +93,23 @@ TBool is1224(void){
  * @param format24h - boolean indicating if it's 24 or 12 hours format
  * @return bytes count written to buffer
  */
-uint8_t rtc_print_time(char * buff) {
-    return rtc_print_time_full(buff, hours(), minutes(), is1224());
+uint8_t rtc_print_time(char * b) {
+    uint8_t res = 0;
+     if (prcdControl.control1.b1224){
+        res = sprintf(b,"%d%d:%d%d",
+            prdtdDateTime.hours._tens,
+            prdtdDateTime.hours._units,
+            prdtdDateTime.minutes._tens,
+            prdtdDateTime.minutes._units
+            );
+    } else {
+        res = sprintf(b,"%d%d:%d%d%c",
+            prdtdDateTime.hours._tens12,
+            prdtdDateTime.hours._units12,
+            prdtdDateTime.minutes._tens,
+            prdtdDateTime.minutes._units,
+                (prdtdDateTime.hours.bAMPM)?'a':'p'
+            );
+    }
+    return res;
 }
