@@ -124,7 +124,7 @@ void PIC_init(void) {
     TRISE = 0b11111000; // E0 = POWER(+3), E1 = POWER(+5V), E2 = BUZZER EN
     ANSELE = 0b00000000;
 
-    TRISF = 0b00000000; // F3 = DP_CS(OP), F4 = DP_A0(OP), F6 = DP_RST(OP)
+    TRISF = 0b00000000; // F3 = DP_CS(OP), F4 = DP_A0(OP), F6 = DP_RST(OP) F7 = SPI_IN
     ANSELF = 0b00100000; // DAC
     DAC1CON0 = 0b10100000; // DAC enabled output on pin13 (RF5) with reference from VDD & VSS
 
@@ -1704,11 +1704,11 @@ void SetMinute() {
 
 void SetClockMenuItems() {
     sprintf(ma.MenuItem[0], "Clock Format|%uh", prcdControl.control1.b1224 ? 24 : 12);
-    //    sprintf(ma.MenuItem[1], "Hour|%02u",get_hour(prcdControl.control1.b1224));
-    //    sprintf(ma.MenuItem[2], "Minute|%02u",get_minute());
-    sprintf(ma.MenuItem[1], "Clock|");
+    sprintf(ma.MenuItem[1], "Hour|%02u",hours());
+    sprintf(ma.MenuItem[2], "Minute|%02u", minutes());
+    sprintf(ma.MenuItem[3], "Clock|");
     rtc_print_time((ma.MenuItem[1] + 6));
-    ma.TotalMenuItems = 2;
+    ma.TotalMenuItems = 4;
 }
 
 void SetClockMenu() {
@@ -1726,13 +1726,13 @@ void SetClockMenu() {
                 case 0:
                     SetClockMode();
                     break;
-                    //                case 1:
-                    //                    SetHour();
-                    //                    break;
-                    //                case 2:
-                    //                    SetMinute();
-                    //                    break;
                 case 1:
+                    SetHour();
+                    break;
+                case 2:
+                    SetMinute();
+                    break;
+                case 3:
                     SetClock();
                     break;
             }

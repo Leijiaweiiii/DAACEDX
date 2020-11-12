@@ -24,10 +24,11 @@ void display_big_font_label(const char * msg) {
     old_label_end -= font->character_spacing;
 }
 
-void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, TBool b1224) {
+void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, char am_pm) {
     uint8_t block_start, block_end;
     print_header(true);
-    sprintf(msg, "%d:%d%c", hour, minute, b1224);
+    sprintf(msg, "%02d:%02d%c", hour, minute, am_pm);
+    
     display_big_font_label(msg);
     if (state == 0) {
         block_start = old_label_start;
@@ -35,7 +36,7 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, TBool b1224) {
         block_end -= 10; // 3*BigFont->character_spacing + 1 IDK why 1
     } else {
         block_end = old_label_end;
-        if( ! b1224){
+        if( ! am_pm){
             block_end -= lcd_string_lenght("p", BigFont);
             block_end += 3;// BigFont->character_spacing
         }

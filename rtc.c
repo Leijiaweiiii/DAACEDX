@@ -53,21 +53,24 @@ void initialize_rtc_timer(void) {
 // <editor-fold defaultstate="collapsed" desc="Time setting functions">
 
 // </editor-fold>
+void save_time(void) {
+    setRtcControlData();
+    setRtcDateTimeData();
+}
 
 void set_time(uint8_t h, uint8_t m, TBool is24h) {
     if (is24h){
         prdtdDateTime.hours._tens = h/10;
         prdtdDateTime.hours._units = h%10;
     } else {
-        prdtdDateTime.hours._tens12 = h/10;
+        prdtdDateTime.hours._tens12 = (h/10) % 12;
         prdtdDateTime.hours._units12 = h%10;
     }
     prdtdDateTime.minutes._tens = m/10;
     prdtdDateTime.minutes._units = m%10;
     getRtcControlData();
     prcdControl.control1.b1224 = is24h;
-    setRtcControlData();
-    setRtcDateTimeData();
+    save_time();
 }
 
 void read_time(void){
