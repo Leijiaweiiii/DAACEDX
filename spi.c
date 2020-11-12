@@ -23,7 +23,7 @@ void spi_init() {
 //    SSP1DATPPS = 0x1D;  // data-input for EEPROM    PPS: 011 101    PORTD 5
     SSP1DATPPS = 0x2F;  // data-input for EEPROM    PPS: 101 111    PORTF 7
     SSP1CLKPPS = 0x19;
-    TRISDbits.TRISD5 = 1; // Set EEPROM input to input
+    TRISFbits.TRISF7 = 1; // Set EEPROM input to input
     
 //    SSP1STAT &= 0x3F; // Power on state
     
@@ -39,32 +39,29 @@ void spi_init() {
 }
 
 uint8_t spi_write(uint8_t data) {
-    unsigned char temp_var = SSP1BUF; // Clear buffer.
-    (void)(temp_var);
+    uint8_t ret  = SSP1BUF;           // Clear buffer.
     PIR3bits.SSP1IF = 0;              // clear interrupt flag bit
     SSP1CON1bits.WCOL = 0;            // clear write collision bit if any collision occurs
     SSP1BUF = data;                   // transmit data
     while (!PIR3bits.SSP1IF);         // waiting for the process to complete
     PIR3bits.SSP1IF = 0;              // clear interrupt flag bit
     while(!SSP1STATbits.BF);
-    uint8_t ret = SSP1BUF;
+    ret = SSP1BUF;
     return ret;                       // return receive data
 }
 
 uint8_t spi_read(void) {
-    unsigned char temp_var = SSP1BUF; // Clear buffer.
-    (void)(temp_var);
+    uint8_t ret = SSP1BUF; // Clear buffer.
     PIR3bits.SSP1IF = 0;              // clear interrupt flag bit
     SSP1CON1bits.WCOL = 0;            // clear write collision bit if any collision occurs
-    SSP1BUF = 0xFF;                   // transmit data
+    SSP1BUF = 0x00;                   // transmit data
     while(!SSP1STATbits.BF);
-    uint8_t ret = SSP1BUF;
+    ret = SSP1BUF;
     return ret;                       // return receive data
 }
 
 uint8_t spi_write_bulk(uint8_t * data, uint8_t size) {
-    uint8_t temp_var = SSP1BUF; // Clear buffer.
-    UNUSED(temp_var);           // Suppress warning
+    uint8_t ret = SSP1BUF; // Clear buffer.
     while( 0 < size-- ){
         PIR3bits.SSP1IF = 0;        // Clear interrupt flag bit
         SSP1CON1bits.WCOL = 0;      // Clear write collision bit if any collision occurs
@@ -72,7 +69,8 @@ uint8_t spi_write_bulk(uint8_t * data, uint8_t size) {
         while (SSP1STATbits.BF == 0);
     }
     PIR3bits.SSP1IF = 0; // clear interrupt flag bit
-    return SSP1BUF;
+    ret = SSP1BUF;
+    return ret;
 }
 
 uint8_t spi_write_bulk_const(uint8_t data, uint8_t size) {
