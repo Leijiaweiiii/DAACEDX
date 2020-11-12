@@ -2919,6 +2919,7 @@ void BasicInit(){
     lcd_init();
     lcd_set_orientation();
     getSettings();
+    pic18_i2c_reset();
 }
 
 void DoPowerOn() {

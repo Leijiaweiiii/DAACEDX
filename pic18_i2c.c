@@ -1,8 +1,8 @@
 #include <xc.h>
 #include "pic18_i2c.h"
-//#ifndef _XTAL_FREQ
-//#define _XTAL_FREQ 64000000
-//#endif
+#ifndef _XTAL_FREQ
+#define _XTAL_FREQ 64000000
+#endif
 
 void pic18_i2c_enable(void) {
 
@@ -15,6 +15,20 @@ void pic18_i2c_enable(void) {
     SSP2CON3 = 0x00;
     SSP2STAT = 0x00;
     SSP2ADD = 0x159;
+}
+
+
+void pic18_i2c_reset(void){
+    SSP2CON1bits.SSPEN = 0; // Disable MSSP
+    TRISDbits.TRISD5 = 0;
+    TRISDbits.TRISD6 = 0;
+    LATDbits.LATD5 = 1; // Drive SDA High
+    for(uint8_t cycles = 0; cycles<9; ++cycles){
+        LATDbits.LATD6 = 0;
+       __delay_us(10); 
+       LATDbits.LATD6 = 1;
+       __delay_us(10); 
+    }
 }
 
 /* Scratchpad with various changes
