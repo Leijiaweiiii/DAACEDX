@@ -75,7 +75,7 @@ uint8_t find_set_bit_position(uint8_t n);
 #define Start                (Key==KeySt)
 #define Stop                 (Key==KeyRw)
 // </editor-fold>
-
+char msg[32]; // Temporary buffer for sprintf here and there - code size optimization
 // <editor-fold defaultstate="collapsed" desc="Data Model">
 
 typedef union {

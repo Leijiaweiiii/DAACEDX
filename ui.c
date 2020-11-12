@@ -20,16 +20,15 @@ void STATE_HANDLE_CHARGER(void)            {ui_state = TimerCharging;set_backlig
 
 
 void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
-    char message[20];
     uint8_t x_pos = 0;
     uint8_t y_pos = UI_HEADER_END_LINE + BigFont->height;
-    sprintf(message, "#%03d ", shot_no);
-    lcd_write_string(message, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
+    sprintf(msg, "#%03d ", shot_no);
+    lcd_write_string(msg, x_pos, y_pos, SmallFont, BLACK_OVER_WHITE);
 
-    sprintf(message, "  Split %3.2f", (float) split / 1000);
-    x_pos = LCD_WIDTH - lcd_string_lenght(message, SmallFont);
+    sprintf(msg, "  Split %3.2f", (float) split / 1000);
+    x_pos = LCD_WIDTH - lcd_string_lenght(msg, SmallFont);
     lcd_write_string(
-            message,
+            msg,
             x_pos,
             y_pos, SmallFont,
             BLACK_OVER_WHITE
@@ -74,7 +73,6 @@ void update_shot_time_on_screen() {
 }
 
 void print_big_time_label(const uint24_t t) {
-    char message[16];
     float tf;
     uint8_t len, spaceholder, height;
     height = BigFont->height;
@@ -83,16 +81,16 @@ void print_big_time_label(const uint24_t t) {
         tf = 0.0;
     else
         tf = ((float) t) / 1000;
-    sprintf(message, "%3.02f", tf);
-    len = lcd_string_lenght(message, BigFont);
+    sprintf(msg, "%3.02f", tf);
+    len = lcd_string_lenght(msg, BigFont);
     lcd_clear_block(0, UI_HEADER_END_LINE, LCD_WIDTH, UI_FOOTER_START_LINE);
 
     if (len < LCD_WIDTH - spaceholder) {
-        lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
+        lcd_write_string(msg, LCD_WIDTH - len, UI_HEADER_END_LINE, BigFont, BLACK_OVER_WHITE);
     } else {
         lcd_clear_block(LCD_WIDTH - len, UI_HEADER_END_LINE, LCD_WIDTH, height + UI_HEADER_END_LINE);
-        len = lcd_string_lenght(message, MediumFont);
-        lcd_write_string(message, LCD_WIDTH - len, UI_HEADER_END_LINE + 16, MediumFont, BLACK_OVER_WHITE);
+        len = lcd_string_lenght(msg, MediumFont);
+        lcd_write_string(msg, LCD_WIDTH - len, UI_HEADER_END_LINE + 16, MediumFont, BLACK_OVER_WHITE);
     }
 }
 

@@ -57,9 +57,7 @@ int8_t pic18_i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint
     SSP2CON2bits.SEN = 1;
     while (SSP2CON2bits.SEN);
     SSP2BUF = slave_addr << 1;
-    if(SSP2CON1bits.WCOL){
-        NOP();
-    }
+    if(SSP2CON1bits.WCOL);
     while (SSP2STATbits.R_W || SSP2STATbits.BF){
         //TODO: Check and clear WCOL
     };
@@ -69,15 +67,11 @@ int8_t pic18_i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint
         return -1;
     }
     SSP2BUF = reg_addr;
-    if(SSP2CON1bits.WCOL){
-        NOP();
-    }
+    if(SSP2CON1bits.WCOL);
     while (SSP2STATbits.R_W || SSP2STATbits.BF);
     while (length > 0) {
         SSP2BUF = *data;
-        if(SSP2CON1bits.WCOL){
-            NOP();
-        }
+        if(SSP2CON1bits.WCOL);
         while (SSP2STATbits.R_W);
         if (SSP2CON2bits.ACKSTAT == 1) {
             SSP2CON2bits.PEN = 1;
@@ -111,9 +105,7 @@ int8_t pic18_i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint1
     PIR3bits.SSP2IF = 0;
     while (length > 0) {
         SSP2CON2bits.RCEN = 1;
-        while(!SSP2CON2bits.RCEN){ // ----> Never True...
-            NOP();
-        }
+        while(!SSP2CON2bits.RCEN);
         while (!SSP2STATbits.BF);
         *data = SSP2BUF;
         PIR3bits.SSP2IF = 0;

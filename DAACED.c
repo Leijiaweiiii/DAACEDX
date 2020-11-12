@@ -1257,8 +1257,8 @@ void set_par_mode(int m) {
 const char * par_mode_menu_names[TOT_PAR_MODES] = {
     "Normal Timer",
     "Spy Mode",
-    "Repetitive Mode",
-    "Auto Par",
+//    "Repetitive Mode",
+//    "Auto Par",
 //    "Bianchi: Practical",
 //    "Bianchi: Barricade",
 //    "Bianchi: Falling Plate",
@@ -1273,8 +1273,8 @@ const char * par_mode_menu_names[TOT_PAR_MODES] = {
 const char * par_mode_header_names[TOT_PAR_MODES] = {
     "Timer",
     "Spy Mode",
-    "Repetitive",
-    "Auto Par",
+//    "Repetitive",
+//    "Auto Par",
 //    "Practical",
 //    "Barricade",
 //    "Falling Plate",
@@ -1765,7 +1765,6 @@ uint8_t countdown_expired_signal() {
 }
 
 void CountDownMode(time_t countdown) {
-    char msg[16];
     time_t reminder = countdown * 1000;
     time_t stop_time = time_ms() + reminder + 1;
     uint8_t minute, second;
@@ -1809,7 +1808,6 @@ void CountDownMode(time_t countdown) {
 TBool SetCustomCountDown() {
     NumberSelection_t ts;
     uint8_t minute, second;
-    char msg[16];
     InitSettingsNumberDefaults((&ts));
     strcpy(ts.MenuTitle, "Set Time");
 
@@ -2073,7 +2071,6 @@ void bt_set_delay() {
 
 void bt_get_custom() {
     uint8_t length = 0;
-    char msg[16];
     if (Settings.TotCustomPar > 0) {
         for (uint8_t i = 0; i < Settings.TotCustomPar; i++) {
             length = sprintf(msg, "%d,%u\n", i + 1, (long) (Settings.CustomPar[i] * 1000));
@@ -2087,7 +2084,6 @@ void bt_get_custom() {
 
 void bt_get_pars() {
     uint8_t length = 0;
-    char msg[16];
     if (Settings.TotPar > 0) {
         for (uint8_t i = 0; i < Settings.TotPar; i++) {
             length = sprintf(msg, "%d,%u\n", i + 1, (long) (Settings.ParTime[i] * 1000));
@@ -2099,15 +2095,14 @@ void bt_get_pars() {
     }
 }
 
-void print_and_send_stat(char * msg, const char * fmt, uint32_t value){
-    int length = sprintf(msg, fmt, value);
+void print_and_send_stat(char * _msg, const char * fmt, uint32_t value){
+    int length = sprintf(_msg, fmt, value);
     Delay(50);
-    sendString(msg, length);
+    sendString(_msg, length);
 }
 
 void handle_bt_commands(void) {
     uint8_t length = 0;
-    char msg[20];
     if(! Settings.AR_IS.BT) return;
     sendShotsIfRequired();
     BT_COMMAND_T btc = BT_define_action();
@@ -2502,7 +2497,6 @@ TBool reviewChanged = True;
 void print_strings_line() {
     uint8_t col, line, i, page_start, page_size;
     TBool first_page;
-    char message[20];
     line = LCD_HEIGHT - SmallFont->height;
     if (reviewChanged) {
         reviewChanged = False;
@@ -2513,26 +2507,26 @@ void print_strings_line() {
     else
         page_size = 5;
     first_page = (CurShootString / page_size == 0);
-    sprintf(message, "String<");
+    sprintf(msg, "String<");
     col = 4;
-    lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
-    col += lcd_string_lenght(message, SmallFont) + 2;
+    lcd_write_string(msg, col, line, SmallFont, WHITE_OVER_BLACK);
+    col += lcd_string_lenght(msg, SmallFont) + 2;
     col += first_page ? 0 : 3;
     page_start = page_size * (CurShootString / page_size);
     for (i = 0; i < page_size; i++) {
         uint8_t polarity = (CurShootString % page_size == i);
         // Rounding to a page
-        sprintf(message, "%d", page_start + i + 1);
+        sprintf(msg, "%d", page_start + i + 1);
 
-        lcd_write_string(message, col, line, SmallFont, polarity);
+        lcd_write_string(msg, col, line, SmallFont, polarity);
         if (polarity)
             lcd_send_block_d(col - 2, line, col, line + SmallFont->height, ~polarity);
-        col += lcd_string_lenght(message, SmallFont) + 3;
+        col += lcd_string_lenght(msg, SmallFont) + 3;
         if (polarity)
             lcd_send_block_d(col - 5, line, col - 3, line + SmallFont->height, !polarity);
     }
-    sprintf(message, ">");
-    lcd_write_string(message, col, line, SmallFont, WHITE_OVER_BLACK);
+    sprintf(msg, ">");
+    lcd_write_string(msg, col, line, SmallFont, WHITE_OVER_BLACK);
 }
 
 void ReviewDisplay() {
@@ -2765,14 +2759,13 @@ void DetectInit(void) {
 }
 
 uint8_t print_title(TBool settings) {
-    char message[30];
     uint8_t title_pos = 5;
     if (!settings) {
-        rtc_print_time(message);
-        title_pos = lcd_write_string(message, 1, 0, SmallFont, BLACK_OVER_WHITE);
+        rtc_print_time(msg);
+        title_pos = lcd_write_string(msg, 1, 0, SmallFont, BLACK_OVER_WHITE);
     }
-    sprintf(message, "%s", ScreenTitle);
-    lcd_write_string(message, title_pos, 0, SmallFont, BLACK_OVER_WHITE);
+    sprintf(msg, "%s", ScreenTitle);
+    lcd_write_string(msg, title_pos, 0, SmallFont, BLACK_OVER_WHITE);
     return SmallFont->height;
 }
 
@@ -2821,15 +2814,14 @@ void print_label_at_footer_grid(const char* msg, const uint8_t grid_x, const uin
 }
 
 void print_footer() {
-    char message[20];
     if (!InputFlags.FOOTER_CHANGED)
         return;
     InputFlags.FOOTER_CHANGED = False;
     lcd_fill_block(0, UI_FOOTER_START_LINE, LCD_WIDTH, LCD_HEIGHT);
-    sprintf(message, " 1st: %3.2f", (float) ShootString.shots[0].dt / 1000);
-    print_label_at_footer_grid(message, 0, 0);
-    sprintf(message, "Shots: %2d", ShootString.TotShoots);
-    print_label_at_footer_grid(message, 1, 0);
+    sprintf(msg, " 1st: %3.2f", (float) ShootString.shots[0].dt / 1000);
+    print_label_at_footer_grid(msg, 0, 0);
+    sprintf(msg, "Shots: %2d", ShootString.TotShoots);
+    print_label_at_footer_grid(msg, 1, 0);
 
     switch (Settings.ParMode) {
 //        case ParMode_Repetitive:
@@ -2867,20 +2859,20 @@ void print_footer() {
 //            }
 //            break;
         default:
-            print_delay(message, " Delay: ", "");
-            print_label_at_footer_grid(message, 0, 1);
+            print_delay(msg, " Delay: ", "");
+            print_label_at_footer_grid(msg, 0, 1);
             if (Settings.TotPar == 0) {
-                sprintf(message, "Par: Off");
+                sprintf(msg, "Par: Off");
             } else if (CurPar_idx == Settings.TotPar) {
-                sprintf(message, "Par%2d:%3.2f", CurPar_idx, Settings.ParTime[CurPar_idx - 1]);
+                sprintf(msg, "Par%2d:%3.2f", CurPar_idx, Settings.ParTime[CurPar_idx - 1]);
             } else {
-                sprintf(message, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
+                sprintf(msg, "Par%2d:%3.2f", CurPar_idx + 1, Settings.ParTime[CurPar_idx]);
             }
             break;
     }
     //    sprintf(message, "%u", PORTD&0x7);
 //    sprintf(message, "%u/%u", max_idx, max_err);
-    print_label_at_footer_grid(message, 1, 1);
+    print_label_at_footer_grid(msg, 1, 1);
 }
 
 void StartListenShots(void) {
@@ -2936,8 +2928,6 @@ void DoPowerOn() {
     set_backlight(0);
     ADC_init();
     // TODO: Review power on sequence
-    RTC_TIMER_IE = 1; // Enable 2 s timer interrupt
-    GIE = 1; // enable global interrupts
     initialize_rtc_timer();
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 0;
@@ -2948,7 +2938,7 @@ void DoPowerOn() {
         TRISDbits.TRISD1 = 1;
         TRISDbits.TRISD2 = 1;
     }
-//    init_bt();
+    init_bt();
     LATEbits.LATE0 = 1; // Power ON 3v regulator
 
     lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
@@ -2958,13 +2948,13 @@ void DoPowerOn() {
 }
 
 void DoCharging() {
-    char msg[10];
+   
     if (charger_state_changed) {
         charger_display_state = charger_state;
         switch (charger_state) {
             case Charging:
                 lcd_clear();
-                sprintf(msg, "Charging");
+                sprintf(msg, "Charging: %u/%u", fg_get_rcap(), fg_get_fcap());
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
                 break;
             case Complete:
@@ -3012,7 +3002,6 @@ void StartPlayStartSound() {
 }
 
 void StartCountdownTimer() {
-    char msg[16];
     uint8_t length;
     ADC_ENABLE_INTERRUPT_BATTERY;
     Delay(1);

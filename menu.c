@@ -25,7 +25,6 @@ void display_big_font_label(const char * msg) {
 }
 
 void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, TBool b1224) {
-    char msg[8];
     uint8_t block_start, block_end;
     print_header(true);
     sprintf(msg, "%d:%d%c", hour, minute, b1224);
@@ -50,7 +49,6 @@ void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, TBool b1224) {
 }
 
 void DisplayDouble(NumberSelection_t* s) {
-    char msg[16];
     set_screen_title(s->MenuTitle);
     print_header(true);
     sprintf(msg, s->format, s->fvalue);
@@ -58,8 +56,6 @@ void DisplayDouble(NumberSelection_t* s) {
 }
 
 void DisplayInteger(NumberSelection_t* s) {
-    char msg[16];
-
     set_screen_title(s->MenuTitle);
     print_header(true);
     sprintf(msg, s->format, s->value);
