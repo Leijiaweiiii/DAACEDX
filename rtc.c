@@ -63,7 +63,7 @@ void set_time(uint8_t h, uint8_t m, TBool is24h) {
         prdtdDateTime.hours._units12 = h%10;
     }
     prdtdDateTime.minutes._tens = m/10;
-    prdtdDateTime.minutes._tens = m%10;
+    prdtdDateTime.minutes._units = m%10;
     getRtcControlData();
     prcdControl.control1.b1224 = is24h;
     setRtcControlData();
