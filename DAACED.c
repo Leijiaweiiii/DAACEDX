@@ -2770,14 +2770,14 @@ uint8_t print_title(TBool settings) {
 }
 
 void print_batery_info() {
-    uint8_t col = LCD_WIDTH - 35;
+    uint8_t col = LCD_WIDTH - 37;
     uint8_t num_bars = number_of_battery_bars();
 
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
 
-    for (uint8_t i = 25; i > 0; i--) {
-        if (i < num_bars + 1) {
+    for (uint8_t i = 27; i > 0; i--) {
+        if (i < num_bars * 3) {
             lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
             col += battery_middle_full_bitmap.width_in_bits;
         } else {
