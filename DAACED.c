@@ -271,6 +271,7 @@ void saveSettings() {
 }
 
 void restoreSettings() {
+    return;
     eeprom_read_array(SettingsStartAddress, &Settings, sizeof (Settings_t));
 }
 
@@ -2923,8 +2924,7 @@ void BasicInit(){
 }
 
 void DoPowerOn() {
-    if (InputFlags.INITIALIZED) return;
-    
+
     lcd_set_contrast(Settings.ContrastValue);
     set_backlight(0);
     ADC_init();
@@ -3247,9 +3247,9 @@ __interrupt(__low_priority) void isr_l() {
         TMR0IF = 0;
         if (!Keypressed) {//Assignment will not work because of not native boolean
             InputFlags.KEY_RELEASED = True;
-            LongPressCount = 0;
+            key_press_ms = 0;
         } else {
-            LongPressCount++;
+            key_press_ms++;
         }
         if (ui_state == TimerListening) {
             if (AUX_A) { // high is "open". This form of code is more optimal than assignment of bit to flag.
@@ -3349,6 +3349,8 @@ void main(void) {
        
     } while (ui_state != PowerOff);
     LATE = 0;
+    while(Keypressed);
     Delay(2000);
+    
     // </editor-fold>
 }

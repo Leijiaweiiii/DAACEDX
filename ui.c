@@ -398,8 +398,8 @@ void handle_countdown() {
 TBool is_long_press(TBool repeatable) {
     uint16_t duration = 0;
     do {
-        if (duration > STICKY_THRESHOLD - LongPressCount){
-            LongPressCount += (LongPressCount <= STICKY_THRESHOLD - 100)? 300:0;
+        if (duration > STICKY_THRESHOLD - key_press_ms){
+//            key_press_ms += (key_press_ms <= STICKY_THRESHOLD - 100)? 300:0;
             InputFlags.KEY_RELEASED = repeatable;
             return true;
         }
