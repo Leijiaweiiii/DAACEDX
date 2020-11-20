@@ -3,14 +3,18 @@
 #include "spi.h"
 
 static volatile uint8_t test = 0b01010101;
-void eeprom_write_read_test(){
+void eeprom_write_read_test(void){
     char * tx_data = "DEADBEAF";
-    char rx_data[8];
+//    uint8_t tx_data[8] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+//    uint8_t tx_data[8] = {0xAA,0xAA,0xAA,0xAA,0xAA,0xAA,0xAA,0xAA};
     
-    eeprom_write_array(SettingsEndAddress, tx_data, 8);
-    eeprom_read_array(SettingsEndAddress, rx_data, 8);
-    
-    NOP(); // For breakpoint
+    eeprom_write_array_bulk(SettingsEndAddress, tx_data, 8);
+    TBool __c = True;
+    while(__c){
+        uint8_t rx_data[10] = { 0 };
+        eeprom_read_array(SettingsEndAddress, rx_data, 8);
+        NOP();
+    }
 }
 
 
@@ -32,6 +36,8 @@ void eeprom_init(void) {
     EEPROM_CS_DESELECT();
     EEPROM_HOLD_DIS();
     EEPROM_WP_DIS();
+    eeprom_reset_op();
+//    eeprom_write_read_test();
 }
 
 #define eeprom_wait_deselect() {EEPROM_CS_DESELECT();EEPROM_CS_SELECT();}

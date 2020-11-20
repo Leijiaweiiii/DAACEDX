@@ -21,9 +21,11 @@ void spi_init() {
     RC3PPS = 0x19;      // SPI clock output         PPS: 011 001    PORTD 1
     RC4PPS = 0x1A;      // data-output lcd and EEPROM  PPS: 011 010    PORTD 2
 //    SSP1DATPPS = 0x1D;  // data-input for EEPROM    PPS: 011 101    PORTD 5
-    SSP1DATPPS = 0x2F;  // data-input for EEPROM    PPS: 101 111    PORTF 7
+//    SSP1DATPPS = 0x2F;  // data-input for EEPROM    PPS: 101 111    PORTF 7
+    SSP1DATPPS = 0x12;  // data-input for EEPROM    PPS: 010 010    PORTC   2
     SSP1CLKPPS = 0x19;
-    TRISFbits.TRISF7 = 1; // Set EEPROM input to input
+    
+    TRISCbits.TRISC2 = 1; // Set EEPROM input to input
     
 //    SSP1STAT &= 0x3F; // Power on state
     
@@ -34,8 +36,7 @@ void spi_init() {
     SSP1CON1bits.SSPM = 0x01;               // SPI Clock FOSC_DIV_16
     SSP1CON1bits.CKP = 1;
     SSP1CON1bits.WCOL = 0;
-    SSP1CON1bits.SSPEN = 1;                 // Enable synchronous serial port
-    
+    SSP1CON1bits.SSPEN = 1;                 // Enable synchronous serial port   
 }
 
 uint8_t spi_write(uint8_t data) {
@@ -54,7 +55,7 @@ uint8_t spi_read(void) {
     uint8_t ret = SSP1BUF; // Clear buffer.
     PIR3bits.SSP1IF = 0;              // clear interrupt flag bit
     SSP1CON1bits.WCOL = 0;            // clear write collision bit if any collision occurs
-    SSP1BUF = 0x00;                   // transmit data
+    SSP1BUF = 0xAA;                   // transmit data
     while(!SSP1STATbits.BF);
     ret = SSP1BUF;
     return ret;                       // return receive data

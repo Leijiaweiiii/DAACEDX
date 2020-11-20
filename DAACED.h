@@ -109,8 +109,8 @@ union {
             };
             unsigned NEW_SHOT : 3;
         };
-        unsigned INITIALIZED    : 1;
-        unsigned TIME_CHANGED   : 1;
+        unsigned block_shot    : 1;
+        unsigned UNUSED   : 1;
     };
 } InputFlags;
 
@@ -182,7 +182,7 @@ enum {
 
 typedef  uint16_t detection_setting_t;
 
-TBool block_shot = False;
+
 int16_t max_err = 0;
 uint16_t rrr = 0;
 uint16_t int_cnt,max_idx;

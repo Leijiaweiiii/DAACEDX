@@ -481,7 +481,6 @@ void handle_ui() {
             break;
         case TimerIdle:
             handle_timer_idle();
-//            test_ui();
             break;
         case TimerCountdown:
             handle_countdown();

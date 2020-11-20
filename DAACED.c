@@ -140,8 +140,6 @@ void PIC_init(void) {
     IPR7 = 0;
     IPR8 = 0;
     IPR9 = 0;
-    VREGCON = 2; // Low power sleep
-    OSCCON3bits.CSWHOLD = 1; // Switch OSC when ready
     INTCONbits.IPEN = 1; // Enable priority level interrupts
 
     GIEL = 1;
@@ -271,7 +269,6 @@ void saveSettings() {
 }
 
 void restoreSettings() {
-    return;
     eeprom_read_array(SettingsStartAddress, &Settings, sizeof (Settings_t));
 }
 
@@ -1930,10 +1927,10 @@ void SetInput() {
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void init_bt(void) {
-    init_uart();
-    BT_init();
-    if (!Settings.AR_IS.BT) {
-        BT_off();
+    BT_off();
+    if (Settings.AR_IS.BT) {
+        init_uart();
+        BT_init();
     }
 }
 
@@ -2924,8 +2921,8 @@ void BasicInit(){
 }
 
 void DoPowerOn() {
-
     lcd_set_contrast(Settings.ContrastValue);
+    lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(0);
     ADC_init();
     // TODO: Review power on sequence
@@ -2941,11 +2938,8 @@ void DoPowerOn() {
     }
     init_bt();
     LATEbits.LATE0 = 1; // Power ON 3v regulator
-
-    lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(Settings.BackLightLevel);
     timer_idle_last_action_time = time_ms();
-    InputFlags.INITIALIZED = True;
 }
 
 void DoCharging() {
@@ -2955,8 +2949,10 @@ void DoCharging() {
         switch (charger_state) {
             case Charging:
                 lcd_clear();
-                sprintf(msg, "Charging: %u/%u", fg_get_rcap(), fg_get_fcap());
+                sprintf(msg, "Charging");
                 lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+                sprintf(msg, " %u/%u", fg_get_rcap(), fg_get_fcap());
+                lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y + MediumFont->height, MediumFont, BLACK_OVER_WHITE);
                 break;
             case Complete:
                 lcd_clear();
@@ -3208,11 +3204,11 @@ __interrupt(__low_priority) void isr_l() {
     if (PIR1bits.ADTIF) {
         PIR1bits.ADTIF = 0; // Clear interrupt flag
         PIE1bits.ADTIE = 0; // Long interrupt, need to stop until end of handling
-        if (! block_shot){
+        if (! InputFlags.block_shot){
             UpdateShotNow(Mic);
             ADC_HW_detect_shot_start_init();
             ADC_HW_filter_timer_start(Settings.Filter);
-            block_shot = True;
+            InputFlags.block_shot = True;
             max_err = 0;
             rrr = 0;
             int_cnt = 0;
@@ -3239,7 +3235,7 @@ __interrupt(__low_priority) void isr_l() {
         // Shot filter timer expired
         ADTIF = 0;
         ADTIE = 1;
-        block_shot = False;
+        InputFlags.block_shot = False;
         ADC_BUFFER_CLEAR;
     }
     if (TMR0IF) {
@@ -3322,7 +3318,21 @@ void test_ui(void){
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     while(TMR1 % 1000);
 }
-void main(void) {
+
+void test_power_on(void) {
+    Delay(500);
+    TRISA = TRISC = TRISE = 0x00;
+    LATA = LATC = LATE = 0;
+    LATEbits.LATE0 = 1; // Power ON 3v regulator
+    TRISG = 0x00;
+    LATG = 0xAA;
+    Delay(3000);
+    LATE = 0;
+    LATG = 0;
+    Delay(3000);
+}
+
+void main(void){
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     BasicInit();
     if (Settings.version != FW_VERSION) {
@@ -3339,7 +3349,6 @@ void main(void) {
     InputFlags.FOOTER_CHANGED = True;
     InputFlags.NEW_SHOT_D = True;
     ui_state = PowerON;
-    set_backlight(9);
     while(Keypressed); // wait key released to avoid start signal
     do {
         //TODO: Integrate watchdog timer
