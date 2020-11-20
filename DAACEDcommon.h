@@ -11,7 +11,6 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include <time.h>
 
 // Increment to reset settings after programming new version
 #define FW_VERSION (78)
@@ -34,7 +33,7 @@
 
 #define HEX2DEC(x)            (x > '9') ? (x - 'a')+10 : x-'0'
 #define DEC(x)                (x-'0')
-void Delay(int t);
+void Delay(uint16_t t);
 
 #define __delay_ms_in_lp(x) _delay((unsigned long)((x)*(1000000UL/4000.0)))
 #define DelayLP(t)           {for (int w=0 ; w<t ; w++)  __delay_ms_in_lp(1);}

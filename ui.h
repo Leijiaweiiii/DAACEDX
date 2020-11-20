@@ -71,7 +71,7 @@ extern "C" {
 #define clear_timer_area { lcd_clear_block(0, UI_HEADER_END_LINE, 0, BigFont->height + MediumFont->height); }
     
     void print_big_time_label(uint24_t t);
-    void print_line_with_shots_and_split(uint8_t shot_no, time_t split);
+    void print_line_with_shots_and_split(uint8_t shot_no, uint32_t split);
     void handle_settings_screen(void);
     void handle_review_screen(void);
     void define_input_action(void);

@@ -454,7 +454,7 @@ void send_all_shots() {
     }
 }
 
-time_t last_sent_time = 0L;
+uint32_t last_sent_time = 0L;
 
 void sendShotsIfRequired() {
     // Send shots only when in detection state
@@ -584,7 +584,7 @@ void SetCustomDelay() {
         DisplayDouble(&n);
         SelectDouble(&n);
     } while (SettingsNotDone((&n)));
-    Settings.CUstomDelayTime = (time_t) (n.fvalue * 1000);
+    Settings.CUstomDelayTime = (uint32_t) (n.fvalue * 1000);
     if (n.fold_value != n.fvalue) {
         saveSettingsField(&(Settings.CUstomDelayTime), 4);
     }
@@ -828,9 +828,7 @@ void SetBeepFreq() {
     } while (SettingsNotDone((&b)));
     if (b.selected) {
         Settings.BuzzerFrequency = b.value;
-        if (b.fvalue != b.fold_value) {
-            saveSettingsField(&(Settings.BuzzerFrequency), 2);
-        }
+        saveSettingsField(&(Settings.BuzzerFrequency), 2);
     }
 }
 
@@ -857,14 +855,13 @@ void SetVolume() {
     } while (SettingsNotDone((&b)));
     if (b.selected) {
         Settings.Volume = b.value;
-        if (b.value != b.old_value) {
-            saveSettingsField(&(Settings.Volume), 1);
-            if (Settings.ParMode == ParMode_Spy) {
-                Settings.ParMode = ParMode_Regular;
-                saveSettingsField(&(Settings.ParMode), 1);
-                getSettings();
-            }
+        saveSettingsField(&(Settings.Volume), 1);
+        if (Settings.ParMode == ParMode_Spy) {
+            Settings.ParMode = ParMode_Regular;
+            saveSettingsField(&(Settings.ParMode), 1);
+            getSettings();
         }
+
     }
 }
 #define SEC_FIELD_DISPLAY_FORMAT    " %1.02fs "
@@ -894,16 +891,14 @@ void SetBeepTime(TBool Par) {
     } while (SettingsNotDone((&d)));
 
     if (d.selected) {
-        if (d.fvalue != d.fold_value) {
-            // Code space optimization
-            uint16_t duration = (int) (d.fvalue * 1000);
-            if (Par) {
-                Settings.BuzzerParDuration = duration;
-                saveSettingsField(&(Settings.BuzzerParDuration), 2);
-            } else {
-                Settings.BuzzerStartDuration = duration;
-                saveSettingsField(&(Settings.BuzzerStartDuration), 2);
-            }
+        // Code space optimization
+        uint16_t duration = (int) (d.fvalue * 1000);
+        if (Par) {
+            Settings.BuzzerParDuration = duration;
+            saveSettingsField(&(Settings.BuzzerParDuration), 2);
+        } else {
+            Settings.BuzzerStartDuration = duration;
+            saveSettingsField(&(Settings.BuzzerStartDuration), 2);
         }
     }
 }
@@ -1091,7 +1086,7 @@ void SetFilter() {
         SelectDouble(&f);
     } while (SettingsNotDone((&f)));
     Settings.Filter = (uint8_t) (f.fvalue * 100);
-    if (f.fvalue != f.fold_value) {
+    if (f.selected) {
         saveSettingsField(&(Settings.Filter), 1);
     }
 }
@@ -1099,13 +1094,11 @@ void SetFilter() {
 // <editor-fold defaultstate="collapsed" desc="AutoStart">
 
 void SetAutoStart() {
-    TBool orgset;
     InitSettingsMenuDefaults((&ma));
     ma.TotalMenuItems = 2;
     strcpy(ma.MenuTitle, "Auto Start");
     strcpy(ma.MenuItem[0], " Auto Start OFF ");
     strcpy(ma.MenuItem[1], " Auto Start ON ");
-    orgset = AutoStart;
     ma.menu = AutoStart;
     do {
         DisplaySettings((&ma));
@@ -1113,9 +1106,7 @@ void SetAutoStart() {
     } while (SettingsNotDone((&ma)));
     if (ma.selected) {
         AutoStart = ma.menu;
-        if (AutoStart != orgset) {
-            saveSettingsField(&(Settings.AR_IS), 1);
-        }
+        saveSettingsField(&(Settings.AR_IS), 1);
     }
 }
 // </editor-fold>
@@ -1658,7 +1649,7 @@ void SetClockMode() {
         DisplayInteger((&ts));
         SelectInteger((&ts));
     } while (SettingsNotDone((&ts)));
-    if (ts.value != ts.old_value) {
+    if (ts.selected) {
         prcdControl.control1.b1224 = (ts.value == 24);
         setRtcControlData();
     }
@@ -1669,7 +1660,7 @@ void SetHour() {
     InitSettingsNumberDefaults((&ts));
     strcpy(ts.MenuTitle, "Set Hour");
     ts.format = "%02u";
-    ts.max = 23;
+    ts.max = prcdControl.control1.b1224 ? 11 : 23;
     ts.min = 0;
     ts.step = 1;
     ts.value = hours();
@@ -1705,7 +1696,7 @@ void SetClockMenuItems() {
     sprintf(ma.MenuItem[1], "Hour|%02u",hours());
     sprintf(ma.MenuItem[2], "Minute|%02u", minutes());
     sprintf(ma.MenuItem[3], "Clock|");
-    rtc_print_time((ma.MenuItem[1] + 6));
+    rtc_print_time((ma.MenuItem[3] + 6));
     ma.TotalMenuItems = 4;
 }
 
@@ -1762,9 +1753,9 @@ uint8_t countdown_expired_signal() {
     return True;
 }
 
-void CountDownMode(time_t countdown) {
-    time_t reminder = countdown * 1000;
-    time_t stop_time = time_ms() + reminder + 1;
+void CountDownMode(uint32_t countdown) {
+    uint32_t reminder = countdown * 1000;
+    uint32_t stop_time = time_ms() + reminder + 1;
     uint8_t minute, second;
     TBool done = False;
     lcd_clear();
@@ -1830,9 +1821,7 @@ TBool SetCustomCountDown() {
     } while (SettingsNotDone((&ts)));
     if (ts.selected) {
         Settings.CustomCDtime = ts.value;
-        if (ts.value != ts.old_value) {
-            saveSettingsField(&(Settings.CustomCDtime), 4);
-        }
+        saveSettingsField(&(Settings.CustomCDtime), 4);
         return True;
     }
     return False;
@@ -1946,7 +1935,7 @@ void SetAutoPowerOff(void) {
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
     } while (SettingsNotDone((&ma)));
-    if (ma.selected && Settings.AR_IS.AutoPowerOff != ma.menu) {
+    if (ma.selected) {
         Settings.AR_IS.AutoPowerOff = ma.menu;
         saveSettingsField((void *)&(Settings.AR_IS), 1);
     }
@@ -1964,7 +1953,7 @@ void BlueTooth() {
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
     } while (SettingsNotDone((&ma)));
-    if (ma.selected && Settings.AR_IS.BT != ma.menu) {
+    if (ma.selected) {
         Settings.AR_IS.BT = ma.menu;
         saveSettingsField(&(Settings.AR_IS), 1);
         show_please_wait();
@@ -2912,6 +2901,7 @@ void BasicInit(){
     PIC_init();
     sinus_dac_init();
     initialize_backlight();
+    initialize_rtc_timer();
     spi_init();
     eeprom_init();
     lcd_init();
@@ -2926,7 +2916,7 @@ void DoPowerOn() {
     set_backlight(0);
     ADC_init();
     // TODO: Review power on sequence
-    initialize_rtc_timer();
+    
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 0;
         TRISDbits.TRISD2 = 0;
@@ -2969,10 +2959,12 @@ void DoCharging() {
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Service functions">
-void Delay(int t)
+void Delay(uint16_t t)
 {
-    for (int w=0 ; w<t ; w++)  __delay_ms(1);
+    uint32_t _start_time = time_ms();
+    while(time_ms() - _start_time < t);
 }
+
 void StartParTimer() {
     ParFlags.ParNowCounting = True;
     InputFlags.FOOTER_CHANGED = True;
@@ -3000,8 +2992,6 @@ void StartPlayStartSound() {
 
 void StartCountdownTimer() {
     uint8_t length;
-    ADC_ENABLE_INTERRUPT_BATTERY;
-    Delay(1);
     LATEbits.LATE1 = 1; // Enable 5V booster for the buzzer
     InputFlags.FOOTER_CHANGED = True;
     restoreSettingsField(&(Settings.DelayMode), 1);
@@ -3046,8 +3036,10 @@ void StartCountdownTimer() {
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ((uint8_t *) (&ShootString))[i] = 0;
     }
-    length = sprintf(msg, "STANDBY,%d,%u\n", Settings.DelayMode, runtimeDelayTime);
-    sendString(msg, length);
+    if(Settings.AR_IS.BT){
+        length = sprintf(msg, "STANDBY,%d,%u\n", Settings.DelayMode, runtimeDelayTime);
+        sendString(msg, length);
+    }
 }
 
 
@@ -3092,7 +3084,8 @@ void UpdateShotNow(ShotInput_t x) {
 }
 
 void check_countdown_expired() {
-    if (time_ms() > runtimeDelayTime) {
+    uint32_t _time_ms = time_ms();
+    if (_time_ms > runtimeDelayTime) {
         comandToHandle = CountdownExpired;
     }
 }
@@ -3332,6 +3325,28 @@ void test_power_on(void) {
     Delay(3000);
 }
 
+
+void test_delay_time(void){
+    uint32_t __t1 = 0,
+        __t2 = 0,
+        __dt = 0;
+    uint32_t s1, s2;
+    int16_t ds;
+    while(True){
+        read_time();
+        s1 = prdtdDateTime.seconds._tens*10 + prdtdDateTime.seconds._units + 60*minutes();
+        clear_time_ms();
+        __t1 = time_ms();
+        Delay(40000);
+        __t2 = time_ms();
+        read_time();
+        s2 = prdtdDateTime.seconds._tens*10 + prdtdDateTime.seconds._units + 60*minutes();
+        __dt = __t2 - __t1;
+        ds = s2 - s1;
+        sprintf(msg,"%lu, %d", __dt, ds);
+        lcd_write_string(msg, 2, 0, SmallFont, BLACK_OVER_WHITE);
+    }
+}
 void main(void){
     // <editor-fold defaultstate="collapsed" desc="Initialization">
     BasicInit();
@@ -3349,11 +3364,11 @@ void main(void){
     InputFlags.FOOTER_CHANGED = True;
     InputFlags.NEW_SHOT_D = True;
     ui_state = PowerON;
-    while(Keypressed); // wait key released to avoid start signal
+    while(Keypressed){}; // wait key released to avoid start signal
+
     do {
         //TODO: Integrate watchdog timer
         read_time();
-        
         handle_ui();
        
     } while (ui_state != PowerOff);

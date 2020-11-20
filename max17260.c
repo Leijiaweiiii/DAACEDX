@@ -144,14 +144,14 @@
 #define SLAVE_ADDR 0x36
 
 // Get relative state of charge in %
-uint8_t fg_get_rsoc(void) {
+int8_t fg_get_rsoc(void) {
 	uint16_t data;
 	if(pic18_i2c_read(SLAVE_ADDR, REG_REPSOC, &data, 2) < 0)
 		return -1;
 	return data/256;
 }
 // Get relative state of health in %
-uint8_t fg_get_rsoh(void) {
+int8_t fg_get_rsoh(void) {
 	uint16_t soh;
 
 	if(pic18_i2c_read(SLAVE_ADDR, REG_AGE, &soh, 2) < 0)
@@ -159,7 +159,7 @@ uint8_t fg_get_rsoh(void) {
 	return soh/256;
 }
 // Get remaining capacity of the battery in mA-h/10
-uint16_t fg_get_rcap(void) {
+int16_t fg_get_rcap(void) {
 	uint16_t data;
 
         if(pic18_i2c_read(SLAVE_ADDR, REG_REPCAP, &data, 2) < 0)
@@ -167,7 +167,7 @@ uint16_t fg_get_rcap(void) {
         return data>>3;
 }
 // Get full capacity of the battery in mA-h/10
-uint16_t fg_get_fcap(void) {
+int16_t fg_get_fcap(void) {
 	uint16_t data;
 
         if(pic18_i2c_read(SLAVE_ADDR, REG_FULLCAPREP, &data, 2) < 0)

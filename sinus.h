@@ -71,8 +71,8 @@ volatile uint8_t current_sample_index = 18; // Start signal from 0 to avoid clic
 volatile uint8_t amplitude_index;
 volatile uint8_t amplitude_index_const;
 volatile uint16_t beep_duration_residue = 0;
-volatile time_t beep_start;
-volatile time_t beep_duration;
+volatile uint32_t beep_start;
+volatile uint32_t beep_duration;
 #define DACON_VALUE_DEFAULT     0b10100000
 #define DACON_VALUE_NEW         0b10100000
 

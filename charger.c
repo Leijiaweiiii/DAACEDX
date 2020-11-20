@@ -3,8 +3,11 @@
 #include "max17260.h"
 
 uint8_t number_of_battery_bars(void){
-    uint8_t rsoc = fg_get_rsoc();
-    return (uint8_t) (rsoc / 10);
+    int8_t rsoc = fg_get_rsoc();
+    if(rsoc > 0)
+        return (uint8_t) (rsoc / 10);
+    else
+        return 0;
 }
 
 void define_charger_state(void) {

@@ -19,7 +19,7 @@ void STATE_HANDLE_COUNTDOWN(void)          {ui_state = TimerCountdown;lcd_clear(
 void STATE_HANDLE_CHARGER(void)            {ui_state = TimerCharging;set_backlight(0);lcd_clear();}
 
 
-void print_line_with_shots_and_split(uint8_t shot_no, time_t split) {
+void print_line_with_shots_and_split(uint8_t shot_no, uint32_t split) {
     uint8_t x_pos = 0;
     uint8_t y_pos = UI_HEADER_END_LINE + BigFont->height;
     sprintf(msg, "#%03d ", shot_no);
@@ -95,7 +95,7 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    uint24_t reminder = runtimeDelayTime - time_ms();
+    uint32_t reminder = runtimeDelayTime - time_ms();
     print_big_time_label(reminder);
 }
 
@@ -123,7 +123,7 @@ void handle_power_off() {
 
 void handle_timer_idle_shutdown() {
     if (!Settings.AR_IS.AutoPowerOff) return;
-    time_t inactive_time;
+    uint32_t inactive_time;
     if (comandToHandle != None || ui_state == TimerListening) {
         timer_idle_last_action_time = time_ms();
         set_backlight(Settings.BackLightLevel);
@@ -221,10 +221,10 @@ void HandleTimerEvents() {
             // turn light ON on PAR sound
             timer_idle_last_action_time = time_ms();
             StartPlayParSound();
-            sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
+            sendSignal("PAR", Settings.BuzzerParDuration, (Settings.ParTime[CurPar_idx] * 1000));
             if (Settings.TotPar - 1 > CurPar_idx){
                 increment_par();
-                next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);
+                next_par_ms = (Settings.ParTime[CurPar_idx] * 1000);
                 StartParTimer();
             }
             break;
@@ -265,8 +265,8 @@ void HandleTimerEvents() {
             break;
         case BianchiParEvent:
             StartPlayParSound();
-            sendSignal("PAR", Settings.BuzzerParDuration, (long) (Settings.ParTime[CurPar_idx] * 1000));
-            next_par_ms = (long)Settings.ParTime[CurPar_idx] * 1000;
+            sendSignal("PAR", Settings.BuzzerParDuration, (Settings.ParTime[CurPar_idx] * 1000));
+            next_par_ms = Settings.ParTime[CurPar_idx] * 1000;
             increment_par();
             break;
     }

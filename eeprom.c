@@ -2,9 +2,8 @@
 #include "DAACED.h"
 #include "spi.h"
 
-static volatile uint8_t test = 0b01010101;
 void eeprom_write_read_test(void){
-    char * tx_data = "DEADBEAF";
+    uint8_t tx_data[8] = "DEADBEAF";
 //    uint8_t tx_data[8] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 //    uint8_t tx_data[8] = {0xAA,0xAA,0xAA,0xAA,0xAA,0xAA,0xAA,0xAA};
     

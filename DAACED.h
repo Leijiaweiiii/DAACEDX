@@ -142,14 +142,13 @@ typedef struct {
 #define timer_idle_shutdown_timeout 1200000L
 // Dim light after 46 seconds
 #define timer_idle_dim_timeout      45000L
-time_t timer_idle_last_action_time;
+uint32_t timer_idle_last_action_time;
 
 // This should be changed carefully.
 // Saving to EEPROM strongly depends on these values
 
 #include "shot.h"
 ShootString_t ShootString;
-time_t ShootString_start_time;
 uint8_t last_sent_index; // last shot sent to BT
 ShootString_t ReviewString;
 #define MAX_MEASUREMENT_TIME    999991
@@ -190,11 +189,9 @@ uint16_t int_cnt,max_idx;
 const detection_setting_t detection_presets_defaults[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
 detection_setting_t detection_presets[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
 
-time_t countdown_start_time;
-
 // Should not be more than we can display in menu items
 #define MAXPAR MAXMenuItems - 3
-volatile int8_t CurPar_idx = 0; //The par index
+volatile uint8_t CurPar_idx = 0; //The par index
 volatile struct{
     unsigned ParNowCounting     : 1;
     unsigned AutoParOverDetect  : 1;
@@ -202,7 +199,7 @@ volatile struct{
 } ParFlags;
 #define AUTO_PAR_OVER_DETECT_MS         500
 #define AUTO_PAR_LAST_DETECTION_TIME    999000;
-time_t parStartTime_ms;
+uint32_t parStartTime_ms;
 
 enum {
     ParMode_Regular = 0,
@@ -232,7 +229,7 @@ extern const char * par_mode_header_names[];
 
 uint24_t runtimeDelayTime = 2500;
 uint8_t repetitive_counter = 0;
-time_t next_par_ms;
+uint32_t next_par_ms;
 enum {Face = 0, Edge = 1} repetitive_state;
 
 enum {
@@ -284,8 +281,8 @@ typedef struct {
     uint16_t RepetitiveFaceTime;
     uint16_t RepetitiveEdgeTime;
     uint8_t RepetitiveRepeat;
-    time_t CUstomDelayTime; // mS         // C
-    time_t CustomCDtime; // sec TODO: Reduce storage type
+    uint32_t CUstomDelayTime; // mS         // C
+    uint32_t CustomCDtime; // sec TODO: Reduce storage type
     float ParTime[MAXPAR]; //in decimal seconds unit
     float CustomPar[MAXPAR]; //in 1mS unit
     AutoPar_t AutoPar[MAXPAR];
