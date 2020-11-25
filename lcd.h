@@ -120,9 +120,9 @@ UpdateBoundary full_screen_update_boundary = {0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 
 #define PopX2       LCD_WIDTH*7/8
 #define PopY2       LCD_HEIGHT*3/4
 
-const FONT_INFO *SmallFont = &patuaOne_16ptFontInfo;
-const FONT_INFO *MediumFont = &patuaOne_22ptFontInfo;
-const FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
+FONT_INFO *SmallFont = &patuaOne_16ptFontInfo;
+FONT_INFO *MediumFont = &patuaOne_22ptFontInfo;
+FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 
 // </editor-fold>
 

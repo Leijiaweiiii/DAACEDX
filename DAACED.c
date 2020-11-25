@@ -2866,8 +2866,8 @@ void StartListenShots(void) {
     last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
-    clear_time_ms();
-    parStartTime_ms = 0;
+    event_time_ref = time_ms();
+    parStartTime_ms = event_time_ref;
 }
 // </editor-fold>
 
@@ -3032,7 +3032,7 @@ void StartCountdownTimer() {
             runtimeDelayTime = Settings.CUstomDelayTime;
             break;
     }
-    clear_time_ms();
+    event_time_ref = time_ms();
     for (uint16_t i = 0; i < Size_of_ShootString; i++) {
         ((uint8_t *) (&ShootString))[i] = 0;
     }
@@ -3059,33 +3059,27 @@ void DiscardShot(){
         ShootString.TotShoots--;
 }
 
-void UpdateShot(uint16_t dt, ShotInput_t input) {
-    // Index var is for code size optimisation.
+
+void UpdateShotNow(ShotInput_t input) {
+    timer_idle_last_action_time = time_ms();
+        // Index var is for code size optimisation.
     uint8_t index;
     index = get_shot_index_in_arr(ShootString.TotShoots);
     if (ShootString.TotShoots == MAX_REGISTERED_SHOTS)
         index--;
 
-    ShootString.shots[index].dt = dt;
+    ShootString.shots[index].dt = timer_idle_last_action_time - event_time_ref;
     ShootString.shots[index].is_flags = input;
     if (ShootString.TotShoots < MAX_REGISTERED_SHOTS) {
         ShootString.TotShoots++;
     }
-    if(ShootString.TotShoots == 100){
-        NOP(); // For breakpoint
-    }
     ShootString.shots[index].sn = ShootString.TotShoots;
-    ApproveShoot();
-}
-
-void UpdateShotNow(ShotInput_t x) {
-    timer_idle_last_action_time = time_ms();
-    UpdateShot(time_ms(), x);
+    InputFlags.NEW_SHOT = 0x7; // Approve on screen
 }
 
 void check_countdown_expired() {
     uint32_t _time_ms = time_ms();
-    if (_time_ms > runtimeDelayTime) {
+    if (_time_ms - event_time_ref > runtimeDelayTime) {
         comandToHandle = CountdownExpired;
     }
 }
@@ -3135,7 +3129,7 @@ void check_par_expired() {
 }
 
 void check_timer_max_time() {
-    if (time_ms() >= MAX_MEASUREMENT_TIME) {
+    if (time_ms() - event_time_ref >= MAX_MEASUREMENT_TIME) {
         timerEventToHandle = TimerTimeout;
     }
 }

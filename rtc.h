@@ -14,7 +14,7 @@
 #define SHOOT_IE            (PIE1bits.ADIE)
 
 uint32_t time_ms(void);
-#define clear_time_ms()   {TMR3 = 0; TMR1 = 0;}
+void clear_time_ms(void);
 
 void initialize_rtc_timer(void);
 

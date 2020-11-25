@@ -50,9 +50,9 @@ void ADC_HW_filter_timer_start(uint8_t filter){
     if(filter > MAX_FILTER) filter = MAX_FILTER;
     if(filter == 0) filter = 1;
     PIE1bits.ADTIE = 0; // Disable detection interrupt
-    PIR5bits.TMR8IF = 0;
+    PIR5bits.TMR6IF = 0;
     // Configure TMR6 to count mS
-    T6CLKCONbits.CS = 0b0110;     // 32768Hz extosc
+    T6CLKCONbits.CS = 0b0100;     // 31KHz LFINTOSC
     T6PR            = filter_pr_setting[filter - 1];
     T6TMR           = 1;        // Init timer
     T6HLTbits.MODE = 0b01000;   // One shot software start

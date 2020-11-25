@@ -143,7 +143,7 @@ typedef struct {
 // Dim light after 46 seconds
 #define timer_idle_dim_timeout      45000L
 uint32_t timer_idle_last_action_time;
-
+uint32_t event_time_ref;
 // This should be changed carefully.
 // Saving to EEPROM strongly depends on these values
 

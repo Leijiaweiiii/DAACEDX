@@ -6,9 +6,16 @@
 
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
 
-uint32_t time_ms(void){
-    return (TMR3 << 16)|TMR1;
-    
+void clear_time_ms(void){
+    T1CONbits.ON = 0;
+    T3CONbits.ON = 0;
+    TMR3 = 0;
+    TMR1 = 0;
+    T1CONbits.ON = 1;
+    T3CONbits.ON = 1;
+}
+
+uint32_t time_ms(void){    
     union{
         uint32_t _t;
         struct {

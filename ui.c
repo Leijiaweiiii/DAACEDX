@@ -95,8 +95,9 @@ void print_big_time_label(const uint24_t t) {
 }
 
 void update_countdown_time_on_screen() {
-    uint32_t reminder = runtimeDelayTime - time_ms();
-    print_big_time_label(reminder);
+    uint32_t dt = time_ms() - event_time_ref;
+    dt = runtimeDelayTime - dt;
+    print_big_time_label(dt);
 }
 
 void StopTimer() {
