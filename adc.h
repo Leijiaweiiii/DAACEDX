@@ -26,11 +26,11 @@ void ADC_init(void);
 uint16_t ADC_Read(char selectedADC);
 uint16_t ADC_Read_average(char selectedADC);
 
-#define ADC_BUFFER_SIZE             16
+#define ADC_BUFFER_SIZE             6
 
 
-int16_t samples[ADC_BUFFER_SIZE];
-uint8_t head_index        =         0;
+//int16_t samples[ADC_BUFFER_SIZE];
+//uint8_t head_index        =         0;
 #define ADC_BUFFER_PUT(x)           {samples[head_index++] = x; }
 #define ADC_BUFFER_NOW              (samples[head_index - 1])
 #define ADC_BUFFER_DV               (samples[head_index] - samples[head_index - 1])

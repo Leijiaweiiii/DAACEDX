@@ -55,16 +55,14 @@ void BT_off(void) {
     uart_disable();
     BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
 }
-
+char msg[32];
 void sendOneShot(shot_t * shot) {
-    char msg[16];
     int size;
     size = sprintf(msg, "%u,%u,%lu\n", shot->sn, shot->is_flags, 0x00FFFFFF & shot->dt);
     uart_start_tx_string(msg, size);
 }
 
 void sendSignal(const char * name, uint16_t duration, uint32_t time_ms) {
-    char msg[16];
     int size;
     size = sprintf(msg, "%s,%u,%u\n", name, duration, time_ms);
     uart_start_tx_string(msg, size);

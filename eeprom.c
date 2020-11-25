@@ -62,7 +62,6 @@ void eeprom_write_data_bulk(uint16_t address, uint8_t * data, uint8_t size) {
     spi_write((uint8_t)LSB(address));
     spi_write_bulk(data, size);
     EEPROM_CS_DESELECT();
-    NOP();
 }
 
 /**
@@ -102,12 +101,11 @@ void eeprom_write_data(uint16_t address, uint8_t data) {
     spi_write((uint8_t)LSB(address));
     spi_write(data);
     EEPROM_CS_DESELECT();
-    NOP();
 }
 
 void eeprom_clear_block_bulk(uint16_t address, uint16_t size) {
     while(size>0){
-        uint16_t next_write_size = EEPROM_PAGE_SIZE - EEPROM_RES_SIZE(address);
+        uint8_t next_write_size = EEPROM_PAGE_SIZE - EEPROM_RES_SIZE(address);
         next_write_size = MIN(size, next_write_size);
         eeprom_write_const_data_bulk(address, 0x00, next_write_size);
         address += next_write_size;
@@ -117,7 +115,7 @@ void eeprom_clear_block_bulk(uint16_t address, uint16_t size) {
 
 void eeprom_write_array_bulk(uint16_t address, uint8_t * data, uint16_t size) {
     while(size>0){
-        uint16_t next_write_size = EEPROM_PAGE_SIZE - EEPROM_RES_SIZE(address);
+        uint8_t next_write_size = EEPROM_PAGE_SIZE - EEPROM_RES_SIZE(address);
         next_write_size = MIN(size, next_write_size);
         eeprom_write_data_bulk(address, data, next_write_size);
         address += next_write_size;

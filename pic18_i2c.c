@@ -14,7 +14,7 @@ void pic18_i2c_enable(void) {
     SSP2CON2 = 0x00;
     SSP2CON3 = 0x00;
     SSP2STAT = 0x00;
-    SSP2ADD = 0x159;
+    SSP2ADD = 89;
 }
 
 
@@ -70,8 +70,8 @@ void pic18_i2c_disable(void) {
 int8_t pic18_i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint16_t length) {
     SSP2CON2bits.SEN = 1;
     while (SSP2CON2bits.SEN);
-    SSP2BUF = slave_addr << 1;
-    if(SSP2CON1bits.WCOL);
+    SSP2BUF = (uint8_t)slave_addr << 1;
+   
     while (SSP2STATbits.R_W || SSP2STATbits.BF){
         //TODO: Check and clear WCOL
     };
@@ -81,7 +81,6 @@ int8_t pic18_i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint
         return -1;
     }
     SSP2BUF = reg_addr;
-    if(SSP2CON1bits.WCOL);
     while (SSP2STATbits.R_W || SSP2STATbits.BF);
     while (length > 0) {
         SSP2BUF = *data;
@@ -102,7 +101,7 @@ int8_t pic18_i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint
 
 int8_t pic18_i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint16_t length) {
     SSP2CON2bits.SEN = 1;
-    while (SSP2CON2bits.SEN == 1);
+    while (SSP2CON2bits.SEN == 1){};
     SSP2BUF = slave_addr << 1;
     while (SSP2STATbits.R_W);
     if (SSP2CON2bits.ACKSTAT) goto i2c_rx_err;
@@ -111,7 +110,7 @@ int8_t pic18_i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t *data, uint1
     while (SSP2STATbits.R_W);
     if (SSP2CON2bits.ACKSTAT) goto i2c_rx_err;
     SSP2CON2bits.RSEN = 1;
-    while (SSP2CON2bits.RSEN);
+    while (SSP2CON2bits.RSEN){};
     SSP2BUF = (slave_addr << 1) + 1; //address with R/W set for read
     while (SSP2STATbits.R_W);
     if (SSP2CON2bits.ACKSTAT) goto i2c_rx_err;

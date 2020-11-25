@@ -182,9 +182,9 @@ enum {
 typedef  uint16_t detection_setting_t;
 
 
-int16_t max_err = 0;
-uint16_t rrr = 0;
-uint16_t int_cnt,max_idx;
+//int16_t max_err = 0;
+//uint16_t rrr = 0;
+//uint16_t int_cnt,max_idx;
 #define DETECTION_THRESHOLD_DEFAULTS {250, 275, 300, 325, 350, 375, 400}
 const detection_setting_t detection_presets_defaults[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
 detection_setting_t detection_presets[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
@@ -204,8 +204,8 @@ uint32_t parStartTime_ms;
 enum {
     ParMode_Regular = 0,
     ParMode_Spy,
-//    ParMode_Repetitive,
-//    ParMode_AutoPar,
+    ParMode_Repetitive,
+    ParMode_AutoPar,
 //    ParMode_Practical,
 //    ParMode_Barricade,
 //    ParMode_FallingPlate,

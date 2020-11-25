@@ -164,7 +164,7 @@ void handle_timer_idle() {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-//            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
             STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
@@ -175,8 +175,8 @@ void handle_timer_idle() {
         case UpShort:
             switch (Settings.ParMode){
                 case ParMode_Regular:
-//                case ParMode_AutoPar:
-//                case ParMode_Repetitive:
+                case ParMode_AutoPar:
+                case ParMode_Repetitive:
                 case ParMode_Spy:
                     // Don't increment par for these modes
                     break;
@@ -189,8 +189,8 @@ void handle_timer_idle() {
         case DownShort:
             switch (Settings.ParMode){
                 case ParMode_Regular:
-//                case ParMode_AutoPar:
-//                case ParMode_Repetitive:
+                case ParMode_AutoPar:
+                case ParMode_Repetitive:
                 case ParMode_Spy:
                     // Don't decrement par for these modes
                     break;
@@ -287,7 +287,7 @@ void handle_timer_listening() {
         case StartShort:
             if (AutoStart) {
                 saveShootString();
-//                if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+                if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
                 STATE_HANDLE_COUNTDOWN();
             }
             break;
@@ -356,7 +356,7 @@ void handle_countdown() {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case StartShort:
-//            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
+            if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
             STATE_HANDLE_COUNTDOWN();
             break;
         case ReviewShort:
@@ -367,13 +367,13 @@ void handle_countdown() {
             ui_state = TimerListening;
             StartListenShots();
             switch(Settings.ParMode){
-//                case ParMode_Repetitive:
-//                    StartParTimer();
-//                    break;
-//                case ParMode_AutoPar:
-//                    next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
-//                    StartParTimer();
-//                    break;
+                case ParMode_Repetitive:
+                    StartParTimer();
+                    break;
+                case ParMode_AutoPar:
+                    next_par_ms = (long)Settings.AutoPar[CurPar_idx].par * 1000;
+                    StartParTimer();
+                    break;
                 default:
                     if (Settings.TotPar > 0){
                         next_par_ms = (long) (Settings.ParTime[CurPar_idx] * 1000);

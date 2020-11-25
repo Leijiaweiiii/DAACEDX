@@ -1,5 +1,4 @@
 #include "adc.h"
-// <editor-fold defaultstate="collapsed" desc="MicroController ADC Interface">
 
 void ADC_init(void) {
     TRISA = 0b11111111; // ADC inputs 0..3
@@ -73,29 +72,4 @@ uint16_t ADC_Read(char selectedADC) {
     ADCON0bits.ADGO = 1; // Start conversion
     while (GO_nDONE);
     return (ADRESH << 8) | ADRESL;
-}
-
-
-uint16_t ADC_Read_average(char selectedADC) {
-    uint32_t res = 0;
-    for (size_t i = 0; i<64;i++){
-        res = res + ADC_Read(selectedADC);
-    }
-    return res>>5;
-}
-
-// </editor-fold>
-int comp (const void * elem1, const void * elem2) 
-{
-    if (*((uint16_t*)elem1) > *((uint16_t*)elem2)) return  1;
-    if (*((uint16_t*)elem1) < *((uint16_t*)elem2)) return -1;
-    return 0;
-}
-
-uint16_t MeanValue(){
-    uint16_t avg = 0;
-    for(uint16_t i=0;i<ADC_BUFFER_SIZE;i++)
-        avg += samples[i];
-    
-    return avg>>4;
 }

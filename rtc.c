@@ -5,7 +5,14 @@
 // <editor-fold defaultstate="collapsed" desc="RTC timer functions">
 
 // Software RTC is implemented using TIMER1 on chip with 32.768 KHz timer.
-
+typedef  union{
+        uint32_t _t;
+        struct {
+            uint16_t _l;
+            uint16_t _h;
+        };
+    } rtc_time_t;
+    
 void clear_time_ms(void){
     T1CONbits.ON = 0;
     T3CONbits.ON = 0;
@@ -15,17 +22,11 @@ void clear_time_ms(void){
     T3CONbits.ON = 1;
 }
 
-uint32_t time_ms(void){    
-    union{
-        uint32_t _t;
-        struct {
-            uint16_t _l;
-            uint16_t _h;
-        };
-    } res;
-    res._l = TMR1;
-    res._h = TMR3;
-    return res._t;
+uint32_t time_ms(void){
+    rtc_time_t rtc_time;
+    rtc_time._l = TMR1;
+    rtc_time._h = TMR3;
+    return rtc_time._t;
 }
 
 uint8_t get_time_source(void) {
