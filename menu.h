@@ -16,7 +16,7 @@ extern "C" {
 
 
 #ifndef SETTINGS_NUM_ELEMENTS
-    #define MAXMenuItems        17
+    #define MAXMenuItems        16
 #else
     #define MAXMenuItems        SETTINGS_NUM_ELEMENTS + 2
 #endif
@@ -67,11 +67,6 @@ extern "C" {
         union {
             int24_t value;
             float fvalue;
-        };
-
-        union {
-            int24_t old_value;
-            float fold_value;
         };
 
         union {

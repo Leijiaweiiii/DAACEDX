@@ -577,7 +577,6 @@ void SetCustomDelay() {
     n.fmax = 10.0;
     n.fstep = 0.1;
     n.fvalue = (float) Settings.CUstomDelayTime / 1000;
-    n.fold_value = n.fvalue;
     n.format = " %2.1fs ";
     lcd_clear();
     do {
@@ -633,7 +632,6 @@ TBool EditPar(uint8_t par_index, float * pars) {
     b.fmin += 0.15;
     b.fmax = 99.9;
     b.fvalue = pars[par_index];
-    b.fold_value = b.fvalue;
     sprintf(b.MenuTitle, "Par %d Settings ", par_index + 1);
     b.fstep = 0.05;
     b.format = "%3.2fs";
@@ -751,23 +749,20 @@ void SetBacklight() {//PWM Backlight
     b.min = 0;
     b.step = 1;
     b.value = tmpVal;
-    b.old_value = b.value;
     b.format = "%u";
     b.done = False;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
-        if (b.value - Settings.BackLightLevel) {
+        if (b.value - tmpVal) {
             set_backlight(b.value);
-            Settings.BackLightLevel = b.value;
+            tmpVal = b.value;
         }
     } while (SettingsNotDone((&b)));
 
     if (b.selected) {
         Settings.BackLightLevel = b.value;
         saveSettingsField(&(Settings.BackLightLevel), 1);
-    } else {
-        Settings.BackLightLevel = b.old_value;
     }
     set_backlight(Settings.BackLightLevel);
 }
@@ -780,7 +775,6 @@ void SetContrast() {//PWM Backlight
     b.min = 0x0400;
     b.step = 1;
     b.value = tmpVal;
-    b.old_value = b.value;
     b.format = "%u";
     b.done = False;
     do {
@@ -795,8 +789,6 @@ void SetContrast() {//PWM Backlight
     if (b.selected) {
         Settings.ContrastValue = b.value;
         saveSettingsField(&(Settings.ContrastValue), 2);
-    } else {
-        Settings.ContrastValue = b.old_value;
     }
     lcd_set_contrast(Settings.ContrastValue);
 }
@@ -810,7 +802,6 @@ void SetBeepFreq() {
     b.min = 800;
     b.max = 2400;
     b.value = Settings.BuzzerFrequency;
-    b.old_value = b.value;
     tmp = b.value;
     strcpy(b.MenuTitle, "Set Frequency");
     b.step = 400;
@@ -840,7 +831,6 @@ void SetVolume() {
     b.step = 1;
     b.format = " %2d ";
     b.value = Settings.Volume;
-    b.old_value = b.value;
     tmp = b.value;
     do {
         DisplayInteger(&b);
@@ -879,7 +869,6 @@ void SetBeepTime(TBool Par) {
     d.fmin = 0.050;
     d.fmax = 1.0;
     d.fstep = 0.050;
-    d.fold_value = d.fvalue;
     d.done = False;
     d.format = SEC_FIELD_DISPLAY_FORMAT;
     do {
@@ -1051,7 +1040,6 @@ void SetManualSens() {//Sensitivity
     s.max = 495;
     s.min = 10;
     s.value = detection_presets[sens];
-    s.old_value = s.value;
     s.step = 5;
     s.format = "%d";
     do {
@@ -1075,7 +1063,6 @@ void SetFilter() {
     f.fmax = 0.12;
     f.fstep = 0.01;
     f.fvalue = (float) (Settings.Filter) / 100;
-    f.fold_value = f.value;
     f.done = False;
     f.format = " %1.2fs ";
     do {
@@ -1283,7 +1270,6 @@ void SetFaceTime() {
     b.fstep = 0.1;
     b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
     b.fvalue = (float) Settings.RepetitiveFaceTime / 1000;
-    b.fold_value = b.fvalue;
     do {
         DisplayInteger(&b);
         SelectDouble(&b);
@@ -1303,7 +1289,6 @@ void SetEdgeTime() {
     b.fstep = 0.1;
     b.format = SEC_FIELD_DISPLAY_FORMAT_SHORT;
     b.fvalue = (float) Settings.RepetitiveEdgeTime / 1000;
-    b.fold_value = b.fvalue;
     do {
         DisplayInteger(&b);
         SelectDouble(&b);
@@ -1323,7 +1308,6 @@ void SetRepeat() {
     b.step = 1;
     b.format = " %u ";
     b.value = Settings.RepetitiveRepeat;
-    b.old_value = b.value;
     do {
         DisplayInteger(&b);
         SelectInteger(&b);
@@ -1389,7 +1373,6 @@ TBool EditDelay(uint8_t index, AutoPar_t * pars) {
     m.fmax = 99.9;
     m.fstep = 0.1;
     m.fvalue = pars[index].delay;
-    m.fold_value = m.value;
     m.format = "%1.1fs";
     do {
         DisplayDouble((&m));
@@ -1410,7 +1393,6 @@ TBool EditParTime(uint8_t index, AutoPar_t * pars) {
     m.fmax = 99.99;
     m.fstep = 0.05;
     m.fvalue = pars[index].par;
-    m.fold_value = m.value;
     m.format = "%1.2fs";
     do {
         DisplayDouble((&m));
@@ -1591,9 +1573,8 @@ void SetClock() {
     uint8_t m = minutes();
     InitSettingsNumberDefaults((&ts));
     ts.min = 0;
-    ts.max = 23;
+    ts.max = prcdControl.control1.b1224 ? 11 : 23;
     ts.value = h;
-    ts.old_value = ts.value;
     ts.step = 1;
     strcpy(ts.MenuTitle, "Set Clock");
     ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
@@ -1622,7 +1603,7 @@ void SetClock() {
         } while (SettingsNotDone((&ts)));
     }
     if (ts.selected) {
-        set_time(h, ts.value, prcdControl.control1.b1224);
+        set_time(prcdControl.control1.b1224 ? h:h+12, ts.value, prcdControl.control1.b1224);
     }
 }
 
@@ -1634,15 +1615,15 @@ void SetClockMode() {
     ts.max = 24;
     ts.min = 12;
     ts.step = 12;
-    ts.value = prcdControl.control1.b1224 ? 24 : 12;
-    ts.old_value = ts.value;
+    ts.value = prcdControl.control1.b1224 ? 12 : 24;
     do {
         DisplayInteger((&ts));
         SelectInteger((&ts));
     } while (SettingsNotDone((&ts)));
     if (ts.selected) {
-        prcdControl.control1.b1224 = (ts.value == 24);
-        setRtcControlData();
+        uint8_t h = hours();
+        TBool b1224 = (ts.value == 12);
+        set_time((b1224 ? h: h + 12), minutes(), b1224);
     }
 }
 
@@ -1655,7 +1636,6 @@ void SetHour() {
     ts.min = 0;
     ts.step = 1;
     ts.value = hours();
-    ts.old_value = ts.value;
     do {
         DisplayInteger((&ts));
         SelectIntegerCircular((&ts));
@@ -1673,7 +1653,6 @@ void SetMinute() {
     ts.min = 0;
     ts.step = 1;
     ts.value = minutes();
-    ts.old_value = ts.value;
     do {
         DisplayInteger((&ts));
         SelectIntegerCircular((&ts));
@@ -1683,7 +1662,7 @@ void SetMinute() {
 }
 
 void SetClockMenuItems() {
-    sprintf(ma.MenuItem[0], "Clock Format|%uh", prcdControl.control1.b1224 ? 24 : 12);
+    sprintf(ma.MenuItem[0], "Clock Format|%uh", prcdControl.control1.b1224 ? 12 : 24);
 //    sprintf(ma.MenuItem[1], "Hour|%02u",hours());
 //    sprintf(ma.MenuItem[2], "Minute|%02u", minutes());
     sprintf(ma.MenuItem[1], "Clock|");
@@ -1793,7 +1772,6 @@ TBool SetCustomCountDown() {
 
     // in seconds
     ts.value = Settings.CustomCDtime;
-    ts.old_value = ts.value;
     ts.max = 3600;
     ts.min = 0;
     ts.step = 1;
@@ -2080,6 +2058,9 @@ void print_and_send_stat(char * _msg, const char * fmt, uint32_t value){
 }
 
 void handle_bt_commands(void) {
+//}
+//void bt_not_in_use(void)
+//{
     int length = 0;
     if(! Settings.AR_IS.BT) return;
     sendShotsIfRequired();
@@ -2121,6 +2102,7 @@ void handle_bt_commands(void) {
                     break;
                 case BT_GetCustomSequence:
                     bt_get_custom();
+                    break;
                 case BT_SetMode:
                     bt_set_mode();
                     set_par_mode(Settings.ParMode);
@@ -2852,7 +2834,7 @@ void print_footer() {
 }
 
 void StartListenShots(void) {
-    last_sent_index = 0;
+//    last_sent_index = 0;
     InputFlags.NEW_SHOT_D = True;
     DetectInit();
     event_time_ref = time_ms();
@@ -2921,32 +2903,36 @@ void DoPowerOn() {
     timer_idle_last_action_time = time_ms();
 }
 
+uint8_t print_bat_stats(uint8_t vpos){
+    sprintf(msg,"SOC: %u%% SOH: %u%% ", fg_get_rsoc(), fg_get_rsoh());
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    sprintf(msg,"C/F: %u/%u mAh ", fg_get_rcap(), fg_get_fcap());
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    return vpos;
+}
+
+
 void DoCharging() {
-   
-    if (charger_state_changed) {
-        charger_display_state = charger_state;
-        switch (charger_state) {
-            case Charging:
-                lcd_clear();
-                sprintf(msg, "Charging");
-                lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                sprintf(msg, " %u/%u", fg_get_rcap(), fg_get_fcap());
-                lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y + MediumFont->height, MediumFont, BLACK_OVER_WHITE);
-                break;
-            case Complete:
-                lcd_clear();
-                sprintf(msg, "Charged");
-                lcd_write_string(msg, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-                break;
-            default:
-//                STATE_HANDLE_POWER_OFF();
-                DoPowerOff();
-                ui_state = PowerOff;
-                break;
-        }
+    uint8_t vpos = 0;
+    switch (charger_state) {
+        case Charging:
+            sprintf(msg, "Charging");
+            break;
+        case Complete:
+            sprintf(msg, "Charged");
+            break;
+        default:
+            ui_state = PowerOff;
+            return;
     }
+    vpos = UI_CHARGING_LBL_Y;
+    lcd_write_string(msg, UI_CHARGING_LBL_X, vpos, MediumFont, BLACK_OVER_WHITE);
+    print_bat_stats(vpos + MediumFont->height);
 }
 // </editor-fold>
+
 // <editor-fold defaultstate="collapsed" desc="Service functions">
 void Delay(uint16_t t)
 {
@@ -3253,16 +3239,13 @@ __interrupt(__low_priority) void isr_l() {
 // </editor-fold>
 
 void test_ui(void){
-    char msg[32];
-    uint8_t vpos;
-    set_backlight(9);
-    getSettings();
-    vpos = 0;
-    sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
-    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-    vpos += SmallFont->height;
+    uint8_t vpos;  
+    vpos = print_header(false);
+//    sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
+//    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+//    vpos += SmallFont->height;
     getRtcData();
-    if (prcdControl.control1.b1224){
+    if (!prcdControl.control1.b1224){
         sprintf(msg,"T(24h): %d%d:%d%d:%d%d ",
             prdtdDateTime.hours._tens,
             prdtdDateTime.hours._units,
@@ -3271,6 +3254,8 @@ void test_ui(void){
             prdtdDateTime.seconds._tens,
             prdtdDateTime.seconds._units
             );
+//    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+//    vpos += SmallFont->height;
     } else {
         sprintf(msg,"T(12h): %d%d:%d%d:%d%d %c ",
             prdtdDateTime.hours._tens12,
@@ -3283,16 +3268,10 @@ void test_ui(void){
             );
     }
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-    vpos += SmallFont->height;
-    sprintf(msg,"SOC: %u%% SOH: %u%% ", fg_get_rsoc(), fg_get_rsoh());
+    vpos = print_bat_stats(vpos + SmallFont->height);
+    sprintf(msg,"RTC: %lu ", TMR1);
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-    vpos += SmallFont->height;
-    sprintf(msg,"C/F: %u/%u mAh ", fg_get_rcap(), fg_get_fcap());
-    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-    vpos += SmallFont->height;
-    sprintf(msg,"RTC: %lu ", time_ms()/1000);
-    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-    while(TMR1 % 1000);
+    Delay(300);
 }
 
 void test_power_on(void) {
@@ -3355,7 +3334,7 @@ void main(void){
         handle_ui();
        
     } while (ui_state != PowerOff);
-    LATE = 0;
+    DoPowerOff();
     while(Keypressed);
     Delay(2000);
     

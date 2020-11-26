@@ -26,27 +26,19 @@ void setRtcData(void) {
 }
 
 void getRtcControlData(void) {
-    pic18_i2c_enable();
     pic18_i2c_read(DEVICE_ADDR, CONTROL_SEGMENT_ADDR, &prcdControl, sizeof(struct RtcControlData));
-    pic18_i2c_disable();
 }
 
 void setRtcControlData(void) {
-    pic18_i2c_enable();
     pic18_i2c_write(DEVICE_ADDR, CONTROL_SEGMENT_ADDR,  &prcdControl, sizeof(struct RtcControlData));
-    pic18_i2c_disable();
 }
 
 void getRtcDateTimeData(void) {
-    pic18_i2c_enable();
 	pic18_i2c_read(DEVICE_ADDR, TIME_SEGMENT_ADDR, &prdtdDateTime, sizeof(struct RtcDateTimeData));
-    pic18_i2c_disable();
 }
 
 void setRtcDateTimeData(void) {
-    pic18_i2c_enable();
     pic18_i2c_write(DEVICE_ADDR, TIME_SEGMENT_ADDR, &prdtdDateTime, sizeof(struct RtcDateTimeData));
-    pic18_i2c_disable();
 }
 //
 //void getRtcAlarmData(void) {

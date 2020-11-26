@@ -13,7 +13,7 @@ extern "C" {
 #endif
 #define MAXSHOOTSTRINGS              (30)
 #define MAX_REGISTERED_SHOTS        (250)
-#define MAX_SAVED_SHOTS             (80)
+#define MAX_SAVED_SHOTS             (100)
 
 uint8_t get_shot_index_in_arr( uint8_t x);
 

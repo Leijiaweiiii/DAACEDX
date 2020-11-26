@@ -376,7 +376,6 @@ void SelectDouble(NumberSelection_t* sm) {
         case BackLong:
             sm->selected = False;
             sm->done = True;
-            sm->fvalue = sm->fold_value;
             // Intentional failover to the next stage
             break;
         case StartLong:STATE_HANDLE_POWER_OFF();

@@ -157,9 +157,10 @@ void handle_timer_idle() {
         set_screen_title(par_mode_header_names[Settings.ParMode]);
     }
 
-    update_shot_time_on_screen();
-    print_header(false);
-    print_footer();
+    test_ui();
+//    update_shot_time_on_screen();
+//    print_header(false);
+//    print_footer();
     switch (comandToHandle) {
         case StartLong:STATE_HANDLE_POWER_OFF();
             break;

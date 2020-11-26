@@ -68,18 +68,20 @@ void save_time(void) {
     setRtcDateTimeData();
 }
 
-void set_time(uint8_t h, uint8_t m, TBool is24h) {
-    if (is24h){
+void set_time(uint8_t h, uint8_t m, TBool is12h) {
+    if (is12h){
+        prdtdDateTime.hours.bAMPM = (h > 12);
+        h = (h>12)?h-12:h;
+        prdtdDateTime.hours._tens12 = h/10;
+        prdtdDateTime.hours._units12 = h%10;
+    } else {
         prdtdDateTime.hours._tens = h/10;
         prdtdDateTime.hours._units = h%10;
-    } else {
-        prdtdDateTime.hours._tens12 = (h/10) % 12;
-        prdtdDateTime.hours._units12 = h%10;
     }
     prdtdDateTime.minutes._tens = m/10;
     prdtdDateTime.minutes._units = m%10;
     getRtcControlData();
-    prcdControl.control1.b1224 = is24h;
+    prcdControl.control1.b1224 = is12h;
     save_time();
 }
 
@@ -93,7 +95,10 @@ uint8_t minutes(void){
 }
 
 uint8_t hours(void){
-    return prdtdDateTime.hours._tens * 10 + prdtdDateTime.hours._units;
+    if(prcdControl.control1.b1224)
+        return prdtdDateTime.hours._tens12 * 10 + prdtdDateTime.hours._units12;
+    else
+        return prdtdDateTime.hours._tens * 10 + prdtdDateTime.hours._units;
 }
 
 TBool is1224(void){
@@ -109,19 +114,19 @@ TBool is1224(void){
 uint8_t rtc_print_time(char * b) {
     uint8_t res = 0;
      if (prcdControl.control1.b1224){
-        res = sprintf(b,"%d%d:%d%d",
-            prdtdDateTime.hours._tens,
-            prdtdDateTime.hours._units,
-            prdtdDateTime.minutes._tens,
-            prdtdDateTime.minutes._units
-            );
-    } else {
         res = sprintf(b,"%d%d:%d%d%c",
             prdtdDateTime.hours._tens12,
             prdtdDateTime.hours._units12,
             prdtdDateTime.minutes._tens,
             prdtdDateTime.minutes._units,
-                (prdtdDateTime.hours.bAMPM)?'a':'p'
+                (prdtdDateTime.hours.bAMPM==0)?'a':'p'
+            );
+    } else {
+         res = sprintf(b,"%d%d:%d%d",
+            prdtdDateTime.hours._tens,
+            prdtdDateTime.hours._units,
+            prdtdDateTime.minutes._tens,
+            prdtdDateTime.minutes._units
             );
     }
     return res;
