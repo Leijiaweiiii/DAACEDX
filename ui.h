@@ -26,7 +26,8 @@ extern "C" {
         ReviewScreen,
         SettingsScreen,
         TimerCharging,
-        PowerON
+        PowerON,
+        LowBattery
     } UiState;
 
     UiState ui_state = TimerIdle;
@@ -48,7 +49,7 @@ extern "C" {
         OkLong,
         TimeChanged,
         ChargerConnected,
-        OpenCountdown
+        BatteryLow
     } ButtonCommand;
     volatile ButtonCommand comandToHandle = None;
 
@@ -86,7 +87,10 @@ extern "C" {
     void STATE_HANDLE_SETTINGS_SCREEN(void);
     void STATE_HANDLE_COUNTDOWN(void);
     void STATE_HANDLE_CHARGER(void);
+    void STATE_HANDLE_LOW_POWER(void);
     void set_screen_title(const char * x);
+    void DisplayLowPower(void);
+    uint8_t MidScreenLabel(char * lbl);
 #ifdef	__cplusplus
 }
 #endif

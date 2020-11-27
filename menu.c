@@ -2,6 +2,26 @@
 #include "lcd.h"
 #include "ui.h"
 
+TBool HandleCommonComands(ButtonCommand cmd){
+    switch(cmd){
+        case StartLong:
+            STATE_HANDLE_POWER_OFF();
+            return True;
+        case StartShort:
+            STATE_HANDLE_TIMER_IDLE();
+            return True;
+        case ChargerConnected:
+            STATE_HANDLE_CHARGER();
+            return True;
+        case BatteryLow:
+            STATE_HANDLE_LOW_POWER();
+            return True;
+        default:
+            break;
+    }
+    return False;
+}
+
 void display_big_font_label(const char * msg) {
     uint16_t len = 0;
     uint8_t old_label_len = old_label_end - old_label_start + 3;
@@ -170,14 +190,8 @@ void SelectMenuItem(SettingsMenu_t* s) {
             s->selected = False;
             s->done = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF();
-            break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE();
-            break;
-        case ChargerConnected:
-            STATE_HANDLE_CHARGER();
-            break;
         default:
+            HandleCommonComands(comandToHandle);
             break;
     }
     comandToHandle = None;
@@ -216,10 +230,8 @@ void SelectBinaryMenuItem(SettingsMenu_t* s) {
             s->done = True;
             ui_state = TimerIdle;
             break;
-        case ChargerConnected:
-            STATE_HANDLE_CHARGER();
-            break;
         default:
+            HandleCommonComands(comandToHandle);
             break;
     }
     comandToHandle = None;
@@ -248,14 +260,8 @@ void SelectMenuItemCircular(SettingsMenu_t* s) {
             s->selected = False;
             s->done = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF();
-            break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE();
-            break;
-        case ChargerConnected:
-            STATE_HANDLE_CHARGER();
-            break;
         default:
+            HandleCommonComands(comandToHandle);
             break;
     }
     comandToHandle = None;
@@ -294,14 +300,8 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             sm->selected = True;
             sm->redraw = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF();
-            break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE();
-            break;
-        case ChargerConnected:
-            STATE_HANDLE_CHARGER();
-            break;
         default:
+            HandleCommonComands(comandToHandle);
             break;
     }
     comandToHandle = None;
@@ -336,18 +336,13 @@ void SelectInteger(NumberSelection_t* sm) {
             sm->selected = True;
             sm->redraw = True;
             break;
-        case StartLong:STATE_HANDLE_POWER_OFF();
-            break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE();
-            break;
-        case ChargerConnected:
-            STATE_HANDLE_CHARGER();
-            break;
         default:
+            HandleCommonComands(comandToHandle);
             break;
     }
     comandToHandle = None;
 }
+
 
 void SelectDouble(NumberSelection_t* sm) {
     define_input_action();
@@ -376,17 +371,9 @@ void SelectDouble(NumberSelection_t* sm) {
         case BackLong:
             sm->selected = False;
             sm->done = True;
-            // Intentional failover to the next stage
-            break;
-        case StartLong:STATE_HANDLE_POWER_OFF();
-            break;
-        case StartShort:
-            STATE_HANDLE_TIMER_IDLE();
-            break;
-        case ChargerConnected:
-            STATE_HANDLE_CHARGER();
             break;
         default:
+            HandleCommonComands(comandToHandle);
             break;
     }
     comandToHandle = None;

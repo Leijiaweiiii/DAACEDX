@@ -13,10 +13,11 @@ void STATE_HANDLE_POWER_OFF(void){
 
 void STATE_HANDLE_POWER_ON(void)           {ui_state = TimerIdle;DoPowerOn();StopTimer();}
 void STATE_HANDLE_TIMER_IDLE(void)         {StopTimer(); ui_state = TimerIdle;}
-void STATE_HANDLE_REVIEW_SCREEN(void)      {ui_state = ReviewScreen;lcd_clear();}
-void STATE_HANDLE_SETTINGS_SCREEN(void)    {ui_state = SettingsScreen;lcd_clear();}
+void STATE_HANDLE_REVIEW_SCREEN(void)     {ui_state = ReviewScreen;lcd_clear();}
+void STATE_HANDLE_SETTINGS_SCREEN(void)   {ui_state = SettingsScreen;lcd_clear();}
 void STATE_HANDLE_COUNTDOWN(void)          {ui_state = TimerCountdown;lcd_clear();StartCountdownTimer();}
 void STATE_HANDLE_CHARGER(void)            {ui_state = TimerCharging;set_backlight(0);lcd_clear();}
+void STATE_HANDLE_LOW_POWER(void)          {ui_state = LowBattery;}
 
 
 void print_line_with_shots_and_split(uint8_t shot_no, uint32_t split) {
@@ -157,13 +158,12 @@ void handle_timer_idle() {
         set_screen_title(par_mode_header_names[Settings.ParMode]);
     }
 
-    test_ui();
-//    update_shot_time_on_screen();
-//    print_header(false);
-//    print_footer();
+//    test_ui();
+    update_shot_time_on_screen();
+    print_header(false);
+    print_footer();
     switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF();
-            break;
+
         case StartShort:
             if(Settings.ParMode == ParMode_AutoPar) CurPar_idx = 0;
             STATE_HANDLE_COUNTDOWN();
@@ -171,6 +171,10 @@ void handle_timer_idle() {
         case ReviewShort:STATE_HANDLE_REVIEW_SCREEN();
             break;
         case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
+            break;
+        case BatteryLow:STATE_HANDLE_LOW_POWER();
+            break;
+        case StartLong:STATE_HANDLE_POWER_OFF();
             break;
         case UpLong:
         case UpShort:
@@ -203,10 +207,7 @@ void handle_timer_idle() {
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
             break;
-        case OpenCountdown:
-            STATE_HANDLE_SETTINGS_SCREEN();
-            SetCountDown();
-            break;
+
         default:
             //All the rest ignoring
             break;
@@ -312,12 +313,15 @@ void handle_timer_listening() {
 }
 
 void handle_review_screen() {
-    switch (comandToHandle) {
-        case StartLong:STATE_HANDLE_POWER_OFF();
+     switch (comandToHandle) {
+        case StartLong:
+            STATE_HANDLE_POWER_OFF();
             break;
-        case StartShort:STATE_HANDLE_TIMER_IDLE();
+        case StartShort:
+            STATE_HANDLE_TIMER_IDLE();
             break;
-        case ReviewLong:STATE_HANDLE_SETTINGS_SCREEN();
+        case ReviewLong:
+            STATE_HANDLE_SETTINGS_SCREEN();
             break;
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
@@ -339,6 +343,8 @@ void handle_settings_screen() {
             break;
         case ChargerConnected:
             STATE_HANDLE_CHARGER();
+            break;
+        case BatteryLow:STATE_HANDLE_LOW_POWER();
             break;
         default:
             DoSettings(); // Settings screen is synchronous
@@ -412,6 +418,12 @@ TBool is_long_press(TBool repeatable) {
     return duration >= LONG_PRESS_THRESHOLD_SEC;
 }
 
+
+void define_power_state(void){
+    if(number_of_battery_bars() < 2){
+        comandToHandle = BatteryLow;
+    }
+}
 void define_input_action() {
     if (InputFlags.KEY_RELEASED  && Keypressed) {
         InputFlags.KEY_RELEASED = False;
@@ -453,10 +465,8 @@ void define_input_action() {
                     comandToHandle = OkShort;
                 break;
             case KeyInDw:
-
                 break;
             case KeyInUp:
-                comandToHandle = OpenCountdown;
                 break;
             default:
                 //user can press anything, but we can handle only specific gestures
@@ -464,10 +474,20 @@ void define_input_action() {
         }
     }
     define_charger_state();
+    define_power_state();
     if(charger_state != NotCharging)
         comandToHandle = ChargerConnected;
     else
         handle_timer_idle_shutdown();
+}
+
+uint8_t MidScreenLabel(char * lbl){
+    lcd_write_string(lbl, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
+    return UI_CHARGING_LBL_Y + MediumFont->height;
+}
+
+void DisplayLowPower(void){
+    MidScreenLabel("Battery Low");
 }
 
 void handle_ui() {
@@ -508,6 +528,14 @@ void handle_ui() {
                 ui_state = TimerIdle;
             }
             comandToHandle = None;
+            break;
+        case LowBattery:
+            print_header(False);
+            DisplayLowPower();
+            // For debug
+            STATE_HANDLE_POWER_OFF();
+            comandToHandle = None;
+            break;
         default:
             //We should never get here, nothing to do.
             break;

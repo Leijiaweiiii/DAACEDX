@@ -70,7 +70,7 @@ void save_time(void) {
 
 void set_time(uint8_t h, uint8_t m, TBool is12h) {
     if (is12h){
-        prdtdDateTime.hours.bAMPM = (h > 12);
+        prdtdDateTime.hours.bAMPM = (h<12);
         h = (h>12)?h-12:h;
         prdtdDateTime.hours._tens12 = h/10;
         prdtdDateTime.hours._units12 = h%10;
@@ -103,6 +103,13 @@ uint8_t hours(void){
 
 TBool is1224(void){
     return prcdControl.control1.b1224;
+}
+
+TBool isAMPM(void){
+    if(is1224())
+        return prdtdDateTime.hours.bAMPM;
+    else
+        return hours() < 12;
 }
 
 /**

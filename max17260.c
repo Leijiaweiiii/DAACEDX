@@ -158,13 +158,16 @@ int8_t fg_get_rsoh(void) {
 		return -1;
 	return soh/256;
 }
+
+// RSENSE in 5/2 uV/mOhm to receive value in mA
+#define RSENSE  5/2
 // Get remaining capacity of the battery in mA-h/10
 int16_t fg_get_rcap(void) {
 	uint16_t data;
 
         if(pic18_i2c_read(SLAVE_ADDR, REG_REPCAP, &data, 2) < 0)
                 return -1;
-        return data>>3;
+        return data>>2;
 }
 // Get full capacity of the battery in mA-h/10
 int16_t fg_get_fcap(void) {
@@ -172,5 +175,95 @@ int16_t fg_get_fcap(void) {
 
         if(pic18_i2c_read(SLAVE_ADDR, REG_FULLCAPREP, &data, 2) < 0)
                 return -1;
-        return data>>3;
+        return data>>2;
+}
+
+// Get full capacity of the battery in mA-h/10
+int16_t fg_get_vcel(void) {
+	uint16_t data;
+    float res;
+    if(pic18_i2c_read(SLAVE_ADDR, REG_AVGVCELL, &data, 2) < 0)
+            return -1;
+    res = data/12.800;
+    return (int)res;
+}
+
+int16_t fg_get_curr(void) {
+	uint16_t data;
+
+    if(pic18_i2c_read(SLAVE_ADDR, REG_AVGCURRENT, &data, 2) < 0)
+        return -1;
+    float res = (float)data*0.78125;
+    return (int) res;
+}
+
+typedef union {
+    uint16_t data;
+    struct {
+        unsigned unused2: 1;
+        unsigned por    : 1;
+        unsigned imn    : 1;
+        unsigned bst    : 1;
+        unsigned unused1: 2;
+        unsigned lmx    : 1;
+        unsigned dsoci  : 1;
+        unsigned vmn    : 1;
+        unsigned tmn    : 1;
+        unsigned smn    : 1;
+        unsigned bi     : 1;
+        unsigned vmx    : 1;
+        unsigned tmx    : 1;
+        unsigned smx    : 1;
+        unsigned br     : 1;
+    };
+} fg_status_t;
+
+#define ReadRegister(addr, val)  { pic18_i2c_read(SLAVE_ADDR, addr, val, 2);}
+uint16_t fg_tx_val;
+#define WriteRegister(addr, val) { fg_tx_val = val; pic18_i2c_write(SLAVE_ADDR, addr, &fg_tx_val, 2);}
+// Design capacity measured in 0.5ma-h units in FG. 
+#define DesignCapacity  (3700 / 2)
+// 250mA on 10mOhm
+//#define IchgTerm        (0x0640)
+// 200mA on 2mOhm
+#define IchgTerm        (0x0140)
+
+// 3.3/3.88
+#define Vempty          (0xA561)
+extern void Delay(uint16_t t);
+void fg_init(void){
+    fg_status_t _st;
+    ReadRegister(REG_STATUS, &_st.data);
+    if(_st.por || _st.br){   
+        uint16_t HibCFG;
+        _st.por = 0;
+        _st.br = 0;
+        WriteRegister(REG_STATUS, _st.data);
+        ReadRegister(REG_HIBCFG, &HibCFG);
+        WriteRegister(REG_SOFTWAKEUP, 0x90);
+        WriteRegister(REG_HIBCFG, 0x00);
+        WriteRegister(REG_SOFTWAKEUP, 0x90);
+
+        WriteRegister(REG_DESIGNCAP, DesignCapacity);
+        WriteRegister(REG_ICHGTERM,IchgTerm);
+        WriteRegister(REG_VEMPTY,Vempty);
+
+        WriteRegister (REG_MODELCFG , 0x8000) ;
+        uint16_t _wait = 0x8000;
+        while (_wait){
+            ReadRegister(REG_MODELCFG, &_wait);
+            _wait &=0x8000;
+            Delay(10);
+        }
+        WriteRegister (REG_HIBCFG , HibCFG);
+        ReadRegister(REG_STATUS, &_st.data);
+    
+    }
+    NOP();
+//    // Now we can read everything
+//    uint16_t fcap = fg_get_fcap();
+//    uint16_t rcap = fg_get_rcap();
+//    uint16_t rsoc = fg_get_rsoc();
+//    uint16_t rsoh = fg_get_rsoh();
+  
 }

@@ -23,6 +23,8 @@ void set_time(uint8_t h, uint8_t m, TBool is24h);
 void read_time(void);
 uint8_t hours(void);
 uint8_t minutes(void);
+TBool is1224(void);
+TBool isAMPM(void);
 
 uint8_t rtc_print_time(char * buff);
 uint8_t rtc_print_time_full(char * buff, uint8_t h, uint8_t  m, TBool format24h);
