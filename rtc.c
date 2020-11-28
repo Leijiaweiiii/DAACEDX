@@ -43,8 +43,9 @@ void initialize_rtc_timer(void) {
      * TMR1 | (TMR3<<16) - unix_time_ms, TMR1 input - TMR6OF, TMR3 input - TMR1
      * TMR5 - Filter timer, input TMR6OF
      */
-    TMR0H = 125;            // preset to get 1ms period
-    T0CON1 = 0b01111001;    // HFINTOSC, async, 512 prescaler
+    TMR0H = 31;            // preset to get 1ms period
+//    T0CON1 = 0b01111001;    // HFINTOSC, async, 512 prescaler
+    T0CON1 = 0b10010000;    // LFINTOSC, async, 1:1 prescaler
     T0CON0 = 0b10000000;    // Enable timer 0 without postscaler and 8 bit mode
     TMR0IE = 1;             // Enable Timer0 interrupt
     
