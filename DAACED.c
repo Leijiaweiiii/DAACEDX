@@ -2778,8 +2778,8 @@ void print_footer() {
             }
             break;
         default:
-//            print_delay(msg, " Delay: ", "");
-            sprintf(msg, "%04u", fg_get_vcel());
+            print_delay(msg, " Delay: ", "");
+//            sprintf(msg, "%04u", fg_get_vcel());
             print_label_at_footer_grid(msg, 0, 1);
             if (Settings.TotPar == 0) {
                 sprintf(msg, "Par: Off");
@@ -2791,7 +2791,7 @@ void print_footer() {
             break;
     }
     //    sprintf(msg, "%u", PORTD&0x7);
-    sprintf(msg, "%04u", fg_get_rcap());
+//    sprintf(msg, "%04u", fg_get_rcap());
     print_label_at_footer_grid(msg, 1, 1);
 }
 
@@ -2868,13 +2868,13 @@ void DoPowerOn() {
 }
 
 uint8_t print_bat_stats(uint8_t vpos){
-//    sprintf(msg,"SOC %u%% ", fg_get_rsoc());
-//    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
-//    vpos += SmallFont->height;
-//    sprintf(msg,"%u/%u mAh ", fg_get_rcap(), fg_get_fcap());
-//    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    sprintf(msg,"SOC %u%% SOH: %u%%  ", fg_get_rsoc(), fg_get_rsoh());
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos += SmallFont->height;
-    sprintf(msg,"V: %d %d", fg_get_vcel(), fg_get_curr());
+    sprintf(msg,"%u/%u mAh  ", fg_get_rcap(), fg_get_fcap());
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    vpos += SmallFont->height;
+    sprintf(msg,"V: %d  ", fg_get_vcel());
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos += SmallFont->height;
     return vpos;
@@ -2884,10 +2884,10 @@ void DoCharging() {
     uint8_t vpos = 0;
     switch (charger_state) {
         case Charging:
-            sprintf(msg, "Charging");
+            sprintf(msg, "Charging ");
             break;
         case Complete:
-            sprintf(msg, "Charged");
+            sprintf(msg, "Charged  ");
             break;
         default:
             ui_state = PowerOff;
@@ -3203,20 +3203,20 @@ void test_ui(void){
 //    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
 //    vpos += SmallFont->height;
     } else {
-        sprintf(msg,"%d%d:%d%d:%d%d %c ",
+        sprintf(msg,"%d%d:%d%d:%d%d%c ",
             prdtdDateTime.hours._tens12,
             prdtdDateTime.hours._units12,
             prdtdDateTime.minutes._tens,
             prdtdDateTime.minutes._units,
             prdtdDateTime.seconds._tens,
             prdtdDateTime.seconds._units,
-                (prdtdDateTime.hours.bAMPM)?'a':'p'
+                (prdtdDateTime.hours.bAMPM)?'p':'a'
             );
     }
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos = print_bat_stats(vpos + SmallFont->height);
-//    sprintf(msg,"RTC: %lu ", TMR1);
-//    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+    sprintf(msg,"RTC: %07lu ", time_ms()/1000);
+    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
 }
 
 void test_power_on(void) {
