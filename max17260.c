@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "max17260.h"
 
+
 // Analog Voltage Measurement
 #define REG_VCELL 0x09
 #define REG_AVGVCELL 0x19
@@ -159,42 +160,72 @@ int8_t fg_get_rsoh(void) {
 	return soh/256;
 }
 
-// RSENSE in 5/2 uV/mOhm to receive value in mA
-#define RSENSE  5/2
-// Get remaining capacity of the battery in mA-h/10
+
+// *********** Conversion constants and macros ***********
+// RSENSE mOhm
+#define RSENSE  2
+#define RegToVal(x, y)  (x * y / RSENSE)
+// VCAP uV - coltage to convert capacity
+#define VCAP    5
+#define Reg2VCAP(x)    RegToVal(x, VCAP)
+// VCURR uV - voltage to convert current
+#define VCURR   1.5625
+#define Reg2Curr(x)    RegToVal(x, VCURR)
+// VPOW u(V*V) - coefficient to calculate power measurements
+#define VPOW    8
+#define Reg2Pow(x)     RegToVal(x, VPOW)
+// VoltageStep
+#define Reg2mV(x)    (x /12.8)
+
+// Get remaining capacity of the battery in mA-h
 int16_t fg_get_rcap(void) {
 	uint16_t data;
 
-        if(pic18_i2c_read(SLAVE_ADDR, REG_REPCAP, &data, 2) < 0)
-                return -1;
-        return data>>2;
+    if(pic18_i2c_read(SLAVE_ADDR, REG_REPCAP, &data, 2) < 0)
+            return -1;
+    return Reg2VCAP(data);
 }
-// Get full capacity of the battery in mA-h/10
+// Get full capacity of the battery in mA-h
 int16_t fg_get_fcap(void) {
 	uint16_t data;
 
-        if(pic18_i2c_read(SLAVE_ADDR, REG_FULLCAPREP, &data, 2) < 0)
-                return -1;
-        return data>>2;
-}
-
-// Get full capacity of the battery in mA-h/10
-int16_t fg_get_vcel(void) {
-	uint16_t data;
-    float res;
-    if(pic18_i2c_read(SLAVE_ADDR, REG_AVGVCELL, &data, 2) < 0)
+    if(pic18_i2c_read(SLAVE_ADDR, REG_FULLCAPREP, &data, 2) < 0)
             return -1;
-    res = data/12.800;
-    return (int)res;
+    return Reg2VCAP(data);
 }
 
-int16_t fg_get_curr(void) {
+// Get nominal  full capacity of the battery in mA-h
+int16_t fg_get_fcap_nom(void) {
 	uint16_t data;
 
-    if(pic18_i2c_read(SLAVE_ADDR, REG_AVGCURRENT, &data, 2) < 0)
+    if(pic18_i2c_read(SLAVE_ADDR, REG_FULLCAPNOM, &data, 2) < 0)
+            return -1;
+    return Reg2VCAP(data);
+}
+
+// Get full capacity of the battery in mA-h
+int16_t fg_get_vcel(TBool average) {
+	uint16_t data;
+    if(pic18_i2c_read(SLAVE_ADDR, average?REG_AVGVCELL:REG_VCELL, &data, 2) < 0)
+            return -1;
+    return Reg2mV(data);
+}
+
+int16_t fg_get_curr(TBool average) {
+	int16_t data;
+
+    if(pic18_i2c_read(SLAVE_ADDR, average?REG_AVGCURRENT:REG_CURRENT, &data, 2) < 0)
         return -1;
-    float res = (float)data*0.78125;
-    return (int) res;
+    return Reg2Curr(data);
+}
+
+// Get power in mW
+int16_t fg_get_power(TBool average) {
+	int16_t data;
+
+    if(pic18_i2c_read(SLAVE_ADDR, average?REG_AVGPOWER:REG_POWER, &data, 2) < 0)
+        return -1;
+    return Reg2Pow(data);
 }
 
 typedef union {
