@@ -2017,9 +2017,11 @@ void print_and_send_stat(char * _msg, const char * fmt, uint32_t value){
 }
 
 void handle_bt_commands(void) {
-//}
-//void bt_not_in_use(void)
-//{
+#ifdef DISABLE_BLUETOOTH
+}
+void bt_not_in_use(void)
+{
+#endif
     int length = 0;
     if(! Settings.AR_IS.BT) return;
     sendShotsIfRequired();
@@ -2871,10 +2873,10 @@ uint8_t print_bat_stats(uint8_t vpos){
     sprintf(msg,"SOC %u%% SOH: %u%%  ", fg_get_rsoc(), fg_get_rsoh());
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos += SmallFont->height;
-    sprintf(msg,"%u/%u mAh  ", fg_get_rcap(), fg_get_fcap());
+    sprintf(msg,"%d/%d/%d mAh  ", fg_get_rcap(), fg_get_fcap(), fg_get_fcap_nom());
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos += SmallFont->height;
-    sprintf(msg,"V: %d  ", fg_get_vcel());
+    sprintf(msg,"V:%d I:%d P:%d   ", fg_get_vcel(True), fg_get_curr(True), fg_get_power(True));
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos += SmallFont->height;
     return vpos;
@@ -2894,7 +2896,10 @@ void DoCharging() {
             return;
     }
     vpos = MidScreenLabel(msg);
-    print_bat_stats(vpos);
+//    print_bat_stats(vpos);
+    sprintf(msg, "  %u%%  ", fg_get_rsoc());
+    lcd_write_string(msg, UI_CHARGING_LBL_X, vpos, MediumFont, BLACK_OVER_WHITE);
+    
 }
 // </editor-fold>
 
@@ -3190,30 +3195,29 @@ void test_ui(void){
 //    sprintf(msg,"Version: %u/%u", Settings.version, FW_VERSION);
 //    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
 //    vpos += SmallFont->height;
-    getRtcData();
-    if (!is1224()){
-        sprintf(msg,"%d%d:%d%d:%d%d ",
-            prdtdDateTime.hours._tens,
-            prdtdDateTime.hours._units,
-            prdtdDateTime.minutes._tens,
-            prdtdDateTime.minutes._units,
-            prdtdDateTime.seconds._tens,
-            prdtdDateTime.seconds._units
-            );
+//    if (!is1224()){
+//        sprintf(msg,"%d%d:%d%d:%d%d ",
+//            prdtdDateTime.hours._tens,
+//            prdtdDateTime.hours._units,
+//            prdtdDateTime.minutes._tens,
+//            prdtdDateTime.minutes._units,
+//            prdtdDateTime.seconds._tens,
+//            prdtdDateTime.seconds._units
+//            );
 //    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
 //    vpos += SmallFont->height;
-    } else {
-        sprintf(msg,"%d%d:%d%d:%d%d%c ",
-            prdtdDateTime.hours._tens12,
-            prdtdDateTime.hours._units12,
-            prdtdDateTime.minutes._tens,
-            prdtdDateTime.minutes._units,
-            prdtdDateTime.seconds._tens,
-            prdtdDateTime.seconds._units,
-                (prdtdDateTime.hours.bAMPM)?'p':'a'
-            );
-    }
-    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
+//    } else {
+//        sprintf(msg,"%d%d:%d%d:%d%d%c ",
+//            prdtdDateTime.hours._tens12,
+//            prdtdDateTime.hours._units12,
+//            prdtdDateTime.minutes._tens,
+//            prdtdDateTime.minutes._units,
+//            prdtdDateTime.seconds._tens,
+//            prdtdDateTime.seconds._units,
+//                (prdtdDateTime.hours.bAMPM)?'p':'a'
+//            );
+//    }
+//    lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
     vpos = print_bat_stats(vpos + SmallFont->height);
     sprintf(msg,"RTC: %07lu ", time_ms()/1000);
     lcd_write_string(msg, 2, vpos, SmallFont, BLACK_OVER_WHITE);
@@ -3238,11 +3242,10 @@ void test_delay_time(void){
         __t2 = 0,
         __dt = 0;
     uint32_t s1, s2;
-    int16_t ds;
+    int32_t ds;
     while(True){
         read_time();
         s1 = prdtdDateTime.seconds._tens*10 + prdtdDateTime.seconds._units + 60*minutes();
-        clear_update_time_ms();
         __t1 = time_ms();
         Delay(40000);
         __t2 = time_ms();

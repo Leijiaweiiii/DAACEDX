@@ -482,8 +482,11 @@ void define_input_action() {
 }
 
 uint8_t MidScreenLabel(char * lbl){
-    lcd_write_string(lbl, UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, MediumFont, BLACK_OVER_WHITE);
-    return UI_CHARGING_LBL_Y + MediumFont->height;
+    uint8_t vpos = UI_CHARGING_LBL_Y;
+//    uint8_t vpos = UI_CHARGING_LBL_Y - MediumFont->height;
+    lcd_write_string(lbl, UI_CHARGING_LBL_X, vpos, MediumFont, BLACK_OVER_WHITE);
+    vpos += MediumFont->height;
+    return vpos;
 }
 
 void DisplayLowPower(void){
@@ -532,6 +535,7 @@ void handle_ui() {
         case LowBattery:
             print_header(False);
             DisplayLowPower();
+            Delay(3000);
             // For debug
             STATE_HANDLE_POWER_OFF();
             comandToHandle = None;

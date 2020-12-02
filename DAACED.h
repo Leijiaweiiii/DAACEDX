@@ -295,6 +295,9 @@ volatile Settings_t Settings;
 
 // </editor-fold>
 
+
+//#define DISABLE_BLUETOOTH
+
 void DoSettings(void);
 void StartListenShots(void);
 void DoReview(void);
