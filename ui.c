@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "DAACED.h"
+#include "max17260.h"
 
 // These may be macros but moved here for space optimization
 void STATE_HANDLE_POWER_OFF(void){
@@ -420,7 +421,7 @@ TBool is_long_press(TBool repeatable) {
 
 
 void define_power_state(void){
-    if(number_of_battery_bars() < 2){
+    if(fg_get_rsoc() < 10){
         comandToHandle = BatteryLow;
     }
 }
@@ -490,7 +491,15 @@ uint8_t MidScreenLabel(char * lbl){
 }
 
 void DisplayLowPower(void){
-    MidScreenLabel("Battery Low");
+    uint8_t vpos = UI_CHARGING_LBL_Y;
+    lcd_clear();
+    set_backlight(0);
+    print_header(False);
+    lcd_write_string("Battery Low", 40, vpos, MediumFont, BLACK_OVER_WHITE);
+    lcd_write_string("Connect Charger", 40, vpos + MediumFont->height, SmallFont, BLACK_OVER_WHITE);
+    Delay(5000);
+    STATE_HANDLE_POWER_OFF();
+    comandToHandle = None;
 }
 
 void handle_ui() {
@@ -533,12 +542,7 @@ void handle_ui() {
             comandToHandle = None;
             break;
         case LowBattery:
-            print_header(False);
             DisplayLowPower();
-            Delay(3000);
-            // For debug
-            STATE_HANDLE_POWER_OFF();
-            comandToHandle = None;
             break;
         default:
             //We should never get here, nothing to do.
