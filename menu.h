@@ -46,7 +46,7 @@ extern "C" {
         };
     } SettingsMenu_t;
 #define InitSettingsMenuDefaults(m)     {m->done = False;m->menu = 0;m->page = 0;m->selected = False; m->changed = True;}
-#define InitSettingsNumberDefaults(m)   {m->done = False;m->selected = False; m->redraw = True;}
+#define InitSettingsNumberDefaults(m)   {m->done = False;m->selected = False; m->changed = True;}
 #define ItemToPage(x)                   (x/MENU_PAGE_SIZE)
 #define SettingsNotDone(x)              ((!x->done) && ui_state == SettingsScreen)    
 
@@ -78,17 +78,33 @@ extern "C" {
 
             struct {
                 unsigned done           : 1;
-                unsigned redraw         : 1;
+                unsigned changed        : 1;
                 unsigned selected       : 1;
-                unsigned state          : 5; // Any state that controls know to manage
+                unsigned UNUSED         : 5;
             };
         };
     } NumberSelection_t;
+    
+    typedef enum {
+        dt_s_h10 = 0,
+        dt_s_h1 = 1,
+        dt_s_m10 = 2,
+        dt_s_m1 = 3,
+        dt_s_done = 4
+    } TimeDisplay_state_t;
+
+    typedef struct {
+        uint8_t h10;
+        uint8_t h1;
+        uint8_t m10;
+        uint8_t m1;
+        TimeDisplay_state_t s;
+    } TimeDisplay_t;
 
     // Service variables
     uint8_t old_label_start = 0;
     uint8_t old_label_end = 0;
-    
+
     // Function definitions
     uint8_t PopMsg(const char* msg, uint16_t wait);
     void SelectMenuItem(SettingsMenu_t* s);
@@ -100,7 +116,7 @@ extern "C" {
     void SelectDouble(NumberSelection_t* s);
     void DisplayDouble(NumberSelection_t* s);
     void DisplayInteger(NumberSelection_t* s);
-    void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, char am_pm);
+    void DisplayTime(TimeDisplay_t * d);
     extern uint8_t print_header(TBool hide_time); // implemented in DAACED.c
     void display_big_font_label(const char * msg);
 #ifdef	__cplusplus

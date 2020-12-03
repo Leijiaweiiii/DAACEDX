@@ -96,23 +96,18 @@ uint8_t minutes(void){
 }
 
 uint8_t hours(void){
-    if(prcdControl.control1.b1224)
+    if(is12h())
         return prdtdDateTime.hours._tens12 * 10 + prdtdDateTime.hours._units12;
     else
         return prdtdDateTime.hours._tens * 10 + prdtdDateTime.hours._units;
 }
 
-uint8_t hours24(void){
-    uint8_t h = hours();
-    return is1224()?(isAMPM()?h:h+12):h;
-}
-
-TBool is1224(void){
+TBool is12h(void){
     return prcdControl.control1.b1224;
 }
 
-TBool isAMPM(void){
-    if(is1224())
+TBool isPM(void){
+    if(is12h())
         return prdtdDateTime.hours.bAMPM;
     else
         return hours() < 12;
@@ -126,13 +121,13 @@ TBool isAMPM(void){
  */
 uint8_t rtc_print_time(char * b) {
     uint8_t res = 0;
-     if (prcdControl.control1.b1224){
+     if (is12h()){
         res = sprintf(b,"%d%d:%d%d%c",
             prdtdDateTime.hours._tens12,
             prdtdDateTime.hours._units12,
             prdtdDateTime.minutes._tens,
             prdtdDateTime.minutes._units,
-                (prdtdDateTime.hours.bAMPM==0)?'a':'p'
+                (isPM())?'p':'a'
             );
     } else {
          res = sprintf(b,"%d%d:%d%d",

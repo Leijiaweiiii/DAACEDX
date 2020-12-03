@@ -134,11 +134,19 @@ void lcd_clear_block(uint8_t x1_pos, uint8_t y1_pos, uint8_t x2_pos, uint8_t y2_
     lcd_send_block_d(x1_pos, y1_pos, x2_pos, y2_pos, WHITE_OVER_BLACK);
 }
 
+uint8_t lcd_char_length(const char c, const FONT_INFO *font){
+    return font->char_descriptors[c - font->char_start].width;
+}
+
+uint8_t lcd_digit_length(const uint8_t c, const FONT_INFO *font){
+    return font->char_descriptors['0' + c - font->char_start].width;
+}
+
 uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font) {
     uint16_t strlng = 0;
     if (str_ptr == NULL) return 0;
     while (*str_ptr) {
-        strlng += font->char_descriptors[*str_ptr - font->char_start].width;
+        strlng += lcd_char_length(*str_ptr,font);
         strlng += font->character_spacing;
         ++str_ptr;
     }

@@ -1567,43 +1567,110 @@ void SetMode() {
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Clock">
 
-void SetClock() {
-    NumberSelection_t ts;
-    uint8_t h = hours24();
-    uint8_t m = minutes();
-    InitSettingsNumberDefaults((&ts));
-    ts.min = 0;
-    ts.max =  23;
-    ts.value = h;
-    ts.step = 1;
-    strcpy(ts.MenuTitle, "Set Clock");
-    ts.state = 0; // 0 - hour, 1 - Minute. DisplayTime knows to handle this
-    set_screen_title(ts.MenuTitle);
-    DisplayTime(ts.value, m, ts.state, is1224());
-    do {
-        if (ts.redraw) {
-            ts.redraw = False;
-            DisplayTime(ts.value, m, ts.state, is1224());
+void fill_time_display(TimeDisplay_t * d){
+    d->m1 = prdtdDateTime.minutes._units;
+    d->m10 = prdtdDateTime.minutes._tens;
+    if(is12h()){
+        if(isPM()){
+            uint8_t h = prdtdDateTime.hours._tens12 * 10 + prdtdDateTime.hours._units12;
+            h += 12;
+            d->h1 = h%10;
+            d->h10 = h/10;
+        } else {
+            d->h1 = prdtdDateTime.hours._units12;
+            d->h10 = prdtdDateTime.hours._tens12;
         }
-        SelectIntegerCircular(&ts);
-    } while (SettingsNotDone((&ts)));
-    if (ts.selected && ts.state == 0) {
-        ts.state = 1;
-        ts.selected = False;
-        ts.done = False;
-        ts.max = 59;
-        h = ts.value;
-        ts.value = m;
-        do {
-            if (ts.redraw) {
-                ts.redraw = False;
-                DisplayTime(h, ts.value, ts.state, is1224());
-            }
-            SelectIntegerCircular(&ts);
-        } while (SettingsNotDone((&ts)));
+    } else {
+        d->h1 = prdtdDateTime.hours._units;
+        d->h10 = prdtdDateTime.hours._tens;
     }
+}
+
+void fill_time_structure(TimeDisplay_t * d){
+    prdtdDateTime.minutes._units = d->m1;
+    prdtdDateTime.minutes._tens = d->m10;
+    if(is12h()){
+        uint8_t h = d->h1 + d->h10*10;
+        prdtdDateTime.hours.bAMPM = (h>=12);
+        if(isPM()){
+            h -= 12;
+            d->h1 = h%10;
+            d->h10 = h/10;
+        }
+        prdtdDateTime.hours._units12 = d->h1;
+        prdtdDateTime.hours._tens12 = d->h10;
+    } else {
+        prdtdDateTime.hours._units = d->h1;
+        prdtdDateTime.hours._tens = d->h10;
+    }
+}
+
+void SetClock(void) {
+    NumberSelection_t ts;
+    TimeDisplay_t d;
+    InitSettingsNumberDefaults((&ts));
+    strcpy(ts.MenuTitle, "Set Clock");
+    set_screen_title(ts.MenuTitle);
+    fill_time_display(&d);
+    d.s = dt_s_h10;
+    ts.min = 0;
+    ts.max =  2;
+    ts.value = d.h10;
+    ts.step = 1;
+
+    do {
+        DisplayTime(&d);
+        SelectIntegerCircular(&ts);
+        if(ts.changed){
+            switch(d.s){
+                case dt_s_h10:
+                    d.h10 = (uint8_t)ts.value;
+                    if(d.h10 == 2 && d.h1 > 3)
+                        d.h1 = 3;
+                    break;
+                case dt_s_h1:
+                    d.h1 = (uint8_t)ts.value;
+                    break;
+                case dt_s_m10:
+                    d.m10 = (uint8_t)ts.value;
+                    break;
+                case dt_s_m1:
+                    d.m1 = (uint8_t)ts.value;
+                    break;
+            }
+            ts.changed = False;
+        }
+        if(ts.selected){
+            d.s++;
+            ts.done = (d.s == dt_s_done);
+            ts.selected = False;
+            switch(d.s){
+                case dt_s_h10:
+                    ts.value = d.h10;
+                    break;
+                case dt_s_h1:
+                    ts.value = d.h1;
+                    ts.max = d.h10<2?9:3;
+                    break;
+                case dt_s_m10:
+                    ts.value = d.m10;
+                    ts.max = 5;
+                    break;
+                case dt_s_m1:
+                    ts.value = d.m1;
+                    ts.max = 9;
+                    break;
+                case dt_s_done:
+                    ts.selected = True;
+                    break;
+            }
+            
+        }
+    } while (SettingsNotDone((&ts)));
+
     if (ts.selected) {
-        set_time(h, ts.value, is1224());
+        fill_time_structure(&d);
+        save_time();
     }
 }
 
@@ -1615,18 +1682,25 @@ void SetClockMode() {
     ts.max = 24;
     ts.min = 12;
     ts.step = 12;
-    ts.value = is1224() ? 12 : 24;
+    ts.value = is12h() ? 12 : 24;
     do {
         DisplayInteger((&ts));
         SelectInteger((&ts));
     } while (SettingsNotDone((&ts)));
     if (ts.selected) {
-        set_time(hours24(), minutes(),  (ts.value == 12));
+        TimeDisplay_t d;
+        fill_time_display(&d);
+        TBool old = prcdControl.control1.b1224;
+        TBool new = (ts.value==12);
+        prcdControl.control1.b1224 = new;
+        fill_time_structure(&d);
+        save_time();
     }
 }
 
 void SetClockMenuItems() {
-    sprintf(ma.MenuItem[0], "Clock Format|%uh", is1224() ? 12 : 24);
+    read_time();
+    sprintf(ma.MenuItem[0], "Clock Format|%uh", is12h() ? 12 : 24);
     sprintf(ma.MenuItem[1], "Clock|");
     rtc_print_time((ma.MenuItem[1] + 6));
     ma.TotalMenuItems = 2;
@@ -1634,11 +1708,10 @@ void SetClockMenuItems() {
 
 void SetClockMenu() {
     InitSettingsMenuDefaults((&ma));
-
     strcpy(ma.MenuTitle, "Set Clock");
-    SetClockMenuItems();
     //Main Screen
     do {
+        SetClockMenuItems();
         DisplaySettings((&ma));
         SelectMenuItem((&ma));
         if (ma.selected && ma.done) {
@@ -1655,7 +1728,6 @@ void SetClockMenu() {
             ma.changed = True;
             ma.selected = False;
             ma.done = False;
-            SetClockMenuItems();
         }
     } while (SettingsNotDone((&ma)));
 }
@@ -1724,28 +1796,72 @@ void CountDownMode(uint32_t countdown) {
 
 TBool SetCustomCountDown() {
     NumberSelection_t ts;
-    uint8_t minute, second;
+    TimeDisplay_t d;
     InitSettingsNumberDefaults((&ts));
-    strcpy(ts.MenuTitle, "Set Time");
-
-    // in seconds
-    ts.value = Settings.CustomCDtime;
-    ts.max = 3600;
+    strcpy(ts.MenuTitle, "Set Timer");
+    set_screen_title(ts.MenuTitle);
+    uint8_t minutes = Settings.CUstomDelayTime/60;
+    uint8_t seconds = Settings.CUstomDelayTime%60;
+    d.h10 = minutes / 10;
+    d.h1 = minutes % 10;
+    d.m10 = seconds / 10;
+    d.m1 = seconds % 10;
+    d.s = dt_s_h10;
     ts.min = 0;
+    ts.max =  5;
+    ts.value = d.h10;
     ts.step = 1;
-    lcd_clear();
+
     do {
-        print_header(true);
-        minute = ts.value / 60;
-        second = ts.value % 60;
-        sprintf(msg,
-                "%2d:%02d",
-                minute,
-                second
-                );
-        display_big_font_label(msg);
-        SelectInteger(&ts);
+        DisplayTime(&d);
+        SelectIntegerCircular(&ts);
+        if(ts.changed){
+            switch(d.s){
+                case dt_s_h10:
+                    d.h10 = (uint8_t)ts.value;
+                    break;
+                case dt_s_h1:
+                    d.h1 = (uint8_t)ts.value;
+                    break;
+                case dt_s_m10:
+                    d.m10 = (uint8_t)ts.value;
+                    break;
+                case dt_s_m1:
+                    d.m1 = (uint8_t)ts.value;
+                    break;
+            }
+            ts.changed = False;
+        }
+        if(ts.selected){
+            d.s++;
+            ts.done = (d.s == dt_s_done);
+            ts.selected = False;
+            switch(d.s){
+                case dt_s_h10:
+                    ts.value = d.h10;
+                    break;
+                case dt_s_h1:
+                    ts.value = d.h1;
+                    break;
+                case dt_s_m10:
+                    ts.value = d.m10;
+                    ts.max = 5;
+                    break;
+                case dt_s_m1:
+                    ts.value = d.m1;
+                    ts.max = 9;
+                    break;
+                case dt_s_done:
+                    ts.selected = True;
+                    minutes = d.h10*10 + d.h1;
+                    seconds = d.m10*10 + d.m1;
+                    ts.value = minutes*60 + seconds;
+                    break;
+            }
+            
+        }
     } while (SettingsNotDone((&ts)));
+
     if (ts.selected) {
         Settings.CustomCDtime = ts.value;
         saveSettingsField(&(Settings.CustomCDtime), 4);
@@ -1784,6 +1900,7 @@ void SetCountDown() {
             case COUNTDOWN_5: CountDownMode(300);
                 break;
             case COUNTDOWN_CUSTOM:
+                lcd_clear();
                 if (SetCustomCountDown())
                     CountDownMode(Settings.CustomCDtime);
                 break;
@@ -2309,7 +2426,7 @@ void DoSet(uint8_t menu) {
 
 void SetSettingsMenu() {
     sprintf(SettingsMenu.MenuTitle, "Settings ");
-
+    read_time();
     print_delay(SettingsMenu.MenuItem[SETTINGS_INDEX_DELAY], "Delay|", " Sec.");
 
     switch (Settings.ParMode) {
@@ -2397,6 +2514,7 @@ void DoSettings(void) {
     getSettings(); // Edit the copy from the EEPROM because of manipulations with PAR time in custom mode
     lcd_clear();
     do {
+     
         SetSettingsMenu();
         DisplaySettings(&SettingsMenu);
         SelectMenuItemCircular(&SettingsMenu);
@@ -2868,8 +2986,6 @@ void DoPowerOn() {
     lcd_set_contrast(Settings.ContrastValue);
     set_backlight(0);
     ADC_init();
-    // TODO: Review power on sequence
-    
     if (Settings.InputType == INPUT_TYPE_Microphone) {
         TRISDbits.TRISD1 = 0;
         TRISDbits.TRISD2 = 0;
@@ -2883,11 +2999,9 @@ void DoPowerOn() {
     LATEbits.LATE0 = 1; // Power ON 3v regulator
     set_backlight(Settings.BackLightLevel);
     lcd_write_string("Power ON", UI_CHARGING_LBL_X, vpos, SmallFont, BLACK_OVER_WHITE);
-    sprintf(msg, "%07u   ", time_ms());
+//    sprintf(msg, "%07u   ", time_ms());
     lcd_write_string(msg, UI_CHARGING_LBL_X, vpos + SmallFont->height, SmallFont, BLACK_OVER_WHITE);
     while(Keypressed);
-    
-
     timer_idle_last_action_time = time_ms();
 }
 

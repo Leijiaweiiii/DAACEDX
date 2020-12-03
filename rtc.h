@@ -20,12 +20,13 @@ void clear_time_ms(void);
 void initialize_rtc_timer(void);
 
 void set_time(uint8_t h, uint8_t m, TBool is24h);
+void save_time(void);
 void read_time(void);
 uint8_t hours(void);
 uint8_t hours24(void);
 uint8_t minutes(void);
-TBool is1224(void);
-TBool isAMPM(void);
+TBool is12h(void);
+TBool isPM(void);
 
 uint8_t rtc_print_time(char * buff);
 uint8_t rtc_print_time_full(char * buff, uint8_t h, uint8_t  m, TBool format24h);

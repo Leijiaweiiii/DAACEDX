@@ -44,25 +44,34 @@ void display_big_font_label(const char * msg) {
     old_label_end -= font->character_spacing;
 }
 
-void DisplayTime(uint8_t hour, uint8_t minute, uint8_t state, char am_pm) {
+void DisplayTime(TimeDisplay_t * d) {
     uint8_t block_start, block_end;
+    TimeDisplay_t _d = *d;
     print_header(true);
-    sprintf(msg, "%02d:%02d%c", hour, minute, am_pm);
+    sprintf(msg, "%u%u:%u%u", _d.h10, _d.h1, _d.m10, _d.m1);
     
     display_big_font_label(msg);
-    if (state == 0) {
-        block_start = old_label_start;
-        block_end = old_label_end - lcd_string_lenght(msg + 3, BigFont);
-        block_end -= 10; // 3*BigFont->character_spacing + 1 IDK why 1
-    } else {
-        block_end = old_label_end;
-        if( ! am_pm){
-            block_end -= lcd_string_lenght("p", BigFont);
-            block_end += 3;// BigFont->character_spacing
-        }
-        block_end += 3; // BigFont->character_spacing - save memory
-        block_start = old_label_end - lcd_string_lenght(msg + 3, BigFont);
-        block_start += 3; // BigFont->character_spacing - save memory
+    switch(_d.s){
+        case dt_s_h10:
+            block_start = old_label_start;
+            block_end = lcd_digit_length(_d.h10,BigFont) + block_start;
+            break;
+        case dt_s_h1:
+            block_start = lcd_digit_length(_d.h10,BigFont) + old_label_start;
+            block_end = lcd_digit_length(_d.h1,BigFont) + block_start;
+            break;
+        case dt_s_m10:
+            block_end = old_label_end - lcd_digit_length(_d.m1, BigFont);
+            block_start = block_end - lcd_digit_length(_d.m10, BigFont);
+            break;
+        case dt_s_m1:
+            block_end = old_label_end;
+            block_start = block_end - lcd_digit_length(_d.m1, BigFont);
+            break;
+        default:
+            block_end = old_label_end;
+            block_start = old_label_start;
+            break;
     }
     // UI_HEADER_END_LINE + 24 + 80 + 1 = 32 + 24 + 80 + 1 = 136
     lcd_draw_hline(128, 0, LCD_WIDTH, LCD_WHITE_PAGE);
@@ -278,7 +287,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             } else {
                 sm->value = sm->min;
             }
-            sm->redraw = True;
+            sm->changed = True;
             break;
         case DownLong:
         case DownShort:
@@ -287,7 +296,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
             } else {
                 sm->value = sm->max;
             }
-            sm->redraw = True;
+            sm->changed = True;
             break;
         case BackShort:
         case BackLong:
@@ -298,7 +307,7 @@ void SelectIntegerCircular(NumberSelection_t* sm) {
         case OkLong:
             sm->done = True;
             sm->selected = True;
-            sm->redraw = True;
+            sm->changed = True;
             break;
         default:
             HandleCommonComands(comandToHandle);
@@ -315,14 +324,14 @@ void SelectInteger(NumberSelection_t* sm) {
         case UpShort:
             if (sm->max - sm->value >= sm->step) {
                 sm->value += sm->step;
-                sm->redraw = True;
+                sm->changed = True;
             } else Beep();
             break;
         case DownLong:
         case DownShort:
             if (sm->value - sm->min >= sm->step) {
                 sm->value -= sm->step;
-                sm->redraw = True;
+                sm->changed = True;
             } else Beep();
             break;
         case BackShort:
@@ -334,7 +343,7 @@ void SelectInteger(NumberSelection_t* sm) {
         case OkLong:
             sm->done = True;
             sm->selected = True;
-            sm->redraw = True;
+            sm->changed = True;
             break;
         default:
             HandleCommonComands(comandToHandle);
@@ -352,14 +361,14 @@ void SelectDouble(NumberSelection_t* sm) {
         case UpShort:
             if (sm->fmax - sm->fvalue >= sm->fstep) {
                 sm->fvalue += sm->fstep;
-                sm->redraw = True;
+                sm->changed = True;
             } else Beep();
             break;
         case DownLong:
         case DownShort:
             if (sm->fvalue - sm->fmin >= sm->fstep) {
                 sm->fvalue -= sm->fstep;
-                sm->redraw = True;
+                sm->changed = True;
             } else Beep();
             break;
         case OkShort:

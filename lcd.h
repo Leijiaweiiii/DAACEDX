@@ -245,6 +245,8 @@ FONT_INFO *BigFont = &patuaOne_62ptFontInfo;
 void lcd_refresh(UpdateBoundary * box);
 #endif
 uint16_t lcd_string_lenght(const char* str_ptr, const FONT_INFO *font);
+uint8_t lcd_char_length(const char c, const FONT_INFO *font);
+uint8_t lcd_digit_length(const uint8_t c, const FONT_INFO *font);
 void lcd_init(void);
 void lcd_clear(void);
 //void lcd_draw_line(uint8_t x0_pos, uint8_t y0_pos, uint8_t x1_pos, uint8_t y1_pos, uint8_t polarity);
