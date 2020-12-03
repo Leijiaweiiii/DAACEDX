@@ -14,7 +14,7 @@ void BT_send_command_with_retry(const char * cmd, int len, uint8_t retry, const 
     if ( len <= 0 ) return; // error condition, but we don't assert to hang device
     do {
         BT_send_command(cmd, len);
-        Delay(64);
+        Delay(BT_MSG_SPLIT_TIME_MS);
         if( ! --retry ) break;
     } while (uart_rx_buffer[0] == criteria[0] && uart_rx_buffer[1] == criteria[1]);
 }
@@ -43,19 +43,18 @@ void set_device_name(){
 void BT_init(void) {
     BT_reset();
     // After the battery reset the first boot will be long.
-    if(0 == mac_addr[0]){
-        get_mac_address();
-        set_device_name();
-        BT_reset();
-        get_device_name();
-    }
+    get_mac_address();
+    set_device_name();
+    BT_reset();
+//        get_device_name();
+
 }
 
 void BT_off(void) {
     uart_disable();
     BT_RESET_INV = 0; // Hold device in reset to mimic Power OFF
 }
-char msg[32];
+extern char msg[32];
 void sendOneShot(shot_t * shot) {
     int size;
     size = sprintf(msg, "%u,%u,%lu\n", shot->sn, shot->is_flags, 0x00FFFFFF & shot->dt);
@@ -69,11 +68,10 @@ void sendSignal(const char * name, uint16_t duration, uint32_t time_ms) {
 }
 
 #define clear_args_buffer() { for (int i = 0; i < UART_RX_BUF_SIZE; i++) {bt_cmd_args_raw[i] = 0;}}
-
+char tmp_b[16];
 BT_COMMAND_T BT_define_action(void) {
     uint8_t cmd_len = 3;
     BT_COMMAND_T BT_COMMAND = BT_None;
-    char tmp_b[8]; //TODO: allocate temporary short strings only once
     if (uart_rx_buffer[0] == 'D' && uart_rx_buffer[1] == 'A' && uart_rx_buffer[2] == 'A') {
         int cmd = atoi(uart_rx_buffer + 3);
         if (cmd >= 0) {
@@ -106,7 +104,7 @@ BT_COMMAND_T BT_define_action(void) {
     return BT_COMMAND;
 }
 
-void sendString(const char * x, size_t y)    {
+void sendString(const char * x, size_t y) {
     uart_rx_handled(); // TODO: Check if required
     uart_start_tx_string(x,y);
 }

@@ -151,7 +151,7 @@ void handle_timer_idle() {
                 set_screen_title("A+B single");
                 break;
             case INPUT_TYPE_A_or_B_multiple:
-                set_screen_title("A - B multi");
+                set_screen_title("A/B multi");
                 break;
         }
     } else {

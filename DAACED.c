@@ -1569,7 +1569,7 @@ void SetMode() {
 
 void SetClock() {
     NumberSelection_t ts;
-    uint8_t h = hours();
+    uint8_t h = hours24();
     uint8_t m = minutes();
     InitSettingsNumberDefaults((&ts));
     ts.min = 0;
@@ -1621,8 +1621,7 @@ void SetClockMode() {
         SelectInteger((&ts));
     } while (SettingsNotDone((&ts)));
     if (ts.selected) {
-        uint8_t h = hours();
-        set_time((is1224() ? h: h + 12), minutes(),  (ts.value == 12));
+        set_time(hours24(), minutes(),  (ts.value == 12));
     }
 }
 
@@ -1844,10 +1843,12 @@ void SetInput() {
 // <editor-fold defaultstate="collapsed" desc="BlueTooth">
 
 void init_bt(void) {
-    BT_off();
     if (Settings.AR_IS.BT) {
         init_uart();
         BT_init();
+    } else {
+        BT_off();
+        Delay(4200);
     }
 }
 
@@ -2022,6 +2023,7 @@ void handle_bt_commands(void) {
 void bt_not_in_use(void)
 {
 #endif
+    uint32_t _st = time_ms();
     int length = 0;
     if(! Settings.AR_IS.BT) return;
     sendShotsIfRequired();
@@ -2095,11 +2097,17 @@ void bt_not_in_use(void)
                 case BT_GetBatteryMV:
                     length = sprintf(msg, "%u,%u,%u,%u\n",
                             fg_get_rsoc(),
+                            fg_get_rsoh(),
                             fg_get_rcap(),
-                            fg_get_fcap(),
-                            fg_get_rsoh()
+                            fg_get_fcap()
                             );
                     sendString(msg, length);
+//                    length = sprintf(msg, "%d,%d,%d\n",
+//                            fg_get_curr(True),
+//                            fg_get_vcell(True),
+//                            fg_get_power(True)
+//                            );
+//                    sendString(msg, length);
                     break;
                 case BT_SetSensitivity:
                     bt_set_sens();
@@ -2116,6 +2124,10 @@ void bt_not_in_use(void)
     // Don't let the timer sleep if it's actively used remotely
     if (btc != BT_None)
         timer_idle_last_action_time = time_ms();
+    
+    uint32_t _ed = time_ms();
+    sprintf(msg, "%d", _ed - _st);
+    NOP();
 }
 
 // </editor-fold>
@@ -2690,15 +2702,18 @@ uint8_t print_title(TBool settings) {
     return SmallFont->height;
 }
 
+#define BATTERY_SIGN_BARS   (25)
+#define BATTERY_SIGN_START  (LCD_WIDTH - BATTERY_SIGN_BARS - 10)
 void print_batery_info() {
-    uint8_t col = LCD_WIDTH - 37;
-    uint8_t num_bars = number_of_battery_bars();
+    uint8_t col = BATTERY_SIGN_START;
+    int8_t rsoc = fg_get_rsoc();
+    uint8_t num_bars = (rsoc > 0)? rsoc * BATTERY_SIGN_BARS / 100 : 0;
 
     lcd_draw_bitmap(col, 0, &battery_left_bitmap);
     col = col + battery_left_bitmap.width_in_bits;
 
-    for (uint8_t i = 27; i > 0; i--) {
-        if (i < num_bars * 3) {
+    for (uint8_t i = BATTERY_SIGN_BARS; i > 0; i--) {
+        if (i <= num_bars) {
             lcd_draw_bitmap(col, 0, &battery_middle_full_bitmap);
             col += battery_middle_full_bitmap.width_in_bits;
         } else {
@@ -2709,9 +2724,10 @@ void print_batery_info() {
     lcd_draw_bitmap(col, 0, &battery_right_bitmap);
 }
 
+
 void print_bt_indication() {
     if (Settings.AR_IS.BT) {
-        lcd_draw_bitmap(LCD_WIDTH - 50, 0, &bt_bitmap_data);
+        lcd_draw_bitmap(BATTERY_SIGN_START - 1 - bt_bitmap_data.width_in_bits , 0, &bt_bitmap_data);
     } else {
         lcd_clear_block(
                 LCD_WIDTH - 50,
@@ -2848,8 +2864,8 @@ void BasicInit(){
 }
 
 void DoPowerOn() {
+    uint8_t vpos = UI_CHARGING_LBL_Y;
     lcd_set_contrast(Settings.ContrastValue);
-    lcd_write_string("Power ON", UI_CHARGING_LBL_X, UI_CHARGING_LBL_Y, SmallFont, BLACK_OVER_WHITE);
     set_backlight(0);
     ADC_init();
     // TODO: Review power on sequence
@@ -2866,6 +2882,12 @@ void DoPowerOn() {
     init_bt();
     LATEbits.LATE0 = 1; // Power ON 3v regulator
     set_backlight(Settings.BackLightLevel);
+    lcd_write_string("Power ON", UI_CHARGING_LBL_X, vpos, SmallFont, BLACK_OVER_WHITE);
+    sprintf(msg, "%07u   ", time_ms());
+    lcd_write_string(msg, UI_CHARGING_LBL_X, vpos + SmallFont->height, SmallFont, BLACK_OVER_WHITE);
+    while(Keypressed);
+    
+
     timer_idle_last_action_time = time_ms();
 }
 
@@ -2896,10 +2918,8 @@ void DoCharging() {
             return;
     }
     vpos = MidScreenLabel(msg);
+    print_batery_info();
 //    print_bat_stats(vpos);
-    sprintf(msg, "  %u%%  ", fg_get_rsoc());
-    lcd_write_string(msg, UI_CHARGING_LBL_X, vpos, MediumFont, BLACK_OVER_WHITE);
-    
 }
 // </editor-fold>
 

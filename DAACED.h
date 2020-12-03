@@ -190,7 +190,7 @@ const detection_setting_t detection_presets_defaults[NUM_SENS] = DETECTION_THRES
 detection_setting_t detection_presets[NUM_SENS] = DETECTION_THRESHOLD_DEFAULTS;
 
 // Should not be more than we can display in menu items
-#define MAXPAR MAXMenuItems - 3
+#define MAXPAR 10
 volatile uint8_t CurPar_idx = 0; //The par index
 volatile struct{
     unsigned ParNowCounting     : 1;

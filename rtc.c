@@ -102,6 +102,11 @@ uint8_t hours(void){
         return prdtdDateTime.hours._tens * 10 + prdtdDateTime.hours._units;
 }
 
+uint8_t hours24(void){
+    uint8_t h = hours();
+    return is1224()?(isAMPM()?h:h+12):h;
+}
+
 TBool is1224(void){
     return prcdControl.control1.b1224;
 }

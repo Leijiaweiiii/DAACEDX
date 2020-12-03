@@ -22,6 +22,7 @@ void initialize_rtc_timer(void);
 void set_time(uint8_t h, uint8_t m, TBool is24h);
 void read_time(void);
 uint8_t hours(void);
+uint8_t hours24(void);
 uint8_t minutes(void);
 TBool is1224(void);
 TBool isAMPM(void);
